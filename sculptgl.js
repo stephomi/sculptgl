@@ -19,7 +19,7 @@ function SculptGL()
   this.mesh_ = null; //the mesh
 
   //datas
-  this.textures_ = {}; //textures
+  this.textures_ = []; //textures
   this.shaders_ = {}; //shaders
   this.sphere_ = ''; //sphere
 
@@ -52,11 +52,10 @@ SculptGL.prototype = {
     });
     this.initEvents();
     this.initWebGL();
-    this.loadTextures();
     this.loadShaders();
     this.initGui();
     this.onWindowResize();
-    this.loadSphere();
+    this.loadTextures();
   },
 
   /** Initialize */
@@ -137,11 +136,26 @@ SculptGL.prototype = {
   /** Load textures (preload) */
   loadTextures: function ()
   {
-    var textures = this.textures_;
-    textures.material1 = new Image();
-    textures.material1.src = 'ressources/material1.jpg';
-    textures.material2 = new Image();
-    textures.material2.src = 'ressources/material2.jpg';
+    var mat1 = new Image();
+    var self = this;
+    mat1.onload = function ()
+    {
+      self.loadSphere();
+    };
+    mat1.src = 'ressources/clay.jpg';
+    var mat2 = new Image();
+    mat2.src = 'ressources/chavant.jpg';
+    var mat3 = new Image();
+    mat3.src = 'ressources/skin.jpg';
+    var mat4 = new Image();
+    mat4.src = 'ressources/drink.jpg';
+    var mat5 = new Image();
+    mat5.src = 'ressources/redvelvet.jpg';
+    var mat6 = new Image();
+    mat6.src = 'ressources/orange.jpg';
+    var mat7 = new Image();
+    mat7.src = 'ressources/bronze.jpg';
+    this.textures_.push(mat1, mat2, mat3, mat4, mat5, mat6, mat7);
   },
 
   /** Load shaders as a string */
@@ -233,18 +247,23 @@ SculptGL.prototype = {
     var foldMesh = gui.addFolder('Mesh');
     this.ctrlNbVertices_ = foldMesh.add(this, 'dummyFunc_').name('Ver : 0');
     this.ctrlNbTriangles_ = foldMesh.add(this, 'dummyFunc_').name('Tri : 0');
-    var optionsShaders = {
-      'Phong': Render.mode.PHONG,
-      'Wireframe (slow)': Render.mode.WIREFRAME,
-      'Transparency': Render.mode.TRANSPARENCY,
-      'Material 1': Render.mode.MATERIAL1,
-      'Material 2': Render.mode.MATERIAL2
-    };
     this.ctrlColor_ = foldMesh.addColor(new Render(), 'color_').name('Color');
     this.ctrlColor_.onChange(function ()
     {
       self.render();
     });
+    var optionsShaders = {
+      'Phong': Render.mode.PHONG,
+      'Wireframe (slow)': Render.mode.WIREFRAME,
+      'Transparency': Render.mode.TRANSPARENCY,
+      'Clay': Render.mode.MATERIAL,
+      'Chavant': Render.mode.MATERIAL + 1,
+      'Skin': Render.mode.MATERIAL + 2,
+      'Drink': Render.mode.MATERIAL + 3,
+      'Red velvet': Render.mode.MATERIAL + 4,
+      'Orange': Render.mode.MATERIAL + 5,
+      'Bronze': Render.mode.MATERIAL + 6
+    };
     this.ctrlShaders_ = foldMesh.add(new Render(), 'shaderType_', optionsShaders).name('Shader');
     this.ctrlShaders_.onChange(function (value)
     {
@@ -539,6 +558,7 @@ SculptGL.prototype = {
   endMeshLoad: function ()
   {
     var mesh = this.mesh_;
+    mesh.render_.shaderType_ = Render.mode.MATERIAL;
     mesh.initMesh(this.textures_, this.shaders_);
     mesh.moveTo([0, 0, 0]);
     var length = vec3.dist(mesh.octree_.aabbLoose_.max_, mesh.octree_.aabbLoose_.min_);

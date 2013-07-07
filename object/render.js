@@ -36,8 +36,7 @@ Render.mode = {
   PHONG: 0,
   TRANSPARENCY: 1,
   WIREFRAME: 2,
-  MATERIAL1: 3,
-  MATERIAL2: 4
+  MATERIAL: 3
 };
 
 Render.prototype = {
@@ -47,14 +46,8 @@ Render.prototype = {
     var gl = this.gl_;
     this.shaderType_ = shaderType;
     gl.deleteProgram(this.shaderProgram_);
-
-    if (this.shaderType_ === Render.mode.MATERIAL1 || this.shaderType_ === Render.mode.MATERIAL2)
-    {
-      if (this.shaderType_ === Render.mode.MATERIAL1)
-        this.reflectionLoc_ = this.loadTexture(gl, textures.material1);
-      else if (this.shaderType_ === Render.mode.MATERIAL2)
-        this.reflectionLoc_ = this.loadTexture(gl, textures.material2);
-    }
+    if (shaderType >= Render.mode.MATERIAL)
+      this.reflectionLoc_ = this.loadTexture(gl, textures[shaderType - Render.mode.MATERIAL]);
     this.initShaders(shaders);
   },
 
@@ -86,8 +79,7 @@ Render.prototype = {
     case Render.mode.TRANSPARENCY:
       this.loadShaders(shaders.transparencyVertex, shaders.transparencyFragment);
       break;
-    case Render.mode.MATERIAL1:
-    case Render.mode.MATERIAL2:
+    default:
       this.loadShaders(shaders.reflectionVertex, shaders.reflectionFragment);
       break;
     }
@@ -113,7 +105,7 @@ Render.prototype = {
 
     if (this.shaderType_ === Render.mode.TRANSPARENCY)
       this.lightPositionUnif_ = gl.getUniformLocation(shaderProgram, 'lightPos');
-    if (this.shaderType_ === Render.mode.MATERIAL1 || this.shaderType_ === Render.mode.MATERIAL2)
+    if (this.shaderType_ >= Render.mode.MATERIAL)
       this.reflectionTexUnif_ = gl.getUniformLocation(shaderProgram, 'refTex');
 
     gl.detachShader(shaderProgram, this.fragmentShader_);
@@ -200,12 +192,7 @@ Render.prototype = {
       gl.disable(gl.BLEND);
       gl.depthMask(true);
       break;
-    case Render.mode.MATERIAL1:
-    case Render.mode.MATERIAL2:
-      if (this.shaderType_ === Render.mode.MATERIAL1)
-        gl.uniform3fv(this.colorUnif_, vec3.scale([0, 0, 0], this.color_, -1 / 255));
-      else
-        gl.uniform3fv(this.colorUnif_, vec3.scale([0, 0, 0], this.color_, 1 / 255));
+    default:
       gl.activeTexture(gl.TEXTURE0);
       gl.bindTexture(gl.TEXTURE_2D, this.reflectionLoc_);
       gl.uniform1i(this.reflectionTexUnif_, 0);
