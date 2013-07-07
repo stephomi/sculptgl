@@ -21,6 +21,7 @@ function SculptGL()
   //datas
   this.textures_ = {}; //textures
   this.shaders_ = {}; //shaders
+  this.sphere_ = ''; //sphere
 
   //ui stuffs
   this.ctrlColor_ = null; //color controller
@@ -55,7 +56,7 @@ SculptGL.prototype = {
     this.loadShaders();
     this.initGui();
     this.onWindowResize();
-    this.resetSphere();
+    this.loadSphere();
   },
 
   /** Initialize */
@@ -162,6 +163,20 @@ SculptGL.prototype = {
     shaders.transparencyFragment = xhrShader('shaders/transparencyFragment.glsl');
     shaders.reflectionVertex = xhrShader('shaders/reflectionVertex.glsl');
     shaders.reflectionFragment = xhrShader('shaders/reflectionFragment.glsl');
+  },
+
+  /** Load the sphere */
+  loadSphere: function ()
+  {
+    var sphereXhr = new XMLHttpRequest();
+    sphereXhr.open('GET', 'ressources/sphere.obj', true);
+    var self = this;
+    sphereXhr.onload = function ()
+    {
+      self.sphere_ = this.responseText;
+      self.resetSphere();
+    };
+    sphereXhr.send(null);
   },
 
   /** Initialize dat-gui stuffs */
@@ -502,7 +517,7 @@ SculptGL.prototype = {
   resetSphere: function ()
   {
     this.startMeshLoad();
-    Files.loadOBJ(sphereOBJ, this.mesh_);
+    Files.loadOBJ(this.sphere_, this.mesh_);
     this.endMeshLoad();
   },
 
