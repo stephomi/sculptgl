@@ -1,0 +1,73 @@
+﻿<!doctype html>
+<html lang='en'>
+<head>
+  <meta charset='utf-8' />
+  <meta name='description' content='SculptGL is a small sculpting application powered by JavaScript and webGL.'>
+  <meta name='author' content='stéphane GINIER'>
+  <title> SculptGL - A WebGL sculpting app </title>
+  <link rel='stylesheet' href='css/style.css' type='text/css' />
+  <script src='http://code.jquery.com/jquery-1.10.1.min.js'></script>
+  <script src='lib/jquery.mousewheel.js'></script>
+  <script>
+  'use strict';
+  $(document).ready(function ()
+  {
+    var sculptgl = new SculptGL();
+    sculptgl.start();
+  });
+  </script>
+</head>
+<!--
+ ____             _       _    ____ _     
+/ ___|  ___ _   _| |_ __ | |_ / ___| |    
+\___ \ / __| | | | | '_ \| __| |  _| |    
+ ___) | (__| |_| | | |_) | |_| |_| | |___ 
+|____/ \___|\__,_|_| .__/ \__|\____|_____|
+                   |_|
+A tiny sculpting application. This is basically a port in JavaScript/WebGL 
+from a previous C++/OpenGL application that I made.
+
+Stéphane GINIER
+-->
+<body oncontextmenu='return false;'>
+  <input type='file' id='fileopen' style='display: none'/>
+  <canvas id='canvas'></canvas>
+
+  <!-- 3rd party libraries -->
+  <script src='http://cdnjs.cloudflare.com/ajax/libs/dat-gui/0.5/dat.gui.min.js' > </script>
+  <script src='lib/filesaver.min.js'></script>
+  <script src='lib/gl-matrix-min.js'></script>
+
+  <!-- 3D and math stuffs -->
+  <script src='math3d/camera.js'></script>
+  <script src='math3d/geometry.js'></script>
+  <script src='math3d/picking.js'></script>
+  <script src='math3d/grid.js'></script>
+
+  <!-- mesh related stuffs -->
+  <script src='object/mesh.js'></script>
+  <script src='object/aabb.js'></script>
+  <script src='object/triangle.js'></script>
+  <script src='object/vertex.js'></script>
+  <script src='object/octree.js'></script>
+  <script src='object/render.js'></script>
+  <script src='object/states.js'></script>
+
+  <!-- sculpting and topology stuffs -->
+  <script src='editor/sculpt.js'></script>
+  <script src='editor/topology.js'></script>
+  <script src='editor/subdivision.js'></script>
+  <script src='editor/decimation.js'></script>
+  <script src='editor/adaptive.js'></script>
+
+  <!-- misc -->
+  <script src='misc/files.js'></script>
+  <script src='misc/utils.js'></script>
+
+  <!-- ressources (models) -->
+  <script src='ressources/sphere.obj.js'></script>
+
+  <!-- main -->
+  <script src='sculptgl.js'></script>
+</body>
+</html>
