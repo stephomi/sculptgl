@@ -26,6 +26,8 @@ function SculptGL()
   //ui stuffs
   this.ctrlColor_ = null; //color controller
   this.ctrlShaders_ = null; //shaders controller
+  this.ctrlSculpt_ = null; //sculpt controller
+  this.ctrlNegative_ = null; //negative sculpting controller
   this.ctrlNbVertices_ = null; //display number of vertices controller
   this.ctrlNbTriangles_ = null; //display number of triangles controller
 
@@ -50,12 +52,12 @@ SculptGL.prototype = {
     {
       self.loadFile(event);
     });
-    this.initEvents();
     this.initWebGL();
     this.loadShaders();
     this.initGui();
     this.onWindowResize();
     this.loadTextures();
+    this.initEvents();
   },
 
   /** Initialize */
@@ -279,18 +281,18 @@ SculptGL.prototype = {
     //sculpt fold
     var foldSculpt = gui.addFolder('Sculpt');
     var optionsSculpt = {
-      'Brush': Sculpt.tool.BRUSH,
-      'Inflate': Sculpt.tool.INFLATE,
-      'Rotate': Sculpt.tool.ROTATE,
-      'Smooth': Sculpt.tool.SMOOTH,
-      'Flatten': Sculpt.tool.FLATTEN
+      'Brush (1)': Sculpt.tool.BRUSH,
+      'Inflate (2)': Sculpt.tool.INFLATE,
+      'Rotate (3)': Sculpt.tool.ROTATE,
+      'Smooth (4)': Sculpt.tool.SMOOTH,
+      'Flatten (5)': Sculpt.tool.FLATTEN
     };
-    var ctrlSculpt = foldSculpt.add(this.sculpt_, 'tool_', optionsSculpt).name('Tool');
-    ctrlSculpt.onChange(function (value)
+    this.ctrlSculpt_ = foldSculpt.add(this.sculpt_, 'tool_', optionsSculpt).name('Tool');
+    this.ctrlSculpt_.onChange(function (value)
     {
       self.sculpt_.tool_ = parseInt(value, 10);
     });
-    foldSculpt.add(this.sculpt_, 'negative_').name('Negative');
+    this.ctrlNegative_ = foldSculpt.add(this.sculpt_, 'negative_').name('Negative');
     foldSculpt.add(this.picking_, 'rDisplay_', 20, 200).name('Radius');
     foldSculpt.add(this.sculpt_, 'intensity_', 0, 1).name('Intensity');
     foldSculpt.open();
@@ -355,14 +357,50 @@ SculptGL.prototype = {
       this.onRedo();
       return;
     }
-    if (key === 37 || key === 81 || key === 65) //left q a
+    switch (key)
+    {
+    case 49: // 1
+    case 97: // NUMPAD 1
+      this.ctrlSculpt_.setValue(Sculpt.tool.BRUSH);
+      break;
+    case 50: // 2
+    case 98: // NUMPAD 2
+      this.ctrlSculpt_.setValue(Sculpt.tool.INFLATE);
+      break;
+    case 51: // 3
+    case 99: // NUMPAD 3
+      this.ctrlSculpt_.setValue(Sculpt.tool.ROTATE);
+      break;
+    case 52: // 4
+    case 100: // NUMPAD 4
+      this.ctrlSculpt_.setValue(Sculpt.tool.SMOOTH);
+      break;
+    case 53: // 5
+    case 101: // NUMPAD 5
+      this.ctrlSculpt_.setValue(Sculpt.tool.FLATTEN);
+      break;
+    case 78: // N
+      this.ctrlNegative_.setValue(!this.sculpt_.negative_);
+      break;
+    case 37: // LEFT
+    case 81: // Q
+    case 65: // A
       this.camera_.moveX_ = -1;
-    else if (key === 39 || key === 68) //right d
+      break;
+    case 39: // RIGHT
+    case 68: // D
       this.camera_.moveX_ = 1;
-    if (key === 38 || key === 90 || key === 87) //up z w
+      break;
+    case 38: // UP
+    case 90: // Z
+    case 87: // W
       this.camera_.moveZ_ = -1;
-    else if (key === 40 || key === 83) //down s
+      break;
+    case 40: // DOWN
+    case 83: // S
       this.camera_.moveZ_ = 1;
+      break;
+    }
     var self = this;
     if (this.cameraTimer_ === -1)
       this.cameraTimer_ = setInterval(function ()
@@ -377,10 +415,23 @@ SculptGL.prototype = {
   {
     event.stopPropagation();
     var key = event.which;
-    if (key === 37 || key === 81 || key === 65 || key === 39 || key === 68) //left q a right d
+    switch (key)
+    {
+    case 37: // LEFT
+    case 81: // Q
+    case 65: // A
+    case 39: // RIGHT
+    case 68: // D
       this.camera_.moveX_ = 0;
-    if (key === 38 || key === 90 || key === 87 || key === 40 || key === 83) //up z w down s
+      break;
+    case 38: // UP
+    case 90: // Z
+    case 87: // W
+    case 40: // DOWN
+    case 83: // S
       this.camera_.moveZ_ = 0;
+      break;
+    }
     if (this.cameraTimer_ !== -1 && this.camera_.moveX_ === 0 && this.camera_.moveZ_ === 0)
     {
       clearInterval(this.cameraTimer_);
