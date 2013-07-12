@@ -292,7 +292,7 @@ SculptGL.prototype = {
     {
       self.sculpt_.tool_ = parseInt(value, 10);
     });
-    this.ctrlNegative_ = foldSculpt.add(this.sculpt_, 'negative_').name('Negative');
+    this.ctrlNegative_ = foldSculpt.add(this.sculpt_, 'negative_').name('Negative (N)');
     foldSculpt.add(this.picking_, 'rDisplay_', 20, 200).name('Radius');
     foldSculpt.add(this.sculpt_, 'intensity_', 0, 1).name('Intensity');
     foldSculpt.open();
@@ -449,8 +449,6 @@ SculptGL.prototype = {
     this.mouseButton_ = event.which;
     var button = event.which;
     if (button === 1)
-      this.camera_.start(mouseX, mouseY);
-    else if (button === 3)
     {
       if (this.mesh_)
       {
@@ -459,6 +457,8 @@ SculptGL.prototype = {
           this.sculpt_.startRotate(this.picking_, mouseX, mouseY);
       }
     }
+    else if (button === 3)
+      this.camera_.start(mouseX, mouseY);
   },
 
   /** Mouse released event */
@@ -487,13 +487,9 @@ SculptGL.prototype = {
     event.preventDefault();
     var mouseX = event.pageX,
       mouseY = event.pageY;
-    if (this.mesh_ && this.mouseButton_ !== 3)
+    if (this.mesh_ && this.mouseButton_ !== 1)
       this.picking_.intersectionMouseMesh(this.mesh_, mouseX, mouseY);
     if (this.mouseButton_ === 1)
-      this.camera_.rotate(mouseX, mouseY);
-    else if (this.mouseButton_ === 2)
-      this.camera_.translate((mouseX - this.lastMouseX_) / 3000, (mouseY - this.lastMouseY_) / 3000);
-    else if (this.mouseButton_ === 3)
     {
       if (this.sculpt_.tool_ !== Sculpt.tool.ROTATE)
         this.sculptStroke(mouseX, mouseY);
@@ -506,6 +502,10 @@ SculptGL.prototype = {
       this.ctrlNbVertices_.name('Ver : ' + this.mesh_.vertices_.length);
       this.ctrlNbTriangles_.name('Tri : ' + this.mesh_.triangles_.length);
     }
+    else if (this.mouseButton_ === 3)
+      this.camera_.rotate(mouseX, mouseY);
+    else if (this.mouseButton_ === 2)
+      this.camera_.translate((mouseX - this.lastMouseX_) / 3000, (mouseY - this.lastMouseY_) / 3000);
     this.lastMouseX_ = mouseX;
     this.lastMouseY_ = mouseY;
     this.render();
