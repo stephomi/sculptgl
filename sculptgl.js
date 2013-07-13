@@ -346,6 +346,7 @@ SculptGL.prototype = {
   onKeyDown: function (event)
   {
     event.stopPropagation();
+    event.preventDefault();
     var key = event.which;
     if (event.ctrlKey && key === 90) //z key
     {
@@ -414,6 +415,7 @@ SculptGL.prototype = {
   onKeyUp: function (event)
   {
     event.stopPropagation();
+    event.preventDefault();
     var key = event.which;
     switch (key)
     {
