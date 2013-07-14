@@ -581,6 +581,7 @@ SculptGL.prototype = {
       self.startMeshLoad();
       Files.loadOBJ(evt.target.result, self.mesh_);
       self.endMeshLoad();
+      $('#fileopen').replaceWith($('#fileopen').clone(true));
     };
     reader.readAsText(file);
   },
