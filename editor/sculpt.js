@@ -9,6 +9,7 @@ function Sculpt(states)
   this.topo_ = Sculpt.topo.SUBDIVISION; //topological mode
   this.detail_ = 0.75; //intensity of details
   this.negative_ = false; //opposition deformation
+  this.culling_ = false; //if we backface cull the vertices
 
   this.d2Min_ = 0; //uniform refinement of mesh (min edge length)
   this.d2Max_ = 0; //uniform refinement of mesh (max edge length)
@@ -56,6 +57,7 @@ Sculpt.prototype = {
     var iVertsSelected = picking.pickedVertices_;
     var radiusSquared = picking.rWorldSqr_;
     var center = picking.interPoint_;
+    var eyeDir = picking.eyeDir_;
     var vertices = mesh.vertices_;
     var iTris = mesh.getTrianglesFromVertices(iVertsSelected);
 
@@ -84,30 +86,45 @@ Sculpt.prototype = {
 
     iVertsSelected = mesh.getVerticesFromTriangles(iTris);
     var nbVertsSelected = iVertsSelected.length;
-    var iVertsSculpt = [];
+    var iVertsInRadius = [];
+    var iVertsFront = [];
     var vertexSculptMask = Vertex.sculptMask_;
+    var nAr = mesh.normalArray_;
+    var eyeX = eyeDir[0],
+      eyeY = eyeDir[1],
+      eyeZ = eyeDir[2];
     for (var i = 0; i < nbVertsSelected; ++i)
     {
-      if (vertices[iVertsSelected[i]].sculptFlag_ === vertexSculptMask)
-        iVertsSculpt.push(iVertsSelected[i]);
+      var id = iVertsSelected[i];
+      if (vertices[id].sculptFlag_ === vertexSculptMask)
+      {
+        iVertsInRadius.push(id);
+        var j = id * 3;
+        if ((nAr[j] * eyeX + nAr[j + 1] * eyeY + nAr[j + 2] * eyeZ) <= 0)
+          iVertsFront.push(id);
+      }
     }
+
+    if (this.culling_)
+      iVertsInRadius = iVertsFront;
+
     switch (this.tool_)
     {
     case Sculpt.tool.BRUSH:
-      this.flatten(center, iVertsSculpt, radiusSquared, this.intensity_ * 0.5);
-      this.brush(center, iVertsSculpt, radiusSquared, this.intensity_);
+      this.flatten(center, iVertsInRadius, iVertsFront, radiusSquared, this.intensity_ * 0.5);
+      this.brush(center, iVertsInRadius, iVertsFront, radiusSquared, this.intensity_);
       break;
     case Sculpt.tool.INFLATE:
-      this.inflate(center, iVertsSculpt, radiusSquared, this.intensity_);
+      this.inflate(center, iVertsInRadius, radiusSquared, this.intensity_);
       break;
     case Sculpt.tool.ROTATE:
-      this.rotate(center, iVertsSculpt, radiusSquared, mouseX, mouseY, lastMouseX, lastMouseY);
+      this.rotate(center, iVertsInRadius, radiusSquared, mouseX, mouseY, lastMouseX, lastMouseY);
       break;
     case Sculpt.tool.SMOOTH:
-      this.smooth(iVertsSculpt, this.intensity_);
+      this.smooth(iVertsInRadius, this.intensity_);
       break;
     case Sculpt.tool.FLATTEN:
-      this.flatten(center, iVertsSculpt, radiusSquared, this.intensity_);
+      this.flatten(center, iVertsInRadius, iVertsFront, radiusSquared, this.intensity_);
       break;
     }
 
@@ -120,12 +137,12 @@ Sculpt.prototype = {
   },
 
   /** Brush stroke, move vertices along a direction computed by their averaging normals */
-  brush: function (center, iVerts, radiusSquared, intensity)
+  brush: function (center, iVertsInRadius, iVertsFront, radiusSquared, intensity)
   {
-    var aNormal = this.areaNormal(iVerts);
+    var aNormal = this.areaNormal(iVertsFront);
     var vAr = this.mesh_.vertexArray_;
     var radius = Math.sqrt(radiusSquared);
-    var nbVerts = iVerts.length;
+    var nbVerts = iVertsInRadius.length;
     var deformIntensity = intensity * radius * 0.1;
     if (this.topo_ === Sculpt.topo.ADAPTIVE)
       deformIntensity = Math.min(Math.sqrt(this.d2Move_), deformIntensity);
@@ -139,7 +156,7 @@ Sculpt.prototype = {
       anz = aNormal[2];
     for (var i = 0; i < nbVerts; ++i)
     {
-      var ind = iVerts[i] * 3;
+      var ind = iVertsInRadius[i] * 3;
       var dx = vAr[ind] - cx,
         dy = vAr[ind + 1] - cy,
         dz = vAr[ind + 2] - cz;
@@ -278,13 +295,13 @@ Sculpt.prototype = {
   },
 
   /** Flatten, projection of the sculpting vertex onto a plane defined by the barycenter and normals of all the sculpting vertices */
-  flatten: function (center, iVerts, radiusSquared, intensity)
+  flatten: function (center, iVertsInRadius, iVertsFront, radiusSquared, intensity)
   {
-    var aNormal = this.areaNormal(iVerts);
-    var aCenter = this.areaCenter(iVerts);
+    var aNormal = this.areaNormal(iVertsFront);
+    var aCenter = this.areaCenter(iVertsFront);
     var vAr = this.mesh_.vertexArray_;
     var radius = Math.sqrt(radiusSquared);
-    var nbVerts = iVerts.length;
+    var nbVerts = iVertsInRadius.length;
     var deformIntensity = intensity * 0.3;
     var cx = center[0],
       cy = center[1],
@@ -299,7 +316,7 @@ Sculpt.prototype = {
     var limitMove = this.topo_ === Sculpt.topo.ADAPTIVE;
     for (var i = 0; i < nbVerts; ++i)
     {
-      var ind = iVerts[i] * 3;
+      var ind = iVertsInRadius[i] * 3;
       var vx = vAr[ind],
         vy = vAr[ind + 1],
         vz = vAr[ind + 2];

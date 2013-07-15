@@ -9,6 +9,7 @@ function Picking(camera)
   this.rDisplay_ = 50; //radius of the selection area (screen unit)
   this.rWorldSqr_ = 0; //radius of the selection area (world unit)
   this.camera_ = camera; //the camera
+  this.eyeDir_ = [0, 0, 0]; //eye direction
 }
 
 Picking.prototype = {
@@ -22,6 +23,9 @@ Picking.prototype = {
     vec3.transformMat4(vNear, vNear, matInverse);
     vec3.transformMat4(vFar, vFar, matInverse);
     this.intersectionRayMesh(mesh, vNear, vFar, mouseX, mouseY);
+    var eyeDir = this.eyeDir_;
+    vec3.sub(eyeDir, vFar, vNear);
+    vec3.normalize(eyeDir, eyeDir);
   },
 
   /** Intersection between a ray and a mesh */

@@ -293,6 +293,7 @@ SculptGL.prototype = {
       self.sculpt_.tool_ = parseInt(value, 10);
     });
     this.ctrlNegative_ = foldSculpt.add(this.sculpt_, 'negative_').name('Negative (N)');
+    foldSculpt.add(this.sculpt_, 'culling_').name('Sculpt culling');
     foldSculpt.add(this.picking_, 'rDisplay_', 20, 200).name('Radius');
     foldSculpt.add(this.sculpt_, 'intensity_', 0, 1).name('Intensity');
     foldSculpt.open();
