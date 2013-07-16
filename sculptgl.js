@@ -110,9 +110,13 @@ SculptGL.prototype = {
   /** Load webgl context */
   initWebGL: function ()
   {
+    var attributes = {
+      antialias: false,
+      stencil: true
+    };
     try
     {
-      this.gl_ = $('#canvas')[0].getContext('webgl') || $('#canvas')[0].getContext('experimental-webgl');
+      this.gl_ = $('#canvas')[0].getContext('webgl', attributes) || $('#canvas')[0].getContext('experimental-webgl', attributes);
     }
     catch (e)
     {
