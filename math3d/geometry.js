@@ -184,3 +184,15 @@ Geometry.signedAngle2d = function (v1, v2)
     v2y = v2[1];
   return Math.atan2(v1x * v2y - v1y * v2x, v1x * v2x + v1y * v2y);
 };
+
+/** Distance from a vertex and a plane */
+Geometry.pointPlaneDistance = function (v, ptPlane, nPlane)
+{
+  return vec3.dot(vec3.sub([0, 0, 0], v, ptPlane), nPlane);
+};
+
+/** Mirror a vertex according to a plane */
+Geometry.mirrorPoint = function (v, ptPlane, nPlane)
+{
+  return vec3.sub(v, v, vec3.scale([0, 0, 0], nPlane, Geometry.pointPlaneDistance(v, ptPlane, nPlane) * 2));
+};

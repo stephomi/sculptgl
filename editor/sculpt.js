@@ -20,6 +20,10 @@ function Sculpt(states)
     normal: [0, 0, 0], //normal of rotation plane
     center2d: [0, 0] //2D center of rotation 
   };
+  this.rotateDataSym_ = {
+    normal: [0, 0, 0], //normal of rotation plane
+    center2d: [0, 0] //2D center of rotation 
+  };
 }
 
 //the sculpting tools
@@ -51,7 +55,7 @@ Sculpt.prototype = {
   },
 
   /** Sculpt the mesh */
-  sculptMesh: function (picking, mouseX, mouseY, lastMouseX, lastMouseY)
+  sculptMesh: function (picking, mouseX, mouseY, lastMouseX, lastMouseY, sym)
   {
     var mesh = this.mesh_;
     var iVertsSelected = picking.pickedVertices_;
@@ -118,7 +122,7 @@ Sculpt.prototype = {
       this.inflate(center, iVertsInRadius, radiusSquared, this.intensity_);
       break;
     case Sculpt.tool.ROTATE:
-      this.rotate(center, iVertsInRadius, radiusSquared, mouseX, mouseY, lastMouseX, lastMouseY);
+      this.rotate(center, iVertsInRadius, radiusSquared, mouseX, mouseY, lastMouseX, lastMouseY, sym);
       break;
     case Sculpt.tool.SMOOTH:
       this.smooth(iVertsInRadius, this.intensity_);
@@ -199,31 +203,46 @@ Sculpt.prototype = {
   },
 
   /** Start a rotate sculpt session */
-  startRotate: function (picking, mouseX, mouseY)
+  startRotate: function (picking, mouseX, mouseY, pickingSym, ptPlane, nPlane)
   {
     var rotateData = this.rotateData_;
-    var mesh = this.mesh_;
     var vNear = Geometry.point2Dto3D(picking.camera_, mouseX, mouseY, 0),
       vFar = Geometry.point2Dto3D(picking.camera_, mouseX, mouseY, 1);
     var matInverse = mat4.create();
-    mat4.invert(matInverse, mesh.matTransform_);
+    mat4.invert(matInverse, this.mesh_.matTransform_);
     vec3.transformMat4(vNear, vNear, matInverse);
     vec3.transformMat4(vFar, vFar, matInverse);
-    picking.intersectionRayMesh(mesh, vNear, vFar, mouseX, mouseY);
+    this.initRotateData(picking, vNear, vFar, mouseX, mouseY, this.rotateData_);
+    if (pickingSym)
+    {
+      var vNearSym = [vNear[0], vNear[1], vNear[2]];
+      Geometry.mirrorPoint(vNearSym, ptPlane, nPlane);
+      var vFarSym = [vFar[0], vFar[1], vFar[2]];
+      Geometry.mirrorPoint(vFarSym, ptPlane, nPlane);
+      this.initRotateData(pickingSym, vNearSym, vFarSym, mouseX, mouseY, this.rotateDataSym_);
+      pickingSym.rWorldSqr_ = picking.rWorldSqr_;
+    }
+  },
+
+  /** Set a few infos that will be needed for the rotate function afterwards */
+  initRotateData: function (picking, vNear, vFar, mouseX, mouseY, rotateData)
+  {
+    picking.intersectionRayMesh(this.mesh_, vNear, vFar, mouseX, mouseY);
     if (!picking.mesh_)
       return;
     picking.pickVerticesInSphere(picking.rWorldSqr_);
     var ray = [0, 0, 0];
     vec3.sub(ray, vNear, vFar);
-    vec3.normalize(ray, ray);
-    rotateData.normal = ray;
+    rotateData.normal = vec3.normalize(ray, ray);
     rotateData.center2d = [mouseX, mouseY];
   },
 
   /** Rotate the vertices around the mouse point intersection */
-  rotate: function (center, iVerts, radiusSquared, mouseX, mouseY, lastMouseX, lastMouseY)
+  rotate: function (center, iVerts, radiusSquared, mouseX, mouseY, lastMouseX, lastMouseY, sym)
   {
     var rotateData = this.rotateData_;
+    if (sym)
+      rotateData = this.rotateDataSym_;
     var mouseCenter = rotateData.center2d;
     var vecMouse = [mouseX - mouseCenter[0], mouseY - mouseCenter[1]];
     if (vec2.len(vecMouse) < 30)

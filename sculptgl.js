@@ -11,10 +11,16 @@ function SculptGL()
   this.mouseButton_ = 0; //which mouse button is pressed
   this.cameraTimer_ = -1; //interval id
 
+  //symmetry stuffs
+  this.symmetry_ = false; //if symmetric sculpting is enabled
+  this.ptPlane_ = [0, 0, 0]; //point origin of the plane symmetry
+  this.nPlane_ = [1, 0, 0]; //normal of plane symmetry
+
   //core of the app
   this.states_ = new States(); //for undo-redo
   this.camera_ = new Camera(); //the camera
   this.picking_ = new Picking(this.camera_); //the ray picking
+  this.pickingSym_ = new Picking(this.camera_); //the symmetrical picking
   this.sculpt_ = new Sculpt(this.states_); //sculpting management
   this.mesh_ = null; //the mesh
 
@@ -293,6 +299,7 @@ SculptGL.prototype = {
       self.sculpt_.tool_ = parseInt(value, 10);
     });
     this.ctrlNegative_ = foldSculpt.add(this.sculpt_, 'negative_').name('Negative (N)');
+    foldSculpt.add(this, 'symmetry_').name('Symmetry');
     foldSculpt.add(this.sculpt_, 'culling_').name('Sculpt culling');
     foldSculpt.add(this.picking_, 'rDisplay_', 20, 200).name('Radius');
     foldSculpt.add(this.sculpt_, 'intensity_', 0, 1).name('Intensity');
@@ -457,7 +464,12 @@ SculptGL.prototype = {
       {
         this.states_.start();
         if (this.sculpt_.tool_ === Sculpt.tool.ROTATE)
-          this.sculpt_.startRotate(this.picking_, mouseX, mouseY);
+        {
+          if (this.symmetry_)
+            this.sculpt_.startRotate(this.picking_, mouseX, mouseY, this.pickingSym_, this.ptPlane_, this.nPlane_);
+          else
+            this.sculpt_.startRotate(this.picking_, mouseX, mouseY);
+        }
       }
     }
     else if (button === 3)
@@ -500,6 +512,11 @@ SculptGL.prototype = {
       {
         this.picking_.pickVerticesInSphere(this.picking_.rWorldSqr_);
         this.sculpt_.sculptMesh(this.picking_, mouseX, mouseY, this.lastMouseX_, this.lastMouseY_);
+        if (this.symmetry_)
+        {
+          this.pickingSym_.pickVerticesInSphere(this.pickingSym_.rWorldSqr_);
+          this.sculpt_.sculptMesh(this.pickingSym_, this.lastMouseX_, this.lastMouseY_, mouseX, mouseY, true);
+        }
       }
       this.mesh_.updateBuffers();
       this.ctrlNbVertices_.name('Ver : ' + this.mesh_.vertices_.length);
@@ -517,7 +534,10 @@ SculptGL.prototype = {
   /** Make a brush stroke */
   sculptStroke: function (mouseX, mouseY)
   {
-    var picking = this.picking_;
+    var ptPlane = this.ptPlane_,
+      nPlane = this.nPlane_;
+    var picking = this.picking_,
+      pickingSym = this.pickingSym_;
     var dx = mouseX - this.lastMouseX_,
       dy = mouseY - this.lastMouseY_;
     var dist = Math.sqrt(dx * dx + dy * dy);
@@ -528,6 +548,9 @@ SculptGL.prototype = {
     dy /= dist;
     mouseX = this.lastMouseX_;
     mouseY = this.lastMouseY_;
+    var mesh = this.mesh_;
+    var sym = this.symmetry_;
+    var sculpt = this.sculpt_;
     if (this.sumDisplacement_ > minSpacing * 50.0)
       this.sumDisplacement_ = 0;
     else if (this.sumDisplacement_ > minSpacing)
@@ -535,11 +558,20 @@ SculptGL.prototype = {
       this.sumDisplacement_ = 0;
       for (var i = 0; i < dist; i += step)
       {
-        picking.intersectionMouseMesh(this.mesh_, mouseX, mouseY);
+        picking.intersectionMouseMesh(mesh, mouseX, mouseY);
         if (!picking.mesh_)
           break;
         picking.pickVerticesInSphere(picking.rWorldSqr_);
-        this.sculpt_.sculptMesh(picking);
+        sculpt.sculptMesh(picking);
+        if (sym)
+        {
+          pickingSym.intersectionMouseMesh(mesh, mouseX, mouseY, ptPlane, nPlane);
+          if (!pickingSym.mesh_)
+            break;
+          pickingSym.rWorldSqr_ = picking.rWorldSqr_;
+          pickingSym.pickVerticesInSphere(pickingSym.rWorldSqr_);
+          sculpt.sculptMesh(pickingSym);
+        }
         mouseX += dx * step;
         mouseY += dy * step;
       }

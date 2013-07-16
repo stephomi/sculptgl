@@ -14,7 +14,7 @@ function Picking(camera)
 
 Picking.prototype = {
   /** Intersection between a ray the mouse position */
-  intersectionMouseMesh: function (mesh, mouseX, mouseY)
+  intersectionMouseMesh: function (mesh, mouseX, mouseY, ptPlane, nPlane)
   {
     var vNear = Geometry.point2Dto3D(this.camera_, mouseX, mouseY, 0),
       vFar = Geometry.point2Dto3D(this.camera_, mouseX, mouseY, 1);
@@ -22,6 +22,11 @@ Picking.prototype = {
     mat4.invert(matInverse, mesh.matTransform_);
     vec3.transformMat4(vNear, vNear, matInverse);
     vec3.transformMat4(vFar, vFar, matInverse);
+    if (ptPlane)
+    {
+      Geometry.mirrorPoint(vNear, ptPlane, nPlane);
+      Geometry.mirrorPoint(vFar, ptPlane, nPlane);
+    }
     this.intersectionRayMesh(mesh, vNear, vFar, mouseX, mouseY);
     var eyeDir = this.eyeDir_;
     vec3.sub(eyeDir, vFar, vNear);
