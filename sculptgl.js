@@ -50,6 +50,16 @@ SculptGL.elementIndexType = 0; //element index type (ushort or uint)
 SculptGL.indexArrayType = Uint16Array; //typed array for index element (uint16Array or uint32Array)
 
 SculptGL.prototype = {
+  _antialias: true,
+  get antialias () {
+    return this._antialias;
+  },
+  set antialias (value) {
+    if (this._antialias !== value) {
+      this._antialias = value;
+      this.initWebGL();
+    }
+  },
   /** Initialization */
   start: function ()
   {
@@ -110,9 +120,11 @@ SculptGL.prototype = {
   /** Load webgl context */
   initWebGL: function ()
   {
+    var attributes = {'antialias':this.antialias};
+    // console.log( attributes );
     try
     {
-      this.gl_ = $('#canvas')[0].getContext('webgl') || $('#canvas')[0].getContext('experimental-webgl');
+      this.gl_ = $('#canvas')[0].getContext('webgl',attributes) || $('#canvas')[0].getContext('experimental-webgl',attributes);
     }
     catch (e)
     {
@@ -206,7 +218,7 @@ SculptGL.prototype = {
   {
     var guiGeneral = new dat.GUI();
     guiGeneral.domElement.style.position = 'absolute';
-    guiGeneral.domElement.style.height = '300px';
+    guiGeneral.domElement.style.height = '400px';
     this.initGeneralGui(guiGeneral);
 
     var guiEditing = new dat.GUI();
@@ -217,6 +229,11 @@ SculptGL.prototype = {
   initGeneralGui: function (gui)
   {
     var self = this;
+
+    //settings
+    var foldSettings = gui.addFolder('Settings');
+    foldSettings.add(this, 'antialias').name('Antialias');
+    foldSettings.open();
 
     //file fold
     var foldFiles = gui.addFolder('Files (import/export)');
