@@ -109,27 +109,31 @@ Sculpt.prototype = {
       }
     }
 
-    if (this.culling_)
-      iVertsInRadius = iVertsFront;
-
-    switch (this.tool_)
+    //no sculpting if we are only picking back-facing vertices
+    if (iVertsFront.length !== 0)
     {
-    case Sculpt.tool.BRUSH:
-      this.flatten(center, iVertsInRadius, iVertsFront, radiusSquared, this.intensity_ * 0.5);
-      this.brush(center, iVertsInRadius, iVertsFront, radiusSquared, this.intensity_);
-      break;
-    case Sculpt.tool.INFLATE:
-      this.inflate(center, iVertsInRadius, radiusSquared, this.intensity_);
-      break;
-    case Sculpt.tool.ROTATE:
-      this.rotate(center, iVertsInRadius, radiusSquared, mouseX, mouseY, lastMouseX, lastMouseY, sym);
-      break;
-    case Sculpt.tool.SMOOTH:
-      this.smooth(iVertsInRadius, this.intensity_);
-      break;
-    case Sculpt.tool.FLATTEN:
-      this.flatten(center, iVertsInRadius, iVertsFront, radiusSquared, this.intensity_);
-      break;
+      if (this.culling_)
+        iVertsInRadius = iVertsFront;
+
+      switch (this.tool_)
+      {
+      case Sculpt.tool.BRUSH:
+        this.flatten(center, iVertsInRadius, iVertsFront, radiusSquared, this.intensity_ * 0.5);
+        this.brush(center, iVertsInRadius, iVertsFront, radiusSquared, this.intensity_);
+        break;
+      case Sculpt.tool.INFLATE:
+        this.inflate(center, iVertsInRadius, radiusSquared, this.intensity_);
+        break;
+      case Sculpt.tool.ROTATE:
+        this.rotate(center, iVertsInRadius, radiusSquared, mouseX, mouseY, lastMouseX, lastMouseY, sym);
+        break;
+      case Sculpt.tool.SMOOTH:
+        this.smooth(iVertsInRadius, this.intensity_);
+        break;
+      case Sculpt.tool.FLATTEN:
+        this.flatten(center, iVertsInRadius, iVertsFront, radiusSquared, this.intensity_);
+        break;
+      }
     }
 
     if (this.topo_ === Sculpt.topo.ADAPTIVE)
@@ -144,6 +148,8 @@ Sculpt.prototype = {
   brush: function (center, iVertsInRadius, iVertsFront, radiusSquared, intensity)
   {
     var aNormal = this.areaNormal(iVertsFront);
+    if (!aNormal)
+      return;
     var vAr = this.mesh_.vertexArray_;
     var radius = Math.sqrt(radiusSquared);
     var nbVerts = iVertsInRadius.length;
@@ -317,6 +323,8 @@ Sculpt.prototype = {
   flatten: function (center, iVertsInRadius, iVertsFront, radiusSquared, intensity)
   {
     var aNormal = this.areaNormal(iVertsFront);
+    if (!aNormal)
+      return;
     var aCenter = this.areaCenter(iVertsFront);
     var vAr = this.mesh_.vertexArray_;
     var radius = Math.sqrt(radiusSquared);
@@ -454,7 +462,10 @@ Sculpt.prototype = {
       any += nAr[ind + 1];
       anz += nAr[ind + 2];
     }
-    var len = 1 / Math.sqrt(anx * anx + any * any + anz * anz);
+    var len = Math.sqrt(anx * anx + any * any + anz * anz);
+    if (len === 0)
+      return null;
+    len = 1 / len;
     return [anx * len, any * len, anz * len];
   },
 
