@@ -295,7 +295,9 @@ SculptGL.prototype = {
       'Inflate (2)': Sculpt.tool.INFLATE,
       'Rotate (3)': Sculpt.tool.ROTATE,
       'Smooth (4)': Sculpt.tool.SMOOTH,
-      'Flatten (5)': Sculpt.tool.FLATTEN
+      'Flatten (5)': Sculpt.tool.FLATTEN,
+      'Pinch (6)': Sculpt.tool.PINCH,
+      'Crease (7)': Sculpt.tool.CREASE
     };
     this.ctrlSculpt_ = foldSculpt.add(this.sculpt_, 'tool_', optionsSculpt).name('Tool');
     this.ctrlSculpt_.onChange(function (value)
@@ -391,6 +393,14 @@ SculptGL.prototype = {
     case 53: // 5
     case 101: // NUMPAD 5
       this.ctrlSculpt_.setValue(Sculpt.tool.FLATTEN);
+      break;
+    case 54: // 6
+    case 102: // NUMPAD 6
+      this.ctrlSculpt_.setValue(Sculpt.tool.PINCH);
+      break;
+    case 55: // 7
+    case 103: // NUMPAD 7
+      this.ctrlSculpt_.setValue(Sculpt.tool.CREASE);
       break;
     case 78: // N
       this.ctrlNegative_.setValue(!this.sculpt_.negative_);

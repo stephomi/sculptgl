@@ -32,7 +32,9 @@ Sculpt.tool = {
   INFLATE: 1,
   ROTATE: 2,
   SMOOTH: 3,
-  FLATTEN: 4
+  FLATTEN: 4,
+  PINCH: 5,
+  CREASE: 6
 };
 
 //the topological tools
@@ -133,6 +135,12 @@ Sculpt.prototype = {
       case Sculpt.tool.FLATTEN:
         this.flatten(center, iVertsInRadius, iVertsFront, radiusSquared, this.intensity_);
         break;
+      case Sculpt.tool.PINCH:
+        this.pinch(center, iVertsInRadius, radiusSquared, this.intensity_);
+        break;
+      case Sculpt.tool.CREASE:
+        this.crease(center, iVertsInRadius, iVertsFront, radiusSquared, this.intensity_);
+        break;
       }
     }
 
@@ -172,9 +180,10 @@ Sculpt.prototype = {
         dz = vAr[ind + 2] - cz;
       var dist = Math.sqrt(dx * dx + dy * dy + dz * dz) / radius;
       var fallOff = 3 * dist * dist * dist * dist - 4 * dist * dist * dist + 1;
-      vAr[ind] += anx * deformIntensity * fallOff;
-      vAr[ind + 1] += any * deformIntensity * fallOff;
-      vAr[ind + 2] += anz * deformIntensity * fallOff;
+      fallOff = deformIntensity * fallOff;
+      vAr[ind] += anx * fallOff;
+      vAr[ind + 1] += any * fallOff;
+      vAr[ind + 2] += anz * fallOff;
     }
   },
 
@@ -202,9 +211,10 @@ Sculpt.prototype = {
         dz = vAr[ind + 2] - cz;
       var dist = Math.sqrt(dx * dx + dy * dy + dz * dz) / radius;
       var fallOff = 3 * dist * dist * dist * dist - 4 * dist * dist * dist + 1;
-      vAr[ind] += nAr[ind] * deformIntensity * fallOff;
-      vAr[ind + 1] += nAr[ind + 1] * deformIntensity * fallOff;
-      vAr[ind + 2] += nAr[ind + 2] * deformIntensity * fallOff;
+      fallOff = deformIntensity * fallOff;
+      vAr[ind] += nAr[ind] * fallOff;
+      vAr[ind + 1] += nAr[ind + 1] * fallOff;
+      vAr[ind + 2] += nAr[ind + 2] * fallOff;
     }
   },
 
@@ -307,10 +317,10 @@ Sculpt.prototype = {
         var len = dx * dx + dy * dy + dz * dz;
         if (len > d2Move)
         {
-          len = Math.sqrt(len);
-          dx = dx / len * dMove;
-          dy = dy / len * dMove;
-          dz = dz / len * dMove;
+          len = dMove / Math.sqrt(len);
+          dx *= len;
+          dy *= len;
+          dz *= len;
         }
       }
       vAr[ind] += dx;
@@ -360,6 +370,93 @@ Sculpt.prototype = {
       vAr[ind] -= anx * fallOff;
       vAr[ind + 1] -= any * fallOff;
       vAr[ind + 2] -= anz * fallOff;
+    }
+  },
+
+  /** Pinch, vertices gather around intersection point */
+  pinch: function (center, iVertsInRadius, radiusSquared, intensity)
+  {
+    var vAr = this.mesh_.vertexArray_;
+    var radius = Math.sqrt(radiusSquared);
+    var nbVerts = iVertsInRadius.length;
+    var cx = center[0],
+      cy = center[1],
+      cz = center[2];
+    var dMove = Math.sqrt(this.d2Move_);
+    var limitMove = this.topo_ === Sculpt.topo.ADAPTIVE;
+    var deformIntensity = intensity * 0.05;
+    for (var i = 0; i < nbVerts; ++i)
+    {
+      var ind = iVertsInRadius[i] * 3;
+      var vx = vAr[ind],
+        vy = vAr[ind + 1],
+        vz = vAr[ind + 2];
+      var dx = vx - cx,
+        dy = vy - cy,
+        dz = vz - cz;
+      var distToCen = Math.sqrt(dx * dx + dy * dy + dz * dz) / radius;
+      var fallOff = 3 * distToCen * distToCen * distToCen * distToCen - 4 * distToCen * distToCen * distToCen + 1;
+      if (limitMove)
+        fallOff = Math.min(dMove, deformIntensity * fallOff);
+      else
+        fallOff = deformIntensity * fallOff;
+      vAr[ind] += (cx - vx) * fallOff;
+      vAr[ind + 1] += (cy - vy) * fallOff;
+      vAr[ind + 2] += (cz - vz) * fallOff;
+    }
+  },
+
+  /** Pinch+brush-like sculpt */
+  crease: function (center, iVertsInRadius, iVertsFront, radiusSquared, intensity)
+  {
+    var aNormal = this.areaNormal(iVertsFront);
+    if (!aNormal)
+      return;
+    var vAr = this.mesh_.vertexArray_;
+    var radius = Math.sqrt(radiusSquared);
+    var nbVerts = iVertsInRadius.length;
+    var cx = center[0],
+      cy = center[1],
+      cz = center[2];
+    var anx = aNormal[0],
+      any = aNormal[1],
+      anz = aNormal[2];
+    var dMove = Math.sqrt(this.d2Move_);
+    var limitMove = this.topo_ === Sculpt.topo.ADAPTIVE;
+    var deformIntensity = intensity * 0.05;
+    var brushFactor = 5000;
+    if (this.negative_)
+      brushFactor = -5000;
+    for (var i = 0; i < nbVerts; ++i)
+    {
+      var ind = iVertsInRadius[i] * 3;
+      var vx = vAr[ind],
+        vy = vAr[ind + 1],
+        vz = vAr[ind + 2];
+      var dx = vx - cx,
+        dy = vy - cy,
+        dz = vz - cz;
+      var distToCen = Math.sqrt(dx * dx + dy * dy + dz * dz) / radius;
+      var fallOff = 3 * distToCen * distToCen * distToCen * distToCen - 4 * distToCen * distToCen * distToCen + 1;
+      fallOff = deformIntensity * fallOff;
+      var brushModifier = brushFactor * fallOff * fallOff;
+      dx = (cx - vx + anx * brushModifier) * fallOff;
+      dy = (cy - vy + any * brushModifier) * fallOff;
+      dz = (cz - vz + anz * brushModifier) * fallOff;
+      if (limitMove)
+      {
+        var len = dx * dx + dy * dy + dz * dz;
+        if (len > d2Move)
+        {
+          len = dMove / Math.sqrt(len);
+          dx *= len;
+          dy *= len;
+          dz *= len;
+        }
+      }
+      vAr[ind] += dx;
+      vAr[ind + 1] += dy;
+      vAr[ind + 2] += dz;
     }
   },
 
