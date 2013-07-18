@@ -51,6 +51,20 @@ Tools.intersectionArrays = function (a, b)
 	return result;
 };
 
+var Tablet = {};
+
+/** wacom tablet plugin element **/
+Tablet.plugin = document.querySelector('object[type=\'application/x-wacomtabletplugin\']');
+
+/** Returns the pressure of pen: [0, 1] **/
+Tablet.pressure = function ()
+{
+	var pen;
+	if (Tablet.plugin)
+		pen = Tablet.plugin.penAPI;
+	return (pen && pen.pointerType)? pen.pressure : 1;
+};
+
 /** endsWith function */
 if (typeof String.prototype.endsWith !== 'function')
 {
