@@ -516,12 +516,13 @@ SculptGL.prototype = {
     event.preventDefault();
     var mouseX = event.pageX,
       mouseY = event.pageY;
+    var pressure = Tablet.pressure();
     if (this.mesh_ && this.mouseButton_ !== 1)
-      this.picking_.intersectionMouseMesh(this.mesh_, mouseX, mouseY);
+      this.picking_.intersectionMouseMesh(this.mesh_, mouseX, mouseY, pressure);
     if (this.mouseButton_ === 1)
     {
       if (this.sculpt_.tool_ !== Sculpt.tool.ROTATE)
-        this.sculptStroke(mouseX, mouseY);
+        this.sculptStroke(mouseX, mouseY, pressure);
       else if (this.picking_.mesh_)
       {
         this.picking_.pickVerticesInSphere(this.picking_.rWorldSqr_);
@@ -546,7 +547,7 @@ SculptGL.prototype = {
   },
 
   /** Make a brush stroke */
-  sculptStroke: function (mouseX, mouseY)
+  sculptStroke: function (mouseX, mouseY, pressure)
   {
     var ptPlane = this.ptPlane_,
       nPlane = this.nPlane_;
@@ -572,14 +573,14 @@ SculptGL.prototype = {
       this.sumDisplacement_ = 0;
       for (var i = 0; i < dist; i += step)
       {
-        picking.intersectionMouseMesh(mesh, mouseX, mouseY);
+        picking.intersectionMouseMesh(mesh, mouseX, mouseY, pressure);
         if (!picking.mesh_)
           break;
         picking.pickVerticesInSphere(picking.rWorldSqr_);
         sculpt.sculptMesh(picking);
         if (sym)
         {
-          pickingSym.intersectionMouseMesh(mesh, mouseX, mouseY, ptPlane, nPlane);
+          pickingSym.intersectionMouseMesh(mesh, mouseX, mouseY, pressure, ptPlane, nPlane);
           if (!pickingSym.mesh_)
             break;
           pickingSym.rWorldSqr_ = picking.rWorldSqr_;
