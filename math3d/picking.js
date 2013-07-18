@@ -14,7 +14,7 @@ function Picking(camera)
 
 Picking.prototype = {
   /** Intersection between a ray the mouse position */
-  intersectionMouseMesh: function (mesh, mouseX, mouseY, ptPlane, nPlane)
+  intersectionMouseMesh: function (mesh, mouseX, mouseY, pressure, ptPlane, nPlane)
   {
     var vNear = Geometry.point2Dto3D(this.camera_, mouseX, mouseY, 0),
       vFar = Geometry.point2Dto3D(this.camera_, mouseX, mouseY, 1);
@@ -27,14 +27,14 @@ Picking.prototype = {
       Geometry.mirrorPoint(vNear, ptPlane, nPlane);
       Geometry.mirrorPoint(vFar, ptPlane, nPlane);
     }
-    this.intersectionRayMesh(mesh, vNear, vFar, mouseX, mouseY);
+    this.intersectionRayMesh(mesh, vNear, vFar, mouseX, mouseY, pressure);
     var eyeDir = this.eyeDir_;
     vec3.sub(eyeDir, vFar, vNear);
     vec3.normalize(eyeDir, eyeDir);
   },
 
   /** Intersection between a ray and a mesh */
-  intersectionRayMesh: function (mesh, vNear, vFar, mouseX, mouseY)
+  intersectionRayMesh: function (mesh, vNear, vFar, mouseX, mouseY, pressure)
   {
     this.mesh_ = null;
     this.pickedTriangle_ = -1;
@@ -79,7 +79,7 @@ Picking.prototype = {
       var interPointTransformed = [0, 0, 0];
       vec3.transformMat4(interPointTransformed, this.interPoint_, this.mesh_.matTransform_);
       var z = Geometry.point3Dto2D(this.camera_, interPointTransformed)[2];
-      var vCircle = Geometry.point2Dto3D(this.camera_, mouseX + this.rDisplay_, mouseY, z);
+      var vCircle = Geometry.point2Dto3D(this.camera_, mouseX + (this.rDisplay_ * pressure), mouseY, z);
       this.rWorldSqr_ = vec3.sqrDist(interPointTransformed, vCircle);
     }
     else

@@ -16,3 +16,8 @@ html, body{
   width: 100%;
   display: block;
 }
+
+#tablet-plugin {
+  position: absolute;
+  top: -1000px;
+}
