@@ -84,12 +84,13 @@ Files.exportOBJ = function (mesh)
   var data = 's 0\n';
   var nbVertices = mesh.vertices_.length;
   var nbTriangles = mesh.triangles_.length;
+  var scale = 1 / mesh.scale_;
   var i = 0,
     j = 0;
   for (i = 0; i < nbVertices; ++i)
   {
     j = i * 3;
-    data += 'v ' + vAr[j] + ' ' + vAr[j + 1] + ' ' + vAr[j + 2] + '\n';
+    data += 'v ' + vAr[j] * scale + ' ' + vAr[j + 1] * scale + ' ' + vAr[j + 2] * scale + '\n';
   }
   for (i = 0; i < nbTriangles; ++i)
   {

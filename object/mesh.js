@@ -14,6 +14,7 @@ function Mesh(gl)
   this.matTransform_ = mat4.create(); //transformation matrix of the mesh
   this.leavesUpdate_ = []; //leaves of the octree to check
   this.render_ = new Render(gl); //the mesh renderer
+  this.scale_ = 1; //use for export in order to keep the same scale as import...
 }
 
 Mesh.globalScale_ = 500; //for precision issue...
@@ -240,7 +241,8 @@ Mesh.prototype = {
 
     //scale
     var diag = vec3.dist(aabb.min_, aabb.max_);
-    var scale = Mesh.globalScale_ / diag;
+    this.scale_ = Mesh.globalScale_ / diag;
+    var scale = this.scale_;
     for (i = 0; i < nbVertices; ++i)
     {
       j = i * 3;
