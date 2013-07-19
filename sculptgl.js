@@ -212,7 +212,7 @@ SculptGL.prototype = {
   {
     var guiGeneral = new dat.GUI();
     guiGeneral.domElement.style.position = 'absolute';
-    guiGeneral.domElement.style.height = '300px';
+    guiGeneral.domElement.style.height = '500px';
     this.initGeneralGui(guiGeneral);
 
     var guiEditing = new dat.GUI();
