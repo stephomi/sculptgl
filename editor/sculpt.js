@@ -57,7 +57,7 @@ Sculpt.prototype = {
   },
 
   /** Sculpt the mesh */
-  sculptMesh: function (picking, mouseX, mouseY, lastMouseX, lastMouseY, sym)
+  sculptMesh: function (picking, pressureIntensity, mouseX, mouseY, lastMouseX, lastMouseY, sym)
   {
     var mesh = this.mesh_;
     var iVertsSelected = picking.pickedVertices_;
@@ -66,6 +66,7 @@ Sculpt.prototype = {
     var eyeDir = picking.eyeDir_;
     var vertices = mesh.vertices_;
     var iTris = mesh.getTrianglesFromVertices(iVertsSelected);
+    var intensity = this.intensity_ * pressureIntensity;
 
     //undo-redo
     this.states_.pushState(iTris, iVertsSelected);
@@ -120,26 +121,26 @@ Sculpt.prototype = {
       switch (this.tool_)
       {
       case Sculpt.tool.BRUSH:
-        this.flatten(center, iVertsInRadius, iVertsFront, radiusSquared, this.intensity_ * 0.5);
-        this.brush(center, iVertsInRadius, iVertsFront, radiusSquared, this.intensity_);
+        this.flatten(center, iVertsInRadius, iVertsFront, radiusSquared, intensity * 0.5);
+        this.brush(center, iVertsInRadius, iVertsFront, radiusSquared, intensity);
         break;
       case Sculpt.tool.INFLATE:
-        this.inflate(center, iVertsInRadius, radiusSquared, this.intensity_);
+        this.inflate(center, iVertsInRadius, radiusSquared, intensity);
         break;
       case Sculpt.tool.ROTATE:
         this.rotate(center, iVertsInRadius, radiusSquared, mouseX, mouseY, lastMouseX, lastMouseY, sym);
         break;
       case Sculpt.tool.SMOOTH:
-        this.smooth(iVertsInRadius, this.intensity_);
+        this.smooth(iVertsInRadius, intensity);
         break;
       case Sculpt.tool.FLATTEN:
-        this.flatten(center, iVertsInRadius, iVertsFront, radiusSquared, this.intensity_);
+        this.flatten(center, iVertsInRadius, iVertsFront, radiusSquared, intensity);
         break;
       case Sculpt.tool.PINCH:
-        this.pinch(center, iVertsInRadius, radiusSquared, this.intensity_);
+        this.pinch(center, iVertsInRadius, radiusSquared, intensity);
         break;
       case Sculpt.tool.CREASE:
-        this.crease(center, iVertsInRadius, iVertsFront, radiusSquared, this.intensity_);
+        this.crease(center, iVertsInRadius, iVertsFront, radiusSquared, intensity);
         break;
       }
     }
@@ -243,7 +244,7 @@ Sculpt.prototype = {
   /** Set a few infos that will be needed for the rotate function afterwards */
   initRotateData: function (picking, vNear, vFar, mouseX, mouseY, rotateData)
   {
-    picking.intersectionRayMesh(this.mesh_, vNear, vFar, mouseX, mouseY);
+    picking.intersectionRayMesh(this.mesh_, vNear, vFar, mouseX, mouseY, 1);
     if (!picking.mesh_)
       return;
     picking.pickVerticesInSphere(picking.rWorldSqr_);

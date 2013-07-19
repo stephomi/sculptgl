@@ -9,7 +9,9 @@ function SculptGL()
   this.lastMouseY_ = 0; //the last position of the mouse in y
   this.sumDisplacement_ = 0; //sum of the displacement mouse
   this.mouseButton_ = 0; //which mouse button is pressed
-  this.cameraTimer_ = -1; //interval id
+  this.cameraTimer_ = -1; //interval id (used for zqsd/wasd/arrow moves)
+  this.usePenRadius_ = true; //the pen pressure acts on the tool's radius
+  this.usePenIntensity_ = false; //the pen pressure acts on the tool's intensity
 
   //symmetry stuffs
   this.symmetry_ = false; //if symmetric sculpting is enabled
@@ -221,6 +223,12 @@ SculptGL.prototype = {
   initGeneralGui: function (gui)
   {
     var self = this;
+
+    //Pen tablet ui stuffs
+    var foldPenTablet = gui.addFolder('Wacom tablet');
+    foldPenTablet.add(this, 'usePenRadius_').name('Pressure radius');
+    foldPenTablet.add(this, 'usePenIntensity_').name('Pressure intensity');
+    foldPenTablet.open();
 
     //file fold
     var foldFiles = gui.addFolder('Files (import/export)');
@@ -517,20 +525,22 @@ SculptGL.prototype = {
     var mouseX = event.pageX,
       mouseY = event.pageY;
     var pressure = Tablet.pressure();
+    var pressureRadius = this.usePenRadius_ ? pressure : 1;
+    var pressureIntensity = this.usePenIntensity_ ? pressure : 1;
     if (this.mesh_ && this.mouseButton_ !== 1)
-      this.picking_.intersectionMouseMesh(this.mesh_, mouseX, mouseY, pressure);
+      this.picking_.intersectionMouseMesh(this.mesh_, mouseX, mouseY, pressureRadius);
     if (this.mouseButton_ === 1)
     {
       if (this.sculpt_.tool_ !== Sculpt.tool.ROTATE)
-        this.sculptStroke(mouseX, mouseY, pressure);
+        this.sculptStroke(mouseX, mouseY, pressureRadius, pressureIntensity);
       else if (this.picking_.mesh_)
       {
         this.picking_.pickVerticesInSphere(this.picking_.rWorldSqr_);
-        this.sculpt_.sculptMesh(this.picking_, mouseX, mouseY, this.lastMouseX_, this.lastMouseY_);
+        this.sculpt_.sculptMesh(this.picking_, pressureIntensity, mouseX, mouseY, this.lastMouseX_, this.lastMouseY_);
         if (this.symmetry_)
         {
           this.pickingSym_.pickVerticesInSphere(this.pickingSym_.rWorldSqr_);
-          this.sculpt_.sculptMesh(this.pickingSym_, this.lastMouseX_, this.lastMouseY_, mouseX, mouseY, true);
+          this.sculpt_.sculptMesh(this.pickingSym_, pressureIntensity, this.lastMouseX_, this.lastMouseY_, mouseX, mouseY, true);
         }
       }
       this.mesh_.updateBuffers();
@@ -547,7 +557,7 @@ SculptGL.prototype = {
   },
 
   /** Make a brush stroke */
-  sculptStroke: function (mouseX, mouseY, pressure)
+  sculptStroke: function (mouseX, mouseY, pressureRadius, pressureIntensity)
   {
     var ptPlane = this.ptPlane_,
       nPlane = this.nPlane_;
@@ -573,19 +583,19 @@ SculptGL.prototype = {
       this.sumDisplacement_ = 0;
       for (var i = 0; i < dist; i += step)
       {
-        picking.intersectionMouseMesh(mesh, mouseX, mouseY, pressure);
+        picking.intersectionMouseMesh(mesh, mouseX, mouseY, pressureRadius);
         if (!picking.mesh_)
           break;
         picking.pickVerticesInSphere(picking.rWorldSqr_);
-        sculpt.sculptMesh(picking);
+        sculpt.sculptMesh(picking, pressureIntensity);
         if (sym)
         {
-          pickingSym.intersectionMouseMesh(mesh, mouseX, mouseY, pressure, ptPlane, nPlane);
+          pickingSym.intersectionMouseMesh(mesh, mouseX, mouseY, pressureRadius, ptPlane, nPlane);
           if (!pickingSym.mesh_)
             break;
           pickingSym.rWorldSqr_ = picking.rWorldSqr_;
           pickingSym.pickVerticesInSphere(pickingSym.rWorldSqr_);
-          sculpt.sculptMesh(pickingSym);
+          sculpt.sculptMesh(pickingSym, pressureIntensity);
         }
         mouseX += dx * step;
         mouseY += dy * step;
