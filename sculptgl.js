@@ -247,13 +247,11 @@ SculptGL.prototype = {
     var foldVerold = gui.addFolder('Go to Verold !');
     foldVerold.add(this, 'keyVerold_').name('API key');
     foldVerold.add(this, 'exportVerold_').name('Upload');
-    foldVerold.open();
 
     //Sketchfab fold
     var foldSketchfab = gui.addFolder('Go to Sketchfab !');
     foldSketchfab.add(this, 'keySketchfab_').name('API key');
     foldSketchfab.add(this, 'exportSketchfab_').name('Upload');
-    foldSketchfab.open();
 
     //Camera fold
     var cameraFold = gui.addFolder('Camera');
@@ -736,7 +734,7 @@ SculptGL.prototype = {
   {
     if (!this.mesh_)
       return;
-    if(this.keyVerold_ === '')
+    if (this.keyVerold_ === '')
     {
       alert('Please enter a verold API Key.')
       return;
@@ -749,7 +747,7 @@ SculptGL.prototype = {
   {
     if (!this.mesh_)
       return;
-    if(this.keySketchfab_ === '')
+    if (this.keySketchfab_ === '')
     {
       alert('Please enter a sketchfab API Key.')
       return;
