@@ -109,6 +109,8 @@ Files.exportVerold = function (mesh, key)
   var model = Files.exportOBJ(mesh);
 
   fd.append('model', new Blob([model]), 'model.obj');
+  fd.append('title', 'Model');
+  fd.append('description', 'Imported from SculptGL.');
 
   var xhr = new XMLHttpRequest();
   xhr.open('POST', 'http://studio.verold.com/projects.json');
@@ -119,6 +121,8 @@ Files.exportVerold = function (mesh, key)
     console.log(res);
     if (res.errors)
       alert('Verold upload error :\n' + res.errors[0]);
+    else
+      aert('Upload success !')
   };
   xhr.addEventListener('load', result, true);
   xhr.send(fd);

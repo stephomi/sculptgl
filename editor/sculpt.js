@@ -422,7 +422,8 @@ Sculpt.prototype = {
     var anx = aNormal[0],
       any = aNormal[1],
       anz = aNormal[2];
-    var dMove = Math.sqrt(this.d2Move_);
+    var d2Move = this.d2Move_;
+    var dMove = Math.sqrt(d2Move);
     var limitMove = this.topo_ === Sculpt.topo.ADAPTIVE;
     var deformIntensity = intensity * radius * 0.005;
     var brushFactor = 10;
