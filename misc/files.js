@@ -127,3 +127,30 @@ Files.exportVerold = function (mesh, key)
   xhr.addEventListener('load', result, true);
   xhr.send(fd);
 };
+
+/** Export OBJ file to Sketchfab */
+Files.exportSketchfab = function (mesh, key)
+{
+  var fd = new FormData();
+
+  fd.append('token', key);
+  var model = Files.exportOBJ(mesh);
+
+  fd.append('fileModel', new Blob([model]));
+  fd.append('filenameModel', 'model.obj');
+
+  var xhr = new XMLHttpRequest();
+  xhr.open('POST', 'https://api.sketchfab.com/v1/models');
+
+  var result = function (data)
+  {
+    var res = JSON.parse(xhr.responseText);
+    console.log(res);
+    if (!res.success)
+      alert('Sketchfab upload error :\n' + res.error);
+    else
+      alert('Upload success !')
+  };
+  xhr.addEventListener('load', result, true);
+  xhr.send(fd);
+};

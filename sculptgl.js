@@ -50,7 +50,8 @@ function SculptGL()
   //exporters
   this.keyVerold_ = ''; //verold api key
   this.exportVerold_ = this.exportVerold; //upload file on verold
-
+  this.keySketchfab_ = ''; //sketchfab api key
+  this.exportSketchfab_ = this.exportSketchfab; //upload file on sketchfab
 }
 
 SculptGL.elementIndexType = 0; //element index type (ushort or uint)
@@ -217,7 +218,7 @@ SculptGL.prototype = {
   {
     var guiGeneral = new dat.GUI();
     guiGeneral.domElement.style.position = 'absolute';
-    guiGeneral.domElement.style.height = '500px';
+    guiGeneral.domElement.style.height = '600px';
     this.initGeneralGui(guiGeneral);
 
     var guiEditing = new dat.GUI();
@@ -244,9 +245,15 @@ SculptGL.prototype = {
 
     //Verold fold
     var foldVerold = gui.addFolder('Go to Verold !');
-    foldVerold.add(this, 'keyVerold_').name('Verold API key');
+    foldVerold.add(this, 'keyVerold_').name('API key');
     foldVerold.add(this, 'exportVerold_').name('Upload');
     foldVerold.open();
+
+    //Sketchfab fold
+    var foldSketchfab = gui.addFolder('Go to Sketchfab !');
+    foldSketchfab.add(this, 'keySketchfab_').name('API key');
+    foldSketchfab.add(this, 'exportSketchfab_').name('Upload');
+    foldSketchfab.open();
 
     //Camera fold
     var cameraFold = gui.addFolder('Camera');
@@ -735,6 +742,19 @@ SculptGL.prototype = {
       return;
     }
     Files.exportVerold(this.mesh_, this.keyVerold_);
+  },
+
+  /** Export to Sketchfab */
+  exportSketchfab: function ()
+  {
+    if (!this.mesh_)
+      return;
+    if(this.keySketchfab_ === '')
+    {
+      alert('Please enter a sketchfab API Key.')
+      return;
+    }
+    Files.exportSketchfab(this.mesh_, this.keySketchfab_);
   },
 
   /** When the user undos an action */
