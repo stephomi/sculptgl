@@ -99,3 +99,27 @@ Files.exportOBJ = function (mesh)
   }
   return data;
 };
+
+/** Export OBJ file to Verold */
+Files.exportVerold = function (mesh, key)
+{
+  var fd = new FormData();
+
+  fd.append('api_key', key);
+  var model = Files.exportOBJ(mesh);
+
+  fd.append('model', new Blob([model]), 'model.obj');
+
+  var xhr = new XMLHttpRequest();
+  xhr.open('POST', 'http://studio.verold.com/projects.json');
+
+  var result = function (data)
+  {
+    var res = JSON.parse(xhr.responseText);
+    console.log(res);
+    if (res.errors)
+      alert('Verold upload error :\n' + res.errors[0]);
+  };
+  xhr.addEventListener('load', result, true);
+  xhr.send(fd);
+};

@@ -46,6 +46,11 @@ function SculptGL()
   this.undo_ = this.onUndo; //undo last action
   this.redo_ = this.onRedo; //redo last action
   this.dummyFunc_ = function () {}; //empty function... stupid trick to get a simple button in dat.gui
+
+  //exporters
+  this.keyVerold_ = ''; //verold api key
+  this.exportVerold_ = this.exportVerold; //upload file on verold
+
 }
 
 SculptGL.elementIndexType = 0; //element index type (ushort or uint)
@@ -237,6 +242,12 @@ SculptGL.prototype = {
     foldFiles.add(this, 'save_').name('Save OBJ file');
     foldFiles.open();
 
+    //Verold fold
+    var foldVerold = gui.addFolder('Go to Verold !');
+    foldVerold.add(this, 'keyVerold_').name('Verold API key');
+    foldVerold.add(this, 'exportVerold_').name('Upload');
+    foldVerold.open();
+
     //Camera fold
     var cameraFold = gui.addFolder('Camera');
     var optionsCamera = {
@@ -368,7 +379,6 @@ SculptGL.prototype = {
   onKeyDown: function (event)
   {
     event.stopPropagation();
-    event.preventDefault();
     var key = event.which;
     if (event.ctrlKey && key === 90) //z key
     {
@@ -712,6 +722,19 @@ SculptGL.prototype = {
       type: 'text/plain;charset=utf-8'
     });
     saveAs(blob, 'yourMesh.obj');
+  },
+
+  /** Export to Verold */
+  exportVerold: function ()
+  {
+    if (!this.mesh_)
+      return;
+    if(this.keyVerold_ === '')
+    {
+      alert('Please enter a verold API Key.')
+      return;
+    }
+    Files.exportVerold(this.mesh_, this.keyVerold_);
   },
 
   /** When the user undos an action */
