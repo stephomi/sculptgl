@@ -16,8 +16,8 @@ Picking.prototype = {
   /** Intersection between a ray the mouse position */
   intersectionMouseMesh: function (mesh, mouseX, mouseY, pressure, ptPlane, nPlane)
   {
-    var vNear = Geometry.point2Dto3D(this.camera_, mouseX, mouseY, 0),
-      vFar = Geometry.point2Dto3D(this.camera_, mouseX, mouseY, 1);
+    var vNear = this.camera_.unproject(mouseX, mouseY, 0),
+      vFar = this.camera_.unproject(mouseX, mouseY, 1);
     var matInverse = mat4.create();
     mat4.invert(matInverse, mesh.matTransform_);
     vec3.transformMat4(vNear, vNear, matInverse);
@@ -78,8 +78,8 @@ Picking.prototype = {
       this.mesh_ = mesh;
       var interPointTransformed = [0, 0, 0];
       vec3.transformMat4(interPointTransformed, this.interPoint_, this.mesh_.matTransform_);
-      var z = Geometry.point3Dto2D(this.camera_, interPointTransformed)[2];
-      var vCircle = Geometry.point2Dto3D(this.camera_, mouseX + (this.rDisplay_ * pressure), mouseY, z);
+      var z = this.camera_.project(interPointTransformed)[2];
+      var vCircle = this.camera_.unproject(mouseX + (this.rDisplay_ * pressure), mouseY, z);
       this.rWorldSqr_ = vec3.sqrDist(interPointTransformed, vCircle);
     }
     else

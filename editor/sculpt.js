@@ -223,8 +223,8 @@ Sculpt.prototype = {
   startRotate: function (picking, mouseX, mouseY, pickingSym, ptPlane, nPlane)
   {
     var rotateData = this.rotateData_;
-    var vNear = Geometry.point2Dto3D(picking.camera_, mouseX, mouseY, 0),
-      vFar = Geometry.point2Dto3D(picking.camera_, mouseX, mouseY, 1);
+    var vNear = picking.camera_.unproject(mouseX, mouseY, 0),
+      vFar = picking.camera_.unproject(mouseX, mouseY, 1);
     var matInverse = mat4.create();
     mat4.invert(matInverse, this.mesh_.matTransform_);
     vec3.transformMat4(vNear, vNear, matInverse);
