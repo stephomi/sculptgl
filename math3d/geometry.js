@@ -26,10 +26,8 @@ Geometry.intersectionRayTriangle = function (s1, s2, v1, v2, v3, normal, vertInt
   vec3.sub(temp, s1, v1);
   var dist1 = vec3.dot(temp, normal);
   var dist2 = vec3.dot(vec3.sub(temp, s2, v1), normal);
+  //ray copplanar to triangle
   if ((dist1 * dist2) >= 0)
-    return false;
-  //ray parallel to triangle plane
-  if (dist1 === dist2)
     return false;
   //intersection between ray and triangle
   var val = -dist1 / (dist2 - dist1);
