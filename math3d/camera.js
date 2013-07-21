@@ -10,7 +10,7 @@ function Camera()
   this.width_ = 0; //viewport width
   this.height_ = 0; //viewport height
   this.zoom_ = 20; //zoom value
-  this.transX_ = 0.00001; //translation in x (offset for a very special annoying case a ray casting for picking...)
+  this.transX_ = 0; //translation in x
   this.transY_ = 0; //translation in y
   this.globalScale_ = 1; //solve scale issue
   this.moveX_ = 0; //free look (strafe)
