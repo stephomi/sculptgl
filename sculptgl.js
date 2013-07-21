@@ -239,8 +239,8 @@ SculptGL.prototype = {
     //file fold
     var foldFiles = gui.addFolder('Files (import/export)');
     foldFiles.add(this, 'resetSphere_').name('Reset sphere');
-    foldFiles.add(this, 'open_').name('Load OBJ file');
-    foldFiles.add(this, 'save_').name('Save OBJ file');
+    foldFiles.add(this, 'open_').name('Import (obj, stl)');
+    foldFiles.add(this, 'save_').name('Export (obj)');
     foldFiles.open();
 
     //Verold fold
@@ -645,25 +645,31 @@ SculptGL.prototype = {
       return;
     var file = event.target.files[0];
     var name = file.name;
-    if (!name.endsWith('.obj'))
+    if (!name.endsWith('.obj') && !name.endsWith('.stl'))
       return;
     var reader = new FileReader();
     var self = this;
     reader.onload = function (evt)
     {
       self.startMeshLoad();
-      Files.loadOBJ(evt.target.result, self.mesh_);
+      if (name.endsWith('.obj'))
+        Files.importOBJ(evt.target.result, self.mesh_);
+      else
+        Files.importSTL(evt.target.result, self.mesh_);
       self.endMeshLoad();
       $('#fileopen').replaceWith($('#fileopen').clone(true));
     };
-    reader.readAsText(file);
+    if (name.endsWith('.obj'))
+      reader.readAsText(file);
+    else
+      reader.readAsBinaryString(file);
   },
 
   /** Open file */
   resetSphere: function ()
   {
     this.startMeshLoad();
-    Files.loadOBJ(this.sphere_, this.mesh_);
+    Files.importOBJ(this.sphere_, this.mesh_);
     this.endMeshLoad();
   },
 
