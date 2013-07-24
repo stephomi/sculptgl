@@ -18,12 +18,15 @@ function Sculpt(states)
 
   this.rotateData_ = {
     normal: [0, 0, 0], //normal of rotation plane
-    center2d: [0, 0] //2D center of rotation 
+    center: [0, 0] //2D center of rotation 
   };
   this.rotateDataSym_ = {
     normal: [0, 0, 0], //normal of rotation plane
-    center2d: [0, 0] //2D center of rotation 
+    center: [0, 0] //2D center of rotation 
   };
+
+  this.dragDir_ = [0, 0, 0]; //direction of deformation
+  this.dragDirSym_ = [0, 0, 0]; //direction of deformation
 }
 
 //the sculpting tools
@@ -34,7 +37,8 @@ Sculpt.tool = {
   SMOOTH: 3,
   FLATTEN: 4,
   PINCH: 5,
-  CREASE: 6
+  CREASE: 6,
+  DRAG: 7
 };
 
 //the topological tools
@@ -57,7 +61,7 @@ Sculpt.prototype = {
   },
 
   /** Sculpt the mesh */
-  sculptMesh: function (picking, pressureIntensity, mouseX, mouseY, lastMouseX, lastMouseY, sym)
+  sculptMesh: function (picking, pressureIntensity, sym, mouseX, mouseY, lastMouseX, lastMouseY)
   {
     var mesh = this.mesh_;
     var iVertsSelected = picking.pickedVertices_;
@@ -142,6 +146,9 @@ Sculpt.prototype = {
       case Sculpt.tool.CREASE:
         this.crease(center, iVertsInRadius, iVertsFront, radiusSquared, intensity);
         break;
+      case Sculpt.tool.DRAG:
+        this.drag(center, iVertsInRadius, radiusSquared, intensity, sym);
+        break;
       }
     }
 
@@ -219,8 +226,8 @@ Sculpt.prototype = {
     }
   },
 
-  /** Start a rotate sculpt session */
-  startRotate: function (picking, mouseX, mouseY, pickingSym, ptPlane, nPlane)
+  /** Start a rotate sculpt stroke */
+  startRotate: function (picking, mouseX, mouseY, pickingSym, ptPlane, nPlane, sym)
   {
     var rotateData = this.rotateData_;
     var vNear = picking.camera_.unproject(mouseX, mouseY, 0),
@@ -230,7 +237,7 @@ Sculpt.prototype = {
     vec3.transformMat4(vNear, vNear, matInverse);
     vec3.transformMat4(vFar, vFar, matInverse);
     this.initRotateData(picking, vNear, vFar, mouseX, mouseY, this.rotateData_);
-    if (pickingSym)
+    if (sym)
     {
       var vNearSym = [vNear[0], vNear[1], vNear[2]];
       Geometry.mirrorPoint(vNearSym, ptPlane, nPlane);
@@ -251,7 +258,7 @@ Sculpt.prototype = {
     var ray = [0, 0, 0];
     vec3.sub(ray, vNear, vFar);
     rotateData.normal = vec3.normalize(ray, ray);
-    rotateData.center2d = [mouseX, mouseY];
+    rotateData.center = [mouseX, mouseY];
   },
 
   /** Rotate the vertices around the mouse point intersection */
@@ -260,7 +267,7 @@ Sculpt.prototype = {
     var rotateData = this.rotateData_;
     if (sym)
       rotateData = this.rotateDataSym_;
-    var mouseCenter = rotateData.center2d;
+    var mouseCenter = rotateData.center;
     var vecMouse = [mouseX - mouseCenter[0], mouseY - mouseCenter[1]];
     if (vec2.len(vecMouse) < 30)
       return;
@@ -459,6 +466,66 @@ Sculpt.prototype = {
       vAr[ind] += dx;
       vAr[ind + 1] += dy;
       vAr[ind + 2] += dz;
+    }
+  },
+
+  /** Set a few infos that will be needed for the drag function afterwards */
+  updateDragDir: function (mesh, picking, mouseX, mouseY, pressureRadius, ptPlane, nPlane)
+  {
+    var vNear = picking.camera_.unproject(mouseX, mouseY, 0),
+      vFar = picking.camera_.unproject(mouseX, mouseY, 1);
+    var matInverse = mat4.create();
+    mat4.invert(matInverse, mesh.matTransform_);
+    vec3.transformMat4(vNear, vNear, matInverse);
+    vec3.transformMat4(vFar, vFar, matInverse);
+    var dir = this.dragDir_;
+    if (ptPlane)
+    {
+      dir = this.dragDirSym_;
+      Geometry.mirrorPoint(vNear, ptPlane, nPlane);
+      Geometry.mirrorPoint(vFar, ptPlane, nPlane);
+    }
+    var center = picking.interPoint_;
+    picking.interPoint_ = Geometry.vertexOnLine(center, vNear, vFar);
+    vec3.normalize(dir, vec3.sub(dir, picking.interPoint_, center));
+    picking.mesh = mesh;
+    picking.computeRadiusWorldSq(mouseX, mouseY, pressureRadius);
+    var eyeDir = picking.eyeDir_;
+    vec3.sub(eyeDir, vFar, vNear);
+    vec3.normalize(eyeDir, eyeDir);
+  },
+
+  /** Drag deformation */
+  drag: function (center, iVerts, radiusSquared, intensity, sym)
+  {
+    var mesh = this.mesh_;
+    var vAr = mesh.vertexArray_;
+    var nbVerts = iVerts.length;
+    var radius = Math.sqrt(radiusSquared);
+    var deformIntensity = intensity * radius * 0.3;
+    if (this.topo_ === Sculpt.topo.ADAPTIVE)
+      deformIntensity = Math.min(Math.sqrt(this.d2Move_), deformIntensity);
+    if (this.negative_)
+      deformIntensity = -deformIntensity;
+    var cx = center[0],
+      cy = center[1],
+      cz = center[2];
+    var dir = sym ? this.dragDirSym_ : this.dragDir_;
+    var dirx = dir[0],
+      diry = dir[1],
+      dirz = dir[2];
+    for (var i = 0; i < nbVerts; ++i)
+    {
+      var ind = iVerts[i] * 3;
+      var dx = vAr[ind] - cx,
+        dy = vAr[ind + 1] - cy,
+        dz = vAr[ind + 2] - cz;
+      var dist = Math.sqrt(dx * dx + dy * dy + dz * dz) / radius;
+      var fallOff = 3 * dist * dist * dist * dist - 4 * dist * dist * dist + 1;
+      fallOff = deformIntensity * fallOff;
+      vAr[ind] += dirx * fallOff;
+      vAr[ind + 1] += diry * fallOff;
+      vAr[ind + 2] += dirz * fallOff;
     }
   },
 

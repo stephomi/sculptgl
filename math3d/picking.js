@@ -76,11 +76,7 @@ Picking.prototype = {
     if (this.pickedTriangle_ !== -1)
     {
       this.mesh_ = mesh;
-      var interPointTransformed = [0, 0, 0];
-      vec3.transformMat4(interPointTransformed, this.interPoint_, this.mesh_.matTransform_);
-      var z = this.camera_.project(interPointTransformed)[2];
-      var vCircle = this.camera_.unproject(mouseX + (this.rDisplay_ * pressure), mouseY, z);
-      this.rWorldSqr_ = vec3.sqrDist(interPointTransformed, vCircle);
+      this.computeRadiusWorldSq(mouseX, mouseY, pressure);
     }
     else
       this.rWorldSqr_ = 0;
@@ -118,5 +114,15 @@ Picking.prototype = {
       j = this.pickedTriangle_ * 3;
       this.pickedVertices_.push(iAr[j], iAr[j + 1], iAr[j + 2]);
     }
+  },
+
+  /** Compute the selection radius in world space */
+  computeRadiusWorldSq: function (mouseX, mouseY, pressure)
+  {
+    var interPointTransformed = [0, 0, 0];
+    vec3.transformMat4(interPointTransformed, this.interPoint_, this.mesh_.matTransform_);
+    var z = this.camera_.project(interPointTransformed)[2];
+    var vCircle = this.camera_.unproject(mouseX + (this.rDisplay_ * pressure), mouseY, z);
+    this.rWorldSqr_ = vec3.sqrDist(interPointTransformed, vCircle);
   }
 };

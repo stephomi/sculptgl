@@ -159,3 +159,13 @@ Geometry.mirrorPoint = function (v, ptPlane, nPlane)
 {
   return vec3.sub(v, v, vec3.scale([0, 0, 0], nPlane, Geometry.pointPlaneDistance(v, ptPlane, nPlane) * 2));
 };
+
+/** Compute the projection of a vertex on a line */
+Geometry.vertexOnLine = function (vertex, vNear, vFar)
+{
+  var ab = [0, 0, 0];
+  vec3.sub(ab, vFar, vNear);
+  var temp = [0, 0, 0];
+  var dot = vec3.dot(ab, vec3.sub(temp, vertex, vNear));
+  return vec3.scaleAndAdd(temp, vNear, ab, dot / vec3.sqrLen(ab));
+};
