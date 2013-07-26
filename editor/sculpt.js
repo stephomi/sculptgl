@@ -125,7 +125,6 @@ Sculpt.prototype = {
       switch (this.tool_)
       {
       case Sculpt.tool.BRUSH:
-        this.flatten(center, iVertsInRadius, iVertsFront, radiusSquared, intensity * 0.5);
         this.brush(center, iVertsInRadius, iVertsFront, radiusSquared, intensity);
         break;
       case Sculpt.tool.INFLATE:
@@ -166,32 +165,43 @@ Sculpt.prototype = {
     var aNormal = this.areaNormal(iVertsFront);
     if (!aNormal)
       return;
+    var aCenter = this.areaCenter(iVertsFront);
     var vAr = this.mesh_.vertexArray_;
     var radius = Math.sqrt(radiusSquared);
     var nbVerts = iVertsInRadius.length;
-    var deformIntensity = intensity * radius * 0.1;
-    if (this.topo_ === Sculpt.topo.ADAPTIVE)
-      deformIntensity = Math.min(Math.sqrt(this.d2Move_), deformIntensity);
+    var deformIntensityBrush = intensity * radius * 0.1;
+    var deformIntensityFlatten = intensity * 0.3;
     if (this.negative_)
-      deformIntensity = -deformIntensity;
+      deformIntensityBrush = -deformIntensityBrush;
     var cx = center[0],
       cy = center[1],
       cz = center[2];
+    var ax = aCenter[0],
+      ay = aCenter[1],
+      az = aCenter[2];
     var anx = aNormal[0],
       any = aNormal[1],
       anz = aNormal[2];
+    var limitMove = this.topo_ === Sculpt.topo.ADAPTIVE;
+    var dMove = Math.sqrt(this.d2Move_);
     for (var i = 0; i < nbVerts; ++i)
     {
       var ind = iVertsInRadius[i] * 3;
-      var dx = vAr[ind] - cx,
-        dy = vAr[ind + 1] - cy,
-        dz = vAr[ind + 2] - cz;
+      var vx = vAr[ind],
+        vy = vAr[ind + 1],
+        vz = vAr[ind + 2];
+      var distToPlane = (vx - ax) * anx + (vy - ay) * any + (vz - az) * anz;
+      var dx = vx - cx,
+        dy = vy - cy,
+        dz = vz - cz;
       var dist = Math.sqrt(dx * dx + dy * dy + dz * dz) / radius;
       var fallOff = 3 * dist * dist * dist * dist - 4 * dist * dist * dist + 1;
-      fallOff = deformIntensity * fallOff;
-      vAr[ind] += anx * fallOff;
-      vAr[ind + 1] += any * fallOff;
-      vAr[ind + 2] += anz * fallOff;
+      fallOff = fallOff * (distToPlane * deformIntensityFlatten - deformIntensityBrush);
+      if (limitMove && dMove > fallOff)
+        fallOff = dMove;
+      vAr[ind] -= anx * fallOff;
+      vAr[ind + 1] -= any * fallOff;
+      vAr[ind + 2] -= anz * fallOff;
     }
   },
 
@@ -229,7 +239,6 @@ Sculpt.prototype = {
   /** Start a rotate sculpt stroke */
   startRotate: function (picking, mouseX, mouseY, pickingSym, ptPlane, nPlane, sym)
   {
-    var rotateData = this.rotateData_;
     var vNear = picking.camera_.unproject(mouseX, mouseY, 0),
       vFar = picking.camera_.unproject(mouseX, mouseY, 1);
     var matInverse = mat4.create();
@@ -371,10 +380,9 @@ Sculpt.prototype = {
         dz = vz - cz;
       var distToCen = Math.sqrt(dx * dx + dy * dy + dz * dz) / radius;
       var fallOff = 3 * distToCen * distToCen * distToCen * distToCen - 4 * distToCen * distToCen * distToCen + 1;
-      if (limitMove)
-        fallOff = Math.min(dMove, distToPlane * deformIntensity * fallOff);
-      else
-        fallOff = distToPlane * deformIntensity * fallOff;
+      fallOff = distToPlane * deformIntensity * fallOff;
+      if (limitMove && dMove > fallOff)
+        fallOff = dMove;
       vAr[ind] -= anx * fallOff;
       vAr[ind + 1] -= any * fallOff;
       vAr[ind + 2] -= anz * fallOff;
@@ -404,10 +412,9 @@ Sculpt.prototype = {
         dz = vz - cz;
       var distToCen = Math.sqrt(dx * dx + dy * dy + dz * dz) / radius;
       var fallOff = 3 * distToCen * distToCen * distToCen * distToCen - 4 * distToCen * distToCen * distToCen + 1;
-      if (limitMove)
-        fallOff = Math.min(dMove, deformIntensity * fallOff);
-      else
-        fallOff = deformIntensity * fallOff;
+      fallOff = deformIntensity * fallOff;
+      if (limitMove && dMove > fallOff)
+        fallOff = dMove;
       vAr[ind] += (cx - vx) * fallOff;
       vAr[ind + 1] += (cy - vy) * fallOff;
       vAr[ind + 2] += (cz - vz) * fallOff;
