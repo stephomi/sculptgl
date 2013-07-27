@@ -556,8 +556,8 @@ SculptGL.prototype = {
           this.pickingSym_.pickVerticesInSphere(this.pickingSym_.rWorldSqr_);
           this.sculpt_.sculptMesh(this.pickingSym_, pressureIntensity, true, this.lastMouseX_, this.lastMouseY_, mouseX, mouseY);
         }
+        this.mesh_.updateBuffers();
       }
-      this.mesh_.updateBuffers();
       this.ctrlNbVertices_.name('Ver : ' + this.mesh_.vertices_.length);
       this.ctrlNbTriangles_.name('Tri : ' + this.mesh_.triangles_.length);
     }
@@ -631,6 +631,7 @@ SculptGL.prototype = {
         mouseX += dx * step;
         mouseY += dy * step;
       }
+      this.mesh_.updateBuffers();
     }
   },
 
