@@ -593,6 +593,7 @@ SculptGL.prototype = {
     var drag = sculpt.tool_ === Sculpt.tool.DRAG;
     if (drag)
     {
+      minSpacing = 0.0;
       picking.mesh_ = pickingSym.mesh_ = mesh;
       var inter = picking.interPoint_;
       var interSym = pickingSym.interPoint_;
@@ -601,7 +602,7 @@ SculptGL.prototype = {
       interSym[2] = inter[2];
       Geometry.mirrorPoint(interSym, ptPlane, nPlane);
     }
-    if (this.sumDisplacement_ > minSpacing * 50.0)
+    if (this.sumDisplacement_ > minSpacing * 50.0 && !drag)
       this.sumDisplacement_ = 0;
     else if (this.sumDisplacement_ > minSpacing)
     {
