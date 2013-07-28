@@ -381,7 +381,7 @@ Sculpt.prototype = {
       var distToCen = Math.sqrt(dx * dx + dy * dy + dz * dz) / radius;
       var fallOff = 3 * distToCen * distToCen * distToCen * distToCen - 4 * distToCen * distToCen * distToCen + 1;
       fallOff = distToPlane * deformIntensity * fallOff;
-      if (limitMove && dMove > fallOff)
+      if (limitMove && fallOff > dMove)
         fallOff = dMove;
       vAr[ind] -= anx * fallOff;
       vAr[ind + 1] -= any * fallOff;
