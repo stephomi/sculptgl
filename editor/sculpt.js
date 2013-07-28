@@ -146,7 +146,7 @@ Sculpt.prototype = {
         this.crease(center, iVertsInRadius, iVertsFront, radiusSquared, intensity);
         break;
       case Sculpt.tool.DRAG:
-        this.drag(center, iVertsInRadius, radiusSquared, intensity, sym);
+        this.drag(center, iVertsInRadius, radiusSquared, sym);
         break;
       }
     }
@@ -494,7 +494,7 @@ Sculpt.prototype = {
     }
     var center = picking.interPoint_;
     picking.interPoint_ = Geometry.vertexOnLine(center, vNear, vFar);
-    vec3.normalize(dir, vec3.sub(dir, picking.interPoint_, center));
+    vec3.sub(dir, picking.interPoint_, center);
     picking.mesh = mesh;
     picking.computeRadiusWorldSq(mouseX, mouseY, pressureRadius);
     var eyeDir = picking.eyeDir_;
@@ -503,17 +503,12 @@ Sculpt.prototype = {
   },
 
   /** Drag deformation */
-  drag: function (center, iVerts, radiusSquared, intensity, sym)
+  drag: function (center, iVerts, radiusSquared, sym)
   {
     var mesh = this.mesh_;
     var vAr = mesh.vertexArray_;
     var nbVerts = iVerts.length;
     var radius = Math.sqrt(radiusSquared);
-    var deformIntensity = intensity * radius * 0.3;
-    if (this.topo_ === Sculpt.topo.ADAPTIVE)
-      deformIntensity = Math.min(Math.sqrt(this.d2Move_), deformIntensity);
-    if (this.negative_)
-      deformIntensity = -deformIntensity;
     var cx = center[0],
       cy = center[1],
       cz = center[2];
@@ -529,7 +524,6 @@ Sculpt.prototype = {
         dz = vAr[ind + 2] - cz;
       var dist = Math.sqrt(dx * dx + dy * dy + dz * dz) / radius;
       var fallOff = 3 * dist * dist * dist * dist - 4 * dist * dist * dist + 1;
-      fallOff = deformIntensity * fallOff;
       vAr[ind] += dirx * fallOff;
       vAr[ind + 1] += diry * fallOff;
       vAr[ind + 2] += dirz * fallOff;
