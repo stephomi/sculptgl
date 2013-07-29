@@ -197,7 +197,7 @@ Sculpt.prototype = {
       var dist = Math.sqrt(dx * dx + dy * dy + dz * dz) / radius;
       var fallOff = 3 * dist * dist * dist * dist - 4 * dist * dist * dist + 1;
       fallOff = fallOff * (distToPlane * deformIntensityFlatten - deformIntensityBrush);
-      if (limitMove && dMove > fallOff)
+      if (limitMove && fallOff > dMove)
         fallOff = dMove;
       vAr[ind] -= anx * fallOff;
       vAr[ind + 1] -= any * fallOff;
@@ -398,7 +398,8 @@ Sculpt.prototype = {
     var cx = center[0],
       cy = center[1],
       cz = center[2];
-    var dMove = Math.sqrt(this.d2Move_);
+    var d2Move = this.d2Move_;
+    var dMove = Math.sqrt(d2Move);
     var limitMove = this.topo_ === Sculpt.topo.ADAPTIVE;
     var deformIntensity = intensity * radius * 0.005;
     for (var i = 0; i < nbVerts; ++i)
@@ -407,17 +408,29 @@ Sculpt.prototype = {
       var vx = vAr[ind],
         vy = vAr[ind + 1],
         vz = vAr[ind + 2];
-      var dx = vx - cx,
-        dy = vy - cy,
-        dz = vz - cz;
+      var dx = cx - vx,
+        dy = cy - vy,
+        dz = cz - vz;
       var distToCen = Math.sqrt(dx * dx + dy * dy + dz * dz) / radius;
       var fallOff = 3 * distToCen * distToCen * distToCen * distToCen - 4 * distToCen * distToCen * distToCen + 1;
       fallOff = deformIntensity * fallOff;
-      if (limitMove && dMove > fallOff)
-        fallOff = dMove;
-      vAr[ind] += (cx - vx) * fallOff;
-      vAr[ind + 1] += (cy - vy) * fallOff;
-      vAr[ind + 2] += (cz - vz) * fallOff;
+      dx *= fallOff;
+      dy *= fallOff;
+      dz *= fallOff;
+      if (limitMove)
+      {
+        var len = dx * dx + dy * dy + dz * dz;
+        if (len > d2Move)
+        {
+          len = dMove / Math.sqrt(len);
+          dx *= len;
+          dy *= len;
+          dz *= len;
+        }
+      }
+      vAr[ind] += dx;
+      vAr[ind + 1] += dy;
+      vAr[ind + 2] += dz;
     }
   },
 
@@ -449,16 +462,16 @@ Sculpt.prototype = {
       var vx = vAr[ind],
         vy = vAr[ind + 1],
         vz = vAr[ind + 2];
-      var dx = vx - cx,
-        dy = vy - cy,
-        dz = vz - cz;
+      var dx = cx - vx,
+        dy = cy - vy,
+        dz = cz - vz;
       var distToCen = Math.sqrt(dx * dx + dy * dy + dz * dz) / radius;
       var fallOff = 3 * distToCen * distToCen * distToCen * distToCen - 4 * distToCen * distToCen * distToCen + 1;
       var brushModifier = deformIntensity * Math.pow(2 - fallOff, -20) * brushFactor;
       fallOff = deformIntensity * fallOff;
-      dx = (cx - vx) * fallOff + anx * brushModifier;
-      dy = (cy - vy) * fallOff + any * brushModifier;
-      dz = (cz - vz) * fallOff + anz * brushModifier;
+      dx = dx * fallOff + anx * brushModifier;
+      dy = dy * fallOff + any * brushModifier;
+      dz = dz * fallOff + anz * brushModifier;
       if (limitMove)
       {
         var len = dx * dx + dy * dy + dz * dz;
