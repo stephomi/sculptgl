@@ -15,6 +15,12 @@ function SculptGL()
 
   //symmetry stuffs
   this.symmetry_ = false; //if symmetric sculpting is enabled
+  this.continuous_ = false; //continuous sculpting
+  this.sculptTimer_ = -1; //continuous interval timer
+  this.pressureRadius_ = 0; //for continuous sculpting
+  this.pressureIntensity_ = 0; //for continuous sculpting
+  this.mouseX_ = 0; //for continuous sculpting
+  this.mouseY_ = 0; //for continuous sculpting
   this.ptPlane_ = [0, 0, 0]; //point origin of the plane symmetry
   this.nPlane_ = [1, 0, 0]; //normal of plane symmetry
 
@@ -279,39 +285,6 @@ SculptGL.prototype = {
   {
     var self = this;
 
-    //mesh fold
-    var foldMesh = gui.addFolder('Mesh');
-    this.ctrlNbVertices_ = foldMesh.add(this, 'dummyFunc_').name('Ver : 0');
-    this.ctrlNbTriangles_ = foldMesh.add(this, 'dummyFunc_').name('Tri : 0');
-    this.ctrlColor_ = foldMesh.addColor(new Render(), 'color_').name('Color');
-    this.ctrlColor_.onChange(function ()
-    {
-      self.render();
-    });
-    var optionsShaders = {
-      'Phong': Render.mode.PHONG,
-      'Wireframe (slow)': Render.mode.WIREFRAME,
-      'Transparency': Render.mode.TRANSPARENCY,
-      'Clay': Render.mode.MATERIAL,
-      'Chavant': Render.mode.MATERIAL + 1,
-      'Skin': Render.mode.MATERIAL + 2,
-      'Drink': Render.mode.MATERIAL + 3,
-      'Red velvet': Render.mode.MATERIAL + 4,
-      'Orange': Render.mode.MATERIAL + 5,
-      'Bronze': Render.mode.MATERIAL + 6
-    };
-    this.ctrlShaders_ = foldMesh.add(new Render(), 'shaderType_', optionsShaders).name('Shader');
-    this.ctrlShaders_.onChange(function (value)
-    {
-      if (self.mesh_)
-      {
-        self.mesh_.render_.updateShaders(parseInt(value, 10), self.textures_, self.shaders_);
-        self.mesh_.updateBuffers();
-        self.render();
-      }
-    });
-    foldMesh.open();
-
     //sculpt fold
     var foldSculpt = gui.addFolder('Sculpt');
     var optionsSculpt = {
@@ -330,6 +303,7 @@ SculptGL.prototype = {
       self.sculpt_.tool_ = parseInt(value, 10);
     });
     this.ctrlNegative_ = foldSculpt.add(this.sculpt_, 'negative_').name('Negative (N)');
+    foldSculpt.add(this, 'continuous_').name('Continuous');
     foldSculpt.add(this, 'symmetry_').name('Symmetry');
     foldSculpt.add(this.sculpt_, 'culling_').name('Sculpt culling');
     foldSculpt.add(this.picking_, 'rDisplay_', 20, 200).name('Radius');
@@ -352,6 +326,39 @@ SculptGL.prototype = {
     });
     foldTopo.add(this.sculpt_, 'detail_', 0, 1).name('Detail');
     foldTopo.open();
+
+    //mesh fold
+    var foldMesh = gui.addFolder('Mesh');
+    this.ctrlNbVertices_ = foldMesh.add(this, 'dummyFunc_').name('Ver : 0');
+    this.ctrlNbTriangles_ = foldMesh.add(this, 'dummyFunc_').name('Tri : 0');
+    var optionsShaders = {
+      'Phong': Render.mode.PHONG,
+      'Wireframe (slow)': Render.mode.WIREFRAME,
+      'Transparency': Render.mode.TRANSPARENCY,
+      'Clay': Render.mode.MATERIAL,
+      'Chavant': Render.mode.MATERIAL + 1,
+      'Skin': Render.mode.MATERIAL + 2,
+      'Drink': Render.mode.MATERIAL + 3,
+      'Red velvet': Render.mode.MATERIAL + 4,
+      'Orange': Render.mode.MATERIAL + 5,
+      'Bronze': Render.mode.MATERIAL + 6
+    };
+    this.ctrlShaders_ = foldMesh.add(new Render(), 'shaderType_', optionsShaders).name('Shader');
+    this.ctrlShaders_.onChange(function (value)
+    {
+      if (self.mesh_)
+      {
+        self.mesh_.render_.updateShaders(parseInt(value, 10), self.textures_, self.shaders_);
+        self.mesh_.updateBuffers();
+        self.render();
+      }
+    });
+    this.ctrlColor_ = foldMesh.addColor(new Render(), 'color_').name('Color');
+    this.ctrlColor_.onChange(function ()
+    {
+      self.render();
+    });
+    foldMesh.open();
   },
 
   /** Render mesh */
@@ -500,12 +507,32 @@ SculptGL.prototype = {
       mouseY = event.pageY;
     this.mouseButton_ = event.which;
     var button = event.which;
+    var pressure = Tablet.pressure();
+    var pressureRadius = this.usePenRadius_ ? pressure : 1;
+    var pressureIntensity = this.usePenIntensity_ ? pressure : 1;
     if (button === 1)
     {
       if (this.mesh_)
       {
+        this.sumDisplacement_ = 0;
         this.states_.start();
-        this.sculpt_.startRotate(this.picking_, mouseX, mouseY, this.pickingSym_, this.ptPlane_, this.nPlane_, this.symmetry_);
+        if (this.sculpt_.tool_ === Sculpt.tool.ROTATE)
+          this.sculpt_.startRotate(this.picking_, mouseX, mouseY, this.pickingSym_, this.ptPlane_, this.nPlane_, this.symmetry_);
+        else if (this.continuous_ && this.sculpt_.tool_ !== Sculpt.tool.DRAG)
+        {
+          this.pressureRadius_ = pressureRadius;
+          this.pressureIntensity_ = pressureIntensity;
+          this.mouseX_ = mouseX;
+          this.mouseY_ = mouseY;
+          var self = this;
+          this.sculptTimer_ = setInterval(function ()
+          {
+            self.sculptStroke(self.mouseX_, self.mouseY_, self.pressureRadius_, self.pressureIntensity_);
+            self.render();
+          }, 32);
+        }
+        else
+          this.sculptStroke(mouseX, mouseY, pressureRadius, pressureIntensity);
       }
     }
     else if (button === 3)
@@ -519,6 +546,24 @@ SculptGL.prototype = {
     event.preventDefault();
     if (this.mesh_)
       this.mesh_.checkLeavesUpdate();
+    if (this.sculptTimer_ !== -1)
+    {
+      clearInterval(this.sculptTimer_);
+      this.sculptTimer_ = -1;
+    }
+    this.mouseButton_ = 0;
+  },
+
+  /** Mouse out event */
+  onMouseOut: function ()
+  {
+    if (this.mesh_)
+      this.mesh_.checkLeavesUpdate();
+    if (this.sculptTimer_ !== -1)
+    {
+      clearInterval(this.sculptTimer_);
+      this.sculptTimer_ = -1;
+    }
     this.mouseButton_ = 0;
   },
 
@@ -541,6 +586,14 @@ SculptGL.prototype = {
     var pressure = Tablet.pressure();
     var pressureRadius = this.usePenRadius_ ? pressure : 1;
     var pressureIntensity = this.usePenIntensity_ ? pressure : 1;
+    if (this.continuous_ && this.sculptTimer_ !== -1)
+    {
+      this.pressureRadius_ = pressureRadius;
+      this.pressureIntensity_ = pressureIntensity;
+      this.mouseX_ = mouseX;
+      this.mouseY_ = mouseY;
+      return;
+    }
     if (this.mesh_ && this.mouseButton_ !== 1)
       this.picking_.intersectionMouseMesh(this.mesh_, mouseX, mouseY, pressureRadius);
     if (this.mouseButton_ === 1)
@@ -585,8 +638,16 @@ SculptGL.prototype = {
     var step = dist / Math.floor(dist / minSpacing);
     dx /= dist;
     dy /= dist;
-    mouseX = this.lastMouseX_;
-    mouseY = this.lastMouseY_;
+    if (!this.continuous_)
+    {
+      mouseX = this.lastMouseX_;
+      mouseY = this.lastMouseY_;
+    }
+    else
+    {
+      this.sumDisplacement_ = 0;
+      dist = 0;
+    }
     var mesh = this.mesh_;
     var sym = this.symmetry_;
     var sculpt = this.sculpt_;
@@ -604,13 +665,13 @@ SculptGL.prototype = {
     }
     if (this.sumDisplacement_ > minSpacing * 50.0 && !drag)
       this.sumDisplacement_ = 0;
-    else if (this.sumDisplacement_ > minSpacing)
+    else if (this.sumDisplacement_ > minSpacing || this.sumDisplacement_ === 0)
     {
       this.sumDisplacement_ = 0;
-      for (var i = 0; i < dist; i += step)
+      for (var i = 0; i <= dist; i += step)
       {
         if (drag)
-          sculpt.updateDragDir(mesh, picking, mouseX, mouseY, pressureRadius)
+          sculpt.updateDragDir(mesh, picking, mouseX, mouseY, pressureRadius);
         else
           picking.intersectionMouseMesh(mesh, mouseX, mouseY, pressureRadius);
         if (!picking.mesh_)
@@ -634,12 +695,6 @@ SculptGL.prototype = {
       }
       this.mesh_.updateBuffers();
     }
-  },
-
-  /** Mouse out event */
-  onMouseOut: function ()
-  {
-    this.mouseButton_ = 0;
   },
 
   /** WebGL context is lost */
@@ -760,7 +815,7 @@ SculptGL.prototype = {
       return;
     if (this.keyVerold_ === '')
     {
-      alert('Please enter a verold API Key.')
+      alert('Please enter a verold API Key.');
       return;
     }
     Files.exportVerold(this.mesh_, this.keyVerold_);
@@ -773,7 +828,7 @@ SculptGL.prototype = {
       return;
     if (this.keySketchfab_ === '')
     {
-      alert('Please enter a sketchfab API Key.')
+      alert('Please enter a sketchfab API Key.');
       return;
     }
     Files.exportSketchfab(this.mesh_, this.keySketchfab_);
