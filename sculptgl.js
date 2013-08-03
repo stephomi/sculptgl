@@ -583,6 +583,8 @@ SculptGL.prototype = {
     event.preventDefault();
     var mouseX = event.pageX,
       mouseY = event.pageY;
+    var button = this.mouseButton_;
+    var tool = this.sculpt_.tool_;
     var pressure = Tablet.pressure();
     var pressureRadius = this.usePenRadius_ ? pressure : 1;
     var pressureIntensity = this.usePenIntensity_ ? pressure : 1;
@@ -594,11 +596,11 @@ SculptGL.prototype = {
       this.mouseY_ = mouseY;
       return;
     }
-    if (this.mesh_ && this.mouseButton_ !== 1)
+    if (this.mesh_ && (button !== 1 || (tool !== Sculpt.tool.ROTATE && tool !== Sculpt.tool.DRAG)))
       this.picking_.intersectionMouseMesh(this.mesh_, mouseX, mouseY, pressureRadius);
-    if (this.mouseButton_ === 1)
+    if (button === 1)
     {
-      if (this.sculpt_.tool_ !== Sculpt.tool.ROTATE)
+      if (tool !== Sculpt.tool.ROTATE)
         this.sculptStroke(mouseX, mouseY, pressureRadius, pressureIntensity);
       else if (this.picking_.mesh_)
       {
@@ -614,9 +616,9 @@ SculptGL.prototype = {
       this.ctrlNbVertices_.name('Ver : ' + this.mesh_.vertices_.length);
       this.ctrlNbTriangles_.name('Tri : ' + this.mesh_.triangles_.length);
     }
-    else if (this.mouseButton_ === 3)
+    else if (button === 3)
       this.camera_.rotate(mouseX, mouseY);
-    else if (this.mouseButton_ === 2)
+    else if (button === 2)
       this.camera_.translate((mouseX - this.lastMouseX_) / 3000, (mouseY - this.lastMouseY_) / 3000);
     this.lastMouseX_ = mouseX;
     this.lastMouseY_ = mouseY;
