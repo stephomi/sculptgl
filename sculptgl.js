@@ -529,7 +529,7 @@ SculptGL.prototype = {
           {
             self.sculptStroke(self.mouseX_, self.mouseY_, self.pressureRadius_, self.pressureIntensity_);
             self.render();
-          }, 32);
+          }, 20);
         }
         else
           this.sculptStroke(mouseX, mouseY, pressureRadius, pressureIntensity);

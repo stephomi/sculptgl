@@ -11,7 +11,7 @@ function Octree(parent, depth)
 }
 
 Octree.maxDepth_ = 8; //maximum depth
-Octree.maxTriangles_ = 1; //maximum triangles per cell
+Octree.maxTriangles_ = 100; //maximum triangles per cell
 
 Octree.prototype = {
   /** Build octree */
