@@ -10,6 +10,7 @@ function Sculpt(states)
   this.detailSubdivision_ = 0.75; //maximal edge length before we subdivide it
   this.detailDecimation_ = 0.1; //minimal edge length before we collapse it (dependent of detailSubdivision_)
   this.negative_ = false; //opposition deformation
+  this.clay_ = false; //clay sculpting (modifier for brush tool)
   this.culling_ = false; //if we backface cull the vertices
 
   this.d2Min_ = 0; //uniform refinement of mesh (min edge length)
@@ -168,6 +169,8 @@ Sculpt.prototype = {
     var nbVerts = iVertsInRadius.length;
     var deformIntensityBrush = intensity * radius * 0.1;
     var deformIntensityFlatten = intensity * 0.3;
+    if (this.clay_)
+      deformIntensityFlatten = intensity;
     if (this.negative_)
       deformIntensityBrush = -deformIntensityBrush;
     var cx = center[0],
