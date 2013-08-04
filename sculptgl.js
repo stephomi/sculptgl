@@ -41,7 +41,11 @@ function SculptGL()
   this.ctrlColor_ = null; //color controller
   this.ctrlShaders_ = null; //shaders controller
   this.ctrlSculpt_ = null; //sculpt controller
+  this.ctrlContinuous_ = null; //continuous sculpting controller
   this.ctrlNegative_ = null; //negative sculpting controller
+  this.ctrlIntensity_ = null; //intensity sculpting controller
+  this.ctrlDetailSubdivision_ = null; //subdivision detail slider
+  this.ctrlDetailDecimation_ = null; //decimation detail slider
   this.ctrlNbVertices_ = null; //display number of vertices controller
   this.ctrlNbTriangles_ = null; //display number of triangles controller
 
@@ -301,13 +305,33 @@ SculptGL.prototype = {
     this.ctrlSculpt_.onChange(function (value)
     {
       self.sculpt_.tool_ = parseInt(value, 10);
+      switch (self.sculpt_.tool_)
+      {
+      case Sculpt.tool.BRUSH:
+      case Sculpt.tool.INFLATE:
+      case Sculpt.tool.CREASE:
+        self.ctrlNegative_.__li.hidden = false;
+        self.ctrlContinuous_.__li.hidden = false;
+        self.ctrlIntensity_.__li.hidden = false;
+        break;
+      case Sculpt.tool.ROTATE:
+      case Sculpt.tool.DRAG:
+        self.ctrlNegative_.__li.hidden = true;
+        self.ctrlContinuous_.__li.hidden = true;
+        self.ctrlIntensity_.__li.hidden = true;
+        break;
+      default:
+        self.ctrlNegative_.__li.hidden = true;
+        self.ctrlContinuous_.__li.hidden = false;
+        self.ctrlIntensity_.__li.hidden = false;
+      }
     });
     this.ctrlNegative_ = foldSculpt.add(this.sculpt_, 'negative_').name('Negative (N)');
-    foldSculpt.add(this, 'continuous_').name('Continuous');
+    this.ctrlContinuous_ = foldSculpt.add(this, 'continuous_').name('Continuous');
     foldSculpt.add(this, 'symmetry_').name('Symmetry');
     foldSculpt.add(this.sculpt_, 'culling_').name('Sculpt culling');
     foldSculpt.add(this.picking_, 'rDisplay_', 20, 200).name('Radius');
-    foldSculpt.add(this.sculpt_, 'intensity_', 0, 1).name('Intensity');
+    this.ctrlIntensity_ = foldSculpt.add(this.sculpt_, 'intensity_', 0, 1).name('Intensity');
     foldSculpt.open();
 
     //topo fold
@@ -321,9 +345,23 @@ SculptGL.prototype = {
     ctrlTopo.onChange(function (value)
     {
       self.sculpt_.topo_ = parseInt(value, 10);
+      switch (self.sculpt_.topo_)
+      {
+      case Sculpt.topo.STATIC:
+        self.ctrlDetailSubdivision_.__li.hidden = true;
+        self.ctrlDetailDecimation_.__li.hidden = true;
+        break;
+      case Sculpt.topo.SUBDIVISION:
+        self.ctrlDetailSubdivision_.__li.hidden = false;
+        self.ctrlDetailDecimation_.__li.hidden = false;
+        break;
+      default:
+        self.ctrlDetailSubdivision_.__li.hidden = false;
+        self.ctrlDetailDecimation_.__li.hidden = true;
+      }
     });
-    foldTopo.add(this.sculpt_, 'detailSubdivision_', 0, 1).name('Detail');
-    foldTopo.add(this.sculpt_, 'detailDecimation_', 0, 1).name('Min edge');
+    this.ctrlDetailSubdivision_ = foldTopo.add(this.sculpt_, 'detailSubdivision_', 0, 1).name('Detail');
+    this.ctrlDetailDecimation_ = foldTopo.add(this.sculpt_, 'detailDecimation_', 0, 1).name('Min edge');
     foldTopo.open();
 
     //mesh fold
@@ -350,6 +388,10 @@ SculptGL.prototype = {
         self.mesh_.render_.updateShaders(parseInt(value, 10), self.textures_, self.shaders_);
         self.mesh_.updateBuffers();
         self.render();
+        if (self.mesh_.render_.shaderType_ >= Render.mode.MATERIAL)
+          self.ctrlColor_.__li.hidden = true;
+        else
+          self.ctrlColor_.__li.hidden = false;
       }
     });
     this.ctrlColor_ = foldMesh.addColor(new Render(), 'color_').name('Color');
@@ -766,6 +808,7 @@ SculptGL.prototype = {
   {
     var mesh = this.mesh_;
     mesh.render_.shaderType_ = Render.mode.MATERIAL;
+    this.ctrlColor_.__li.hidden = true; //ugly hack
     mesh.initMesh(this.textures_, this.shaders_);
     mesh.moveTo([0, 0, 0]);
     var length = vec3.dist(mesh.octree_.aabbLoose_.max_, mesh.octree_.aabbLoose_.min_);
