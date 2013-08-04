@@ -315,8 +315,6 @@ SculptGL.prototype = {
     var optionsTopo = {
       'Static': Sculpt.topo.STATIC,
       'Subdivision': Sculpt.topo.SUBDIVISION,
-      'Decimation': Sculpt.topo.DECIMATION,
-      'Uniformisation': Sculpt.topo.UNIFORMISATION,
       'Adaptive (!!!)': Sculpt.topo.ADAPTIVE
     };
     var ctrlTopo = foldTopo.add(this.sculpt_, 'topo_', optionsTopo).name('Tool');
@@ -324,7 +322,8 @@ SculptGL.prototype = {
     {
       self.sculpt_.topo_ = parseInt(value, 10);
     });
-    foldTopo.add(this.sculpt_, 'detail_', 0, 1).name('Detail');
+    foldTopo.add(this.sculpt_, 'detailSubdivision_', 0, 1).name('Detail');
+    foldTopo.add(this.sculpt_, 'detailDecimation_', 0, 1).name('Min edge');
     foldTopo.open();
 
     //mesh fold

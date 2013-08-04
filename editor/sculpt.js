@@ -7,7 +7,8 @@ function Sculpt(states)
   this.intensity_ = 0.75; //deformation intensity
   this.tool_ = Sculpt.tool.BRUSH; //sculpting mode
   this.topo_ = Sculpt.topo.SUBDIVISION; //topological mode
-  this.detail_ = 0.75; //intensity of details
+  this.detailSubdivision_ = 0.75; //maximal edge length before we subdivide it
+  this.detailDecimation_ = 0.1; //minimal edge length before we collapse it (dependent of detailSubdivision_)
   this.negative_ = false; //opposition deformation
   this.culling_ = false; //if we backface cull the vertices
 
@@ -45,16 +46,14 @@ Sculpt.tool = {
 Sculpt.topo = {
   STATIC: 0,
   SUBDIVISION: 1,
-  DECIMATION: 2,
-  UNIFORMISATION: 3,
-  ADAPTIVE: 4
+  ADAPTIVE: 2
 };
 
 Sculpt.prototype = {
   /** Set adaptive parameters */
   setAdaptiveParameters: function (radiusSquared)
   {
-    this.d2Max_ = radiusSquared * (1.1 - this.detail_) * 0.2;
+    this.d2Max_ = radiusSquared * (1.1 - this.detailSubdivision_) * 0.2;
     this.d2Min_ = this.d2Max_ / 4.2025;
     this.d2Move_ = this.d2Min_ * 0.2375;
     this.d2Thickness_ = (4.0 * this.d2Move_ + this.d2Max_ / 3.0) * 1.1;
@@ -84,11 +83,9 @@ Sculpt.prototype = {
     {
     case Sculpt.topo.SUBDIVISION:
       iTris = topo.subdivision(iTris, this.d2Max_);
+      if (this.detailDecimation_ > 0)
+        iTris = topo.decimation(iTris, this.d2Min_ * this.detailDecimation_);
       break;
-    case Sculpt.topo.DECIMATION:
-      iTris = topo.decimation(iTris, this.d2Min_);
-      break;
-    case Sculpt.topo.UNIFORMISATION:
     case Sculpt.topo.ADAPTIVE:
       iTris = topo.subdivision(iTris, this.d2Max_);
       iTris = topo.decimation(iTris, this.d2Min_);
