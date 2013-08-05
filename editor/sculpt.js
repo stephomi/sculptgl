@@ -60,6 +60,83 @@ Sculpt.prototype = {
     this.d2Thickness_ = (4.0 * this.d2Move_ + this.d2Max_ / 3.0) * 1.1;
   },
 
+  /** Make a brush stroke */
+  sculptStroke: function (mouseX, mouseY, pressureRadius, pressureIntensity, sculptgl)
+  {
+    var ptPlane = sculptgl.ptPlane_,
+      nPlane = sculptgl.nPlane_;
+    var picking = sculptgl.picking_,
+      pickingSym = sculptgl.pickingSym_;
+    var lx = sculptgl.lastMouseX_,
+      ly = sculptgl.lastMouseY_;
+    var dx = mouseX - lx,
+      dy = mouseY - ly;
+    var dist = Math.sqrt(dx * dx + dy * dy);
+    sculptgl.sumDisplacement_ += dist;
+    var sumDisp = sculptgl.sumDisplacement_;
+    var minSpacing = 0.2 * picking.rDisplay_;
+    var step = dist / Math.floor(dist / minSpacing);
+    dx /= dist;
+    dy /= dist;
+    if (!sculptgl.continuous_)
+    {
+      mouseX = lx;
+      mouseY = ly;
+    }
+    else
+    {
+      sumDisp = 0;
+      dist = 0;
+    }
+    var mesh = sculptgl.mesh_;
+    var sym = sculptgl.symmetry_;
+    var drag = this.tool_ === Sculpt.tool.DRAG;
+    if (drag)
+    {
+      minSpacing = 0.0;
+      picking.mesh_ = pickingSym.mesh_ = mesh;
+      var inter = picking.interPoint_;
+      var interSym = pickingSym.interPoint_;
+      interSym[0] = inter[0];
+      interSym[1] = inter[1];
+      interSym[2] = inter[2];
+      Geometry.mirrorPoint(interSym, ptPlane, nPlane);
+    }
+    if (sumDisp > minSpacing * 50.0 && !drag)
+      sumDisp = 0;
+    else if (sumDisp > minSpacing || sumDisp === 0)
+    {
+      sumDisp = 0;
+      for (var i = 0; i <= dist; i += step)
+      {
+        if (drag)
+          this.updateDragDir(mesh, picking, mouseX, mouseY, pressureRadius);
+        else
+          picking.intersectionMouseMesh(mesh, mouseX, mouseY, pressureRadius);
+        if (!picking.mesh_)
+          break;
+        picking.pickVerticesInSphere(picking.rWorldSqr_);
+        this.sculptMesh(picking, pressureIntensity);
+        if (sym)
+        {
+          if (drag)
+            this.updateDragDir(mesh, pickingSym, mouseX, mouseY, pressureRadius, ptPlane, nPlane);
+          else
+            pickingSym.intersectionMouseMesh(mesh, mouseX, mouseY, pressureRadius, ptPlane, nPlane);
+          if (!pickingSym.mesh_)
+            break;
+          pickingSym.rWorldSqr_ = picking.rWorldSqr_;
+          pickingSym.pickVerticesInSphere(pickingSym.rWorldSqr_);
+          this.sculptMesh(pickingSym, pressureIntensity, true);
+        }
+        mouseX += dx * step;
+        mouseY += dy * step;
+      }
+      this.mesh_.updateBuffers();
+    }
+    sculptgl.sumDisplacement_ = sumDisp;
+  },
+
   /** Sculpt the mesh */
   sculptMesh: function (picking, pressureIntensity, sym, mouseX, mouseY, lastMouseX, lastMouseY)
   {
@@ -168,9 +245,7 @@ Sculpt.prototype = {
     var radius = Math.sqrt(radiusSquared);
     var nbVerts = iVertsInRadius.length;
     var deformIntensityBrush = intensity * radius * 0.1;
-    var deformIntensityFlatten = intensity * 0.3;
-    if (this.clay_)
-      deformIntensityFlatten = intensity;
+    var deformIntensityFlatten = this.clay_ ? intensity : intensity * 0.3;
     if (this.negative_)
       deformIntensityBrush = -deformIntensityBrush;
     var cx = center[0],

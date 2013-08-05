@@ -38,17 +38,7 @@ function SculptGL()
   this.sphere_ = ''; //sphere
 
   //ui stuffs
-  this.ctrlColor_ = null; //color controller
-  this.ctrlShaders_ = null; //shaders controller
-  this.ctrlSculpt_ = null; //sculpt controller
-  this.ctrlContinuous_ = null; //continuous sculpting controller
-  this.ctrlClay_ = null; //clay sculpting controller
-  this.ctrlNegative_ = null; //negative sculpting controller
-  this.ctrlIntensity_ = null; //intensity sculpting controller
-  this.ctrlDetailSubdivision_ = null; //subdivision detail slider
-  this.ctrlDetailDecimation_ = null; //decimation detail slider
-  this.ctrlNbVertices_ = null; //display number of vertices controller
-  this.ctrlNbTriangles_ = null; //display number of triangles controller
+  this.gui_ = new Gui(this); //gui
 
   //functions
   this.resetSphere_ = this.resetSphere; //load sphere
@@ -56,7 +46,6 @@ function SculptGL()
   this.save_ = this.saveFile; //save file function
   this.undo_ = this.onUndo; //undo last action
   this.redo_ = this.onRedo; //redo last action
-  this.dummyFunc_ = function () {}; //empty function... stupid trick to get a simple button in dat.gui
 
   //exporters
   this.keyVerold_ = ''; //verold api key
@@ -79,7 +68,7 @@ SculptGL.prototype = {
     });
     this.initWebGL();
     this.loadShaders();
-    this.initGui();
+    this.gui_.initGui();
     this.onWindowResize();
     this.loadTextures();
     this.initEvents();
@@ -224,159 +213,6 @@ SculptGL.prototype = {
     sphereXhr.send(null);
   },
 
-  /** Initialize dat-gui stuffs */
-  initGui: function ()
-  {
-    var guiGeneral = new dat.GUI();
-    guiGeneral.domElement.style.position = 'absolute';
-    guiGeneral.domElement.style.height = '600px';
-    this.initGeneralGui(guiGeneral);
-
-    var guiEditing = new dat.GUI();
-    this.initEditingGui(guiEditing);
-  },
-
-  /** Initialize the general gui (on the left) */
-  initGeneralGui: function (gui)
-  {
-    var self = this;
-
-    //Pen tablet ui stuffs
-    var foldPenTablet = gui.addFolder('Wacom tablet');
-    foldPenTablet.add(this, 'usePenRadius_').name('Pressure radius');
-    foldPenTablet.add(this, 'usePenIntensity_').name('Pressure intensity');
-    foldPenTablet.open();
-
-    //file fold
-    var foldFiles = gui.addFolder('Files (import/export)');
-    foldFiles.add(this, 'resetSphere_').name('Reset sphere');
-    foldFiles.add(this, 'open_').name('Import (obj, stl)');
-    foldFiles.add(this, 'save_').name('Export (obj)');
-    foldFiles.open();
-
-    //Verold fold
-    var foldVerold = gui.addFolder('Go to Verold !');
-    foldVerold.add(this, 'keyVerold_').name('API key');
-    foldVerold.add(this, 'exportVerold_').name('Upload');
-
-    //Sketchfab fold
-    var foldSketchfab = gui.addFolder('Go to Sketchfab !');
-    foldSketchfab.add(this, 'keySketchfab_').name('API key');
-    foldSketchfab.add(this, 'exportSketchfab_').name('Upload');
-
-    //Camera fold
-    var cameraFold = gui.addFolder('Camera');
-    var optionsCamera = {
-      'Spherical': Camera.mode.SPHERICAL,
-      'Plane': Camera.mode.PLANE
-    };
-    var ctrlCamera = cameraFold.add(this.camera_, 'mode_', optionsCamera).name('Camera');
-    ctrlCamera.onChange(function (value)
-    {
-      self.camera_.updateMode(parseInt(value, 10));
-      self.render();
-    });
-    cameraFold.open();
-
-    //history fold
-    var foldHistory = gui.addFolder('History');
-    foldHistory.add(this, 'undo_').name('Undo (Ctrl+Z)');
-    foldHistory.add(this, 'redo_').name('Redo (Ctrl+Y)');
-    foldHistory.open();
-  },
-
-  /** Initialize the mesh editing gui (on the right) */
-  initEditingGui: function (gui)
-  {
-    var self = this;
-
-    //sculpt fold
-    var foldSculpt = gui.addFolder('Sculpt');
-    var optionsSculpt = {
-      'Brush (1)': Sculpt.tool.BRUSH,
-      'Inflate (2)': Sculpt.tool.INFLATE,
-      'Rotate (3)': Sculpt.tool.ROTATE,
-      'Smooth (4)': Sculpt.tool.SMOOTH,
-      'Flatten (5)': Sculpt.tool.FLATTEN,
-      'Pinch (6)': Sculpt.tool.PINCH,
-      'Crease (7)': Sculpt.tool.CREASE,
-      'Drag (8)': Sculpt.tool.DRAG
-    };
-    this.ctrlSculpt_ = foldSculpt.add(this.sculpt_, 'tool_', optionsSculpt).name('Tool');
-    this.ctrlSculpt_.onChange(function (value)
-    {
-      self.sculpt_.tool_ = parseInt(value, 10);
-      var tool = self.sculpt_.tool_;
-      var st = Sculpt.tool;
-      self.ctrlClay_.__li.hidden = tool !== st.BRUSH;
-      self.ctrlNegative_.__li.hidden = tool !== st.BRUSH && tool !== st.FLATE && tool !== st.CREASE;
-      self.ctrlContinuous_.__li.hidden = tool === st.ROTATE || tool === st.DRAG;
-      self.ctrlContinuous_.__li.hidden = self.ctrlContinuous_.__li.hidden;
-    });
-    this.ctrlClay_ = foldSculpt.add(this.sculpt_, 'clay_').name('Clay');
-    this.ctrlNegative_ = foldSculpt.add(this.sculpt_, 'negative_').name('Negative (N)');
-    this.ctrlContinuous_ = foldSculpt.add(this, 'continuous_').name('Continuous');
-    foldSculpt.add(this, 'symmetry_').name('Symmetry');
-    foldSculpt.add(this.sculpt_, 'culling_').name('Sculpt culling');
-    foldSculpt.add(this.picking_, 'rDisplay_', 20, 200).name('Radius');
-    this.ctrlIntensity_ = foldSculpt.add(this.sculpt_, 'intensity_', 0, 1).name('Intensity');
-    foldSculpt.open();
-
-    //topo fold
-    var foldTopo = gui.addFolder('Topology');
-    var optionsTopo = {
-      'Static': Sculpt.topo.STATIC,
-      'Subdivision': Sculpt.topo.SUBDIVISION,
-      'Adaptive (!!!)': Sculpt.topo.ADAPTIVE
-    };
-    var ctrlTopo = foldTopo.add(this.sculpt_, 'topo_', optionsTopo).name('Tool');
-    ctrlTopo.onChange(function (value)
-    {
-      self.sculpt_.topo_ = parseInt(value, 10);
-      var topo = self.sculpt_.topo_;
-      var st = Sculpt.topo;
-      self.ctrlDetailSubdivision_.__li.hidden = topo === st.STATIC;
-      self.ctrlDetailDecimation_.__li.hidden = topo !== st.SUBDIVISION;
-    });
-    this.ctrlDetailSubdivision_ = foldTopo.add(this.sculpt_, 'detailSubdivision_', 0, 1).name('Detail');
-    this.ctrlDetailDecimation_ = foldTopo.add(this.sculpt_, 'detailDecimation_', 0, 1).name('Min edge');
-    foldTopo.open();
-
-    //mesh fold
-    var foldMesh = gui.addFolder('Mesh');
-    this.ctrlNbVertices_ = foldMesh.add(this, 'dummyFunc_').name('Ver : 0');
-    this.ctrlNbTriangles_ = foldMesh.add(this, 'dummyFunc_').name('Tri : 0');
-    var optionsShaders = {
-      'Phong': Render.mode.PHONG,
-      'Wireframe (slow)': Render.mode.WIREFRAME,
-      'Transparency': Render.mode.TRANSPARENCY,
-      'Clay': Render.mode.MATERIAL,
-      'Chavant': Render.mode.MATERIAL + 1,
-      'Skin': Render.mode.MATERIAL + 2,
-      'Drink': Render.mode.MATERIAL + 3,
-      'Red velvet': Render.mode.MATERIAL + 4,
-      'Orange': Render.mode.MATERIAL + 5,
-      'Bronze': Render.mode.MATERIAL + 6
-    };
-    this.ctrlShaders_ = foldMesh.add(new Render(), 'shaderType_', optionsShaders).name('Shader');
-    this.ctrlShaders_.onChange(function (value)
-    {
-      if (self.mesh_)
-      {
-        self.mesh_.render_.updateShaders(parseInt(value, 10), self.textures_, self.shaders_);
-        self.mesh_.updateBuffers();
-        self.render();
-        self.ctrlColor_.__li.hidden = self.mesh_.render_.shaderType_ >= Render.mode.MATERIAL;
-      }
-    });
-    this.ctrlColor_ = foldMesh.addColor(new Render(), 'color_').name('Color');
-    this.ctrlColor_.onChange(function ()
-    {
-      self.render();
-    });
-    foldMesh.open();
-  },
-
   /** Render mesh */
   render: function ()
   {
@@ -423,38 +259,38 @@ SculptGL.prototype = {
     {
     case 49: // 1
     case 97: // NUMPAD 1
-      this.ctrlSculpt_.setValue(Sculpt.tool.BRUSH);
+      this.gui_.ctrlSculpt_.setValue(Sculpt.tool.BRUSH);
       break;
     case 50: // 2
     case 98: // NUMPAD 2
-      this.ctrlSculpt_.setValue(Sculpt.tool.INFLATE);
+      this.gui_.ctrlSculpt_.setValue(Sculpt.tool.INFLATE);
       break;
     case 51: // 3
     case 99: // NUMPAD 3
-      this.ctrlSculpt_.setValue(Sculpt.tool.ROTATE);
+      this.gui_.ctrlSculpt_.setValue(Sculpt.tool.ROTATE);
       break;
     case 52: // 4
     case 100: // NUMPAD 4
-      this.ctrlSculpt_.setValue(Sculpt.tool.SMOOTH);
+      this.gui_.ctrlSculpt_.setValue(Sculpt.tool.SMOOTH);
       break;
     case 53: // 5
     case 101: // NUMPAD 5
-      this.ctrlSculpt_.setValue(Sculpt.tool.FLATTEN);
+      this.gui_.ctrlSculpt_.setValue(Sculpt.tool.FLATTEN);
       break;
     case 54: // 6
     case 102: // NUMPAD 6
-      this.ctrlSculpt_.setValue(Sculpt.tool.PINCH);
+      this.gui_.ctrlSculpt_.setValue(Sculpt.tool.PINCH);
       break;
     case 55: // 7
     case 103: // NUMPAD 7
-      this.ctrlSculpt_.setValue(Sculpt.tool.CREASE);
+      this.gui_.ctrlSculpt_.setValue(Sculpt.tool.CREASE);
       break;
     case 56: // 8
     case 104: // NUMPAD 8
-      this.ctrlSculpt_.setValue(Sculpt.tool.DRAG);
+      this.gui_.ctrlSculpt_.setValue(Sculpt.tool.DRAG);
       break;
     case 78: // N
-      this.ctrlNegative_.setValue(!this.sculpt_.negative_);
+      this.gui_.ctrlNegative_.setValue(!this.sculpt_.negative_);
       break;
     case 37: // LEFT
     case 81: // Q
@@ -543,12 +379,12 @@ SculptGL.prototype = {
           var self = this;
           this.sculptTimer_ = setInterval(function ()
           {
-            self.sculptStroke(self.mouseX_, self.mouseY_, self.pressureRadius_, self.pressureIntensity_);
+            self.sculpt_.sculptStroke(self.mouseX_, self.mouseY_, self.pressureRadius_, self.pressureIntensity_, self);
             self.render();
           }, 20);
         }
         else
-          this.sculptStroke(mouseX, mouseY, pressureRadius, pressureIntensity);
+          this.sculpt_.sculptStroke(mouseX, mouseY, pressureRadius, pressureIntensity, this);
       }
     }
     else if (button === 3)
@@ -617,7 +453,7 @@ SculptGL.prototype = {
     if (button === 1)
     {
       if (tool !== Sculpt.tool.ROTATE)
-        this.sculptStroke(mouseX, mouseY, pressureRadius, pressureIntensity);
+        this.sculpt_.sculptStroke(mouseX, mouseY, pressureRadius, pressureIntensity, this);
       else if (this.picking_.mesh_)
       {
         this.picking_.pickVerticesInSphere(this.picking_.rWorldSqr_);
@@ -629,8 +465,7 @@ SculptGL.prototype = {
         }
         this.mesh_.updateBuffers();
       }
-      this.ctrlNbVertices_.name('Ver : ' + this.mesh_.vertices_.length);
-      this.ctrlNbTriangles_.name('Tri : ' + this.mesh_.triangles_.length);
+      this.gui_.updateMeshInfo(this.mesh_.vertices_.length, this.mesh_.triangles_.length)
     }
     else if (button === 3)
       this.camera_.rotate(mouseX, mouseY);
@@ -639,80 +474,6 @@ SculptGL.prototype = {
     this.lastMouseX_ = mouseX;
     this.lastMouseY_ = mouseY;
     this.render();
-  },
-
-  /** Make a brush stroke */
-  sculptStroke: function (mouseX, mouseY, pressureRadius, pressureIntensity)
-  {
-    var ptPlane = this.ptPlane_,
-      nPlane = this.nPlane_;
-    var picking = this.picking_,
-      pickingSym = this.pickingSym_;
-    var dx = mouseX - this.lastMouseX_,
-      dy = mouseY - this.lastMouseY_;
-    var dist = Math.sqrt(dx * dx + dy * dy);
-    this.sumDisplacement_ += dist;
-    var minSpacing = 0.2 * picking.rDisplay_;
-    var step = dist / Math.floor(dist / minSpacing);
-    dx /= dist;
-    dy /= dist;
-    if (!this.continuous_)
-    {
-      mouseX = this.lastMouseX_;
-      mouseY = this.lastMouseY_;
-    }
-    else
-    {
-      this.sumDisplacement_ = 0;
-      dist = 0;
-    }
-    var mesh = this.mesh_;
-    var sym = this.symmetry_;
-    var sculpt = this.sculpt_;
-    var drag = sculpt.tool_ === Sculpt.tool.DRAG;
-    if (drag)
-    {
-      minSpacing = 0.0;
-      picking.mesh_ = pickingSym.mesh_ = mesh;
-      var inter = picking.interPoint_;
-      var interSym = pickingSym.interPoint_;
-      interSym[0] = inter[0];
-      interSym[1] = inter[1];
-      interSym[2] = inter[2];
-      Geometry.mirrorPoint(interSym, ptPlane, nPlane);
-    }
-    if (this.sumDisplacement_ > minSpacing * 50.0 && !drag)
-      this.sumDisplacement_ = 0;
-    else if (this.sumDisplacement_ > minSpacing || this.sumDisplacement_ === 0)
-    {
-      this.sumDisplacement_ = 0;
-      for (var i = 0; i <= dist; i += step)
-      {
-        if (drag)
-          sculpt.updateDragDir(mesh, picking, mouseX, mouseY, pressureRadius);
-        else
-          picking.intersectionMouseMesh(mesh, mouseX, mouseY, pressureRadius);
-        if (!picking.mesh_)
-          break;
-        picking.pickVerticesInSphere(picking.rWorldSqr_);
-        sculpt.sculptMesh(picking, pressureIntensity);
-        if (sym)
-        {
-          if (drag)
-            sculpt.updateDragDir(mesh, pickingSym, mouseX, mouseY, pressureRadius, ptPlane, nPlane);
-          else
-            pickingSym.intersectionMouseMesh(mesh, mouseX, mouseY, pressureRadius, ptPlane, nPlane);
-          if (!pickingSym.mesh_)
-            break;
-          pickingSym.rWorldSqr_ = picking.rWorldSqr_;
-          pickingSym.pickVerticesInSphere(pickingSym.rWorldSqr_);
-          sculpt.sculptMesh(pickingSym, pressureIntensity, true);
-        }
-        mouseX += dx * step;
-        mouseY += dy * step;
-      }
-      this.mesh_.updateBuffers();
-    }
   },
 
   /** WebGL context is lost */
@@ -783,29 +544,15 @@ SculptGL.prototype = {
   {
     var mesh = this.mesh_;
     mesh.render_.shaderType_ = Render.mode.MATERIAL;
-    this.ctrlColor_.__li.hidden = true; //ugly hack
+    this.gui_.ctrlColor_.__li.hidden = true; //ugly hack
     mesh.initMesh(this.textures_, this.shaders_);
     mesh.moveTo([0, 0, 0]);
     var length = vec3.dist(mesh.octree_.aabbLoose_.max_, mesh.octree_.aabbLoose_.min_);
     this.camera_.reset();
     this.camera_.globalScale_ = length;
     this.camera_.zoom(-0.4);
-    this.updateGuiMesh();
+    this.gui_.updateMesh(mesh);
     this.render();
-  },
-
-  /** Update information on mesh */
-  updateGuiMesh: function ()
-  {
-    if (!this.mesh_)
-      return;
-    var mesh = this.mesh_;
-    this.ctrlColor_.object = mesh.render_;
-    this.ctrlColor_.updateDisplay();
-    this.ctrlShaders_.object = mesh.render_;
-    this.ctrlShaders_.updateDisplay();
-    this.ctrlNbVertices_.name('Ver : ' + mesh.vertices_.length);
-    this.ctrlNbTriangles_.name('Tri : ' + mesh.triangles_.length);
   },
 
   /** Open file */
@@ -858,7 +605,7 @@ SculptGL.prototype = {
   {
     this.states_.undo();
     this.render();
-    this.updateGuiMesh();
+    this.gui_.updateMesh(this.mesh_);
   },
 
   /** When the user redos an action */
@@ -866,6 +613,6 @@ SculptGL.prototype = {
   {
     this.states_.redo();
     this.render();
-    this.updateGuiMesh();
+    this.gui_.updateMesh(this.mesh_);
   }
 };
