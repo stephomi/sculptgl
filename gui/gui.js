@@ -108,7 +108,7 @@ Gui.prototype = {
       var tool = main.sculpt_.tool_;
       var st = Sculpt.tool;
       self.ctrlClay_.__li.hidden = tool !== st.BRUSH;
-      self.ctrlNegative_.__li.hidden = tool !== st.BRUSH && tool !== st.FLATE && tool !== st.CREASE;
+      self.ctrlNegative_.__li.hidden = tool !== st.BRUSH && tool !== st.INFLATE && tool !== st.CREASE;
       self.ctrlContinuous_.__li.hidden = tool === st.ROTATE || tool === st.DRAG;
       self.ctrlContinuous_.__li.hidden = self.ctrlContinuous_.__li.hidden;
     });
