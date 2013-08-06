@@ -6,6 +6,7 @@ function State()
   this.nbVerticesState_ = 0; //number of vertices
   this.vArState_ = []; //copies of vertices coordinates
   this.nArState_ = []; //copies of normal coordinates
+  this.cArState_ = []; //copies of color vertices
   this.iArState_ = []; //copies of indices
   this.vState_ = []; //copies of vertex topology
   this.tState_ = []; //copies of triangle topology
@@ -108,11 +109,13 @@ States.prototype = {
     var undoCur = this.undos_[this.curUndoIndex_];
     var vArState = undoCur.vArState_;
     var nArState = undoCur.nArState_;
+    var cArState = undoCur.cArState_;
     var vState = undoCur.vState_;
 
     var mesh = this.mesh_;
     var vAr = mesh.vertexArray_;
     var nAr = mesh.normalArray_;
+    var cAr = mesh.colorArray_;
     var vertices = mesh.vertices_;
 
     var meshStateMask = Mesh.stateMask_;
@@ -133,6 +136,7 @@ States.prototype = {
     var nbState = vState.length;
     vArState.length = nbState * 3;
     nArState.length = nbState * 3;
+    cArState.length = nbState * 3;
     var j = 0,
       id = 0;
     for (i = oldNbState; i < nbState; ++i)
@@ -145,6 +149,9 @@ States.prototype = {
       nArState[j] = nAr[id];
       nArState[j + 1] = nAr[id + 1];
       nArState[j + 2] = nAr[id + 2];
+      cArState[j] = cAr[id];
+      cArState[j + 1] = cAr[id + 1];
+      cArState[j + 2] = cAr[id + 2];
     }
   },
 
@@ -239,6 +246,7 @@ States.prototype = {
     var mesh = this.mesh_;
     var vAr = mesh.vertexArray_;
     var nAr = mesh.normalArray_;
+    var cAr = mesh.colorArray_;
     var vertices = mesh.vertices_;
 
     var nbVertices = vertices.length;
@@ -250,6 +258,7 @@ States.prototype = {
 
     var vArRedoState = redoState.vArState_;
     var nArRedoState = redoState.nArState_;
+    var cArRedoState = redoState.cArState_;
     var vRedoState = redoState.vState_;
 
     var i = 0,
@@ -281,6 +290,7 @@ States.prototype = {
     var nbState = vRedoState.length;
     vArRedoState.length = nbState * 3;
     nArRedoState.length = nbState * 3;
+    cArRedoState.length = nbState * 3;
     var j = 0;
     for (i = 0; i < nbState; ++i)
     {
@@ -292,6 +302,9 @@ States.prototype = {
       nArRedoState[j] = nAr[id];
       nArRedoState[j + 1] = nAr[id + 1];
       nArRedoState[j + 2] = nAr[id + 2];
+      cArRedoState[j] = cAr[id];
+      cArRedoState[j + 1] = cAr[id + 1];
+      cArRedoState[j + 2] = cAr[id + 2];
     }
   },
 
@@ -334,11 +347,13 @@ States.prototype = {
     var mesh = this.mesh_;
     var vAr = mesh.vertexArray_;
     var nAr = mesh.normalArray_;
+    var cAr = mesh.colorArray_;
     var vertices = mesh.vertices_;
 
     var vUndoState = undoCur.vState_;
     var vArUndoState = undoCur.vArState_;
     var nArUndoState = undoCur.nArState_;
+    var cArUndoState = undoCur.cArState_;
     var nbVerticesState = undoCur.nbVerticesState_;
 
     var nbVerts = vUndoState.length;
@@ -360,6 +375,9 @@ States.prototype = {
         nAr[id] = nArUndoState[j];
         nAr[id + 1] = nArUndoState[j + 1];
         nAr[id + 2] = nArUndoState[j + 2];
+        cAr[id] = cArUndoState[j];
+        cAr[id + 1] = cArUndoState[j + 1];
+        cAr[id + 2] = cArUndoState[j + 2];
       }
     }
   },
@@ -423,12 +441,14 @@ States.prototype = {
 
     var vArRedoState = redoCur.vArState_;
     var nArRedoState = redoCur.nArState_;
+    var cArRedoState = redoCur.cArState_;
     var vRedoState = redoCur.vState_;
     var nbVerts = vRedoState.length;
 
     var mesh = this.mesh_;
     var vAr = mesh.vertexArray_;
     var nAr = mesh.normalArray_;
+    var cAr = mesh.colorArray_;
     var vertices = mesh.vertices_;
 
     var i = 0,
@@ -447,6 +467,9 @@ States.prototype = {
       nAr[id] = nArRedoState[j];
       nAr[id + 1] = nArRedoState[j + 1];
       nAr[id + 2] = nArRedoState[j + 2];
+      cAr[id] = cArRedoState[j];
+      cAr[id + 1] = cArRedoState[j + 1];
+      cAr[id + 2] = cArRedoState[j + 2];
     }
   },
 

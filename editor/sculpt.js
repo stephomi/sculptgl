@@ -12,6 +12,7 @@ function Sculpt(states)
   this.negative_ = false; //opposition deformation
   this.clay_ = false; //clay sculpting (modifier for brush tool)
   this.culling_ = false; //if we backface cull the vertices
+  this.color_ = [168, 66, 66]; //color painting
 
   this.d2Min_ = 0; //uniform refinement of mesh (min edge length)
   this.d2Max_ = 0; //uniform refinement of mesh (max edge length)
@@ -40,7 +41,8 @@ Sculpt.tool = {
   FLATTEN: 4,
   PINCH: 5,
   CREASE: 6,
-  DRAG: 7
+  DRAG: 7,
+  COLOR: 8
 };
 
 //the topological tools
@@ -222,6 +224,9 @@ Sculpt.prototype = {
         break;
       case Sculpt.tool.DRAG:
         this.drag(center, iVertsInRadius, radiusSquared, sym);
+        break;
+      case Sculpt.tool.COLOR:
+        this.paint(center, iVertsInRadius, radiusSquared);
         break;
       }
     }
@@ -615,6 +620,38 @@ Sculpt.prototype = {
       vAr[ind] += dirx * fallOff;
       vAr[ind + 1] += diry * fallOff;
       vAr[ind + 2] += dirz * fallOff;
+    }
+  },
+
+  /** Paint color vertices */
+  paint: function (center, iVerts, radiusSquared)
+  {
+    var mesh = this.mesh_;
+    var vAr = mesh.vertexArray_;
+    var cAr = mesh.colorArray_;
+    var color = this.color_;
+    var radius = Math.sqrt(radiusSquared);
+    var cr = color[0] / 255,
+      cg = color[1] / 255,
+      cb = color[2] / 255;
+    var cx = center[0],
+      cy = center[1],
+      cz = center[2];
+    var intensity = this.intensity_;
+    var nbVerts = iVerts.length;
+    for (var i = 0; i < nbVerts; ++i)
+    {
+      var ind = iVerts[i] * 3;
+      var dx = vAr[ind] - cx,
+        dy = vAr[ind + 1] - cy,
+        dz = vAr[ind + 2] - cz;
+      var dist = Math.sqrt(dx * dx + dy * dy + dz * dz) / radius;
+      var fallOff = 3 * dist * dist * dist * dist - 4 * dist * dist * dist + 1;
+      fallOff *= intensity;
+      var fallOffCompl = 1.0 - fallOff;
+      cAr[ind] = cAr[ind] * fallOffCompl + cr * fallOff;
+      cAr[ind + 1] = cAr[ind + 1] * fallOffCompl + cg * fallOff;
+      cAr[ind + 2] = cAr[ind + 2] * fallOffCompl + cb * fallOff;
     }
   },
 

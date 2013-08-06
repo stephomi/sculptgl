@@ -289,6 +289,10 @@ SculptGL.prototype = {
     case 104: // NUMPAD 8
       this.gui_.ctrlSculpt_.setValue(Sculpt.tool.DRAG);
       break;
+    case 57: // 9
+    case 105: // NUMPAD 9
+      this.gui_.ctrlSculpt_.setValue(Sculpt.tool.COLOR);
+      break;
     case 78: // N
       this.gui_.ctrlNegative_.setValue(!this.sculpt_.negative_);
       break;

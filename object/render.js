@@ -3,11 +3,11 @@
 function Render(gl)
 {
   this.gl_ = gl; //webgl context
-  this.color_ = [168, 66, 66]; //main color
   this.shaderType_ = Render.mode.PHONG; //type of shader
 
   this.vertexBuffer_ = null; //vertices buffer
   this.normalBuffer_ = null; //normals buffer
+  this.colorBuffer_ = null; //colors buffer
   this.barycenterBuffer_ = null; //barycenter buffer
   this.indexBuffer_ = null; //indexes buffer
   this.reflectionLoc_ = null; //texture reflection
@@ -17,6 +17,7 @@ function Render(gl)
   this.vertexShader_ = null; //fragment shader
 
   this.vertexAttrib_ = null; //vertex attribute location
+  this.colorAttrib_ = null; //color vertex attribute location
   this.normalAttrib_ = null; //normal attribute location
   this.barycenterAttrib_ = null; //barycenter attribute location
 
@@ -26,7 +27,6 @@ function Render(gl)
   this.centerPickingUnif_ = null; //center of selection uniform location
   this.radiusSquaredUnif_ = null; //radius of selection uniform location
   this.lightPositionUnif_ = null; //light position uniform location
-  this.colorUnif_ = null; //color uniform location
 
   this.reflectionTexUnif_ = null; //reflection texture uniform location
 }
@@ -93,6 +93,8 @@ Render.prototype = {
 
     this.vertexAttrib_ = gl.getAttribLocation(this.shaderProgram_, 'vertex');
     this.normalAttrib_ = gl.getAttribLocation(this.shaderProgram_, 'normal');
+    if (this.shaderType_ === Render.mode.PHONG || this.shaderType_ === Render.mode.TRANSPARENCY)
+      this.colorAttrib_ = gl.getAttribLocation(this.shaderProgram_, 'color');
     if (this.shaderType_ === Render.mode.WIREFRAME)
       this.barycenterAttrib_ = gl.getAttribLocation(this.shaderProgram_, 'barycenter');
 
@@ -101,7 +103,6 @@ Render.prototype = {
     this.normalMatrixUnif_ = gl.getUniformLocation(shaderProgram, 'nMat');
     this.centerPickingUnif_ = gl.getUniformLocation(shaderProgram, 'centerPicking');
     this.radiusSquaredUnif_ = gl.getUniformLocation(shaderProgram, 'radiusSquared');
-    this.colorUnif_ = gl.getUniformLocation(shaderProgram, 'color');
 
     if (this.shaderType_ === Render.mode.TRANSPARENCY)
       this.lightPositionUnif_ = gl.getUniformLocation(shaderProgram, 'lightPos');
@@ -127,7 +128,7 @@ Render.prototype = {
   },
 
   /** Initialize Vertex Buffer Object (VBO) */
-  initBuffers: function (vAr, nAr, iAr)
+  initBuffers: function (vAr, nAr, cAr, iAr)
   {
     var gl = this.gl_;
     this.vertexBuffer_ = gl.createBuffer();
@@ -137,6 +138,10 @@ Render.prototype = {
     this.normalBuffer_ = gl.createBuffer();
     gl.bindBuffer(gl.ARRAY_BUFFER, this.normalBuffer_);
     gl.bufferData(gl.ARRAY_BUFFER, nAr, gl.DYNAMIC_DRAW);
+
+    this.colorBuffer_ = gl.createBuffer();
+    gl.bindBuffer(gl.ARRAY_BUFFER, this.colorBuffer_);
+    gl.bufferData(gl.ARRAY_BUFFER, cAr, gl.DYNAMIC_DRAW);
 
     this.indexBuffer_ = gl.createBuffer();
     gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this.indexBuffer_);
@@ -164,6 +169,13 @@ Render.prototype = {
     gl.bindBuffer(gl.ARRAY_BUFFER, this.normalBuffer_);
     gl.vertexAttribPointer(this.normalAttrib_, 3, gl.FLOAT, false, 0, 0);
 
+    if (this.shaderType_ === Render.mode.PHONG || this.shaderType_ === Render.mode.TRANSPARENCY)
+    {
+      gl.enableVertexAttribArray(this.colorAttrib_);
+      gl.bindBuffer(gl.ARRAY_BUFFER, this.colorBuffer_);
+      gl.vertexAttribPointer(this.colorAttrib_, 3, gl.FLOAT, false, 0, 0);
+    }
+
     gl.uniformMatrix4fv(this.mvMatrixUnif_, false, mvMatrix);
     gl.uniformMatrix4fv(this.mvpMatrixUnif_, false, mvpMatrix);
     gl.uniformMatrix3fv(this.normalMatrixUnif_, false, mat3.normalFromMat4(mat3.create(), mvMatrix));
@@ -173,20 +185,17 @@ Render.prototype = {
     switch (this.shaderType_)
     {
     case Render.mode.PHONG:
-      gl.uniform3fv(this.colorUnif_, vec3.scale([0, 0, 0], this.color_, 1 / 255));
       this.drawBuffer(lengthIndexArray);
       break;
     case Render.mode.WIREFRAME:
       gl.enableVertexAttribArray(this.barycenterAttrib_);
       gl.bindBuffer(gl.ARRAY_BUFFER, this.barycenterBuffer_);
       gl.vertexAttribPointer(this.barycenterAttrib_, 3, gl.FLOAT, false, 0, 0);
-      gl.uniform3fv(this.colorUnif_, vec3.scale([0, 0, 0], this.color_, 1 / 255));
       gl.drawArrays(gl.TRIANGLES, 0, lengthIndexArray);
       break;
     case Render.mode.TRANSPARENCY:
       gl.depthMask(false);
       gl.enable(gl.BLEND);
-      gl.uniform4fv(this.colorUnif_, [this.color_[0] / 255, this.color_[1] / 255, this.color_[2] / 255, 0.15]);
       gl.uniform3fv(this.lightPositionUnif_, center);
       this.drawBuffer(lengthIndexArray);
       gl.disable(gl.BLEND);
@@ -210,7 +219,7 @@ Render.prototype = {
   },
 
   /** Update buffers */
-  updateBuffers: function (vAr, nAr, iAr)
+  updateBuffers: function (vAr, nAr, cAr, iAr)
   {
     if (this.shaderType_ === Render.mode.WIREFRAME)
     {
@@ -223,6 +232,9 @@ Render.prototype = {
 
     gl.bindBuffer(gl.ARRAY_BUFFER, this.normalBuffer_);
     gl.bufferData(gl.ARRAY_BUFFER, nAr, gl.DYNAMIC_DRAW);
+
+    gl.bindBuffer(gl.ARRAY_BUFFER, this.colorBuffer_);
+    gl.bufferData(gl.ARRAY_BUFFER, cAr, gl.DYNAMIC_DRAW);
 
     gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this.indexBuffer_);
     gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, iAr, gl.STATIC_DRAW);

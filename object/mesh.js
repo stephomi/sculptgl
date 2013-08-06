@@ -7,6 +7,7 @@ function Mesh(gl)
 
   this.vertexArray_ = null; //vertices (Float32Array)
   this.normalArray_ = null; //normals (Float32Array)
+  this.colorArray_ = null; //color vertices (Float32Array)
   this.indexArray_ = null; //triangles (Uint16Array or Uint32Array)
 
   this.center_ = [0, 0, 0]; //center of mesh
@@ -278,14 +279,14 @@ Mesh.prototype = {
     ++Triangle.tagMask_;
     this.octree_ = new Octree();
     this.octree_.build(this, trianglesAll, aabb);
-    this.render_.initBuffers(this.vertexArray_, this.normalArray_, this.indexArray_);
+    this.render_.initBuffers(this.vertexArray_, this.normalArray_, this.colorArray_, this.indexArray_);
     this.render_.updateShaders(this.render_.shaderType_, textures, shaders);
   },
 
   /** Update the rendering buffers */
   updateBuffers: function ()
   {
-    this.render_.updateBuffers(this.vertexArray_, this.normalArray_, this.indexArray_);
+    this.render_.updateBuffers(this.vertexArray_, this.normalArray_, this.colorArray_, this.indexArray_);
   },
 
   /** Update geometry  */
