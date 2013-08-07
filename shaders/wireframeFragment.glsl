@@ -1,5 +1,5 @@
 precision mediump float;
-uniform vec3 color, centerPicking;
+uniform vec3 centerPicking;
 uniform float radiusSquared;
 varying vec3 vVertex, vNormal, vBarycenter;
 const vec3 colorBackface = vec3(0.81, 0.71, 0.23);
@@ -12,7 +12,7 @@ void main()
   if(gl_FrontFacing)
   {
     normal = vNormal;
-    fragColor = color;
+    fragColor = vec3(0.5, 0.5, 0.5);
   }
   else
   {

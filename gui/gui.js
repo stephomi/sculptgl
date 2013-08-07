@@ -99,7 +99,8 @@ Gui.prototype = {
       'Flatten (5)': Sculpt.tool.FLATTEN,
       'Pinch (6)': Sculpt.tool.PINCH,
       'Crease (7)': Sculpt.tool.CREASE,
-      'Drag (8)': Sculpt.tool.DRAG
+      'Drag (8)': Sculpt.tool.DRAG,
+      'Paint (9)': Sculpt.tool.COLOR
     };
     this.ctrlSculpt_ = foldSculpt.add(main.sculpt_, 'tool_', optionsSculpt).name('Tool');
     this.ctrlSculpt_.onChange(function (value)
@@ -108,9 +109,11 @@ Gui.prototype = {
       var tool = main.sculpt_.tool_;
       var st = Sculpt.tool;
       self.ctrlClay_.__li.hidden = tool !== st.BRUSH;
-      self.ctrlNegative_.__li.hidden = tool !== st.BRUSH && tool !== st.FLATE && tool !== st.CREASE;
+      self.ctrlNegative_.__li.hidden = tool !== st.BRUSH && tool !== st.INFLATE && tool !== st.CREASE;
       self.ctrlContinuous_.__li.hidden = tool === st.ROTATE || tool === st.DRAG;
-      self.ctrlContinuous_.__li.hidden = self.ctrlContinuous_.__li.hidden;
+      self.ctrlColor_.__li.hidden = tool !== st.COLOR;
+      if (tool === st.COLOR)
+        self.ctrlShaders_.setValue(Render.mode.PHONG);
     });
     this.ctrlClay_ = foldSculpt.add(main.sculpt_, 'clay_').name('Clay');
     this.ctrlNegative_ = foldSculpt.add(main.sculpt_, 'negative_').name('Negative (N)');
@@ -147,8 +150,8 @@ Gui.prototype = {
     this.ctrlNbTriangles_ = foldMesh.add(this, 'dummyFunc_').name('Tri : 0');
     var optionsShaders = {
       'Phong': Render.mode.PHONG,
-      'Wireframe (slow)': Render.mode.WIREFRAME,
       'Transparency': Render.mode.TRANSPARENCY,
+      'Wireframe (slow)': Render.mode.WIREFRAME,
       'Clay': Render.mode.MATERIAL,
       'Chavant': Render.mode.MATERIAL + 1,
       'Skin': Render.mode.MATERIAL + 2,
@@ -165,14 +168,9 @@ Gui.prototype = {
         main.mesh_.render_.updateShaders(parseInt(value, 10), main.textures_, main.shaders_);
         main.mesh_.updateBuffers();
         main.render();
-        self.ctrlColor_.__li.hidden = main.mesh_.render_.shaderType_ >= Render.mode.MATERIAL;
       }
     });
-    this.ctrlColor_ = foldMesh.addColor(new Render(), 'color_').name('Color');
-    this.ctrlColor_.onChange(function ()
-    {
-      main.render();
-    });
+    this.ctrlColor_ = foldMesh.addColor(main.sculpt_, 'color_').name('Color');
     foldMesh.open();
   },
 
@@ -181,8 +179,6 @@ Gui.prototype = {
   {
     if (!mesh)
       return;
-    this.ctrlColor_.object = mesh.render_;
-    this.ctrlColor_.updateDisplay();
     this.ctrlShaders_.object = mesh.render_;
     this.ctrlShaders_.updateDisplay();
     this.updateMeshInfo(mesh.vertices_.length, mesh.triangles_.length);

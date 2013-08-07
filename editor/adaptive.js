@@ -158,6 +158,7 @@ Topology.prototype.vertexJoin = function (iv1, iv2)
   var vertices = mesh.vertices_;
   var vAr = mesh.vertexArray_;
   var nAr = mesh.normalArray_;
+  var cAr = mesh.colorArray_;
 
   var v1 = vertices[iv1],
     v2 = vertices[iv2];
@@ -182,6 +183,7 @@ Topology.prototype.vertexJoin = function (iv1, iv2)
     curUndo.vState_.push(v1.clone());
     curUndo.vArState_.push(vAr[id], vAr[id + 1], vAr[id + 2]);
     curUndo.nArState_.push(nAr[id], nAr[id + 1], nAr[id + 2]);
+    curUndo.cArState_.push(cAr[id], cAr[id + 1], cAr[id + 2]);
   }
   if (v2.stateFlag_ !== meshStateMask)
   {
@@ -190,6 +192,7 @@ Topology.prototype.vertexJoin = function (iv1, iv2)
     curUndo.vState_.push(v2.clone());
     curUndo.vArState_.push(vAr[id], vAr[id + 1], vAr[id + 2]);
     curUndo.nArState_.push(nAr[id], nAr[id + 1], nAr[id + 2]);
+    curUndo.cArState_.push(cAr[id], cAr[id + 1], cAr[id + 2]);
   }
 
   var edges1 = [],
@@ -623,6 +626,7 @@ Topology.prototype.cleanUpSingularVertex = function (iv)
   var vertices = mesh.vertices_;
   var vAr = mesh.vertexArray_;
   var nAr = mesh.normalArray_;
+  var cAr = mesh.colorArray_;
   var iAr = mesh.indexArray_;
 
   var v = vertices[iv];
@@ -638,6 +642,9 @@ Topology.prototype.cleanUpSingularVertex = function (iv)
   var nx = nAr[id],
     ny = nAr[id + 1],
     nz = nAr[id + 2];
+  var cr = cAr[id],
+    cg = cAr[id + 1],
+    cb = cAr[id + 2];
 
   //undo-redo
   this.states_.pushState(v.tIndices_, v.ringVertices_);
@@ -649,6 +656,7 @@ Topology.prototype.cleanUpSingularVertex = function (iv)
     curUndo.vState_.push(v.clone());
     curUndo.vArState_.push(vx, vy, vz);
     curUndo.nArState_.push(nx, ny, nz);
+    curUndo.cArState_.push(cr, cg, cb);
   }
 
   if (this.deleteVertexIfDegenerate(iv))
@@ -686,6 +694,9 @@ Topology.prototype.cleanUpSingularVertex = function (iv)
   nAr[id] = -nx;
   nAr[id + 1] = -ny;
   nAr[id + 2] = -nz;
+  cAr[id] = cr;
+  cAr[id + 1] = cg;
+  cAr[id + 2] = cb;
 
   for (i = 0; i <= endLoop; ++i)
   {

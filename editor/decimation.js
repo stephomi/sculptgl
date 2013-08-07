@@ -235,6 +235,7 @@ Topology.prototype.edgeCollapse = function (iTri1, iTri2, iv1, iv2, ivOpp1, ivOp
   var triangles = mesh.triangles_;
   var vAr = mesh.vertexArray_;
   var nAr = mesh.normalArray_;
+  var cAr = mesh.colorArray_;
   var iAr = mesh.indexArray_;
 
   var v1 = vertices[iv1],
@@ -304,6 +305,9 @@ Topology.prototype.edgeCollapse = function (iTri1, iTri2, iv1, iv2, ivOpp1, ivOp
   var nx = nAr[id] + nAr[id2],
     ny = nAr[id + 1] + nAr[id2 + 1],
     nz = nAr[id + 2] + nAr[id2 + 2];
+  cAr[id] = (cAr[id] + cAr[id2]) * 0.5,
+  cAr[id + 1] = (cAr[id + 1] + cAr[id2 + 1]) * 0.5,
+  cAr[id + 2] = (cAr[id + 2] + cAr[id2 + 2]) * 0.5;
   var len = 1 / Math.sqrt(nx * nx + ny * ny + nz * nz);
   nx *= len;
   ny *= len;
@@ -375,6 +379,7 @@ Topology.prototype.deleteTriangle = function (iTri)
   var triangles = mesh.triangles_;
   var vAr = mesh.vertexArray_;
   var nAr = mesh.normalArray_;
+  var cAr = mesh.colorArray_;
   var iAr = mesh.indexArray_;
 
   var t = triangles[iTri];
@@ -426,6 +431,7 @@ Topology.prototype.deleteTriangle = function (iTri)
     curUndo.vState_.push(v1.clone());
     curUndo.vArState_.push(vAr[id], vAr[id + 1], vAr[id + 2]);
     curUndo.nArState_.push(nAr[id], nAr[id + 1], nAr[id + 2]);
+    curUndo.cArState_.push(cAr[id], cAr[id + 1], cAr[id + 2]);
   }
   if (v2.stateFlag_ !== meshStateMask)
   {
@@ -434,6 +440,7 @@ Topology.prototype.deleteTriangle = function (iTri)
     curUndo.vState_.push(v2.clone());
     curUndo.vArState_.push(vAr[id], vAr[id + 1], vAr[id + 2]);
     curUndo.nArState_.push(nAr[id], nAr[id + 1], nAr[id + 2]);
+    curUndo.cArState_.push(cAr[id], cAr[id + 1], cAr[id + 2]);
   }
   if (v3.stateFlag_ !== meshStateMask)
   {
@@ -442,6 +449,7 @@ Topology.prototype.deleteTriangle = function (iTri)
     curUndo.vState_.push(v3.clone());
     curUndo.vArState_.push(vAr[id], vAr[id + 1], vAr[id + 2]);
     curUndo.nArState_.push(nAr[id], nAr[id + 1], nAr[id + 2]);
+    curUndo.cArState_.push(cAr[id], cAr[id + 1], cAr[id + 2]);
   }
 
   v1.replaceTriangle(lastPos, iTri);
@@ -466,6 +474,7 @@ Topology.prototype.deleteVertex = function (iVert)
   var triangles = mesh.triangles_;
   var vAr = mesh.vertexArray_;
   var nAr = mesh.normalArray_;
+  var cAr = mesh.colorArray_;
   var iAr = mesh.indexArray_;
 
   var lastPos = vertices.length - 1;
@@ -483,6 +492,9 @@ Topology.prototype.deleteVertex = function (iVert)
   var lastNx = nAr[id],
     lastNy = nAr[id + 1],
     lastNz = nAr[id + 2];
+  var lastCr = cAr[id],
+    lastCg = cAr[id + 1],
+    lastCb = cAr[id + 2];
 
   //undo-redo
   var meshStateMask = Mesh.stateMask_;
@@ -493,6 +505,7 @@ Topology.prototype.deleteVertex = function (iVert)
     curUndo.vState_.push(last.clone());
     curUndo.vArState_.push(lastVx, lastVy, lastVz);
     curUndo.nArState_.push(lastNx, lastNy, lastNz);
+    curUndo.cArState_.push(lastCr, lastCg, lastCb);
   }
 
   last.id_ = iVert;
@@ -532,6 +545,7 @@ Topology.prototype.deleteVertex = function (iVert)
       curUndo.vState_.push(v.clone());
       curUndo.vArState_.push(vAr[id], vAr[id + 1], vAr[id + 2]);
       curUndo.nArState_.push(nAr[id], nAr[id + 1], nAr[id + 2]);
+      curUndo.cArState_.push(cAr[id], cAr[id + 1], cAr[id + 2]);
     }
     v.replaceRingVertex(lastPos, iVert);
   }
@@ -543,6 +557,9 @@ Topology.prototype.deleteVertex = function (iVert)
   nAr[id] = lastNx;
   nAr[id + 1] = lastNy;
   nAr[id + 2] = lastNz;
+  cAr[id] = lastCr;
+  cAr[id + 1] = lastCg;
+  cAr[id + 2] = lastCb;
 
   vertices.pop();
 };

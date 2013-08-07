@@ -121,6 +121,7 @@ Topology.prototype.checkArrayLength = function (nbTris)
   var triangles = mesh.triangles_;
   var vAr = mesh.vertexArray_;
   var nAr = mesh.normalArray_;
+  var cAr = mesh.colorArray_;
   var iAr = mesh.indexArray_;
   var i = 0;
   var temp;
@@ -138,6 +139,11 @@ Topology.prototype.checkArrayLength = function (nbTris)
     for (i = 0; i < vLen; ++i)
       temp[i] = nAr[i];
     this.mesh_.normalArray_ = temp;
+
+    temp = new Float32Array(vLen * 2);
+    for (i = 0; i < vLen; ++i)
+      temp[i] = cAr[i];
+    this.mesh_.colorArray_ = temp;
   }
   var iLen = triangles.length * 3 + nbTris * nb;
   if (iAr.length < iLen)
@@ -258,6 +264,7 @@ Topology.prototype.halfEdgeSplit = function (iTri, iv1, iv2, iv3)
   var triangles = mesh.triangles_;
   var vAr = mesh.vertexArray_;
   var nAr = mesh.normalArray_;
+  var cAr = mesh.colorArray_;
   var iAr = mesh.indexArray_;
 
   var leaf = triangles[iTri].leaf_;
@@ -307,6 +314,9 @@ Topology.prototype.halfEdgeSplit = function (iTri, iv1, iv2, iv3)
     var n1x = nAr[id],
       n1y = nAr[id + 1],
       n1z = nAr[id + 2];
+    var c1r = cAr[id],
+      c1g = cAr[id + 1],
+      c1b = cAr[id + 2];
 
     id = iv2 * 3;
     var v2x = vAr[id],
@@ -315,6 +325,9 @@ Topology.prototype.halfEdgeSplit = function (iTri, iv1, iv2, iv3)
     var n2x = nAr[id],
       n2y = nAr[id + 1],
       n2z = nAr[id + 2];
+    var c2r = cAr[id],
+      c2g = cAr[id + 1],
+      c2b = cAr[id + 2];
     var dot = n1x * n2x + n1y * n2y + n1z * n2z;
 
     var angle = 0;
@@ -330,6 +343,10 @@ Topology.prototype.halfEdgeSplit = function (iTri, iv1, iv2, iv3)
     nAr[id] = n1n2x * len;
     nAr[id + 1] = n1n2y * len;
     nAr[id + 2] = n1n2z * len;
+
+    cAr[id] = (c1r + c2r) * 0.5;
+    cAr[id + 1] = (c1g + c2g) * 0.5;
+    cAr[id + 2] = (c1b + c2b) * 0.5;
 
     var edgex = v1x - v2x,
       edgey = v1y - v2y,

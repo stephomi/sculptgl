@@ -71,9 +71,20 @@ Files.importOBJ = function (data, mesh)
   }
   mesh.vertexArray_ = new Float32Array(vAr.length * 2);
   mesh.normalArray_ = new Float32Array(vAr.length * 2);
+  mesh.colorArray_ = new Float32Array(vAr.length * 2);
   mesh.indexArray_ = new SculptGL.indexArrayType(iAr.length * 2);
   mesh.vertexArray_.set(vAr);
   mesh.indexArray_.set(iAr);
+  var nbColors = vertices.length;
+  var cAr = mesh.colorArray_;
+  var j = 0;
+  for (var i = 0; i < nbColors; ++i)
+  {
+    j = i * 3;
+    cAr[j] = 1.0;
+    cAr[j + 1] = 1.0;
+    cAr[j + 2] = 1.0;
+  }
 };
 
 /** Export OBJ file */
