@@ -114,6 +114,19 @@ Camera.prototype = {
     this.transY_ = 0;
     this.globalScale_ = 1;
   },
+  resetViewFront: function()
+  {
+    this.rot_ = quat.create();
+  },
+  resetViewTop: function()
+  {
+    this.rot_ = quat.rotateX(this.rot_, quat.create(), 3.14/2.0)
+  },
+  resetViewLeft: function()
+  {
+    this.rot_ = quat.rotateY(this.rot_, quat.create(), -3.14/2.0)
+  },
+
 
   /** Project the mouse coordinate into the world coordinate at a given z */
   unproject: function (mouseX, mouseY, z)
