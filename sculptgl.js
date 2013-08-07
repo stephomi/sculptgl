@@ -346,6 +346,18 @@ SculptGL.prototype = {
     case 83: // S
       this.camera_.moveZ_ = 0;
       break;
+    case 70:
+      this.camera_.resetViewFront();
+      this.render();
+      break;
+    case 84:
+      this.camera_.resetViewTop();
+      this.render();
+      break;
+    case 76:
+      this.camera_.resetViewLeft();
+      this.render();
+      break;
     }
     if (this.cameraTimer_ !== -1 && this.camera_.moveX_ === 0 && this.camera_.moveZ_ === 0)
     {
@@ -548,7 +560,17 @@ SculptGL.prototype = {
   {
     var mesh = this.mesh_;
     mesh.render_.shaderType_ = Render.mode.MATERIAL;
-    this.gui_.ctrlColor_.__li.hidden = true; //ugly hack
+    //this.gui_.ctrlColor_.__li.hidden = true; //ugly hack
+    if (this.sculpt_.tool_ === Sculpt.tool.COLOR) {
+      this.gui_.ctrlColor_.__li.hidden = false;
+      this.gui_.ctrlShaders_.setValue(Render.mode.PHONG);
+    }
+    else
+    {
+      this.gui_.ctrlColor_.__li.hidden = true;
+    };
+
+    
     mesh.initMesh(this.textures_, this.shaders_);
     mesh.moveTo([0, 0, 0]);
     var length = vec3.dist(mesh.octree_.aabbLoose_.max_, mesh.octree_.aabbLoose_.min_);
