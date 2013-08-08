@@ -93,10 +93,10 @@ Render.prototype = {
 
     this.vertexAttrib_ = gl.getAttribLocation(this.shaderProgram_, 'vertex');
     this.normalAttrib_ = gl.getAttribLocation(this.shaderProgram_, 'normal');
-    if (this.shaderType_ === Render.mode.PHONG || this.shaderType_ === Render.mode.TRANSPARENCY)
-      this.colorAttrib_ = gl.getAttribLocation(this.shaderProgram_, 'color');
     if (this.shaderType_ === Render.mode.WIREFRAME)
       this.barycenterAttrib_ = gl.getAttribLocation(this.shaderProgram_, 'barycenter');
+    else
+      this.colorAttrib_ = gl.getAttribLocation(this.shaderProgram_, 'color');
 
     this.mvpMatrixUnif_ = gl.getUniformLocation(shaderProgram, 'mvpMat');
     this.mvMatrixUnif_ = gl.getUniformLocation(shaderProgram, 'mvMat');
@@ -169,7 +169,7 @@ Render.prototype = {
     gl.bindBuffer(gl.ARRAY_BUFFER, this.normalBuffer_);
     gl.vertexAttribPointer(this.normalAttrib_, 3, gl.FLOAT, false, 0, 0);
 
-    if (this.shaderType_ === Render.mode.PHONG || this.shaderType_ === Render.mode.TRANSPARENCY)
+    if (this.shaderType_ !== Render.mode.WIREFRAME)
     {
       gl.enableVertexAttribArray(this.colorAttrib_);
       gl.bindBuffer(gl.ARRAY_BUFFER, this.colorBuffer_);
