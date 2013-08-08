@@ -128,8 +128,8 @@ Gui.prototype = {
     var foldTopo = gui.addFolder('Topology');
     var optionsTopo = {
       'Static': Sculpt.topo.STATIC,
-      'Subdivision': Sculpt.topo.SUBDIVISION,
-      'Adaptive (!!!)': Sculpt.topo.ADAPTIVE
+      'Dynamic': Sculpt.topo.SUBDIVISION,
+      'Adaptive (!)': Sculpt.topo.ADAPTIVE
     };
     var ctrlTopo = foldTopo.add(main.sculpt_, 'topo_', optionsTopo).name('Tool');
     ctrlTopo.onChange(function (value)
@@ -140,8 +140,8 @@ Gui.prototype = {
       self.ctrlDetailSubdivision_.__li.hidden = topo === st.STATIC;
       self.ctrlDetailDecimation_.__li.hidden = topo !== st.SUBDIVISION;
     });
-    this.ctrlDetailSubdivision_ = foldTopo.add(main.sculpt_, 'detailSubdivision_', 0, 1).name('Detail');
-    this.ctrlDetailDecimation_ = foldTopo.add(main.sculpt_, 'detailDecimation_', 0, 1).name('Min edge');
+    this.ctrlDetailSubdivision_ = foldTopo.add(main.sculpt_, 'detailSubdivision_', 0, 1).name('Subdivision');
+    this.ctrlDetailDecimation_ = foldTopo.add(main.sculpt_, 'detailDecimation_', 0, 1).name('Decimation');
     foldTopo.open();
 
     //mesh fold
