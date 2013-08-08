@@ -1,0 +1,30 @@
+CACHE MANIFEST
+# 2013-08-08 21:00
+index.html
+
+css/style.css
+
+sculptgl.min.js
+lib/jquery-2.0.3.min.js
+lib/dat.gui.min.js
+lib/filesaver.min.js
+lib/gl-matrix-min.js
+lib/jquery.mousewheel.js
+
+ressources/bronze.jpg
+ressources/chavant.jpg
+ressources/clay.jpg
+ressources/drink.jpg
+ressources/orange.jpg
+ressources/redvelvet.jpg
+ressources/skin.jpg
+ressources/sphere.obj
+
+shaders/phongFragment.glsl
+shaders/phongVertex.glsl
+shaders/reflectionFragment.glsl
+shaders/reflectionVertex.glsl
+shaders/transparencyVertex.glsl
+shaders/transparencyFragment.glsl
+shaders/wireframeVertex.glsl
+shaders/wireframeFragment.glsl

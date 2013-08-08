@@ -10,4 +10,5 @@ cp ../ressources/*.jpg sculptgl/ressources/
 cp ../ressources/*.obj sculptgl/ressources/
 cp ../shaders/*.glsl sculptgl/shaders/
 cp ../css/*.css sculptgl/css/
+cp cache.manifest sculptgl/
 cp index-min.html sculptgl/index.html
