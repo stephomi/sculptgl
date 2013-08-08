@@ -120,11 +120,11 @@ Camera.prototype = {
   },
   resetViewTop: function()
   {
-    this.rot_ = quat.rotateX(this.rot_, quat.create(), 3.14/2.0)
+    this.rot_ = quat.rotateX(this.rot_, quat.create(), Math.PI/2.0)
   },
   resetViewLeft: function()
   {
-    this.rot_ = quat.rotateY(this.rot_, quat.create(), -3.14/2.0)
+    this.rot_ = quat.rotateY(this.rot_, quat.create(), -Math.PI/2.0)
   },
 
 

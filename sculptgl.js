@@ -346,15 +346,15 @@ SculptGL.prototype = {
     case 83: // S
       this.camera_.moveZ_ = 0;
       break;
-    case 70:
+    case 70: //F
       this.camera_.resetViewFront();
       this.render();
       break;
-    case 84:
+    case 84: //T
       this.camera_.resetViewTop();
       this.render();
       break;
-    case 76:
+    case 76: //L
       this.camera_.resetViewLeft();
       this.render();
       break;
