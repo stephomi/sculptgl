@@ -2,12 +2,13 @@ precision mediump float;
 uniform sampler2D refTex;
 uniform vec3 centerPicking;
 uniform float radiusSquared;
-varying vec3 vVertex, vNormal;
+varying vec3 vVertex, vNormal, vColor;
 const vec4 v4one = vec4(1.0);
 void main()
 {
   vec2 texCoord = vec2(0.5 * vNormal.x + 0.5, - 0.5 * vNormal.y - 0.5);
-  vec4 fragColor = texture2D(refTex, texCoord);
+  vec4 vertColor = vec4(vColor, 1.0);
+  vec4 fragColor = texture2D(refTex, texCoord) * vertColor;
   vec3 vecDistance = vVertex - centerPicking;
   float dotSquared = dot(vecDistance, vecDistance);
   if(dotSquared < radiusSquared * 1.06 && dotSquared > radiusSquared * 0.94)
