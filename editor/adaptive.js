@@ -156,9 +156,6 @@ Topology.prototype.vertexJoin = function (iv1, iv2)
 {
   var mesh = this.mesh_;
   var vertices = mesh.vertices_;
-  var vAr = mesh.vertexArray_;
-  var nAr = mesh.normalArray_;
-  var cAr = mesh.colorArray_;
 
   var v1 = vertices[iv1],
     v2 = vertices[iv2];
@@ -171,29 +168,9 @@ Topology.prototype.vertexJoin = function (iv1, iv2)
     nbRing2 = ring2.length;
 
   //undo-redo
-  var meshStateMask = Mesh.stateMask_;
   this.states_.pushState(iTris1, ring1);
   this.states_.pushState(iTris2, ring2);
-  var curUndo = this.states_.undos_[this.states_.curUndoIndex_];
-  var id = 0;
-  if (v1.stateFlag_ !== meshStateMask)
-  {
-    id = iv1 * 3;
-    v1.stateFlag_ = meshStateMask;
-    curUndo.vState_.push(v1.clone());
-    curUndo.vArState_.push(vAr[id], vAr[id + 1], vAr[id + 2]);
-    curUndo.nArState_.push(nAr[id], nAr[id + 1], nAr[id + 2]);
-    curUndo.cArState_.push(cAr[id], cAr[id + 1], cAr[id + 2]);
-  }
-  if (v2.stateFlag_ !== meshStateMask)
-  {
-    id = iv2 * 3;
-    v1.stateFlag_ = meshStateMask;
-    curUndo.vState_.push(v2.clone());
-    curUndo.vArState_.push(vAr[id], vAr[id + 1], vAr[id + 2]);
-    curUndo.nArState_.push(nAr[id], nAr[id + 1], nAr[id + 2]);
-    curUndo.cArState_.push(cAr[id], cAr[id + 1], cAr[id + 2]);
-  }
+  this.states_.pushState(null, [iv1, iv2]);
 
   var edges1 = [],
     edges2 = [];
@@ -648,16 +625,7 @@ Topology.prototype.cleanUpSingularVertex = function (iv)
 
   //undo-redo
   this.states_.pushState(v.tIndices_, v.ringVertices_);
-  var meshStateMask = Mesh.stateMask_;
-  var curUndo = this.states_.undos_[this.states_.curUndoIndex_];
-  if (v.stateFlag_ !== meshStateMask)
-  {
-    v.stateFlag_ = meshStateMask;
-    curUndo.vState_.push(v.clone());
-    curUndo.vArState_.push(vx, vy, vz);
-    curUndo.nArState_.push(nx, ny, nz);
-    curUndo.cArState_.push(cr, cg, cb);
-  }
+  this.states_.pushState(null, [iv]);
 
   if (this.deleteVertexIfDegenerate(iv))
     return;
@@ -686,7 +654,7 @@ Topology.prototype.cleanUpSingularVertex = function (iv)
   this.checkArrayLength(1); //XXX
   var ivNew = vertices.length;
   var vNew = new Vertex(ivNew);
-  vNew.stateFlag_ = meshStateMask;
+  vNew.stateFlag_ = Mesh.stateMask_;
   id = ivNew * 3;
   vAr[id] = vx;
   vAr[id + 1] = vy;

@@ -59,8 +59,10 @@ States.prototype = {
   /** Push verts and tris */
   pushState: function (iTris, iVerts)
   {
-    this.pushStateTriangles(iTris);
-    this.pushStateVertices(iVerts);
+    if (iTris && iTris.length > 0)
+      this.pushStateTriangles(iTris);
+    if (iVerts && iVerts.length > 0)
+      this.pushStateVertices(iVerts);
   },
 
   /** Push triangles */
@@ -76,30 +78,17 @@ States.prototype = {
 
     var meshStateMask = Mesh.stateMask_;
     var nbTris = iTris.length;
-    var i = 0;
-    var oldNbState = tState.length;
-    for (i = 0; i < nbTris; ++i)
+    for (var i = 0; i < nbTris; ++i)
     {
-      var t = triangles[iTris[i]];
+      var id = iTris[i];
+      var t = triangles[id];
       if (t.stateFlag_ !== meshStateMask)
       {
         t.stateFlag_ = meshStateMask;
         tState.push(t.clone());
+        id *= 3;
+        iArState.push(iAr[id], iAr[id + 1], iAr[id + 2]);
       }
-    }
-
-    //fill states arrays
-    var nbState = tState.length;
-    iArState.length = nbState * 3;
-    var j = 0,
-      id = 0;
-    for (i = oldNbState; i < nbState; ++i)
-    {
-      id = tState[i].id_ * 3;
-      j = i * 3;
-      iArState[j] = iAr[id];
-      iArState[j + 1] = iAr[id + 1];
-      iArState[j + 2] = iAr[id + 2];
     }
   },
 
@@ -120,38 +109,19 @@ States.prototype = {
 
     var meshStateMask = Mesh.stateMask_;
     var nbVerts = iVerts.length;
-    var i = 0;
-    var oldNbState = vState.length;
-    for (i = 0; i < nbVerts; ++i)
+    for (var i = 0; i < nbVerts; ++i)
     {
-      var v = vertices[iVerts[i]];
+      var id = iVerts[i];
+      var v = vertices[id];
       if (v.stateFlag_ !== meshStateMask)
       {
         v.stateFlag_ = meshStateMask;
         vState.push(v.clone());
+        id *= 3;
+        vArState.push(vAr[id], vAr[id + 1], vAr[id + 2]);
+        nArState.push(nAr[id], nAr[id + 1], nAr[id + 2]);
+        cArState.push(cAr[id], cAr[id + 1], cAr[id + 2]);
       }
-    }
-
-    //fill states arrays
-    var nbState = vState.length;
-    vArState.length = nbState * 3;
-    nArState.length = nbState * 3;
-    cArState.length = nbState * 3;
-    var j = 0,
-      id = 0;
-    for (i = oldNbState; i < nbState; ++i)
-    {
-      id = vState[i].id_ * 3;
-      j = i * 3;
-      vArState[j] = vAr[id];
-      vArState[j + 1] = vAr[id + 1];
-      vArState[j + 2] = vAr[id + 2];
-      nArState[j] = nAr[id];
-      nArState[j + 1] = nAr[id + 1];
-      nArState[j + 2] = nAr[id + 2];
-      cArState[j] = cAr[id];
-      cArState[j + 1] = cAr[id + 1];
-      cArState[j + 2] = cAr[id + 2];
     }
   },
 

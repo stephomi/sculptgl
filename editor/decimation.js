@@ -377,9 +377,6 @@ Topology.prototype.deleteTriangle = function (iTri)
   var mesh = this.mesh_;
   var vertices = mesh.vertices_;
   var triangles = mesh.triangles_;
-  var vAr = mesh.vertexArray_;
-  var nAr = mesh.normalArray_;
-  var cAr = mesh.colorArray_;
   var iAr = mesh.indexArray_;
 
   var t = triangles[iTri];
@@ -406,14 +403,7 @@ Topology.prototype.deleteTriangle = function (iTri)
     iv3 = iAr[id + 2];
 
   //undo-redo
-  var meshStateMask = Mesh.stateMask_;
-  var curUndo = this.states_.undos_[this.states_.curUndoIndex_];
-  if (last.stateFlag_ !== meshStateMask)
-  {
-    last.stateFlag_ = meshStateMask;
-    curUndo.tState_.push(last.clone());
-    curUndo.iArState_.push(iv1, iv2, iv3);
-  }
+  this.states_.pushState([lastPos], [iv1, iv2, iv3]);
 
   last.id_ = iTri;
   var iTrisLeafLast = last.leaf_.iTris_;
@@ -422,35 +412,6 @@ Topology.prototype.deleteTriangle = function (iTri)
   var v1 = vertices[iv1],
     v2 = vertices[iv2],
     v3 = vertices[iv3];
-
-  //undo-redo
-  if (v1.stateFlag_ !== meshStateMask)
-  {
-    id = iv1 * 3;
-    v1.stateFlag_ = meshStateMask;
-    curUndo.vState_.push(v1.clone());
-    curUndo.vArState_.push(vAr[id], vAr[id + 1], vAr[id + 2]);
-    curUndo.nArState_.push(nAr[id], nAr[id + 1], nAr[id + 2]);
-    curUndo.cArState_.push(cAr[id], cAr[id + 1], cAr[id + 2]);
-  }
-  if (v2.stateFlag_ !== meshStateMask)
-  {
-    id = iv2 * 3;
-    v2.stateFlag_ = meshStateMask;
-    curUndo.vState_.push(v2.clone());
-    curUndo.vArState_.push(vAr[id], vAr[id + 1], vAr[id + 2]);
-    curUndo.nArState_.push(nAr[id], nAr[id + 1], nAr[id + 2]);
-    curUndo.cArState_.push(cAr[id], cAr[id + 1], cAr[id + 2]);
-  }
-  if (v3.stateFlag_ !== meshStateMask)
-  {
-    id = iv3 * 3;
-    v3.stateFlag_ = meshStateMask;
-    curUndo.vState_.push(v3.clone());
-    curUndo.vArState_.push(vAr[id], vAr[id + 1], vAr[id + 2]);
-    curUndo.nArState_.push(nAr[id], nAr[id + 1], nAr[id + 2]);
-    curUndo.cArState_.push(cAr[id], cAr[id + 1], cAr[id + 2]);
-  }
 
   v1.replaceTriangle(lastPos, iTri);
   v2.replaceTriangle(lastPos, iTri);
@@ -497,16 +458,8 @@ Topology.prototype.deleteVertex = function (iVert)
     lastCb = cAr[id + 2];
 
   //undo-redo
-  var meshStateMask = Mesh.stateMask_;
-  var curUndo = this.states_.undos_[this.states_.curUndoIndex_];
-  if (last.stateFlag_ !== meshStateMask)
-  {
-    last.stateFlag_ = meshStateMask;
-    curUndo.vState_.push(last.clone());
-    curUndo.vArState_.push(lastVx, lastVy, lastVz);
-    curUndo.nArState_.push(lastNx, lastNy, lastNz);
-    curUndo.cArState_.push(lastCr, lastCg, lastCb);
-  }
+  var states = this.states_;
+  states.pushState(null, [lastPos]);
 
   last.id_ = iVert;
   var iTris = last.tIndices_;
@@ -517,16 +470,11 @@ Topology.prototype.deleteVertex = function (iVert)
   for (i = 0; i < nbTris; ++i)
   {
     id = iTris[i];
-    var t = triangles[id];
-    id *= 3;
 
     //undo-redo
-    if (t.stateFlag_ !== meshStateMask)
-    {
-      t.stateFlag_ = meshStateMask;
-      curUndo.tState_.push(t.clone());
-      curUndo.iArState_.push(iAr[id], iAr[id + 1], iAr[id + 2]);
-    }
+    states.pushState([id], null);
+
+    id *= 3;
     if (iAr[id] === lastPos) iAr[id] = iVert;
     else if (iAr[id + 1] === lastPos) iAr[id + 1] = iVert;
     else iAr[id + 2] = iVert;
@@ -538,15 +486,8 @@ Topology.prototype.deleteVertex = function (iVert)
     var v = vertices[id];
 
     //undo-redo
-    if (v.stateFlag_ !== meshStateMask)
-    {
-      id *= 3;
-      v.stateFlag_ = meshStateMask;
-      curUndo.vState_.push(v.clone());
-      curUndo.vArState_.push(vAr[id], vAr[id + 1], vAr[id + 2]);
-      curUndo.nArState_.push(nAr[id], nAr[id + 1], nAr[id + 2]);
-      curUndo.cArState_.push(cAr[id], cAr[id + 1], cAr[id + 2]);
-    }
+    states.pushState(null, [id]);
+
     v.replaceRingVertex(lastPos, iVert);
   }
   vertices[iVert] = last;
