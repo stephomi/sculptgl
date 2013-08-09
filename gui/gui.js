@@ -111,6 +111,7 @@ Gui.prototype = {
       self.ctrlClay_.__li.hidden = tool !== st.BRUSH;
       self.ctrlNegative_.__li.hidden = tool !== st.BRUSH && tool !== st.INFLATE && tool !== st.CREASE;
       self.ctrlContinuous_.__li.hidden = tool === st.ROTATE || tool === st.DRAG;
+      self.ctrlIntensity_.__li.hidden = self.ctrlContinuous_.__li.hidden;
       self.ctrlColor_.__li.hidden = tool !== st.COLOR;
     });
     this.ctrlClay_ = foldSculpt.add(main.sculpt_, 'clay_').name('Clay');
