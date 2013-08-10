@@ -1,5 +1,5 @@
 CACHE MANIFEST
-# 10-08-2013 23:40
+# 11-08-2013 00:5O
 
 index.html
 
@@ -19,6 +19,7 @@ ressources/drink.jpg
 ressources/orange.jpg
 ressources/redvelvet.jpg
 ressources/skin.jpg
+ressources/normal.jpg
 ressources/sphere.obj
 
 shaders/phongFragment.glsl
@@ -27,7 +28,5 @@ shaders/transparencyVertex.glsl
 shaders/transparencyFragment.glsl
 shaders/wireframeVertex.glsl
 shaders/wireframeFragment.glsl
-shaders/normalFragment.glsl
-shaders/normalVertex.glsl
 shaders/reflectionFragment.glsl
 shaders/reflectionVertex.glsl

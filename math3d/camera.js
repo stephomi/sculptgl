@@ -18,7 +18,7 @@ function Camera()
   this.moveZ_ = 0; //free look (strafe), possible values : -1, 0, 1
   this.fov_ = 70; //vertical field of view
   this.center_ = [0, 0, 0]; //center of rotation
-  this.usePivot_ = true; //if rotation is centered around the picked point
+  this.usePivot_ = false; //if rotation is centered around the picked point
 }
 
 //the camera modes
