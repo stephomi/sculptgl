@@ -99,12 +99,13 @@ Render.prototype = {
     this.normalAttrib_ = gl.getAttribLocation(this.shaderProgram_, 'normal');
     if (this.shaderType_ === Render.mode.WIREFRAME)
       this.barycenterAttrib_ = gl.getAttribLocation(this.shaderProgram_, 'barycenter');
-    else if(this.shaderType_ !== Render.mode.NORMAL)
+    else if (this.shaderType_ !== Render.mode.NORMAL)
       this.colorAttrib_ = gl.getAttribLocation(this.shaderProgram_, 'color');
 
     this.mvpMatrixUnif_ = gl.getUniformLocation(shaderProgram, 'mvpMat');
     this.mvMatrixUnif_ = gl.getUniformLocation(shaderProgram, 'mvMat');
-    this.normalMatrixUnif_ = gl.getUniformLocation(shaderProgram, 'nMat');
+    if (this.shaderType_ !== Render.mode.NORMAL)
+      this.normalMatrixUnif_ = gl.getUniformLocation(shaderProgram, 'nMat');
     this.centerPickingUnif_ = gl.getUniformLocation(shaderProgram, 'centerPicking');
     this.radiusSquaredUnif_ = gl.getUniformLocation(shaderProgram, 'radiusSquared');
 
@@ -182,7 +183,8 @@ Render.prototype = {
 
     gl.uniformMatrix4fv(this.mvMatrixUnif_, false, mvMatrix);
     gl.uniformMatrix4fv(this.mvpMatrixUnif_, false, mvpMatrix);
-    gl.uniformMatrix3fv(this.normalMatrixUnif_, false, mat3.normalFromMat4(mat3.create(), mvMatrix));
+    if (this.shaderType_ !== Render.mode.NORMAL)
+      gl.uniformMatrix3fv(this.normalMatrixUnif_, false, mat3.normalFromMat4(mat3.create(), mvMatrix));
     gl.uniform3fv(this.centerPickingUnif_, vec3.transformMat4([0, 0, 0], centerPicking, mvMatrix));
     gl.uniform1f(this.radiusSquaredUnif_, radiusSquared);
 

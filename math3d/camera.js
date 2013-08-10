@@ -13,7 +13,7 @@ function Camera()
   this.zoom_ = 20; //zoom value
   this.transX_ = 0; //translation in x
   this.transY_ = 0; //translation in y
-  this.globalScale_ = 1; //solve scale issue
+  this.speed_ = 1; //solve scale issue
   this.moveX_ = 0; //free look (strafe), possible values : -1, 0, 1
   this.moveZ_ = 0; //free look (strafe), possible values : -1, 0, 1
   this.fov_ = 70; //vertical field of view
@@ -42,7 +42,7 @@ Camera.prototype = {
     {
       vec3.transformMat4(this.center_, picking.interPoint_, picking.mesh_.matTransform_);
       this.zoom_ = vec3.dist(this.center_, this.computePosition());
-      this.globalScale_ = this.zoom_ * 5;
+      this.speed_ = this.zoom_ * 5;
     }
   },
 
@@ -104,8 +104,8 @@ Camera.prototype = {
   /** Update translation */
   updateTranslation: function ()
   {
-    this.transX_ += this.moveX_ * this.globalScale_ / 400.0;
-    this.zoom_ = Math.max(0.00001, this.zoom_ + this.moveZ_ * this.globalScale_ / 400.0);
+    this.transX_ += this.moveX_ * this.speed_ / 400.0;
+    this.zoom_ = Math.max(0.00001, this.zoom_ + this.moveZ_ * this.speed_ / 400.0);
     if (this.type_ === Camera.projType.ORTHOGRAPHIC)
       this.updateOrtho();
   },
@@ -113,14 +113,14 @@ Camera.prototype = {
   /** Compute translation values */
   translate: function (dx, dy)
   {
-    this.transX_ -= dx * this.globalScale_;
-    this.transY_ += dy * this.globalScale_;
+    this.transX_ -= dx * this.speed_;
+    this.transY_ += dy * this.speed_;
   },
 
   /** Zoom */
   zoom: function (delta)
   {
-    this.zoom_ = Math.max(0.00001, this.zoom_ - delta * this.globalScale_);
+    this.zoom_ = Math.max(0.00001, this.zoom_ - delta * this.speed_);
     if (this.type_ === Camera.projType.ORTHOGRAPHIC)
       this.updateOrtho();
   },

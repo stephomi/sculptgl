@@ -579,7 +579,7 @@ SculptGL.prototype = {
     mesh.moveTo([0, 0, 0]);
     var length = vec3.dist(mesh.octree_.aabbLoose_.max_, mesh.octree_.aabbLoose_.min_);
     this.camera_.reset();
-    this.camera_.globalScale_ = length;
+    this.camera_.speed_ = length;
     this.camera_.zoom(-0.4);
     this.gui_.updateMesh(mesh);
     this.render();
