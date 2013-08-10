@@ -32,7 +32,7 @@ Camera.projType = {
 
 Camera.prototype = {
   /** Set Camera mode */
-  setMode: function (mode)
+  updateMode: function (mode)
   {
     this.mode_ = mode;
     this.rot_ = quat.create();
