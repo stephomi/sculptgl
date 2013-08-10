@@ -74,25 +74,30 @@ Gui.prototype = {
     var ctrlCameraMode = cameraFold.add(main.camera_, 'mode_', optionsCameraMode).name('Mode');
     ctrlCameraMode.onChange(function (value)
     {
-      main.camera_.updateMode(parseInt(value, 10));
-      main.render();
+      main.camera_.mode_ = parseInt(value, 10);
     });
     var optionsCameraType = {
       'Perspective': Camera.projType.PERSPECTIVE,
       'Orthographic': Camera.projType.ORTHOGRAPHIC
     };
-    var ctrlCameraType = cameraFold.add(main.camera_, 'projectionType_', optionsCameraType).name('Type');
+    var ctrlCameraType = cameraFold.add(main.camera_, 'type_', optionsCameraType).name('Type');
     ctrlCameraType.onChange(function (value)
     {
-      var intValue = parseInt(value, 10);
-      self.ctrlFov_.__li.hidden = intValue === Camera.projType.ORTHOGRAPHIC;
-      main.camera_.updateType(intValue);
+      main.camera_.type_ = parseInt(value, 10);
+      self.ctrlFov_.__li.hidden = main.camera_.type_ === Camera.projType.ORTHOGRAPHIC;
+      main.camera_.updateProjection();
       main.render();
     });
     this.ctrlFov_ = cameraFold.add(main.camera_, 'fov_', 10, 150).name('Fov');
     this.ctrlFov_.onChange(function (value)
     {
       main.camera_.updateProjection();
+      main.render();
+    });
+    var ctrlPivot = cameraFold.add(main.camera_, 'usePivot_').name('Picking pivot');
+    ctrlPivot.onChange(function ()
+    {
+      main.camera_.center_ = [0, 0, 0];
       main.render();
     });
     cameraFold.open();

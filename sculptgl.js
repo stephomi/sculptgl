@@ -405,7 +405,11 @@ SculptGL.prototype = {
       }
     }
     else if (button === 3)
-      this.camera_.start(mouseX, mouseY);
+    {
+      if (this.camera_.usePivot_)
+        this.picking_.intersectionMouseMesh(this.mesh_, mouseX, mouseY, pressureRadius);
+      this.camera_.start(mouseX, mouseY, this.picking_);
+    }
   },
 
   /** Mouse released event */
