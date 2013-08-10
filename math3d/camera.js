@@ -146,6 +146,7 @@ Camera.prototype = {
   reset: function ()
   {
     this.rot_ = quat.create();
+    this.zoom_ = 0;
     this.center_ = [0, 0, 0];
     this.transX_ = 0;
     this.transY_ = 0;
