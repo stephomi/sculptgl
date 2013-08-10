@@ -15,6 +15,7 @@ function Camera()
   this.globalScale_ = 1; //solve scale issue
   this.moveX_ = 0; //free look (strafe)
   this.moveZ_ = 0; //free look (strafe)
+  this.projectionType_ = Camera.projType.PERSPECTIVE; //the projection type
 }
 
 //the camera modes
@@ -23,11 +24,28 @@ Camera.mode = {
   PLANE: 1
 };
 
+//the projection type
+Camera.projType = {
+  PERSPECTIVE: 0,
+  ORTHOGRAPHIC: 1
+};
+
 Camera.prototype = {
   /** Set Camera mode */
-  updateMode: function (mode)
+  setMode: function (mode)
   {
     this.mode_ = mode;
+    this.rot_ = quat.create();
+    var global = this.globalScale_;
+    this.reset();
+    this.globalScale_ = global;
+    this.zoom(-0.4);
+  },
+
+  /** Set Camera type */
+  updateType: function (type)
+  {
+    this.projectionType_ = type;
     this.rot_ = quat.create();
     var global = this.globalScale_;
     this.reset();
@@ -72,7 +90,10 @@ Camera.prototype = {
     var view = this.view_;
     var tx = this.transX_;
     var ty = this.transY_;
-    mat4.lookAt(view, [tx, ty, this.zoom_], [tx, ty, 0], [0, 1, 0]);
+    if (this.projectionType_ === Camera.projType.PERSPECTIVE)
+      mat4.lookAt(view, [tx, ty, this.zoom_], [tx, ty, 0], [0, 1, 0]);
+    else
+      mat4.lookAt(view, [tx, ty, 1000], [tx, ty, 0], [0, 1, 0]);
     var matQuat = mat4.create();
     mat4.fromQuat(matQuat, this.rot_);
     mat4.mul(view, view, matQuat);
@@ -82,7 +103,10 @@ Camera.prototype = {
   updateProjection: function ()
   {
     this.proj_ = mat4.create();
-    mat4.perspective(this.proj_, 1.222, this.width_ / this.height_, 0.01, 100000);
+    if (this.projectionType_ === Camera.projType.PERSPECTIVE)
+      mat4.perspective(this.proj_, 1.222, this.width_ / this.height_, 0.01, 100000);
+    else
+      this.updateOrtho();
   },
 
   /** Update translation */
@@ -90,6 +114,8 @@ Camera.prototype = {
   {
     this.transX_ += this.moveX_ * this.globalScale_ / 400.0;
     this.zoom_ = Math.max(0.00001, this.zoom_ + this.moveZ_ * this.globalScale_ / 400.0);
+    if (this.projectionType_ === Camera.projType.ORTHOGRAPHIC)
+      this.updateOrtho();
   },
 
   /** Compute translation values */
@@ -103,6 +129,15 @@ Camera.prototype = {
   zoom: function (delta)
   {
     this.zoom_ = Math.max(0.00001, this.zoom_ - delta * this.globalScale_);
+    if (this.projectionType_ === Camera.projType.ORTHOGRAPHIC)
+      this.updateOrtho();
+  },
+
+  /** Update orthographic projection */
+  updateOrtho: function ()
+  {
+    var delta = Math.abs(this.zoom_) * 0.001;
+    mat4.ortho(this.proj_, -this.width_ * delta, this.width_ * delta, -this.height_ * delta, this.height_ * delta, -10000, 10000);
   },
 
   /** Reset camera */
@@ -114,19 +149,24 @@ Camera.prototype = {
     this.transY_ = 0;
     this.globalScale_ = 1;
   },
-  resetViewFront: function()
+
+  /** Reset view front */
+  resetViewFront: function ()
   {
     this.rot_ = quat.create();
   },
-  resetViewTop: function()
+
+  /** Reset view top */
+  resetViewTop: function ()
   {
-    this.rot_ = quat.rotateX(this.rot_, quat.create(), Math.PI/2.0)
-  },
-  resetViewLeft: function()
-  {
-    this.rot_ = quat.rotateY(this.rot_, quat.create(), -Math.PI/2.0)
+    this.rot_ = quat.rotateX(this.rot_, quat.create(), Math.PI * 0.5);
   },
 
+  /** Reset view left */
+  resetViewLeft: function ()
+  {
+    this.rot_ = quat.rotateY(this.rot_, quat.create(), -Math.PI * 0.5);
+  },
 
   /** Project the mouse coordinate into the world coordinate at a given z */
   unproject: function (mouseX, mouseY, z)

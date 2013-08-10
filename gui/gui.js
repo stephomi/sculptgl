@@ -64,14 +64,24 @@ Gui.prototype = {
 
     //Camera fold
     var cameraFold = gui.addFolder('Camera');
-    var optionsCamera = {
+    var optionsCameraMode = {
       'Spherical': Camera.mode.SPHERICAL,
       'Plane': Camera.mode.PLANE
     };
-    var ctrlCamera = cameraFold.add(main.camera_, 'mode_', optionsCamera).name('Camera');
-    ctrlCamera.onChange(function (value)
+    var ctrlCameraMode = cameraFold.add(main.camera_, 'mode_', optionsCameraMode).name('Mode');
+    ctrlCameraMode.onChange(function (value)
     {
       main.camera_.updateMode(parseInt(value, 10));
+      main.render();
+    });
+    var optionsCameraType = {
+      'Perspective': Camera.projType.PERSPECTIVE,
+      'Orthographic': Camera.projType.ORTHOGRAPHIC
+    };
+    var ctrlCameraType = cameraFold.add(main.camera_, 'projectionType_', optionsCameraType).name('Type');
+    ctrlCameraType.onChange(function (value)
+    {
+      main.camera_.updateType(parseInt(value, 10));
       main.render();
     });
     cameraFold.open();
