@@ -176,7 +176,9 @@ SculptGL.prototype = {
     mat6.src = 'ressources/orange.jpg';
     var mat7 = new Image();
     mat7.src = 'ressources/bronze.jpg';
-    this.textures_.push(mat1, mat2, mat3, mat4, mat5, mat6, mat7);
+    var mat8 = new Image();
+    mat8.src = 'ressources/normal.jpg';
+    this.textures_.push(mat1, mat2, mat3, mat4, mat5, mat6, mat7, mat8);
   },
 
   /** Load shaders as a string */
@@ -196,8 +198,6 @@ SculptGL.prototype = {
     shaders.transparencyFragment = xhrShader('shaders/transparencyFragment.glsl');
     shaders.wireframeVertex = xhrShader('shaders/wireframeVertex.glsl');
     shaders.wireframeFragment = xhrShader('shaders/wireframeFragment.glsl');
-    shaders.normalVertex = xhrShader('shaders/normalVertex.glsl');
-    shaders.normalFragment = xhrShader('shaders/normalFragment.glsl');
     shaders.reflectionVertex = xhrShader('shaders/reflectionVertex.glsl');
     shaders.reflectionFragment = xhrShader('shaders/reflectionFragment.glsl');
   },

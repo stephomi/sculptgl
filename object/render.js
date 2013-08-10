@@ -36,8 +36,7 @@ Render.mode = {
   PHONG: 0,
   TRANSPARENCY: 1,
   WIREFRAME: 2,
-  NORMAL: 3,
-  MATERIAL: 4
+  MATERIAL: 3
 };
 
 Render.prototype = {
@@ -80,9 +79,6 @@ Render.prototype = {
     case Render.mode.TRANSPARENCY:
       this.loadShaders(shaders.transparencyVertex, shaders.transparencyFragment);
       break;
-    case Render.mode.NORMAL:
-      this.loadShaders(shaders.normalVertex, shaders.normalFragment);
-      break;
     default:
       this.loadShaders(shaders.reflectionVertex, shaders.reflectionFragment);
       break;
@@ -99,13 +95,12 @@ Render.prototype = {
     this.normalAttrib_ = gl.getAttribLocation(this.shaderProgram_, 'normal');
     if (this.shaderType_ === Render.mode.WIREFRAME)
       this.barycenterAttrib_ = gl.getAttribLocation(this.shaderProgram_, 'barycenter');
-    else if (this.shaderType_ !== Render.mode.NORMAL)
+    else
       this.colorAttrib_ = gl.getAttribLocation(this.shaderProgram_, 'color');
 
     this.mvpMatrixUnif_ = gl.getUniformLocation(shaderProgram, 'mvpMat');
     this.mvMatrixUnif_ = gl.getUniformLocation(shaderProgram, 'mvMat');
-    if (this.shaderType_ !== Render.mode.NORMAL)
-      this.normalMatrixUnif_ = gl.getUniformLocation(shaderProgram, 'nMat');
+    this.normalMatrixUnif_ = gl.getUniformLocation(shaderProgram, 'nMat');
     this.centerPickingUnif_ = gl.getUniformLocation(shaderProgram, 'centerPicking');
     this.radiusSquaredUnif_ = gl.getUniformLocation(shaderProgram, 'radiusSquared');
 
@@ -174,7 +169,7 @@ Render.prototype = {
     gl.bindBuffer(gl.ARRAY_BUFFER, this.normalBuffer_);
     gl.vertexAttribPointer(this.normalAttrib_, 3, gl.FLOAT, false, 0, 0);
 
-    if (this.shaderType_ !== Render.mode.WIREFRAME && this.shaderType_ !== Render.mode.NORMAL)
+    if (this.shaderType_ !== Render.mode.WIREFRAME)
     {
       gl.enableVertexAttribArray(this.colorAttrib_);
       gl.bindBuffer(gl.ARRAY_BUFFER, this.colorBuffer_);
@@ -183,7 +178,6 @@ Render.prototype = {
 
     gl.uniformMatrix4fv(this.mvMatrixUnif_, false, mvMatrix);
     gl.uniformMatrix4fv(this.mvpMatrixUnif_, false, mvpMatrix);
-    if (this.shaderType_ !== Render.mode.NORMAL)
       gl.uniformMatrix3fv(this.normalMatrixUnif_, false, mat3.normalFromMat4(mat3.create(), mvMatrix));
     gl.uniform3fv(this.centerPickingUnif_, vec3.transformMat4([0, 0, 0], centerPicking, mvMatrix));
     gl.uniform1f(this.radiusSquaredUnif_, radiusSquared);
@@ -206,9 +200,6 @@ Render.prototype = {
       gl.bindBuffer(gl.ARRAY_BUFFER, this.barycenterBuffer_);
       gl.vertexAttribPointer(this.barycenterAttrib_, 3, gl.FLOAT, false, 0, 0);
       gl.drawArrays(gl.TRIANGLES, 0, lengthIndexArray);
-      break;
-    case Render.mode.NORMAL:
-      this.drawBuffer(lengthIndexArray);
       break;
     default:
       gl.activeTexture(gl.TEXTURE0);
