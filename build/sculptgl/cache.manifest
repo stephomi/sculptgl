@@ -1,5 +1,5 @@
 CACHE MANIFEST
-# 10-08-2013 13:06
+# 10-08-2013 22:42
 
 index.html
 
@@ -23,9 +23,11 @@ ressources/sphere.obj
 
 shaders/phongFragment.glsl
 shaders/phongVertex.glsl
-shaders/reflectionFragment.glsl
-shaders/reflectionVertex.glsl
 shaders/transparencyVertex.glsl
 shaders/transparencyFragment.glsl
 shaders/wireframeVertex.glsl
 shaders/wireframeFragment.glsl
+shaders/normalFragment.glsl
+shaders/normalVertex.glsl
+shaders/reflectionFragment.glsl
+shaders/reflectionVertex.glsl

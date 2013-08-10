@@ -36,7 +36,8 @@ Render.mode = {
   PHONG: 0,
   TRANSPARENCY: 1,
   WIREFRAME: 2,
-  MATERIAL: 3
+  NORMAL: 3,
+  MATERIAL: 4
 };
 
 Render.prototype = {
@@ -79,6 +80,9 @@ Render.prototype = {
     case Render.mode.TRANSPARENCY:
       this.loadShaders(shaders.transparencyVertex, shaders.transparencyFragment);
       break;
+    case Render.mode.NORMAL:
+      this.loadShaders(shaders.normalVertex, shaders.normalFragment);
+      break;
     default:
       this.loadShaders(shaders.reflectionVertex, shaders.reflectionFragment);
       break;
@@ -95,7 +99,7 @@ Render.prototype = {
     this.normalAttrib_ = gl.getAttribLocation(this.shaderProgram_, 'normal');
     if (this.shaderType_ === Render.mode.WIREFRAME)
       this.barycenterAttrib_ = gl.getAttribLocation(this.shaderProgram_, 'barycenter');
-    else
+    else if(this.shaderType_ !== Render.mode.NORMAL)
       this.colorAttrib_ = gl.getAttribLocation(this.shaderProgram_, 'color');
 
     this.mvpMatrixUnif_ = gl.getUniformLocation(shaderProgram, 'mvpMat');
@@ -169,7 +173,7 @@ Render.prototype = {
     gl.bindBuffer(gl.ARRAY_BUFFER, this.normalBuffer_);
     gl.vertexAttribPointer(this.normalAttrib_, 3, gl.FLOAT, false, 0, 0);
 
-    if (this.shaderType_ !== Render.mode.WIREFRAME)
+    if (this.shaderType_ !== Render.mode.WIREFRAME && this.shaderType_ !== Render.mode.NORMAL)
     {
       gl.enableVertexAttribArray(this.colorAttrib_);
       gl.bindBuffer(gl.ARRAY_BUFFER, this.colorBuffer_);
@@ -187,12 +191,6 @@ Render.prototype = {
     case Render.mode.PHONG:
       this.drawBuffer(lengthIndexArray);
       break;
-    case Render.mode.WIREFRAME:
-      gl.enableVertexAttribArray(this.barycenterAttrib_);
-      gl.bindBuffer(gl.ARRAY_BUFFER, this.barycenterBuffer_);
-      gl.vertexAttribPointer(this.barycenterAttrib_, 3, gl.FLOAT, false, 0, 0);
-      gl.drawArrays(gl.TRIANGLES, 0, lengthIndexArray);
-      break;
     case Render.mode.TRANSPARENCY:
       gl.depthMask(false);
       gl.enable(gl.BLEND);
@@ -200,6 +198,15 @@ Render.prototype = {
       this.drawBuffer(lengthIndexArray);
       gl.disable(gl.BLEND);
       gl.depthMask(true);
+      break;
+    case Render.mode.WIREFRAME:
+      gl.enableVertexAttribArray(this.barycenterAttrib_);
+      gl.bindBuffer(gl.ARRAY_BUFFER, this.barycenterBuffer_);
+      gl.vertexAttribPointer(this.barycenterAttrib_, 3, gl.FLOAT, false, 0, 0);
+      gl.drawArrays(gl.TRIANGLES, 0, lengthIndexArray);
+      break;
+    case Render.mode.NORMAL:
+      this.drawBuffer(lengthIndexArray);
       break;
     default:
       gl.activeTexture(gl.TEXTURE0);

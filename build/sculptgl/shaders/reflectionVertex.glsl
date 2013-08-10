@@ -2,7 +2,6 @@ attribute vec3 vertex, normal, color;
 uniform mat4 mvMat, mvpMat;
 uniform mat3 nMat;
 varying vec3 vVertex, vNormal, vColor;
-varying vec2 vTexCoord;
 void main()
 {
   vec4 vertex4 = vec4(vertex, 1.0);

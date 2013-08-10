@@ -192,10 +192,12 @@ SculptGL.prototype = {
     var shaders = this.shaders_;
     shaders.phongVertex = xhrShader('shaders/phongVertex.glsl');
     shaders.phongFragment = xhrShader('shaders/phongFragment.glsl');
-    shaders.wireframeVertex = xhrShader('shaders/wireframeVertex.glsl');
-    shaders.wireframeFragment = xhrShader('shaders/wireframeFragment.glsl');
     shaders.transparencyVertex = xhrShader('shaders/transparencyVertex.glsl');
     shaders.transparencyFragment = xhrShader('shaders/transparencyFragment.glsl');
+    shaders.wireframeVertex = xhrShader('shaders/wireframeVertex.glsl');
+    shaders.wireframeFragment = xhrShader('shaders/wireframeFragment.glsl');
+    shaders.normalVertex = xhrShader('shaders/normalVertex.glsl');
+    shaders.normalFragment = xhrShader('shaders/normalFragment.glsl');
     shaders.reflectionVertex = xhrShader('shaders/reflectionVertex.glsl');
     shaders.reflectionFragment = xhrShader('shaders/reflectionFragment.glsl');
   },

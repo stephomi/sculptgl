@@ -177,6 +177,7 @@ Gui.prototype = {
       'Phong': Render.mode.PHONG,
       'Transparency': Render.mode.TRANSPARENCY,
       'Wireframe (slow)': Render.mode.WIREFRAME,
+      'Normal': Render.mode.NORMAL,
       'Clay': Render.mode.MATERIAL,
       'Chavant': Render.mode.MATERIAL + 1,
       'Skin': Render.mode.MATERIAL + 2,
