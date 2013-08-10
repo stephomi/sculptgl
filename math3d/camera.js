@@ -85,7 +85,10 @@ Camera.prototype = {
     mat4.fromQuat(matQuat, this.rot_);
     mat4.mul(view, view, matQuat);
     if (this.usePivot_)
-      mat4.translate(view, view, vec3.negate([tx, ty, 0], this.center_));
+    {
+      var center = this.center_;
+      mat4.translate(view, view, [-center[0], -center[1], -center[2]]);
+    }
   },
 
   /** Update projection matrix */
