@@ -50,6 +50,7 @@ Gui.prototype = {
     foldFiles.add(main, 'resetSphere_').name('Reset sphere');
     foldFiles.add(main, 'open_').name('Import (obj, stl)');
     foldFiles.add(main, 'save_').name('Export (obj)');
+    foldFiles.add(main, 'savePLY_').name('Export (ply)');
     foldFiles.open();
 
     //Verold fold
