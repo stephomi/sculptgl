@@ -16,6 +16,7 @@ function Gui(sculptgl)
   this.ctrlDetailDecimation_ = null; //decimation detail slider
   this.ctrlNbVertices_ = null; //display number of vertices controller
   this.ctrlNbTriangles_ = null; //display number of triangles controller
+  this.ctrlFov_ = null; //vertical field of view controller
 
   //misc
   this.dummyFunc_ = function () {}; //empty function... stupid trick to get a simple button in dat.gui
@@ -38,6 +39,7 @@ Gui.prototype = {
   initGeneralGui: function (gui)
   {
     var main = this.sculptgl_;
+    var self = this;
 
     //Pen tablet ui stuffs
     var foldPenTablet = gui.addFolder('Wacom tablet');
@@ -82,7 +84,15 @@ Gui.prototype = {
     var ctrlCameraType = cameraFold.add(main.camera_, 'projectionType_', optionsCameraType).name('Type');
     ctrlCameraType.onChange(function (value)
     {
-      main.camera_.updateType(parseInt(value, 10));
+      var intValue = parseInt(value, 10);
+      self.ctrlFov_.__li.hidden = intValue === Camera.projType.ORTHOGRAPHIC;
+      main.camera_.updateType(intValue);
+      main.render();
+    });
+    this.ctrlFov_ = cameraFold.add(main.camera_, 'fov_', 10, 150).name('Fov');
+    this.ctrlFov_.onChange(function (value)
+    {
+      main.camera_.updateProjection();
       main.render();
     });
     cameraFold.open();

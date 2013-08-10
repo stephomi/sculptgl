@@ -16,6 +16,7 @@ function Camera()
   this.moveX_ = 0; //free look (strafe)
   this.moveZ_ = 0; //free look (strafe)
   this.projectionType_ = Camera.projType.PERSPECTIVE; //the projection type
+  this.fov_ = 70; //vertical field of view
 }
 
 //the camera modes
@@ -104,7 +105,7 @@ Camera.prototype = {
   {
     this.proj_ = mat4.create();
     if (this.projectionType_ === Camera.projType.PERSPECTIVE)
-      mat4.perspective(this.proj_, 1.222, this.width_ / this.height_, 0.01, 100000);
+      mat4.perspective(this.proj_, this.fov_ * Math.PI / 180, this.width_ / this.height_, 0.01, 100000);
     else
       this.updateOrtho();
   },
