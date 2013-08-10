@@ -44,6 +44,7 @@ function SculptGL()
   this.resetSphere_ = this.resetSphere; //load sphere
   this.open_ = this.openFile; //open file button (trigger hidden html input...)
   this.save_ = this.saveFile; //save file function
+  this.savePLY_ = this.saveFileAsPLY;
   this.undo_ = this.onUndo; //undo last action
   this.redo_ = this.onRedo; //redo last action
 
@@ -595,6 +596,19 @@ SculptGL.prototype = {
       type: 'text/plain;charset=utf-8'
     });
     saveAs(blob, 'yourMesh.obj');
+  },
+
+  /** Save file */
+  saveFileAsPLY: function ()
+  {
+    if (!this.mesh_)
+      return;
+    var data = [Files.exportPLY(this.mesh_)];
+    var blob = new Blob(data,
+    {
+      type: 'text/plain;charset=utf-8'
+    });
+    saveAs(blob, 'yourMesh.ply');
   },
 
   /** Export to Verold */
