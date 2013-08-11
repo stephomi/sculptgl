@@ -177,7 +177,7 @@ Gui.prototype = {
       'Phong': Render.mode.PHONG,
       'Transparency': Render.mode.TRANSPARENCY,
       'Wireframe (slow)': Render.mode.WIREFRAME,
-      'Normal screen': Render.mode.NORMAL,
+      'Normal shader': Render.mode.NORMAL,
       'Clay': Render.mode.MATERIAL,
       'Chavant': Render.mode.MATERIAL + 1,
       'Skin': Render.mode.MATERIAL + 2,
@@ -185,7 +185,7 @@ Gui.prototype = {
       'Red velvet': Render.mode.MATERIAL + 4,
       'Orange': Render.mode.MATERIAL + 5,
       'Bronze': Render.mode.MATERIAL + 6,
-      'Normal': Render.mode.MATERIAL + 7
+      'Normal soft': Render.mode.MATERIAL + 7
     };
     this.ctrlShaders_ = foldMesh.add(new Render(), 'shaderType_', optionsShaders).name('Shader');
     this.ctrlShaders_.onChange(function (value)
