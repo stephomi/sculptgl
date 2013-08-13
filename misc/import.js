@@ -172,16 +172,7 @@ Import.importPLY = function (data, mesh)
 /** Import STL file */
 Import.importSTL = function (data, mesh)
 {
-  //thanks https://github.com/mrdoob/three.js/blob/master/examples/js/loaders/STLLoader.js
-  var len = data.length;
-  var data_buffer = new Uint8Array(len);
-  for (var i = 0; i < len; ++i)
-    data_buffer[i] = data[i].charCodeAt() & 0xff;
-  var reader = new DataView(data_buffer.buffer || data_buffer),
-    face_size = (32 / 8 * 3) + ((32 / 8 * 3) * 3) + (16 / 8),
-    n_faces = reader.getUint32(80, true),
-    expect = 80 + (32 / 8) + (n_faces * face_size);
-  if (expect === reader.byteLength)
+  if (84 + (Import.getUint32(data, 80) * 50) === data.length)
     Import.importBinarySTL(data, mesh);
   else
     Import.importAsciiSTL(data, mesh);
@@ -284,22 +275,15 @@ Import.importBinarySTL = function (data, mesh)
 Import.detectNewVertex = function (mapVertices, x, y, z, vertices, vAr, iTri)
 {
   var hash = x + '+' + y + '+' + z;
-  var vertex = null;
-  var idVertex = 0;
-  if (mapVertices.hasOwnProperty(hash))
-  {
-    idVertex = mapVertices[hash];
-    vertex = vertices[idVertex];
-  }
-  else
+  var idVertex = mapVertices[hash];
+  if (idVertex === undefined)
   {
     idVertex = vertices.length;
-    vertex = new Vertex(idVertex);
-    vertices.push(vertex);
+    vertices.push(new Vertex(idVertex));
     vAr.push(x, y, z);
     mapVertices[hash] = idVertex;
   }
-  vertex.tIndices_.push(iTri);
+  vertices[idVertex].tIndices_.push(iTri);
   return idVertex;
 };
 
