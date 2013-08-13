@@ -42,17 +42,8 @@ function SculptGL()
 
   //functions
   this.resetSphere_ = this.resetSphere; //load sphere
-  this.open_ = this.openFile; //open file button (trigger hidden html input...)
-  this.save_ = this.saveFile; //save file function
-  this.savePLY_ = this.saveFileAsPLY;
   this.undo_ = this.onUndo; //undo last action
   this.redo_ = this.onRedo; //redo last action
-
-  //exporters
-  this.keyVerold_ = ''; //verold api key
-  this.exportVerold_ = this.exportVerold; //upload file on verold
-  this.keySketchfab_ = ''; //sketchfab api key
-  this.exportSketchfab_ = this.exportSketchfab; //upload file on sketchfab
 }
 
 SculptGL.elementIndexType = 0; //element index type (ushort or uint)
@@ -62,11 +53,6 @@ SculptGL.prototype = {
   /** Initialization */
   start: function ()
   {
-    var self = this;
-    $('#fileopen').change(function (event)
-    {
-      self.loadFile(event);
-    });
     this.initWebGL();
     this.loadShaders();
     this.gui_.initGui();
@@ -80,6 +66,10 @@ SculptGL.prototype = {
   {
     var self = this;
     var $canvas = $('#canvas');
+    $('#fileopen').change(function (event)
+    {
+      self.loadFile(event);
+    });
     $canvas.mousedown(function (event)
     {
       self.onMouseDown(event);
@@ -522,23 +512,31 @@ SculptGL.prototype = {
       return;
     var file = event.target.files[0];
     var name = file.name;
-    if (!name.endsWith('.obj') && !name.endsWith('.stl'))
+    var fileType = '';
+    fileType = name.endsWith('.obj') ? 'obj' : fileType;
+    fileType = name.endsWith('.stl') ? 'stl' : fileType;
+    fileType = name.endsWith('.ply') ? 'ply' : fileType;
+    if (fileType === '')
       return;
     var reader = new FileReader();
     var self = this;
     reader.onload = function (evt)
     {
       self.startMeshLoad();
-      if (name.endsWith('.obj'))
-        Files.importOBJ(evt.target.result, self.mesh_);
-      else
-        Files.importSTL(evt.target.result, self.mesh_);
+      if (fileType === 'obj')
+        Import.importOBJ(evt.target.result, self.mesh_);
+      else if (fileType === 'stl')
+        Import.importSTL(evt.target.result, self.mesh_);
+      else if (fileType === 'ply')
+        Import.importPLY(evt.target.result, self.mesh_);
       self.endMeshLoad();
       $('#fileopen').replaceWith($('#fileopen').clone(true));
     };
-    if (name.endsWith('.obj'))
+    if (fileType === 'obj')
       reader.readAsText(file);
-    else
+    else if (fileType === 'stl')
+      reader.readAsBinaryString(file);
+    else if (fileType === 'ply')
       reader.readAsBinaryString(file);
   },
 
@@ -546,7 +544,7 @@ SculptGL.prototype = {
   resetSphere: function ()
   {
     this.startMeshLoad();
-    Files.importOBJ(this.sphere_, this.mesh_);
+    Import.importOBJ(this.sphere_, this.mesh_);
     this.endMeshLoad();
   },
 
@@ -585,64 +583,6 @@ SculptGL.prototype = {
     this.camera_.zoom(-0.4);
     this.gui_.updateMesh(mesh);
     this.render();
-  },
-
-  /** Open file */
-  openFile: function ()
-  {
-    $('#fileopen').trigger('click');
-  },
-
-  /** Save file */
-  saveFile: function ()
-  {
-    if (!this.mesh_)
-      return;
-    var data = [Files.exportOBJ(this.mesh_)];
-    var blob = new Blob(data,
-    {
-      type: 'text/plain;charset=utf-8'
-    });
-    saveAs(blob, 'yourMesh.obj');
-  },
-
-  /** Save file */
-  saveFileAsPLY: function ()
-  {
-    if (!this.mesh_)
-      return;
-    var data = [Files.exportPLY(this.mesh_)];
-    var blob = new Blob(data,
-    {
-      type: 'text/plain;charset=utf-8'
-    });
-    saveAs(blob, 'yourMesh.ply');
-  },
-
-  /** Export to Verold */
-  exportVerold: function ()
-  {
-    if (!this.mesh_)
-      return;
-    if (this.keyVerold_ === '')
-    {
-      alert('Please enter a verold API Key.');
-      return;
-    }
-    Files.exportVerold(this.mesh_, this.keyVerold_);
-  },
-
-  /** Export to Sketchfab */
-  exportSketchfab: function ()
-  {
-    if (!this.mesh_)
-      return;
-    if (this.keySketchfab_ === '')
-    {
-      alert('Please enter a sketchfab API Key.');
-      return;
-    }
-    Files.exportSketchfab(this.mesh_, this.keySketchfab_);
   },
 
   /** When the user undos an action */

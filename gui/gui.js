@@ -18,6 +18,18 @@ function Gui(sculptgl)
   this.ctrlNbTriangles_ = null; //display number of triangles controller
   this.ctrlFov_ = null; //vertical field of view controller
 
+  //files functions
+  this.open_ = this.openFile; //open file button (trigger hidden html input...)
+  this.saveOBJ_ = this.saveFileAsOBJ; //save mesh as OBJ
+  this.savePLY_ = this.saveFileAsPLY; //save mesh as PLY
+  this.saveSTL_ = this.saveFileAsSTL; //save mesh as STL
+
+  //online exporters
+  this.keyVerold_ = ''; //verold api key
+  this.exportVerold_ = this.exportVerold; //upload file on verold
+  this.keySketchfab_ = ''; //sketchfab api key
+  this.exportSketchfab_ = this.exportSketchfab; //upload file on sketchfab
+
   //misc
   this.dummyFunc_ = function () {}; //empty function... stupid trick to get a simple button in dat.gui
 }
@@ -50,20 +62,21 @@ Gui.prototype = {
     //file fold
     var foldFiles = gui.addFolder('Files (import/export)');
     foldFiles.add(main, 'resetSphere_').name('Reset sphere');
-    foldFiles.add(main, 'open_').name('Import (obj, stl)');
-    foldFiles.add(main, 'save_').name('Export (obj)');
-    foldFiles.add(main, 'savePLY_').name('Export (ply)');
+    foldFiles.add(this, 'open_').name('Import (obj, ply, stl)');
+    foldFiles.add(this, 'saveOBJ_').name('Export (obj)');
+    foldFiles.add(this, 'savePLY_').name('Export (ply)');
+    foldFiles.add(this, 'saveSTL_').name('Export (stl)');
     foldFiles.open();
 
     //Verold fold
     var foldVerold = gui.addFolder('Go to Verold !');
-    foldVerold.add(main, 'keyVerold_').name('API key');
-    foldVerold.add(main, 'exportVerold_').name('Upload');
+    foldVerold.add(this, 'keyVerold_').name('API key');
+    foldVerold.add(this, 'exportVerold_').name('Upload');
 
     //Sketchfab fold
     var foldSketchfab = gui.addFolder('Go to Sketchfab !');
-    foldSketchfab.add(main, 'keySketchfab_').name('API key');
-    foldSketchfab.add(main, 'exportSketchfab_').name('Upload');
+    foldSketchfab.add(this, 'keySketchfab_').name('API key');
+    foldSketchfab.add(this, 'exportSketchfab_').name('Upload');
 
     //Camera fold
     var cameraFold = gui.addFolder('Camera');
@@ -216,5 +229,76 @@ Gui.prototype = {
   {
     this.ctrlNbVertices_.name('Ver : ' + nbVertices);
     this.ctrlNbTriangles_.name('Tri : ' + nbTriangles);
+  },
+
+  /** Open file */
+  openFile: function ()
+  {
+    $('#fileopen').trigger('click');
+  },
+
+  /** Save file as OBJ*/
+  saveFileAsOBJ: function ()
+  {
+    if (!this.sculptgl_.mesh_)
+      return;
+    var data = [Export.exportOBJ(this.sculptgl_.mesh_)];
+    var blob = new Blob(data,
+    {
+      type: 'text/plain;charset=utf-8'
+    });
+    saveAs(blob, 'yourMesh.obj');
+  },
+
+  /** Save file as PLY */
+  saveFileAsPLY: function ()
+  {
+    if (!this.sculptgl_.mesh_)
+      return;
+    var data = [Export.exportPLY(this.sculptgl_.mesh_)];
+    var blob = new Blob(data,
+    {
+      type: 'text/plain;charset=utf-8'
+    });
+    saveAs(blob, 'yourMesh.ply');
+  },
+
+  /** Save file as STL */
+  saveFileAsSTL: function ()
+  {
+    if (!this.sculptgl_.mesh_)
+      return;
+    var data = [Export.exportSTL(this.sculptgl_.mesh_)];
+    var blob = new Blob(data,
+    {
+      type: 'text/plain;charset=utf-8'
+    });
+    saveAs(blob, 'yourMesh.stl');
+  },
+
+  /** Export to Verold */
+  exportVerold: function ()
+  {
+    if (!this.sculptgl_.mesh_)
+      return;
+    if (this.keyVerold_ === '')
+    {
+      alert('Please enter a verold API Key.');
+      return;
+    }
+    Export.exportVerold(this.sculptgl_.mesh_, this.keyVerold_);
+  },
+
+  /** Export to Sketchfab */
+  exportSketchfab: function ()
+  {
+    if (!this.sculptgl_.mesh_)
+      return;
+    if (this.keySketchfab_ === '')
+    {
+      alert('Please enter a sketchfab API Key.');
+      return;
+    }
+    Export.exportSketchfab(this.sculptgl_.mesh_, this.keySketchfab_);
   }
 };
