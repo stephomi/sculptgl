@@ -121,7 +121,7 @@ Import.importPLY = function (data, mesh)
       ++i;
       var endVertices = nbVertices + i;
       var inv255 = 1 / 255;
-      for (i; i < endVertices; ++i)
+      for (; i < endVertices; ++i)
       {
         line = lines[i].trim();
         split = line.split(/\s+/);
@@ -130,7 +130,7 @@ Import.importPLY = function (data, mesh)
         cAr.push(parseInt(split[colorIndex], 10) * inv255, parseInt(split[colorIndex + 1], 10) * inv255, parseInt(split[colorIndex + 2], 10) * inv255);
       }
       var endFaces = nbFaces + i;
-      for (i; i < endFaces; ++i)
+      for (; i < endFaces; ++i)
       {
         line = lines[i].trim();
         split = line.split(/\s+/);
