@@ -69,22 +69,7 @@ Files.importOBJ = function (data, mesh)
       }
     }
   }
-  mesh.vertexArray_ = new Float32Array(vAr.length * 2);
-  mesh.normalArray_ = new Float32Array(vAr.length * 2);
-  mesh.colorArray_ = new Float32Array(vAr.length * 2);
-  mesh.indexArray_ = new SculptGL.indexArrayType(iAr.length * 2);
-  mesh.vertexArray_.set(vAr);
-  mesh.indexArray_.set(iAr);
-  var nbColors = vertices.length;
-  var cAr = mesh.colorArray_;
-  var j = 0;
-  for (var i = 0; i < nbColors; ++i)
-  {
-    j = i * 3;
-    cAr[j] = 1.0;
-    cAr[j + 1] = 1.0;
-    cAr[j + 2] = 1.0;
-  }
+  Files.initMeshArrays(mesh, vAr, iAr);
 };
 
 /** Export OBJ file */
@@ -146,7 +131,6 @@ Files.importAsciiSTL = function (data, mesh)
   var iv1 = 0,
     iv2 = 0,
     iv3 = 0;
-  var offset = 96;
   var iTri = 0;
   for (var i = 0; i < nbLength; ++i)
   {
@@ -178,11 +162,7 @@ Files.importAsciiSTL = function (data, mesh)
       i += 6;
     }
   }
-  mesh.vertexArray_ = new Float32Array(vAr.length * 2);
-  mesh.normalArray_ = new Float32Array(vAr.length * 2);
-  mesh.indexArray_ = new SculptGL.indexArrayType(iAr.length * 2);
-  mesh.vertexArray_.set(vAr);
-  mesh.indexArray_.set(iAr);
+  Files.initMeshArrays(mesh, vAr, iAr);
 };
 
 /** Import binary STL file */
@@ -225,11 +205,7 @@ Files.importBinarySTL = function (data, mesh)
     triangles.push(new Triangle(iTri));
     offset += 50;
   }
-  mesh.vertexArray_ = new Float32Array(vAr.length * 2);
-  mesh.normalArray_ = new Float32Array(vAr.length * 2);
-  mesh.indexArray_ = new SculptGL.indexArrayType(iAr.length * 2);
-  mesh.vertexArray_.set(vAr);
-  mesh.indexArray_.set(iAr);
+  Files.initMeshArrays(mesh, vAr, iAr);
 };
 
 /** Export PLY file */
@@ -294,6 +270,27 @@ Files.detectNewVertex = function (mapVertices, x, y, z, vertices, vAr, iTri)
   }
   vertex.tIndices_.push(iTri);
   return idVertex;
+};
+
+/** Initialize the mesh arrays */
+Files.initMeshArrays = function (mesh, vAr, iAr)
+{
+  mesh.vertexArray_ = new Float32Array(vAr.length * 2);
+  mesh.normalArray_ = new Float32Array(vAr.length * 2);
+  mesh.colorArray_ = new Float32Array(vAr.length * 2);
+  mesh.indexArray_ = new SculptGL.indexArrayType(iAr.length * 2);
+  mesh.vertexArray_.set(vAr);
+  mesh.indexArray_.set(iAr);
+  var nbColors = vAr.length / 3;
+  var cAr = mesh.colorArray_;
+  var j = 0;
+  for (var i = 0; i < nbColors; ++i)
+  {
+    j = i * 3;
+    cAr[j] = 1.0;
+    cAr[j + 1] = 1.0;
+    cAr[j + 2] = 1.0;
+  }
 };
 
 /** Get bytes */
