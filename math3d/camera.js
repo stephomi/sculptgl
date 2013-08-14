@@ -75,8 +75,8 @@ Camera.prototype = {
   updateView: function ()
   {
     var view = this.view_;
-    var tx = this.transX_;
-    var ty = this.transY_;
+    var tx = this.usePivot_ ? 0 : this.transX_;
+    var ty = this.usePivot_ ? 0 : this.transY_;
     if (this.type_ === Camera.projType.PERSPECTIVE)
       mat4.lookAt(view, [tx, ty, this.zoom_], [tx, ty, 0], [0, 1, 0]);
     else

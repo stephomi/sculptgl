@@ -45,6 +45,24 @@ Gui.prototype = {
 
     var guiEditing = new dat.GUI();
     this.initEditingGui(guiEditing);
+
+    var main = this.sculptgl_;
+    guiGeneral.domElement.addEventListener('mouseout', function ()
+    {
+      main.focusGui_ = false;
+    }, false);
+    guiEditing.domElement.addEventListener('mouseout', function ()
+    {
+      main.focusGui_ = false;
+    }, false);
+    guiGeneral.domElement.addEventListener('mouseover', function ()
+    {
+      main.focusGui_ = true;
+    }, false);
+    guiEditing.domElement.addEventListener('mouseover', function ()
+    {
+      main.focusGui_ = true;
+    }, false);
   },
 
   /** Initialize the general gui (on the left) */
@@ -111,6 +129,8 @@ Gui.prototype = {
     ctrlPivot.onChange(function ()
     {
       main.camera_.center_ = [0, 0, 0];
+      main.camera_.transX_ = 0;
+      main.camera_.transY_ = 0;
       main.render();
     });
     cameraFold.open();

@@ -39,6 +39,7 @@ function SculptGL()
 
   //ui stuffs
   this.gui_ = new Gui(this); //gui
+  this.focusGui_ = false; //gui
 
   //functions
   this.resetSphere_ = this.resetSphere; //load sphere
@@ -239,6 +240,8 @@ SculptGL.prototype = {
   onKeyDown: function (event)
   {
     event.stopPropagation();
+    if (!this.focusGui_)
+      event.preventDefault();
     var key = event.which;
     if (event.ctrlKey && key === 90) //z key
     {
@@ -312,11 +315,13 @@ SculptGL.prototype = {
     }
     var self = this;
     if (this.cameraTimer_ === -1)
+    {
       this.cameraTimer_ = setInterval(function ()
       {
         self.camera_.updateTranslation();
         self.render();
       }, 20);
+    }
   },
 
   /** Key released event */
