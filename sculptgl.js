@@ -255,6 +255,10 @@ SculptGL.prototype = {
     }
     switch (key)
     {
+    case 48: // 0
+    case 96: // NUMPAD 0
+      this.gui_.ctrlSculpt_.setValue(Sculpt.tool.SCALE);
+      break;
     case 49: // 1
     case 97: // NUMPAD 1
       this.gui_.ctrlSculpt_.setValue(Sculpt.tool.BRUSH);
@@ -386,6 +390,8 @@ SculptGL.prototype = {
         this.states_.start();
         if (this.sculpt_.tool_ === Sculpt.tool.ROTATE)
           this.sculpt_.startRotate(this.picking_, mouseX, mouseY, this.pickingSym_, this.ptPlane_, this.nPlane_, this.symmetry_);
+        else if (this.sculpt_.tool_ === Sculpt.tool.SCALE)
+          this.sculpt_.startScale(this.picking_, mouseX, mouseY, this.pickingSym_, this.ptPlane_, this.nPlane_, this.symmetry_);
         else if (this.continuous_ && this.sculpt_.tool_ !== Sculpt.tool.DRAG)
         {
           this.pressureRadius_ = pressureRadius;
@@ -468,23 +474,11 @@ SculptGL.prototype = {
       this.mouseY_ = mouseY;
       return;
     }
-    if (this.mesh_ && (button !== 1 || (tool !== Sculpt.tool.ROTATE && tool !== Sculpt.tool.DRAG)))
+    if (this.mesh_ && (button !== 1 || (tool !== Sculpt.tool.ROTATE && tool !== Sculpt.tool.DRAG && tool !== Sculpt.tool.SCALE)))
       this.picking_.intersectionMouseMesh(this.mesh_, mouseX, mouseY, pressureRadius);
     if (button === 1)
     {
-      if (tool !== Sculpt.tool.ROTATE)
-        this.sculpt_.sculptStroke(mouseX, mouseY, pressureRadius, pressureIntensity, this);
-      else if (this.picking_.mesh_)
-      {
-        this.picking_.pickVerticesInSphere(this.picking_.rWorldSqr_);
-        this.sculpt_.sculptMesh(this.picking_, pressureIntensity, false, mouseX, mouseY, this.lastMouseX_, this.lastMouseY_);
-        if (this.symmetry_)
-        {
-          this.pickingSym_.pickVerticesInSphere(this.pickingSym_.rWorldSqr_);
-          this.sculpt_.sculptMesh(this.pickingSym_, pressureIntensity, true, this.lastMouseX_, this.lastMouseY_, mouseX, mouseY);
-        }
-        this.mesh_.updateBuffers();
-      }
+      this.sculpt_.sculptStroke(mouseX, mouseY, pressureRadius, pressureIntensity, this);
       this.gui_.updateMeshInfo(this.mesh_.vertices_.length, this.mesh_.triangles_.length);
     }
     else if (button === 3)

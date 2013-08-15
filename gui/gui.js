@@ -159,7 +159,8 @@ Gui.prototype = {
       'Pinch (6)': Sculpt.tool.PINCH,
       'Crease (7)': Sculpt.tool.CREASE,
       'Drag (8)': Sculpt.tool.DRAG,
-      'Paint (9)': Sculpt.tool.COLOR
+      'Paint (9)': Sculpt.tool.COLOR,
+      'Scale (0)': Sculpt.tool.SCALE
     };
     this.ctrlSculpt_ = foldSculpt.add(main.sculpt_, 'tool_', optionsSculpt).name('Tool');
     this.ctrlSculpt_.onChange(function (value)
@@ -169,7 +170,7 @@ Gui.prototype = {
       var st = Sculpt.tool;
       self.ctrlClay_.__li.hidden = tool !== st.BRUSH;
       self.ctrlNegative_.__li.hidden = tool !== st.BRUSH && tool !== st.INFLATE && tool !== st.CREASE;
-      self.ctrlContinuous_.__li.hidden = tool === st.ROTATE || tool === st.DRAG;
+      self.ctrlContinuous_.__li.hidden = tool === st.ROTATE || tool === st.DRAG || tool === st.SCALE;
       self.ctrlIntensity_.__li.hidden = self.ctrlContinuous_.__li.hidden;
       self.ctrlColor_.__li.hidden = tool !== st.COLOR;
     });

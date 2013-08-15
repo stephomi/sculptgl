@@ -19,6 +19,7 @@ function Sculpt(states)
   this.d2Thickness_ = 0.5; //distance between 2 vertices before split/merge
   this.d2Move_ = 0; //max displacement of vertices per step
 
+  //rotate stuffs
   this.rotateData_ = {
     normal: [0, 0, 0], //normal of rotation plane
     center: [0, 0] //2D center of rotation 
@@ -28,6 +29,7 @@ function Sculpt(states)
     center: [0, 0] //2D center of rotation 
   };
 
+  //drag stuffs
   this.dragDir_ = [0, 0, 0]; //direction of deformation
   this.dragDirSym_ = [0, 0, 0]; //direction of deformation
 }
@@ -42,7 +44,8 @@ Sculpt.tool = {
   PINCH: 5,
   CREASE: 6,
   DRAG: 7,
-  COLOR: 8
+  COLOR: 8,
+  SCALE: 9
 };
 
 //the topological tools
@@ -65,6 +68,10 @@ Sculpt.prototype = {
   /** Make a brush stroke */
   sculptStroke: function (mouseX, mouseY, pressureRadius, pressureIntensity, sculptgl)
   {
+    if (this.tool_ === Sculpt.tool.ROTATE)
+      return this.sculptStrokeRotate(mouseX, mouseY, pressureIntensity, sculptgl);
+    else if (this.tool_ === Sculpt.tool.SCALE)
+      return this.sculptStrokeScale(mouseX, mouseY, pressureIntensity, sculptgl);
     var ptPlane = sculptgl.ptPlane_,
       nPlane = sculptgl.nPlane_;
     var picking = sculptgl.picking_,
@@ -137,6 +144,38 @@ Sculpt.prototype = {
       this.mesh_.updateBuffers();
     }
     sculptgl.sumDisplacement_ = sumDisp;
+  },
+
+  /** Make a brush scale stroke */
+  sculptStrokeScale: function (mouseX, mouseY, pressureIntensity, sculptgl)
+  {
+    if (sculptgl.picking_.mesh_)
+    {
+      sculptgl.picking_.pickVerticesInSphere(sculptgl.picking_.rWorldSqr_);
+      this.sculptMesh(sculptgl.picking_, pressureIntensity, false, mouseX, mouseY, sculptgl.lastMouseX_, sculptgl.lastMouseY_);
+      if (sculptgl.symmetry_)
+      {
+        sculptgl.pickingSym_.pickVerticesInSphere(sculptgl.pickingSym_.rWorldSqr_);
+        this.sculptMesh(sculptgl.pickingSym_, pressureIntensity, true, mouseX, mouseY, sculptgl.lastMouseX_, sculptgl.lastMouseY_);
+      }
+      this.mesh_.updateBuffers();
+    }
+  },
+
+  /** Make a brush rotate stroke */
+  sculptStrokeRotate: function (mouseX, mouseY, pressureIntensity, sculptgl)
+  {
+    if (sculptgl.picking_.mesh_)
+    {
+      sculptgl.picking_.pickVerticesInSphere(sculptgl.picking_.rWorldSqr_);
+      this.sculptMesh(sculptgl.picking_, pressureIntensity, false, mouseX, mouseY, sculptgl.lastMouseX_, sculptgl.lastMouseY_);
+      if (sculptgl.symmetry_)
+      {
+        sculptgl.pickingSym_.pickVerticesInSphere(sculptgl.pickingSym_.rWorldSqr_);
+        this.sculptMesh(sculptgl.pickingSym_, pressureIntensity, true, sculptgl.lastMouseX_, sculptgl.lastMouseY_, mouseX, mouseY);
+      }
+      this.mesh_.updateBuffers();
+    }
   },
 
   /** Sculpt the mesh */
@@ -229,6 +268,9 @@ Sculpt.prototype = {
       case Sculpt.tool.COLOR:
         this.paint(center, iVertsInRadius, radiusSquared);
         break;
+      case Sculpt.tool.SCALE:
+        this.scale(center, iVertsInRadius, radiusSquared, mouseX - lastMouseX);
+        break;
       }
     }
 
@@ -314,6 +356,58 @@ Sculpt.prototype = {
       vAr[ind] += nAr[ind] * fallOff;
       vAr[ind + 1] += nAr[ind + 1] * fallOff;
       vAr[ind + 2] += nAr[ind + 2] * fallOff;
+    }
+  },
+
+  /** Start a sculpt sculpt stroke */
+  startScale: function (picking, mouseX, mouseY, pickingSym, ptPlane, nPlane, sym)
+  {
+    var vNear = picking.camera_.unproject(mouseX, mouseY, 0),
+      vFar = picking.camera_.unproject(mouseX, mouseY, 1);
+    var matInverse = mat4.create();
+    mat4.invert(matInverse, this.mesh_.matTransform_);
+    vec3.transformMat4(vNear, vNear, matInverse);
+    vec3.transformMat4(vFar, vFar, matInverse);
+    picking.intersectionRayMesh(this.mesh_, vNear, vFar, mouseX, mouseY, 1);
+    if (!picking.mesh_)
+      return;
+    picking.pickVerticesInSphere(picking.rWorldSqr_);
+    if (sym)
+    {
+      var vNearSym = [vNear[0], vNear[1], vNear[2]];
+      Geometry.mirrorPoint(vNearSym, ptPlane, nPlane);
+      var vFarSym = [vFar[0], vFar[1], vFar[2]];
+      Geometry.mirrorPoint(vFarSym, ptPlane, nPlane);
+      pickingSym.intersectionRayMesh(this.mesh_, vNearSym, vFarSym, mouseX, mouseY, 1);
+      if (!pickingSym.mesh_)
+        return;
+      pickingSym.rWorldSqr_ = picking.rWorldSqr_;
+      pickingSym.pickVerticesInSphere(pickingSym.rWorldSqr_);
+    }
+  },
+
+  /** Scale the vertices around the mouse point intersection */
+  scale: function (center, iVerts, radiusSquared, intensity)
+  {
+    var vAr = this.mesh_.vertexArray_;
+    var deltaScale = intensity * 0.01;
+    var radius = Math.sqrt(radiusSquared);
+    var nbVerts = iVerts.length;
+    var cx = center[0],
+      cy = center[1],
+      cz = center[2];
+    for (var i = 0; i < nbVerts; ++i)
+    {
+      var ind = iVerts[i] * 3;
+      var dx = vAr[ind] - cx,
+        dy = vAr[ind + 1] - cy,
+        dz = vAr[ind + 2] - cz;
+      var dist = Math.sqrt(dx * dx + dy * dy + dz * dz) / radius;
+      var fallOff = 3 * dist * dist * dist * dist - 4 * dist * dist * dist + 1;
+      fallOff *= deltaScale;
+      vAr[ind] += dx * fallOff;
+      vAr[ind + 1] += dy * fallOff;
+      vAr[ind + 2] += dz * fallOff;
     }
   },
 
