@@ -111,7 +111,7 @@ Sculpt.prototype = {
       interSym[2] = inter[2];
       Geometry.mirrorPoint(interSym, ptPlane, nPlane);
     }
-    if (sumDisp > minSpacing * 50.0 && !drag)
+    if (sumDisp > minSpacing * 100 && !drag)
       sumDisp = 0;
     else if (sumDisp > minSpacing || sumDisp === 0)
     {

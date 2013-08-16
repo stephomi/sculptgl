@@ -179,7 +179,7 @@ Gui.prototype = {
     this.ctrlContinuous_ = foldSculpt.add(main, 'continuous_').name('Continuous');
     foldSculpt.add(main, 'symmetry_').name('Symmetry');
     foldSculpt.add(main.sculpt_, 'culling_').name('Sculpt culling');
-    foldSculpt.add(main.picking_, 'rDisplay_', 20, 200).name('Radius');
+    foldSculpt.add(main.picking_, 'rDisplay_', 5, 200).name('Radius');
     this.ctrlIntensity_ = foldSculpt.add(main.sculpt_, 'intensity_', 0, 1).name('Intensity');
     foldSculpt.open();
 
