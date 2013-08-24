@@ -26,7 +26,6 @@ function Render(gl)
   this.normalMatrixUnif_ = null; //normal matrix uniform location
   this.centerPickingUnif_ = null; //center of selection uniform location
   this.radiusSquaredUnif_ = null; //radius of selection uniform location
-  this.lightPositionUnif_ = null; //light position uniform location
 
   this.reflectionTexUnif_ = null; //reflection texture uniform location
 }
@@ -108,8 +107,6 @@ Render.prototype = {
     this.centerPickingUnif_ = gl.getUniformLocation(shaderProgram, 'centerPicking');
     this.radiusSquaredUnif_ = gl.getUniformLocation(shaderProgram, 'radiusSquared');
 
-    if (this.shaderType_ === Render.mode.TRANSPARENCY)
-      this.lightPositionUnif_ = gl.getUniformLocation(shaderProgram, 'lightPos');
     if (this.shaderType_ >= Render.mode.MATERIAL)
       this.reflectionTexUnif_ = gl.getUniformLocation(shaderProgram, 'refTex');
 
@@ -194,7 +191,6 @@ Render.prototype = {
     case Render.mode.TRANSPARENCY:
       gl.depthMask(false);
       gl.enable(gl.BLEND);
-      gl.uniform3fv(this.lightPositionUnif_, center);
       this.drawBuffer(lengthIndexArray);
       gl.disable(gl.BLEND);
       gl.depthMask(true);
