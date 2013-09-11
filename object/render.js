@@ -47,21 +47,8 @@ Render.prototype = {
     this.shaderType_ = shaderType;
     gl.deleteProgram(this.shaderProgram_);
     if (shaderType >= Render.mode.MATERIAL)
-      this.reflectionLoc_ = this.loadTexture(gl, textures[shaderType - Render.mode.MATERIAL]);
+      this.reflectionLoc_ = textures[shaderType];
     this.initShaders(shaders);
-  },
-
-  /** Load a texture */
-  loadTexture: function (gl, texturePath)
-  {
-    var idTex = gl.createTexture();
-    gl.bindTexture(gl.TEXTURE_2D, idTex);
-    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, texturePath);
-    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
-    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_NEAREST);
-    gl.generateMipmap(gl.TEXTURE_2D);
-    gl.bindTexture(gl.TEXTURE_2D, null);
-    return idTex;
   },
 
   /** Initialize the shaders on the mesh */

@@ -33,7 +33,7 @@ function SculptGL()
   this.mesh_ = null; //the mesh
 
   //datas
-  this.textures_ = []; //textures
+  this.textures_ = {}; //textures
   this.shaders_ = {}; //shaders
   this.sphere_ = ''; //sphere
 
@@ -148,28 +148,34 @@ SculptGL.prototype = {
   /** Load textures (preload) */
   loadTextures: function ()
   {
-    var mat1 = new Image();
     var self = this;
-    mat1.onload = function ()
+    var loadTex = function (path, mode)
     {
-      self.loadSphere();
+      var mat = new Image();
+      mat.src = path;
+      var gl = self.gl_;
+      mat.onload = function()
+      {
+        var idTex = gl.createTexture();
+        gl.bindTexture(gl.TEXTURE_2D, idTex);
+        gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, mat);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_NEAREST);
+        gl.generateMipmap(gl.TEXTURE_2D);
+        gl.bindTexture(gl.TEXTURE_2D, null);
+        self.textures_[mode] = idTex;
+        if (mode === Render.mode.MATERIAL)
+          self.loadSphere();
+      }
     };
-    mat1.src = 'ressources/clay.jpg';
-    var mat2 = new Image();
-    mat2.src = 'ressources/chavant.jpg';
-    var mat3 = new Image();
-    mat3.src = 'ressources/skin.jpg';
-    var mat4 = new Image();
-    mat4.src = 'ressources/drink.jpg';
-    var mat5 = new Image();
-    mat5.src = 'ressources/redvelvet.jpg';
-    var mat6 = new Image();
-    mat6.src = 'ressources/orange.jpg';
-    var mat7 = new Image();
-    mat7.src = 'ressources/bronze.jpg';
-    var mat8 = new Image();
-    mat8.src = 'ressources/normal.jpg';
-    this.textures_.push(mat1, mat2, mat3, mat4, mat5, mat6, mat7, mat8);
+    loadTex('ressources/clay.jpg', Render.mode.MATERIAL);
+    loadTex('ressources/chavant.jpg', Render.mode.MATERIAL + 1);
+    loadTex('ressources/skin.jpg', Render.mode.MATERIAL + 2);
+    loadTex('ressources/drink.jpg', Render.mode.MATERIAL + 3);
+    loadTex('ressources/redvelvet.jpg', Render.mode.MATERIAL + 4);
+    loadTex('ressources/orange.jpg', Render.mode.MATERIAL + 5);
+    loadTex('ressources/bronze.jpg', Render.mode.MATERIAL + 6);
+    loadTex('ressources/normal.jpg', Render.mode.MATERIAL + 7);
   },
 
   /** Load shaders as a string */
