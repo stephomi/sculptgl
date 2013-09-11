@@ -18,6 +18,9 @@ function Camera()
   this.moveZ_ = 0; //free look (strafe), possible values : -1, 0, 1
   this.fov_ = 70; //vertical field of view
   this.center_ = [0, 0, 0]; //center of rotation
+  this.stepCenter_ = [0, 0, 0]; //step vector to translate between pivots
+  this.stepZoom_ = 0; //step zoom value
+  this.stepCount_ = 0; //number of translation between pivots
   this.usePivot_ = false; //if rotation is centered around the picked point
 }
 
@@ -40,9 +43,15 @@ Camera.prototype = {
     this.lastNormalizedMouseXY_ = Geometry.normalizedMouse(mouseX, mouseY, this.width_, this.height_);
     if (this.usePivot_ && picking.mesh_)
     {
-      vec3.transformMat4(this.center_, picking.interPoint_, picking.mesh_.matTransform_);
-      this.zoom_ = vec3.dist(this.center_, this.computePosition());
-      this.speed_ = this.zoom_ * 5;
+      this.stepCount_ = 30;
+      //target center
+      vec3.transformMat4(this.stepCenter_, picking.interPoint_, picking.mesh_.matTransform_);
+      //target zoom
+      var targetZoom = vec3.dist(this.stepCenter_, this.computePosition());
+      this.stepZoom_ = (targetZoom - this.zoom_) / this.stepCount_;
+      this.speed_ = targetZoom * 5;
+      var length = vec3.sub(this.stepCenter_, this.stepCenter_, this.center_);
+      vec3.scale(this.stepCenter_, this.stepCenter_, 1 / this.stepCount_);
     }
   },
 
@@ -68,6 +77,12 @@ Camera.prototype = {
       vec3.normalize(axeRot, vec3.cross(axeRot, mouseOnSphereBefore, mouseOnSphereAfter));
       quat.mul(this.rot_, quat.setAxisAngle([0, 0, 0, 0], axeRot, angle * 2), this.rot_);
     }
+    if (this.stepCount_ > 0)
+    {
+      --this.stepCount_;
+      this.zoom_ += this.stepZoom_;
+      vec3.add(this.center_, this.center_, this.stepCenter_);
+    }
     this.lastNormalizedMouseXY_ = normalizedMouseXY;
   },
 
@@ -81,9 +96,7 @@ Camera.prototype = {
       mat4.lookAt(view, [tx, ty, this.zoom_], [tx, ty, 0], [0, 1, 0]);
     else
       mat4.lookAt(view, [tx, ty, 1000], [tx, ty, 0], [0, 1, 0]);
-    var matQuat = mat4.create();
-    mat4.fromQuat(matQuat, this.rot_);
-    mat4.mul(view, view, matQuat);
+    mat4.mul(view, view, mat4.fromQuat(mat4.create(), this.rot_));
     if (this.usePivot_)
     {
       var center = this.center_;
