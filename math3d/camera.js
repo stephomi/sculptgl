@@ -156,13 +156,16 @@ Camera.prototype = {
   },
 
   /** Reset camera */
-  reset: function ()
+  reset: function (mesh)
   {
     this.rot_ = quat.create();
     this.zoom_ = 0;
     this.center_ = [0, 0, 0];
     this.transX_ = 0;
     this.transY_ = 0;
+    var length = vec3.dist(mesh.octree_.aabbLoose_.max_, mesh.octree_.aabbLoose_.min_);
+    this.speed_ = length;
+    this.zoom(-0.4);
   },
 
   /** Reset view front */

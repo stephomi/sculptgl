@@ -128,9 +128,8 @@ Gui.prototype = {
     var ctrlPivot = cameraFold.add(main.camera_, 'usePivot_').name('Picking pivot');
     ctrlPivot.onChange(function ()
     {
-      main.camera_.center_ = [0, 0, 0];
-      main.camera_.transX_ = 0;
-      main.camera_.transY_ = 0;
+      if (main.mesh_)
+        main.camera_.reset(main.mesh_);
       main.render();
     });
     cameraFold.open();
