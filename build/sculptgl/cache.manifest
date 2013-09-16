@@ -1,5 +1,5 @@
 CACHE MANIFEST
-# 12-09-2013 08:00
+# 16-09-2013 19:45
 
 index.html
 
@@ -32,3 +32,5 @@ shaders/normalFragment.glsl
 shaders/normalVertex.glsl
 shaders/reflectionFragment.glsl
 shaders/reflectionVertex.glsl
+shaders/backgroundFragment.glsl
+shaders/backgroundVertex.glsl

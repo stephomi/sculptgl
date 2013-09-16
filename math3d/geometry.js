@@ -105,10 +105,7 @@ Geometry.pointInsideTriangle = function (point, v1, v2, v3)
   var area1 = vec3.len(vec3.cross(temp, vec1, vecP1));
   var area2 = vec3.len(vec3.cross(temp, vec2, vecP2));
   var area3 = vec3.len(vec3.cross(temp, vecP1, vecP2));
-  if (Math.abs(total - (area1 + area2 + area3)) < 0.0001) //magic epsilon...
-    return true;
-  else
-    return false;
+  return Math.abs(total - (area1 + area2 + area3)) < 0;
 };
 
 /** If a sphere intersect a triangle */

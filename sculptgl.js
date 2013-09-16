@@ -30,6 +30,7 @@ function SculptGL()
   this.picking_ = new Picking(this.camera_); //the ray picking
   this.pickingSym_ = new Picking(this.camera_); //the symmetrical picking
   this.sculpt_ = new Sculpt(this.states_); //sculpting management
+  this.background_ = null; //the background
   this.mesh_ = null; //the mesh
 
   //datas
@@ -70,6 +71,10 @@ SculptGL.prototype = {
     $('#fileopen').change(function (event)
     {
       self.loadFile(event);
+    });
+    $('#backgroundopen').change(function (event)
+    {
+      self.loadBackground(event);
     });
     $canvas.mousedown(function (event)
     {
@@ -154,7 +159,7 @@ SculptGL.prototype = {
       var mat = new Image();
       mat.src = path;
       var gl = self.gl_;
-      mat.onload = function()
+      mat.onload = function ()
       {
         var idTex = gl.createTexture();
         gl.bindTexture(gl.TEXTURE_2D, idTex);
@@ -199,6 +204,8 @@ SculptGL.prototype = {
     shaders.normalFragment = xhrShader('shaders/normalFragment.glsl');
     shaders.reflectionVertex = xhrShader('shaders/reflectionVertex.glsl');
     shaders.reflectionFragment = xhrShader('shaders/reflectionFragment.glsl');
+    shaders.backgroundVertex = xhrShader('shaders/backgroundVertex.glsl');
+    shaders.backgroundFragment = xhrShader('shaders/backgroundFragment.glsl');
   },
 
   /** Load the sphere */
@@ -221,6 +228,12 @@ SculptGL.prototype = {
     var gl = this.gl_;
     gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
     this.camera_.updateView();
+    if (this.background_)
+    {
+      gl.depthMask(false);
+      this.background_.render();
+      gl.depthMask(true);
+    }
     if (this.mesh_)
       this.mesh_.render(this.camera_, this.picking_);
   },
@@ -543,6 +556,32 @@ SculptGL.prototype = {
       reader.readAsBinaryString(file);
     else if (fileType === 'ply')
       reader.readAsBinaryString(file);
+  },
+
+  /** Load background */
+  loadBackground: function (event)
+  {
+    if (event.target.files.length === 0)
+      return;
+    var file = event.target.files[0];
+    if (!file.type.match('image.*'))
+      return;
+    var gl = this.gl_;
+    if (!this.background_)
+    {
+      this.background_ = new Background(this.gl_);
+      this.background_.init(this.shaders_);
+    }
+    var reader = new FileReader();
+    var self = this;
+    reader.onload = function (evt)
+    {
+      var bg = new Image();
+      bg.src = evt.target.result;
+      self.background_.loadBackgroundTexture(bg);
+      self.render();
+    };
+    reader.readAsDataURL(file);
   },
 
   /** Open file */

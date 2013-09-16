@@ -43,7 +43,7 @@ Camera.prototype = {
     this.lastNormalizedMouseXY_ = Geometry.normalizedMouse(mouseX, mouseY, this.width_, this.height_);
     if (this.usePivot_ && picking.mesh_)
     {
-      this.stepCount_ = 30;
+      this.stepCount_ = 20;
       //target center
       vec3.transformMat4(this.stepCenter_, picking.interPoint_, picking.mesh_.matTransform_);
       //target zoom
@@ -109,7 +109,7 @@ Camera.prototype = {
   {
     this.proj_ = mat4.create();
     if (this.type_ === Camera.projType.PERSPECTIVE)
-      mat4.perspective(this.proj_, this.fov_ * Math.PI / 180, this.width_ / this.height_, 0.01, 100000);
+      mat4.perspective(this.proj_, this.fov_ * Math.PI / 180, this.width_ / this.height_, 0.001, 10000);
     else
       this.updateOrtho();
   },

@@ -30,6 +30,10 @@ function Gui(sculptgl)
   this.keySketchfab_ = ''; //sketchfab api key
   this.exportSketchfab_ = this.exportSketchfab; //upload file on sketchfab
 
+  //background functions
+  this.resetBg_ = this.resetBackground; //reset background
+  this.importBg_ = this.importBackground; //import background image
+
   //misc
   this.dummyFunc_ = function () {}; //empty function... stupid trick to get a simple button in dat.gui
 }
@@ -75,7 +79,6 @@ Gui.prototype = {
     var foldPenTablet = gui.addFolder('Wacom tablet');
     foldPenTablet.add(main, 'usePenRadius_').name('Pressure radius');
     foldPenTablet.add(main, 'usePenIntensity_').name('Pressure intensity');
-    foldPenTablet.open();
 
     //file fold
     var foldFiles = gui.addFolder('Files (import/export)');
@@ -84,7 +87,6 @@ Gui.prototype = {
     foldFiles.add(this, 'saveOBJ_').name('Export (obj)');
     foldFiles.add(this, 'savePLY_').name('Export (ply)');
     foldFiles.add(this, 'saveSTL_').name('Export (stl)');
-    foldFiles.open();
 
     //Verold fold
     var foldVerold = gui.addFolder('Go to Verold !');
@@ -133,6 +135,12 @@ Gui.prototype = {
       main.render();
     });
     cameraFold.open();
+
+    //background fold
+    var backgroundFold = gui.addFolder('background');
+    backgroundFold.add(this, 'resetBg_').name('Reset');
+    backgroundFold.add(this, 'importBg_').name('Import (jpg, png...)');
+    backgroundFold.open();
 
     //history fold
     var foldHistory = gui.addFolder('History');
@@ -255,6 +263,24 @@ Gui.prototype = {
   openFile: function ()
   {
     $('#fileopen').trigger('click');
+  },
+
+  /** Reset background */
+  resetBackground: function ()
+  {
+    var bg = this.sculptgl_.background_;
+    if (bg)
+    {
+      var gl = bg.gl_;
+      gl.deleteTexture(bg.backgroundLoc_);
+      this.sculptgl_.background_ = null;
+    }
+  },
+
+  /** Immort background */
+  importBackground: function ()
+  {
+    $('#backgroundopen').trigger('click');
   },
 
   /** Save file as OBJ*/
