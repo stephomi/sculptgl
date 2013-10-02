@@ -621,7 +621,7 @@ SculptGL.prototype = {
 
     mesh.initMesh(this.textures_, this.shaders_);
     mesh.moveTo([0, 0, 0]);
-    this.camera_.reset(mesh);
+    this.camera_.reset();
     this.gui_.updateMesh(mesh);
     this.render();
   },

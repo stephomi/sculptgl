@@ -34,6 +34,9 @@ function Gui(sculptgl)
   this.resetBg_ = this.resetBackground; //reset background
   this.importBg_ = this.importBackground; //import background image
 
+  //functions
+  this.resetCamera_ = this.resetCamera; //reset camera position and rotation
+
   //misc
   this.dummyFunc_ = function () {}; //empty function... stupid trick to get a simple button in dat.gui
 }
@@ -100,6 +103,7 @@ Gui.prototype = {
 
     //Camera fold
     var cameraFold = gui.addFolder('Camera');
+    cameraFold.add(this, 'resetCamera_').name('Reset');
     var optionsCameraMode = {
       'Spherical': Camera.mode.SPHERICAL,
       'Plane': Camera.mode.PLANE
@@ -130,8 +134,7 @@ Gui.prototype = {
     var ctrlPivot = cameraFold.add(main.camera_, 'usePivot_').name('Picking pivot');
     ctrlPivot.onChange(function ()
     {
-      if (main.mesh_)
-        main.camera_.reset(main.mesh_);
+      main.camera_.toggleUsePivot();
       main.render();
     });
     cameraFold.open();
@@ -275,6 +278,13 @@ Gui.prototype = {
       gl.deleteTexture(bg.backgroundLoc_);
       this.sculptgl_.background_ = null;
     }
+  },
+
+  /** Immort background */
+  resetCamera: function ()
+  {
+    this.sculptgl_.camera_.reset();
+    this.sculptgl_.render();
   },
 
   /** Immort background */

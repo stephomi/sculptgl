@@ -90,18 +90,15 @@ Camera.prototype = {
   updateView: function ()
   {
     var view = this.view_;
-    var tx = this.usePivot_ ? 0 : this.transX_;
-    var ty = this.usePivot_ ? 0 : this.transY_;
+    var tx = this.transX_;
+    var ty = this.transY_;
     if (this.type_ === Camera.projType.PERSPECTIVE)
       mat4.lookAt(view, [tx, ty, this.zoom_], [tx, ty, 0], [0, 1, 0]);
     else
       mat4.lookAt(view, [tx, ty, 1000], [tx, ty, 0], [0, 1, 0]);
     mat4.mul(view, view, mat4.fromQuat(mat4.create(), this.rot_));
-    if (this.usePivot_)
-    {
-      var center = this.center_;
-      mat4.translate(view, view, [-center[0], -center[1], -center[2]]);
-    }
+    var center = this.center_;
+    mat4.translate(view, view, [-center[0], -center[1], -center[2]]);
   },
 
   /** Update projection matrix */
@@ -155,16 +152,22 @@ Camera.prototype = {
     return vec3.transformMat3(pos, pos, mat3.transpose(rot, rot));
   },
 
-  /** Reset camera */
-  reset: function (mesh)
+  /** Reset camera when we toggle usePivot */
+  toggleUsePivot: function ()
   {
-    this.rot_ = quat.create();
-    this.zoom_ = 0;
-    this.center_ = [0, 0, 0];
     this.transX_ = 0;
     this.transY_ = 0;
-    var length = vec3.dist(mesh.octree_.aabbLoose_.max_, mesh.octree_.aabbLoose_.min_);
-    this.speed_ = length;
+  },
+
+  /** Reset camera */
+  reset: function ()
+  {
+    this.transX_ = 0;
+    this.transY_ = 0;
+    this.speed_ = Mesh.globalScale_ * 1.4;
+    this.rot_ = quat.create();
+    this.center_ = [0, 0, 0];
+    this.zoom_ = 0;
     this.zoom(-0.4);
   },
 
