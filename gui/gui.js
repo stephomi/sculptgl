@@ -47,7 +47,7 @@ Gui.prototype = {
   {
     var guiGeneral = new dat.GUI();
     guiGeneral.domElement.style.position = 'absolute';
-    guiGeneral.domElement.style.height = '600px';
+    guiGeneral.domElement.style.height = '650px';
     this.initGeneralGui(guiGeneral);
 
     var guiEditing = new dat.GUI();
