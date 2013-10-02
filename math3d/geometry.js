@@ -65,7 +65,7 @@ Geometry.computeTriangleAabb = function (aabb, v1x, v1y, v1z, v2x, v2y, v2z, v3x
 };
 
 /** Compute from a plane defined by 3 vertices */
-Geometry.normal = function (normal, v1x, v1y, v1z, v2x, v2y, v2z, v3x, v3y, v3z)
+Geometry.triangleNormal = function (normal, v1x, v1y, v1z, v2x, v2y, v2z, v3x, v3y, v3z)
 {
   var ax = v2x - v1x,
     ay = v2y - v1y,
@@ -105,20 +105,20 @@ Geometry.pointInsideTriangle = function (point, v1, v2, v3)
   var area1 = vec3.len(vec3.cross(temp, vec1, vecP1));
   var area2 = vec3.len(vec3.cross(temp, vec2, vecP2));
   var area3 = vec3.len(vec3.cross(temp, vecP1, vecP2));
-  return Math.abs(total - (area1 + area2 + area3)) < 0;
+  return Math.abs(total - (area1 + area2 + area3)) < 1E-20;
 };
 
 /** If a sphere intersect a triangle */
 Geometry.sphereIntersectTriangle = function (point, radiusSq, v1, v2, v3)
 {
-  if (Geometry.distanceToSegment(point, v1, v2) < radiusSq) return true;
-  if (Geometry.distanceToSegment(point, v2, v3) < radiusSq) return true;
-  if (Geometry.distanceToSegment(point, v1, v3) < radiusSq) return true;
+  if (Geometry.distanceSqToSegment(point, v1, v2) < radiusSq) return true;
+  if (Geometry.distanceSqToSegment(point, v2, v3) < radiusSq) return true;
+  if (Geometry.distanceSqToSegment(point, v1, v3) < radiusSq) return true;
   return false;
 };
 
-/** Minimum distance to a segment */
-Geometry.distanceToSegment = function (point, v1, v2)
+/** Minimum squared distance to a segment */
+Geometry.distanceSqToSegment = function (point, v1, v2)
 {
   var pt = [0, 0, 0];
   vec3.sub(pt, point, v1);

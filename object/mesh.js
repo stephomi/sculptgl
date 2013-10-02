@@ -322,7 +322,7 @@ Mesh.prototype = {
     var v3x = vAr[ind3],
       v3y = vAr[ind3 + 1],
       v3z = vAr[ind3 + 2];
-    Geometry.normal(t.normal_, v1x, v1y, v1z, v2x, v2y, v2z, v3x, v3y, v3z);
+    Geometry.triangleNormal(t.normal_, v1x, v1y, v1z, v2x, v2y, v2z, v3x, v3y, v3z);
     Geometry.computeTriangleAabb(t.aabb_, v1x, v1y, v1z, v2x, v2y, v2z, v3x, v3y, v3z);
   },
 
