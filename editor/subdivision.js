@@ -353,18 +353,13 @@ Topology.prototype.halfEdgeSplit = function (iTri, iv1, iv2, iv3)
       edgez = v1z - v2z;
     len = Math.sqrt(edgex * edgex + edgey * edgey + edgez * edgez);
 
-    if ((edgex * (n1x - n2x) + edgey * (n1y - n2y) + edgez * (n1z - n2z)) > 0)
-    {
-      vAr[id] = (v1x + v2x) * 0.5 + nAr[id] * angle * len * 0.12;
-      vAr[id + 1] = (v1y + v2y) * 0.5 + nAr[id + 1] * angle * len * 0.12;
-      vAr[id + 2] = (v1z + v2z) * 0.5 + nAr[id + 2] * angle * len * 0.12;
-    }
-    else
-    {
-      vAr[id] = (v1x + v2x) * 0.5 - nAr[id] * angle * len * 0.12;
-      vAr[id + 1] = (v1y + v2y) * 0.5 - nAr[id + 1] * angle * len * 0.12;
-      vAr[id + 2] = (v1z + v2z) * 0.5 - nAr[id + 2] * angle * len * 0.12;
-    }
+    var offset = angle * len * 0.12;
+    if ((edgex * (n1x - n2x) + edgey * (n1y - n2y) + edgez * (n1z - n2z)) < 0)
+      offset = -offset;
+
+    vAr[id] = (v1x + v2x) * 0.5 + nAr[id] * offset;
+    vAr[id + 1] = (v1y + v2y) * 0.5 + nAr[id + 1] * offset;
+    vAr[id + 2] = (v1z + v2z) * 0.5 + nAr[id + 2] * offset;
 
     vMidTest.stateFlag_ = Mesh.stateMask_;
     vMidTest.ringVertices_.push(iv1, iv2, iv3);
