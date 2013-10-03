@@ -171,7 +171,7 @@ SculptGL.prototype = {
         self.textures_[mode] = idTex;
         if (mode === Render.mode.MATERIAL)
           self.loadSphere();
-      }
+      };
     };
     loadTex('ressources/clay.jpg', Render.mode.MATERIAL);
     loadTex('ressources/chavant.jpg', Render.mode.MATERIAL + 1);
@@ -270,6 +270,12 @@ SculptGL.prototype = {
     {
       this.onRedo();
       return;
+    }
+    if (event.altKey)
+    {
+      if (this.camera_.usePivot_)
+        this.picking_.intersectionMouseMesh(this.mesh_, this.lastMouseX_, this.lastMouseY_, 0.5);
+      this.camera_.start(this.lastMouseX_, this.lastMouseY_, this.picking_);
     }
     switch (key)
     {
@@ -400,7 +406,7 @@ SculptGL.prototype = {
     var pressure = Tablet.pressure();
     var pressureRadius = this.usePenRadius_ ? pressure : 1;
     var pressureIntensity = this.usePenIntensity_ ? pressure : 1;
-    if (button === 1)
+    if (button === 1 && !event.altKey)
     {
       if (this.mesh_)
       {
@@ -494,15 +500,17 @@ SculptGL.prototype = {
     }
     if (this.mesh_ && (button !== 1 || (tool !== Sculpt.tool.ROTATE && tool !== Sculpt.tool.DRAG && tool !== Sculpt.tool.SCALE)))
       this.picking_.intersectionMouseMesh(this.mesh_, mouseX, mouseY, pressureRadius);
-    if (button === 1)
+    if (button === 1 && !event.altKey)
     {
       this.sculpt_.sculptStroke(mouseX, mouseY, pressureRadius, pressureIntensity, this);
       this.gui_.updateMeshInfo(this.mesh_.vertices_.length, this.mesh_.triangles_.length);
     }
-    else if (button === 3)
+    else if (button === 3 || (event.altKey && !event.shiftKey && !event.ctrlKey))
       this.camera_.rotate(mouseX, mouseY);
-    else if (button === 2)
+    else if (button === 2 || (event.altKey && event.shiftKey))
       this.camera_.translate((mouseX - this.lastMouseX_) / 3000, (mouseY - this.lastMouseY_) / 3000);
+    else if (event.altKey && event.ctrlKey)
+      this.camera_.zoom((mouseX - this.lastMouseX_ + mouseY - this.lastMouseY_) / 3000);
     this.lastMouseX_ = mouseX;
     this.lastMouseY_ = mouseY;
     this.render();
@@ -565,7 +573,6 @@ SculptGL.prototype = {
     var file = event.target.files[0];
     if (!file.type.match('image.*'))
       return;
-    var gl = this.gl_;
     if (!this.background_)
     {
       this.background_ = new Background(this.gl_);
