@@ -1,7 +1,11 @@
-attribute vec3 vertex, normal, barycenter;
+attribute vec3 vertex;
+attribute vec3 normal;
+attribute vec3 barycenter;
 uniform mat4 mvMat, mvpMat;
 uniform mat3 nMat;
-varying vec3 vVertex, vNormal, vBarycenter;
+varying vec3 vVertex;
+varying vec3 vNormal;
+varying vec3 vBarycenter;
 varying vec2 vTexCoord;
 void main()
 {

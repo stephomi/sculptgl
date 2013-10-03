@@ -1,7 +1,9 @@
 precision mediump float;
 uniform vec3 centerPicking;
 uniform float radiusSquared;
-varying vec3 vVertex, vNormal, vColor;
+varying vec3 vVertex;
+varying vec3 vNormal;
+varying vec3 vColor;
 const vec3 colorBackface = vec3(0.81, 0.71, 0.23);
 const vec3 vecLight = vec3(0.06189844605901729, 0.12379689211803457, 0.9903751369442766);
 const float shininess = 100.0;

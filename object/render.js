@@ -108,7 +108,7 @@ Render.prototype = {
   {
     var gl = this.gl_;
     this.vertexShader_ = gl.createShader(gl.VERTEX_SHADER);
-    gl.shaderSource(this.vertexShader_, vertex);
+    gl.shaderSource(this.vertexShader_, '\n'+vertex+'\n');
     gl.compileShader(this.vertexShader_);
     this.fragmentShader_ = gl.createShader(gl.FRAGMENT_SHADER);
     gl.shaderSource(this.fragmentShader_, fragment);

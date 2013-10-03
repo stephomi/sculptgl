@@ -180,7 +180,6 @@ SculptGL.prototype = {
     loadTex('ressources/redvelvet.jpg', Render.mode.MATERIAL + 4);
     loadTex('ressources/orange.jpg', Render.mode.MATERIAL + 5);
     loadTex('ressources/bronze.jpg', Render.mode.MATERIAL + 6);
-    loadTex('ressources/normal.jpg', Render.mode.MATERIAL + 7);
   },
 
   /** Load shaders as a string */
@@ -194,18 +193,18 @@ SculptGL.prototype = {
       return shaderXhr.responseText;
     };
     var shaders = this.shaders_;
-    shaders.phongVertex = xhrShader('shaders/phongVertex.glsl');
-    shaders.phongFragment = xhrShader('shaders/phongFragment.glsl');
-    shaders.transparencyVertex = xhrShader('shaders/transparencyVertex.glsl');
-    shaders.transparencyFragment = xhrShader('shaders/transparencyFragment.glsl');
-    shaders.wireframeVertex = xhrShader('shaders/wireframeVertex.glsl');
-    shaders.wireframeFragment = xhrShader('shaders/wireframeFragment.glsl');
-    shaders.normalVertex = xhrShader('shaders/normalVertex.glsl');
-    shaders.normalFragment = xhrShader('shaders/normalFragment.glsl');
-    shaders.reflectionVertex = xhrShader('shaders/reflectionVertex.glsl');
-    shaders.reflectionFragment = xhrShader('shaders/reflectionFragment.glsl');
-    shaders.backgroundVertex = xhrShader('shaders/backgroundVertex.glsl');
-    shaders.backgroundFragment = xhrShader('shaders/backgroundFragment.glsl');
+    shaders.phongVertex = xhrShader('shaders/phong.vert');
+    shaders.phongFragment = xhrShader('shaders/phong.frag');
+    shaders.transparencyVertex = xhrShader('shaders/transparency.vert');
+    shaders.transparencyFragment = xhrShader('shaders/transparency.frag');
+    shaders.wireframeVertex = xhrShader('shaders/wireframe.vert');
+    shaders.wireframeFragment = xhrShader('shaders/wireframe.frag');
+    shaders.normalVertex = xhrShader('shaders/normal.vert');
+    shaders.normalFragment = xhrShader('shaders/normal.frag');
+    shaders.reflectionVertex = xhrShader('shaders/reflection.vert');
+    shaders.reflectionFragment = xhrShader('shaders/reflection.frag');
+    shaders.backgroundVertex = xhrShader('shaders/background.vert');
+    shaders.backgroundFragment = xhrShader('shaders/background.frag');
   },
 
   /** Load the sphere */

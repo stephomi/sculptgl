@@ -8,7 +8,8 @@ java -jar compiler.jar --js=../object/aabb.js --js=../math3d/camera.js --js=../m
 cp ../lib/*.js sculptgl/lib/
 cp ../ressources/*.jpg sculptgl/ressources/
 cp ../ressources/*.obj sculptgl/ressources/
-cp ../shaders/*.glsl sculptgl/shaders/
+cp ../shaders/*.vert sculptgl/shaders/
+cp ../shaders/*.frag sculptgl/shaders/
 cp ../css/*.css sculptgl/css/
 cp cache.manifest sculptgl/
 cp index-min.html sculptgl/index.html

@@ -228,8 +228,7 @@ Gui.prototype = {
       'Drink': Render.mode.MATERIAL + 3,
       'Red velvet': Render.mode.MATERIAL + 4,
       'Orange': Render.mode.MATERIAL + 5,
-      'Bronze': Render.mode.MATERIAL + 6,
-      'Normal soft': Render.mode.MATERIAL + 7
+      'Bronze': Render.mode.MATERIAL + 6
     };
     this.ctrlShaders_ = foldMesh.add(new Render(), 'shaderType_', optionsShaders).name('Shader');
     this.ctrlShaders_.onChange(function (value)
