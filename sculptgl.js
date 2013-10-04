@@ -510,7 +510,7 @@ SculptGL.prototype = {
     else if (button === 2 || (event.altKey && event.shiftKey))
       this.camera_.translate((mouseX - this.lastMouseX_) / 3000, (mouseY - this.lastMouseY_) / 3000);
     else if (event.altKey && event.ctrlKey)
-      this.camera_.zoom((mouseX - this.lastMouseX_ + mouseY - this.lastMouseY_) / 3000);
+      this.camera_.zoom((mouseY - this.lastMouseY_) / 3000);
     this.lastMouseX_ = mouseX;
     this.lastMouseY_ = mouseY;
     this.render();
