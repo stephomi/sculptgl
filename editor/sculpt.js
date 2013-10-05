@@ -32,6 +32,10 @@ function Sculpt(states)
   //drag stuffs
   this.dragDir_ = [0, 0, 0]; //direction of deformation
   this.dragDirSym_ = [0, 0, 0]; //direction of deformation
+
+  //cut stuffs
+  this.lineOrigin_ = [0, 0]; //the 2d line origin
+  this.lineNormal_ = [0, 0]; //the 2d line normal
 }
 
 //the sculpting tools
@@ -45,7 +49,8 @@ Sculpt.tool = {
   CREASE: 6,
   DRAG: 7,
   COLOR: 8,
-  SCALE: 9
+  SCALE: 9,
+  CUT: 10
 };
 
 //the topological tools
@@ -872,5 +877,50 @@ Sculpt.prototype = {
       az += vAr[ind + 2];
     }
     return [ax / nbVerts, ay / nbVerts, az / nbVerts];
+  },
+
+  /** Set the origin of the 2d line */
+  setLineOrigin: function (mouseX, mouseY)
+  {
+    this.lineOrigin_ = [mouseX, mouseY];
+  },
+
+  /** Update the normal of the 2d line */
+  updateLineNormal: function (mouseX, mouseY)
+  {
+    this.lineNormal_ = [this.lineOrigin_[1] - mouseY, -this.lineOrigin_[0] + mouseX];
+  },
+
+  /** Cut the mesh along a 2d line */
+  cut: function (picking)
+  {
+    var mesh = this.mesh_;
+    var camera = picking.camera_;
+    var height = camera.height_;
+    var lo = this.lineOrigin_;
+    var lox = lo[0],
+      loy = height - lo[1];
+    var ln = this.lineNormal_;
+    var lnx = ln[0],
+      lny = -ln[1];
+
+    // compute the 3D plane origin and normal
+    var planeOrigin = camera.unproject(lox, loy, 0.5),
+      planeNormal = camera.unproject(lox + lnx, loy + lny, 0.5);
+    var matInverse = mat4.create();
+    mat4.invert(matInverse, mesh.matTransform_);
+    vec3.transformMat4(planeOrigin, planeOrigin, matInverse);
+    vec3.transformMat4(planeNormal, planeNormal, matInverse);
+    vec3.sub(planeNormal, planeNormal, planeOrigin);
+    vec3.normalize(planeNormal, planeNormal);
+
+    var topo = new Topology(this.states_);
+    topo.mesh_ = mesh;
+    topo.cut(planeOrigin, planeNormal);
+
+    mesh.updateBuffers();
+
+    this.lineNormal_ = [0, 0];
+    this.lineNormal_ = [0, 0];
   }
 };

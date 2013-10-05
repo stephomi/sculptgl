@@ -1,7 +1,7 @@
-var Tools = {};
+var Utils = {};
 
 /** Return the nearest power of two value */
-Tools.nextHighestPowerOfTwo = function (x)
+Utils.nextHighestPowerOfTwo = function (x)
 {
 	--x;
 	for (var i = 1; i < 32; i <<= 1)
@@ -10,7 +10,7 @@ Tools.nextHighestPowerOfTwo = function (x)
 };
 
 /** sort an array and delete duplicate values */
-Tools.tidy = function (array)
+Utils.tidy = function (array)
 {
 	array.sort(function (a, b)
 	{
@@ -29,7 +29,7 @@ Tools.tidy = function (array)
 };
 
 /** Intersection between two arrays*/
-Tools.intersectionArrays = function (a, b)
+Utils.intersectionArrays = function (a, b)
 {
 	var ai = 0,
 		bi = 0;
@@ -51,6 +51,18 @@ Tools.intersectionArrays = function (a, b)
 	return result;
 };
 
+/** Array rotation */
+Utils.rotateArray = function (array, inc)
+{
+	inc = -inc;
+	for (var l = array.length, inc = (Math.abs(inc) >= l && (inc %= l), inc < 0 && (inc += l), inc), i, x; inc; inc = (Math.ceil(l / inc) - 1) * inc - l + (l = inc))
+	{
+		for (i = l; i > inc; x = array[--i], array[i] = array[i - inc], array[i - inc] = x)
+		{}
+	}
+	return array;
+};
+
 var Tablet = {};
 
 /** wacom tablet plugin element **/
@@ -62,7 +74,7 @@ Tablet.pressure = function ()
 	var pen;
 	if (Tablet.plugin)
 		pen = Tablet.plugin.penAPI;
-	return (pen && pen.pointerType)? pen.pressure : 1;
+	return (pen && pen.pointerType) ? pen.pressure : 1;
 };
 
 /** endsWith function */
@@ -82,18 +94,3 @@ if (typeof String.prototype.startsWith !== 'function')
 		return this.slice(0, str.length) === str;
 	};
 }
-
-/** Array rotation */
-Array.prototype.rotate = (function ()
-{
-	return function (inc)
-	{
-		inc = -inc;
-		for (var l = this.length, inc = (Math.abs(inc) >= l && (inc %= l), inc < 0 && (inc += l), inc), i, x; inc; inc = (Math.ceil(l / inc) - 1) * inc - l + (l = inc))
-		{
-			for (i = l; i > inc; x = this[--i], this[i] = this[i - inc], this[i - inc] = x)
-			{}
-		}
-		return this;
-	};
-})();

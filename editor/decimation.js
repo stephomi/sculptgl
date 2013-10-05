@@ -95,20 +95,20 @@ Topology.prototype.decimation = function (iTris, detailMinSquared)
 Topology.prototype.applyDeletion = function ()
 {
   var iTrisToDelete = this.iTrisToDelete_;
-  Tools.tidy(iTrisToDelete);
+  Utils.tidy(iTrisToDelete);
   var nbTrisDelete = iTrisToDelete.length;
   var i = 0;
   for (i = nbTrisDelete - 1; i >= 0; --i)
     this.deleteTriangle(iTrisToDelete[i]);
 
   var iVertsToDelete = this.iVertsToDelete_;
-  Tools.tidy(iVertsToDelete);
+  Utils.tidy(iVertsToDelete);
   var nbVertsToDelete = iVertsToDelete.length;
   for (i = nbVertsToDelete - 1; i >= 0; --i)
     this.deleteVertex(iVertsToDelete[i]);
 };
 
-/** Return the valid modified triangles (no vertices) */
+/** Return the valid modified vertices (no duplicates) */
 Topology.prototype.getValidModifiedVertices = function ()
 {
   var mesh = this.mesh_;
@@ -175,7 +175,7 @@ Topology.prototype.findOppositeTriangle = function (iTri, iv1, iv2)
   {
     return a - b;
   });
-  var res = Tools.intersectionArrays(iTris1, iTris2);
+  var res = Utils.intersectionArrays(iTris1, iTris2);
   if (res.length !== 2)
     return -1;
   return res[0] === iTri ? res[1] : res[0];
@@ -271,7 +271,7 @@ Topology.prototype.edgeCollapse = function (iTri1, iTri2, iv1, iv2, ivOpp1, ivOp
   {
     return a - b;
   });
-  var res = Tools.intersectionArrays(ring1, ring2);
+  var res = Utils.intersectionArrays(ring1, ring2);
 
   var id = 0;
   if (res.length >= 3) //edge flip

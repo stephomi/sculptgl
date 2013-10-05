@@ -234,7 +234,7 @@ SculptGL.prototype = {
       gl.depthMask(true);
     }
     if (this.mesh_)
-      this.mesh_.render(this.camera_, this.picking_);
+      this.mesh_.render(this.camera_, this.picking_, this.sculpt_.lineOrigin_, this.sculpt_.lineNormal_);
   },
 
   /** Called when the window is resized */
@@ -412,7 +412,9 @@ SculptGL.prototype = {
       {
         this.sumDisplacement_ = 0;
         this.states_.start();
-        if (this.sculpt_.tool_ === Sculpt.tool.ROTATE)
+        if (this.sculpt_.tool_ === Sculpt.tool.CUT)
+          this.sculpt_.setLineOrigin(mouseX, this.camera_.height_ - mouseY);
+        else if (this.sculpt_.tool_ === Sculpt.tool.ROTATE)
           this.sculpt_.startRotate(this.picking_, mouseX, mouseY, this.pickingSym_, this.ptPlane_, this.nPlane_, this.symmetry_);
         else if (this.sculpt_.tool_ === Sculpt.tool.SCALE)
           this.sculpt_.startScale(this.picking_, mouseX, mouseY, this.pickingSym_, this.ptPlane_, this.nPlane_, this.symmetry_);
@@ -447,7 +449,14 @@ SculptGL.prototype = {
     event.stopPropagation();
     event.preventDefault();
     if (this.mesh_)
+    {
+      if (this.sculpt_.tool_ == Sculpt.tool.CUT && this.mouseButton_ === 1)
+      {
+        this.sculpt_.cut(this.picking_);
+        this.gui_.updateMeshInfo(this.mesh_.vertices_.length, this.mesh_.triangles_.length);
+      }
       this.mesh_.checkLeavesUpdate();
+    }
     if (this.sculptTimer_ !== -1)
     {
       clearInterval(this.sculptTimer_);
@@ -487,10 +496,12 @@ SculptGL.prototype = {
       mouseY = event.pageY;
     var button = this.mouseButton_;
     var tool = this.sculpt_.tool_;
+    var st = Sculpt.tool;
     var pressure = Tablet.pressure();
     var pressureRadius = this.usePenRadius_ ? pressure : 1;
     var pressureIntensity = this.usePenIntensity_ ? pressure : 1;
-    if (this.continuous_ && this.sculptTimer_ !== -1)
+    var modifierPressed = event.altKey || event.ctrlKey || event.shiftKey;
+    if (this.continuous_ && this.sculptTimer_ !== -1 && !modifierPressed)
     {
       this.pressureRadius_ = pressureRadius;
       this.pressureIntensity_ = pressureIntensity;
@@ -498,12 +509,17 @@ SculptGL.prototype = {
       this.mouseY_ = mouseY;
       return;
     }
-    if (this.mesh_ && (button !== 1 || (tool !== Sculpt.tool.ROTATE && tool !== Sculpt.tool.DRAG && tool !== Sculpt.tool.SCALE)))
+    if (tool !== st.CUT && this.mesh_ && (button !== 1 || (tool !== st.ROTATE && tool !== st.DRAG && tool !== st.SCALE)))
       this.picking_.intersectionMouseMesh(this.mesh_, mouseX, mouseY, pressureRadius);
     if (button === 1 && !event.altKey)
     {
-      this.sculpt_.sculptStroke(mouseX, mouseY, pressureRadius, pressureIntensity, this);
-      this.gui_.updateMeshInfo(this.mesh_.vertices_.length, this.mesh_.triangles_.length);
+      if (tool === st.CUT)
+        this.sculpt_.updateLineNormal(mouseX, this.camera_.height_ - mouseY);
+      else
+      {
+        this.sculpt_.sculptStroke(mouseX, mouseY, pressureRadius, pressureIntensity, this);
+        this.gui_.updateMeshInfo(this.mesh_.vertices_.length, this.mesh_.triangles_.length);
+      }
     }
     else if (button === 3 || (event.altKey && !event.shiftKey && !event.ctrlKey))
       this.camera_.rotate(mouseX, mouseY);

@@ -206,5 +206,23 @@ Aabb.prototype = {
       min[2] -= offset;
       max[2] += offset;
     }
+  },
+
+  /**
+   * Because of laziness I approximate the box by a sphere
+   * Return 0 if the sphere is below the plane
+   * Return 1 if the sphere is above the plane
+   * Return 2 if the sphere intersects the plane
+   */
+  intersectPlane: function (origin, normal)
+  {
+    var center = this.computeCenter();
+    var distToPlane = vec3.dot(vec3.sub(center, center, origin), normal);
+    if (distToPlane * distToPlane < vec3.sqrDist(this.min_, this.max_) * 0.25)
+      return 2;
+    if (distToPlane > 0)
+      return 1;
+    else
+      return 0;
   }
 };

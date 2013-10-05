@@ -24,8 +24,12 @@ function Render(gl)
   this.mvpMatrixUnif_ = null; //model view projection matrix uniform location
   this.mvMatrixUnif_ = null; //model view matrix uniform location
   this.normalMatrixUnif_ = null; //normal matrix uniform location
+
   this.centerPickingUnif_ = null; //center of selection uniform location
   this.radiusSquaredUnif_ = null; //radius of selection uniform location
+
+  this.lineOriginUnif_ = null; //line origin uniform location
+  this.lineNormalUnif_ = null; //line normal uniform location
 
   this.reflectionTexUnif_ = null; //reflection texture uniform location
 }
@@ -94,6 +98,9 @@ Render.prototype = {
     this.centerPickingUnif_ = gl.getUniformLocation(shaderProgram, 'centerPicking');
     this.radiusSquaredUnif_ = gl.getUniformLocation(shaderProgram, 'radiusSquared');
 
+    this.lineOriginUnif_ = gl.getUniformLocation(shaderProgram, 'lineOrigin');
+    this.lineNormalUnif_ = gl.getUniformLocation(shaderProgram, 'lineNormal');
+
     if (this.shaderType_ >= Render.mode.MATERIAL)
       this.reflectionTexUnif_ = gl.getUniformLocation(shaderProgram, 'refTex');
 
@@ -137,7 +144,7 @@ Render.prototype = {
   },
 
   /** Render the mesh */
-  render: function (camera, picking, matTransform, lengthIndexArray, center)
+  render: function (camera, picking, matTransform, lengthIndexArray, center, lineOrigin, lineNormal)
   {
     var gl = this.gl_;
     gl.useProgram(this.shaderProgram_);
@@ -169,6 +176,9 @@ Render.prototype = {
     gl.uniformMatrix3fv(this.normalMatrixUnif_, false, mat3.normalFromMat4(mat3.create(), mvMatrix));
     gl.uniform3fv(this.centerPickingUnif_, vec3.transformMat4([0, 0, 0], centerPicking, mvMatrix));
     gl.uniform1f(this.radiusSquaredUnif_, radiusSquared);
+
+    gl.uniform2fv(this.lineOriginUnif_, lineOrigin);
+    gl.uniform2fv(this.lineNormalUnif_, lineNormal);
 
     switch (this.shaderType_)
     {

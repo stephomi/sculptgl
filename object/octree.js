@@ -155,6 +155,28 @@ Octree.prototype = {
     return [];
   },
 
+  /** Return triangles inside a sphere */
+  cullPlane: function (origin, normal, iTrisCulled, iTrisIntersect)
+  {
+    var inter = 0;
+    if (inter = this.aabbSplit_.intersectPlane(origin, normal))
+    {
+      if (this.child_[0])
+      {
+        var child = this.child_;
+        for (var i = 0; i < 8; ++i)
+          child[i].cullPlane(origin, normal, iTrisCulled, iTrisIntersect);
+      }
+      else
+      {
+        if (inter === 1) //above the plane
+          iTrisCulled.push.apply(iTrisCulled, this.iTris_);
+        else //intersect
+          iTrisIntersect.push.apply(iTrisIntersect, this.iTris_);
+      }
+    }
+  },
+
   /** Add triangle in the octree, subdivide the cell if necessary */
   addTriangle: function (mesh, tri)
   {

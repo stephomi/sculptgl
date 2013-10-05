@@ -48,9 +48,12 @@ Camera.prototype = {
       vec3.transformMat4(this.stepCenter_, picking.interPoint_, picking.mesh_.matTransform_);
       //target zoom
       var targetZoom = vec3.dist(this.stepCenter_, this.computePosition());
-      this.stepZoom_ = (targetZoom - this.zoom_) / this.stepCount_;
+      if (this.type_ === Camera.projType.PERSPECTIVE)
+        this.stepZoom_ = (targetZoom - this.zoom_) / this.stepCount_;
+      else
+        this.stepZoom_ = 0;
       this.speed_ = targetZoom * 5;
-      var length = vec3.sub(this.stepCenter_, this.stepCenter_, this.center_);
+      vec3.sub(this.stepCenter_, this.stepCenter_, this.center_);
       vec3.scale(this.stepCenter_, this.stepCenter_, 1 / this.stepCount_);
     }
   },

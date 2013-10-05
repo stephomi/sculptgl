@@ -213,9 +213,9 @@ Mesh.prototype = {
   },
 
   /** Render the mesh */
-  render: function (camera, picking)
+  render: function (camera, picking, lineOrigin, lineNormal)
   {
-    this.render_.render(camera, picking, this.matTransform_, this.triangles_.length * 3, this.center_);
+    this.render_.render(camera, picking, this.matTransform_, this.triangles_.length * 3, this.center_, lineOrigin, lineNormal);
   },
 
   /** Initialize the mesh information : center, octree */
@@ -424,7 +424,7 @@ Mesh.prototype = {
   /** End of stroke, update octree (cut empty leaves or go deeper if needed) */
   checkLeavesUpdate: function ()
   {
-    Tools.tidy(this.leavesUpdate_);
+    Utils.tidy(this.leavesUpdate_);
     var leavesUpdate = this.leavesUpdate_;
     var nbLeaves = leavesUpdate.length;
     var cutLeaves = [];
@@ -443,7 +443,7 @@ Mesh.prototype = {
       else if (leaf.iTris_.length > octreeMaxTriangles && leaf.depth_ < octreeMaxDepth)
         leaf.constructCells(this);
     }
-    Tools.tidy(cutLeaves);
+    Utils.tidy(cutLeaves);
     var nbCutLeaves = cutLeaves.length;
     for (i = 0; i < nbCutLeaves; ++i)
     {

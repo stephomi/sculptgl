@@ -191,7 +191,7 @@ Topology.prototype.vertexJoin = function (iv1, iv2)
   {
     return a - b;
   });
-  var common = Tools.intersectionArrays(ring1, ring2);
+  var common = Utils.intersectionArrays(ring1, ring2);
 
   if (common.length === 0)
     this.connect1Ring(edges1, edges2);
@@ -535,7 +535,7 @@ Topology.prototype.matchEdgesCommonVertices = function (edges1, edges2, ivCommon
       break;
     }
   }
-  edges1.rotate(match);
+  Utils.rotateArray(edges1, match);
 
   var nbEdges2 = edges2.length;
   match = -1;
@@ -547,9 +547,8 @@ Topology.prototype.matchEdgesCommonVertices = function (edges1, edges2, ivCommon
       break;
     }
   }
-  edges2.rotate(match);
+  Utils.rotateArray(edges2, match);
 };
-
 
 /** Adjust edges orientation taking the closest vertex as a starting point */
 Topology.prototype.matchEdgesNearest = function (edges1, edges2)
@@ -581,7 +580,7 @@ Topology.prototype.matchEdgesNearest = function (edges1, edges2)
       nearest = i;
     }
   }
-  edges2.rotate(nearest);
+  Utils.rotateArray(edges2, nearest);
 };
 
 /** Clean up neighborhood */
@@ -712,7 +711,7 @@ Topology.prototype.deleteVertexIfDegenerate = function (iv)
   if (v.tagFlag_ < 0)
     return true;
 
-  Tools.tidy(v.tIndices_);
+  Utils.tidy(v.tIndices_);
   var nbTris = v.tIndices_.length;
   var i = 0,
     id = 0,
@@ -730,7 +729,7 @@ Topology.prototype.deleteVertexIfDegenerate = function (iv)
     id = iTri * 3;
     var verts = [];
     verts.push(iAr[id], iAr[id + 1], iAr[id + 2]);
-    Tools.tidy(verts);
+    Utils.tidy(verts);
     var nbVerts = verts.length;
     for (i = 0; i < nbVerts; ++i)
     {
@@ -763,7 +762,7 @@ Topology.prototype.deleteVertexIfDegenerate = function (iv)
     id = iTri1 * 3;
     var verts1 = [];
     verts1.push(iAr[id], iAr[id + 1], iAr[id + 2]);
-    Tools.tidy(verts1);
+    Utils.tidy(verts1);
     var nbVerts1 = verts1.length;
     for (i = 0; i < nbVerts1; ++i)
     {
@@ -780,7 +779,7 @@ Topology.prototype.deleteVertexIfDegenerate = function (iv)
     var verts2 = [];
     verts2.push(iAr[id], iAr[id + 1], iAr[id + 2]);
 
-    Tools.tidy(verts2);
+    Utils.tidy(verts2);
     var nbVerts2 = verts2.length;
     for (i = 0; i < nbVerts2; ++i)
     {

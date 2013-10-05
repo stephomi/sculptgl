@@ -8,10 +8,14 @@ function Gui(sculptgl)
   this.ctrlColor_ = null; //color controller
   this.ctrlShaders_ = null; //shaders controller
   this.ctrlSculpt_ = null; //sculpt controller
-  this.ctrlContinuous_ = null; //continuous sculpting controller
   this.ctrlClay_ = null; //clay sculpting controller
   this.ctrlNegative_ = null; //negative sculpting controller
+  this.ctrlContinuous_ = null; //continuous sculpting controller
+  this.ctrlSymmetry_ = null; //symmetry controller
+  this.ctrlSculptCulling_ = null; //sculpt culling controller
+  this.ctrlRadius_ = null; //radius controller
   this.ctrlIntensity_ = null; //intensity sculpting controller
+  this.ctrlCameraType_ = null; //camera type controller
   this.ctrlDetailSubdivision_ = null; //subdivision detail slider
   this.ctrlDetailDecimation_ = null; //decimation detail slider
   this.ctrlNbVertices_ = null; //display number of vertices controller
@@ -117,8 +121,8 @@ Gui.prototype = {
       'Perspective': Camera.projType.PERSPECTIVE,
       'Orthographic': Camera.projType.ORTHOGRAPHIC
     };
-    var ctrlCameraType = cameraFold.add(main.camera_, 'type_', optionsCameraType).name('Type');
-    ctrlCameraType.onChange(function (value)
+    this.ctrlCameraType_ = cameraFold.add(main.camera_, 'type_', optionsCameraType).name('Type');
+    this.ctrlCameraType_.onChange(function (value)
     {
       main.camera_.type_ = parseInt(value, 10);
       self.ctrlFov_.__li.hidden = main.camera_.type_ === Camera.projType.ORTHOGRAPHIC;
@@ -170,7 +174,8 @@ Gui.prototype = {
       'Crease (7)': Sculpt.tool.CREASE,
       'Drag (8)': Sculpt.tool.DRAG,
       'Paint (9)': Sculpt.tool.COLOR,
-      'Scale (0)': Sculpt.tool.SCALE
+      'Scale (0)': Sculpt.tool.SCALE,
+      'Cut': Sculpt.tool.CUT
     };
     this.ctrlSculpt_ = foldSculpt.add(main.sculpt_, 'tool_', optionsSculpt).name('Tool');
     this.ctrlSculpt_.onChange(function (value)
@@ -180,16 +185,24 @@ Gui.prototype = {
       var st = Sculpt.tool;
       self.ctrlClay_.__li.hidden = tool !== st.BRUSH;
       self.ctrlNegative_.__li.hidden = tool !== st.BRUSH && tool !== st.INFLATE && tool !== st.CREASE;
-      self.ctrlContinuous_.__li.hidden = tool === st.ROTATE || tool === st.DRAG || tool === st.SCALE;
+      self.ctrlContinuous_.__li.hidden = tool === st.ROTATE || tool === st.DRAG || tool === st.SCALE || tool === st.CUT;
+      self.ctrlSymmetry_.__li.hidden = tool === st.CUT;
+      self.ctrlSculptCulling_.__li.hidden = tool === st.CUT;
+      self.ctrlRadius_.__li.hidden = tool === st.CUT;
       self.ctrlIntensity_.__li.hidden = self.ctrlContinuous_.__li.hidden;
       self.ctrlColor_.__li.hidden = tool !== st.COLOR;
+      self.ctrlCameraType_.__li.hidden = tool === st.CUT;
+      if (tool === st.CUT)
+        self.ctrlCameraType_.setValue(Camera.projType.ORTHOGRAPHIC);
+      else
+        self.ctrlCameraType_.setValue(Camera.projType.PERSPECTIVE);
     });
     this.ctrlClay_ = foldSculpt.add(main.sculpt_, 'clay_').name('Clay');
     this.ctrlNegative_ = foldSculpt.add(main.sculpt_, 'negative_').name('Negative (N)');
     this.ctrlContinuous_ = foldSculpt.add(main, 'continuous_').name('Continuous');
-    foldSculpt.add(main, 'symmetry_').name('Symmetry');
-    foldSculpt.add(main.sculpt_, 'culling_').name('Sculpt culling');
-    foldSculpt.add(main.picking_, 'rDisplay_', 5, 200).name('Radius');
+    this.ctrlSymmetry_ = foldSculpt.add(main, 'symmetry_').name('Symmetry');
+    this.ctrlSculptCulling_ = foldSculpt.add(main.sculpt_, 'culling_').name('Sculpt culling');
+    this.ctrlRadius_ = foldSculpt.add(main.picking_, 'rDisplay_', 5, 200).name('Radius');
     this.ctrlIntensity_ = foldSculpt.add(main.sculpt_, 'intensity_', 0, 1).name('Intensity');
     foldSculpt.open();
 
