@@ -10,7 +10,7 @@ function Sculpt(states)
   this.detailSubdivision_ = 0.75; //maximal edge length before we subdivide it
   this.detailDecimation_ = 0.1; //minimal edge length before we collapse it (dependent of detailSubdivision_)
   this.negative_ = false; //opposition deformation
-  this.clay_ = false; //clay sculpting (modifier for brush tool)
+  this.clay_ = true; //clay sculpting (modifier for brush tool)
   this.culling_ = false; //if we backface cull the vertices
   this.color_ = [168, 66, 66]; //color painting
 
