@@ -24,5 +24,5 @@ void main()
   if(dot(lineNormal, vec2(gl_FragCoord) - lineOrigin) <= 0.0)
     gl_FragColor = fragColor;
   else
-    gl_FragColor = colorCutPlane;
+    gl_FragColor = fragColor * colorCutPlane;
 }

@@ -21,6 +21,10 @@ function Gui(sculptgl)
   this.ctrlNbVertices_ = null; //display number of vertices controller
   this.ctrlNbTriangles_ = null; //display number of triangles controller
   this.ctrlFov_ = null; //vertical field of view controller
+  this.ctrlCut_ = null; //apply cut controller
+  this.ctrlFillHoles_ = null; //fill holes controller
+
+  this.foldTopo_ = null; //fold topo controller
 
   //files functions
   this.open_ = this.openFile; //open file button (trigger hidden html input...)
@@ -192,10 +196,16 @@ Gui.prototype = {
       self.ctrlIntensity_.__li.hidden = self.ctrlContinuous_.__li.hidden;
       self.ctrlColor_.__li.hidden = tool !== st.COLOR;
       self.ctrlCameraType_.__li.hidden = tool === st.CUT;
+      self.ctrlCut_.__li.hidden = tool !== st.CUT;
+      self.ctrlFillHoles_.__li.hidden = tool !== st.CUT;
+      self.foldTopo_.__ul.hidden = tool === st.CUT;
       if (tool === st.CUT)
         self.ctrlCameraType_.setValue(Camera.projType.ORTHOGRAPHIC);
       else
-        self.ctrlCameraType_.setValue(Camera.projType.PERSPECTIVE);
+      {
+        main.sculpt_.lineOrigin_ = [0, 0];
+        main.sculpt_.lineNormal_ = [0, 0];
+      }
     });
     this.ctrlClay_ = foldSculpt.add(main.sculpt_, 'clay_').name('Clay');
     this.ctrlNegative_ = foldSculpt.add(main.sculpt_, 'negative_').name('Negative (N)');
@@ -204,16 +214,20 @@ Gui.prototype = {
     this.ctrlSculptCulling_ = foldSculpt.add(main.sculpt_, 'culling_').name('Sculpt culling');
     this.ctrlRadius_ = foldSculpt.add(main.picking_, 'rDisplay_', 5, 200).name('Radius');
     this.ctrlIntensity_ = foldSculpt.add(main.sculpt_, 'intensity_', 0, 1).name('Intensity');
+    this.ctrlCut_ = foldSculpt.add(main, 'cut_', 0, 1).name('Cut');
+    this.ctrlCut_.__li.hidden = true;
+    this.ctrlFillHoles_ = foldSculpt.add(main.sculpt_, 'fillHoles_', 0, 1).name('fill holes (buggy)');
+    this.ctrlFillHoles_.__li.hidden = true;
     foldSculpt.open();
 
     //topo fold
-    var foldTopo = gui.addFolder('Topology');
+    this.foldTopo_ = gui.addFolder('Topology');
     var optionsTopo = {
       'Static': Sculpt.topo.STATIC,
       'Dynamic': Sculpt.topo.SUBDIVISION,
       'Adaptive (!)': Sculpt.topo.ADAPTIVE
     };
-    var ctrlTopo = foldTopo.add(main.sculpt_, 'topo_', optionsTopo).name('Tool');
+    var ctrlTopo = this.foldTopo_.add(main.sculpt_, 'topo_', optionsTopo).name('Tool');
     ctrlTopo.onChange(function (value)
     {
       main.sculpt_.topo_ = parseInt(value, 10);
@@ -222,9 +236,9 @@ Gui.prototype = {
       self.ctrlDetailSubdivision_.__li.hidden = topo === st.STATIC;
       self.ctrlDetailDecimation_.__li.hidden = topo !== st.SUBDIVISION;
     });
-    this.ctrlDetailSubdivision_ = foldTopo.add(main.sculpt_, 'detailSubdivision_', 0, 1).name('Subdivision');
-    this.ctrlDetailDecimation_ = foldTopo.add(main.sculpt_, 'detailDecimation_', 0, 1).name('Decimation');
-    foldTopo.open();
+    this.ctrlDetailSubdivision_ = this.foldTopo_.add(main.sculpt_, 'detailSubdivision_', 0, 1).name('Subdivision');
+    this.ctrlDetailDecimation_ = this.foldTopo_.add(main.sculpt_, 'detailDecimation_', 0, 1).name('Decimation');
+    this.foldTopo_.open();
 
     //mesh fold
     var foldMesh = gui.addFolder('Mesh');

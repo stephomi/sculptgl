@@ -46,6 +46,7 @@ function SculptGL()
   this.resetSphere_ = this.resetSphere; //load sphere
   this.undo_ = this.onUndo; //undo last action
   this.redo_ = this.onRedo; //redo last action
+  this.cut_ = this.cut; //apply cut tool
 }
 
 SculptGL.elementIndexType = 0; //element index type (ushort or uint)
@@ -449,14 +450,7 @@ SculptGL.prototype = {
     event.stopPropagation();
     event.preventDefault();
     if (this.mesh_)
-    {
-      if (this.sculpt_.tool_ == Sculpt.tool.CUT && this.mouseButton_ === 1)
-      {
-        this.sculpt_.cut(this.picking_);
-        this.gui_.updateMeshInfo(this.mesh_.vertices_.length, this.mesh_.triangles_.length);
-      }
       this.mesh_.checkLeavesUpdate();
-    }
     if (this.sculptTimer_ !== -1)
     {
       clearInterval(this.sculptTimer_);
@@ -612,6 +606,14 @@ SculptGL.prototype = {
     this.startMeshLoad();
     Import.importOBJ(this.sphere_, this.mesh_);
     this.endMeshLoad();
+  },
+
+  /** Apply cut tool */
+  cut: function ()
+  {
+    this.sculpt_.cut(this.picking_);
+    this.gui_.updateMeshInfo(this.mesh_.vertices_.length, this.mesh_.triangles_.length);
+    this.render();
   },
 
   /** Initialization before loading the mesh */

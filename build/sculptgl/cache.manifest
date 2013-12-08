@@ -1,5 +1,5 @@
 CACHE MANIFEST
-# 03-10-2013 23:50
+# 08-12-2013 8:50
 
 index.html
 
@@ -11,6 +11,7 @@ lib/dat.gui.min.js
 lib/filesaver.min.js
 lib/gl-matrix-min.js
 lib/jquery.mousewheel.js
+lib/poly2tri.min.js
 
 ressources/bronze.jpg
 ressources/chavant.jpg

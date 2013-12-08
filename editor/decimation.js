@@ -11,10 +11,15 @@ Topology.prototype.decimation = function (iTris, detailMinSquared)
   var vAr = mesh.vertexArray_;
   var iAr = mesh.indexArray_;
 
+  this.iVertsDecimated_ = [];
+  this.iTrisToDelete_ = [];
+  this.iVertsToDelete_ = [];
+
   var center = this.center_;
   var cenx = center[0],
     ceny = center[1],
     cenz = center[2];
+  var tmp = [0, 0, 0];
 
   for (var i = 0; i < iTris.length; ++i)
   {
@@ -46,7 +51,17 @@ Topology.prototype.decimation = function (iTris, detailMinSquared)
       dy = (v1y + v2y + v3y) / 3 - ceny,
       dz = (v1z + v2z + v3z) / 3 - cenz;
     var fallOff = dx * dx + dy * dy + dz * dz;
-    if (fallOff < radiusSquared)
+    if (this.checkPlane_)
+    {
+      var po = this.planeOrigin_;
+      var pn = this.planeNormal_;
+      if (vec3.dot(pn, vec3.sub(tmp, [v1x, v1y, v1z], po)) < 0 &&
+        vec3.dot(pn, vec3.sub(tmp, [v2x, v2y, v2z], po)) < 0 &&
+        vec3.dot(pn, vec3.sub(tmp, [v3x, v3y, v3z], po)) < 0)
+        continue;
+      fallOff = 1;
+    }
+    else if (fallOff < radiusSquared)
       fallOff = 1;
     else if (fallOff < radiusSquared * 2)
     {
@@ -92,14 +107,14 @@ Topology.prototype.decimation = function (iTris, detailMinSquared)
 };
 
 /** Apply deletion on vertices and triangles */
-Topology.prototype.applyDeletion = function ()
+Topology.prototype.applyDeletion = function (ignoreOctree)
 {
   var iTrisToDelete = this.iTrisToDelete_;
   Utils.tidy(iTrisToDelete);
   var nbTrisDelete = iTrisToDelete.length;
   var i = 0;
   for (i = nbTrisDelete - 1; i >= 0; --i)
-    this.deleteTriangle(iTrisToDelete[i]);
+    this.deleteTriangle(iTrisToDelete[i], ignoreOctree);
 
   var iVertsToDelete = this.iVertsToDelete_;
   Utils.tidy(iVertsToDelete);
@@ -371,7 +386,7 @@ Topology.prototype.edgeCollapse = function (iTri1, iTri2, iv1, iv2, ivOpp1, ivOp
 };
 
 /** Update last triangle of array and move its position */
-Topology.prototype.deleteTriangle = function (iTri)
+Topology.prototype.deleteTriangle = function (iTri, ignoreOctree)
 {
   var id = 0;
   var mesh = this.mesh_;
@@ -379,16 +394,19 @@ Topology.prototype.deleteTriangle = function (iTri)
   var triangles = mesh.triangles_;
   var iAr = mesh.indexArray_;
 
-  var t = triangles[iTri];
-  var oldPos = t.posInLeaf_;
-  var iTrisLeaf = t.leaf_.iTris_;
-  var lastTri = iTrisLeaf[iTrisLeaf.length - 1];
-  if (iTri !== lastTri)
+  if (!ignoreOctree)
   {
-    iTrisLeaf[oldPos] = lastTri;
-    triangles[lastTri].posInLeaf_ = oldPos;
+    var t = triangles[iTri];
+    var oldPos = t.posInLeaf_;
+    var iTrisLeaf = t.leaf_.iTris_;
+    var lastTri = iTrisLeaf[iTrisLeaf.length - 1];
+    if (iTri !== lastTri)
+    {
+      iTrisLeaf[oldPos] = lastTri;
+      triangles[lastTri].posInLeaf_ = oldPos;
+    }
+    iTrisLeaf.pop();
   }
-  iTrisLeaf.pop();
 
   var lastPos = triangles.length - 1;
   if (lastPos === iTri)
@@ -406,8 +424,11 @@ Topology.prototype.deleteTriangle = function (iTri)
   this.states_.pushState([lastPos], [iv1, iv2, iv3]);
 
   last.id_ = iTri;
-  var iTrisLeafLast = last.leaf_.iTris_;
-  iTrisLeafLast[last.posInLeaf_] = iTri;
+  if (!ignoreOctree)
+  {
+    var iTrisLeafLast = last.leaf_.iTris_;
+    iTrisLeafLast[last.posInLeaf_] = iTri;
+  }
 
   var v1 = vertices[iv1],
     v2 = vertices[iv2],
@@ -432,7 +453,6 @@ Topology.prototype.deleteVertex = function (iVert)
 {
   var mesh = this.mesh_;
   var vertices = mesh.vertices_;
-  var triangles = mesh.triangles_;
   var vAr = mesh.vertexArray_;
   var nAr = mesh.normalArray_;
   var cAr = mesh.colorArray_;

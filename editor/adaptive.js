@@ -651,6 +651,11 @@ Topology.prototype.cleanUpSingularVertex = function (iv)
     return;
 
   this.checkArrayLength(1); //XXX
+  vAr = mesh.vertexArray_;
+  nAr = mesh.normalArray_;
+  cAr = mesh.colorArray_;
+  iAr = mesh.indexArray_;
+
   var ivNew = vertices.length;
   var vNew = new Vertex(ivNew);
   vNew.stateFlag_ = Mesh.stateMask_;

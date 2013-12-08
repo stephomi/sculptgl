@@ -85,9 +85,12 @@ Topology.prototype.subdivide = function (iTris, detailMaxSquared)
 
   var nbVNew = vNew.length;
   mesh.expandsVertices(vNew, 1);
-  var smoother = new Sculpt();
-  smoother.mesh_ = mesh;
-  smoother.smoothFlat(vNew.slice(nbVNew), 1.0);
+  if (!this.linearSubdivision_)
+  {
+    var smoother = new Sculpt();
+    smoother.mesh_ = mesh;
+    smoother.smoothFlat(vNew.slice(nbVNew), 1.0);
+  }
 
   var vAr = this.mesh_.vertexArray_;
   var centerPoint = this.center_;
@@ -123,34 +126,34 @@ Topology.prototype.checkArrayLength = function (nbTris)
   var nAr = mesh.normalArray_;
   var cAr = mesh.colorArray_;
   var iAr = mesh.indexArray_;
+  var nbVertices = vertices.length * 3;
+  var nbTriangles = triangles.length * 3;
   var i = 0;
   var temp;
   var nb = 200; // very rough estimation
-  var vLen = vertices.length * 3 + nbTris * nb;
-  if (vAr.length < vLen)
+  var vLen = nbVertices + nbTris * nb;
+  if (vAr.length < vLen || vAr.length > vLen * 4)
   {
     temp = new Float32Array(vLen * 2);
-    vLen = vAr.length;
-    for (i = 0; i < vLen; ++i)
+    for (i = 0; i < nbVertices; ++i)
       temp[i] = vAr[i];
     this.mesh_.vertexArray_ = temp;
 
     temp = new Float32Array(vLen * 2);
-    for (i = 0; i < vLen; ++i)
+    for (i = 0; i < nbVertices; ++i)
       temp[i] = nAr[i];
     this.mesh_.normalArray_ = temp;
 
     temp = new Float32Array(vLen * 2);
-    for (i = 0; i < vLen; ++i)
+    for (i = 0; i < nbVertices; ++i)
       temp[i] = cAr[i];
     this.mesh_.colorArray_ = temp;
   }
-  var iLen = triangles.length * 3 + nbTris * nb;
-  if (iAr.length < iLen)
+  var iLen = nbTriangles * 3 + nbTris * nb;
+  if (iAr.length < iLen || iAr.length > iLen * 4)
   {
     temp = new SculptGL.indexArrayType(iLen * 2);
-    iLen = iAr.length;
-    for (i = 0; i < iLen; ++i)
+    for (i = 0; i < nbTriangles; ++i)
       temp[i] = iAr[i];
     this.mesh_.indexArray_ = temp;
   }
@@ -199,7 +202,17 @@ Topology.prototype.findSplit = function (iTri, detailMaxSquared, checkInsideSphe
   id = ind3 * 3;
   var v3 = [vAr[id], vAr[id + 1], vAr[id + 2]];
 
-  if (checkInsideSphere)
+  if (this.checkPlane_)
+  {
+    var po = this.planeOrigin_;
+    var pn = this.planeNormal_;
+    var tmp = [0, 0, 0];
+    if (vec3.dot(pn, vec3.sub(tmp, v1, po)) < 0 &&
+      vec3.dot(pn, vec3.sub(tmp, v2, po)) < 0 &&
+      vec3.dot(pn, vec3.sub(tmp, v3, po)) < 0)
+      return 0;
+  }
+  else if (checkInsideSphere)
   {
     if (!Geometry.sphereIntersectTriangle(this.center_, this.radiusSquared_ * 2, v1, v2, v3))
     {
@@ -328,12 +341,6 @@ Topology.prototype.halfEdgeSplit = function (iTri, iv1, iv2, iv3)
     var c2r = cAr[id],
       c2g = cAr[id + 1],
       c2b = cAr[id + 2];
-    var dot = n1x * n2x + n1y * n2y + n1z * n2z;
-
-    var angle = 0;
-    if (dot <= -1) angle = Math.PI;
-    else if (dot >= 1) angle = 0;
-    else angle = Math.acos(dot);
 
     var n1n2x = n1x + n2x,
       n1n2y = n1y + n2y,
@@ -348,14 +355,23 @@ Topology.prototype.halfEdgeSplit = function (iTri, iv1, iv2, iv3)
     cAr[id + 1] = (c1g + c2g) * 0.5;
     cAr[id + 2] = (c1b + c2b) * 0.5;
 
-    var edgex = v1x - v2x,
-      edgey = v1y - v2y,
-      edgez = v1z - v2z;
-    len = Math.sqrt(edgex * edgex + edgey * edgey + edgez * edgez);
+    var offset = 0;
+    if (!this.linearSubdivision_)
+    {
+      var dot = n1x * n2x + n1y * n2y + n1z * n2z;
+      var angle = 0;
+      if (dot <= -1) angle = Math.PI;
+      else if (dot >= 1) angle = 0;
+      else angle = Math.acos(dot);
 
-    var offset = angle * len * 0.12;
-    if ((edgex * (n1x - n2x) + edgey * (n1y - n2y) + edgez * (n1z - n2z)) < 0)
-      offset = -offset;
+      var edgex = v1x - v2x,
+        edgey = v1y - v2y,
+        edgez = v1z - v2z;
+      len = Math.sqrt(edgex * edgex + edgey * edgey + edgez * edgez);
+      offset = angle * len * 0.12;
+      if ((edgex * (n1x - n2x) + edgey * (n1y - n2y) + edgez * (n1z - n2z)) < 0)
+        offset = -offset;
+    }
 
     vAr[id] = (v1x + v2x) * 0.5 + nAr[id] * offset;
     vAr[id + 1] = (v1y + v2y) * 0.5 + nAr[id + 1] * offset;

@@ -23,8 +23,7 @@ Geometry.mouseOnUnitSphere = function (mouseXY)
 Geometry.intersectionRayTriangle = function (s1, s2, v1, v2, v3, normal, vertInter)
 {
   var temp = [0, 0, 0];
-  vec3.sub(temp, s1, v1);
-  var dist1 = vec3.dot(temp, normal);
+  var dist1 = vec3.dot(vec3.sub(temp, s1, v1), normal);
   var dist2 = vec3.dot(vec3.sub(temp, s2, v1), normal);
   //ray copplanar to triangle
   if ((dist1 * dist2) >= 0)
@@ -165,4 +164,39 @@ Geometry.vertexOnLine = function (vertex, vNear, vFar)
   var temp = [0, 0, 0];
   var dot = vec3.dot(ab, vec3.sub(temp, vertex, vNear));
   return vec3.scaleAndAdd(temp, vNear, ab, dot / vec3.sqrLen(ab));
+};
+
+/** Return the intersection between a ray and a plane */
+Geometry.intersectLinePlane = function (s1, s2, origin, normal, out)
+{
+  if (out === undefined)
+    out = [0, 0, 0];
+  var dist1 = vec3.dot(vec3.sub(out, s1, origin), normal);
+  var dist2 = vec3.dot(vec3.sub(out, s2, origin), normal);
+  //ray copplanar to triangle
+  if (dist1 === dist2)
+    return s2;
+  //intersection between ray and triangle
+  var val = -dist1 / (dist2 - dist1);
+  return vec3.scaleAndAdd(out, s1, vec3.sub(out, s2, s1), val);
+};
+
+/** Return any perpendicular vector to another (normalized) vector */
+Geometry.getPerpendicularVector = function (vec)
+{
+  var perp = [0, 0, 0];
+  if (vec[0] === 0)
+    perp[0] = 1;
+  else if (vec[1] === 0)
+    perp[1] = 1;
+  else if (vec[2] === 0)
+    perp[2] = 1;
+  else
+  {
+    perp[0] = vec[2];
+    perp[1] = vec[2];
+    perp[2] = -vec[0] - vec[1];
+    vec3.normalize(perp, perp);
+  }
+  return perp;
 };

@@ -36,6 +36,7 @@ function Sculpt(states)
   //cut stuffs
   this.lineOrigin_ = [0, 0]; //the 2d line origin
   this.lineNormal_ = [0, 0]; //the 2d line normal
+  this.fillHoles_ = true; //fill holes 
 }
 
 //the sculpting tools
@@ -916,11 +917,105 @@ Sculpt.prototype = {
 
     var topo = new Topology(this.states_);
     topo.mesh_ = mesh;
-    topo.cut(planeOrigin, planeNormal);
+    var planeOffset = this.fillHoles_ ? vec3.scaleAndAdd([0, 0, 0], planeOrigin, planeNormal, 2) : planeOrigin;
+    var detailMinSq = topo.cut(planeOffset, planeNormal, this.fillHoles_);
+
+    if (this.fillHoles_)
+      this.uniformProjection(planeOrigin, planeNormal, detailMinSq);
 
     mesh.updateBuffers();
 
     this.lineNormal_ = [0, 0];
     this.lineNormal_ = [0, 0];
+  },
+
+  /** Uniformisation + projection on plane */
+  uniformProjection: function (planeOrigin, planeNormal, detailMinSq)
+  {
+    var mesh = this.mesh_;
+    var vAr = mesh.vertexArray_;
+    var vertices = mesh.vertices_;
+
+    var iTrisCulled = [],
+      iTrisIntersect = [];
+    // the iTrisIntersect are just candidates... there may be some triangles above/below the planes
+    mesh.octree_.cullPlane(planeOrigin, planeNormal, iTrisCulled, iTrisIntersect);
+
+    var iVertsCulled = mesh.getVerticesFromTriangles(iTrisCulled);
+    var iVertsIntersect = mesh.getVerticesFromTriangles(iTrisIntersect);
+
+    // undo-redo
+    this.states_.pushState(iTrisCulled, iVertsCulled);
+    this.states_.pushState(iTrisIntersect, iVertsIntersect);
+
+    var i = 0,
+      id = 0;
+
+    // tag culled vertices
+    ++Vertex.tagMask_;
+    var vertexTagMask = Vertex.tagMask_;
+    var nbVertsCulled = iVertsCulled.length;
+    for (i = 0; i < nbVertsCulled; ++i)
+      vertices[iVertsCulled[i]].tagFlag_ = vertexTagMask;
+
+    var tmp = [0, 0, 0];
+    var nbVertsIntersect = iVertsIntersect.length;
+    for (i = 0; i < nbVertsIntersect; ++i)
+    {
+      id = iVertsIntersect[i];
+      if (vertices[id].tagFlag === vertexTagMask) //already culled
+        continue;
+      tmp[0] = vAr[id * 3];
+      tmp[1] = vAr[id * 3 + 1];
+      tmp[2] = vAr[id * 3 + 2];
+      if (vec3.dot(planeNormal, vec3.sub(tmp, tmp, planeOrigin)) > 0)
+        iVertsCulled.push(id);
+    }
+
+    // Subdivide + decimate (uniformisation)
+    var iTris = mesh.getTrianglesFromVertices(iVertsCulled);
+
+    var topo = new Topology(this.states_);
+    topo.mesh_ = mesh;
+    topo.planeOrigin_ = planeOrigin;
+    topo.planeNormal_ = planeNormal;
+    topo.checkPlane_ = true;
+    topo.linearSubdivision_ = true;
+    this.setAdaptiveParameters(topo.radiusSquared_);
+
+    detailMinSq = Math.max(Math.min(detailMinSq, 500), 10);
+    iTris = topo.subdivision(iTris, detailMinSq);
+    iTris = topo.decimation(iTris, detailMinSq / 4.2025);
+
+    // smooth and project
+    vAr = mesh.vertexArray_;
+    var iVerts = mesh.getVerticesFromTriangles(iTris);
+    var nbVerts = iVerts.length;
+    var ax = planeOrigin[0],
+      ay = planeOrigin[1],
+      az = planeOrigin[2];
+    var anx = planeNormal[0],
+      any = planeNormal[1],
+      anz = planeNormal[2];
+    var smoothVerts = new Float32Array(nbVerts * 3);
+    this.laplacianSmooth(iVerts, smoothVerts);
+    for (i = 0; i < nbVerts; ++i)
+    {
+      id = iVerts[i] * 3;
+      var distToPlane = (vAr[id] - ax) * anx + (vAr[id + 1] - ay) * any + (vAr[id + 2] - az) * anz;
+      if (distToPlane < 0)
+        continue;
+      id = i * 3;
+      var vsx = smoothVerts[id],
+        vsy = smoothVerts[id + 1],
+        vsz = smoothVerts[id + 2];
+      distToPlane = (vsx - ax) * anx + (vsy - ay) * any + (vsz - az) * anz;
+      id = iVerts[i] * 3;
+      vAr[id] = vsx - anx * distToPlane;
+      vAr[id + 1] = vsy - any * distToPlane;
+      vAr[id + 2] = vsz - anz * distToPlane;
+    }
+
+    mesh.updateMesh(iTris, mesh.getVerticesFromTriangles(iTris));
   }
 };
