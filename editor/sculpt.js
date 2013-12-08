@@ -36,7 +36,8 @@ function Sculpt(states)
   //cut stuffs
   this.lineOrigin_ = [0, 0]; //the 2d line origin
   this.lineNormal_ = [0, 0]; //the 2d line normal
-  this.fillHoles_ = true; //fill holes 
+  this.fillHoles_ = true; //fill holes
+  this.subdDetailCut_ = 2; //subdivision detail modifier
 }
 
 //the sculpting tools
@@ -983,7 +984,7 @@ Sculpt.prototype = {
     topo.linearSubdivision_ = true;
     this.setAdaptiveParameters(topo.radiusSquared_);
 
-    detailMinSq = Math.max(Math.min(detailMinSq, 500), 10);
+    detailMinSq = Math.max(Math.min(detailMinSq * (4.0 - this.subdDetailCut_), 500), 10);
     iTris = topo.subdivision(iTris, detailMinSq);
     iTris = topo.decimation(iTris, detailMinSq / 4.2025);
 

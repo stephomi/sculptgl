@@ -198,6 +198,7 @@ Gui.prototype = {
       self.ctrlCameraType_.__li.hidden = tool === st.CUT;
       self.ctrlCut_.__li.hidden = tool !== st.CUT;
       self.ctrlFillHoles_.__li.hidden = tool !== st.CUT;
+      self.ctrlSubdDetailCut_.__li.hidden = tool !== st.CUT;
       self.foldTopo_.__ul.hidden = tool === st.CUT;
       if (tool === st.CUT)
         self.ctrlCameraType_.setValue(Camera.projType.ORTHOGRAPHIC);
@@ -217,6 +218,7 @@ Gui.prototype = {
     this.ctrlCut_ = foldSculpt.add(main, 'cut_', 0, 1).name('Click to cut !');
     this.ctrlCut_.__li.hidden = true;
     this.ctrlFillHoles_ = foldSculpt.add(main.sculpt_, 'fillHoles_', 0, 1).name('fill holes (buggy)');
+    this.ctrlSubdDetailCut_ = foldSculpt.add(main.sculpt_, 'subdDetailCut_', 0, 4).name('Detail');
     this.ctrlFillHoles_.__li.hidden = true;
     foldSculpt.open();
 
