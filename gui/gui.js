@@ -219,6 +219,7 @@ Gui.prototype = {
     this.ctrlCut_.__li.hidden = true;
     this.ctrlFillHoles_ = foldSculpt.add(main.sculpt_, 'fillHoles_', 0, 1).name('fill holes (buggy)');
     this.ctrlSubdDetailCut_ = foldSculpt.add(main.sculpt_, 'subdDetailCut_', 0, 4).name('Detail');
+    this.ctrlSubdDetailCut_.__li.hidden = true;
     this.ctrlFillHoles_.__li.hidden = true;
     foldSculpt.open();
 
