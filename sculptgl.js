@@ -546,7 +546,7 @@ SculptGL.prototype = {
     if (event.target.files.length === 0)
       return;
     var file = event.target.files[0];
-    var name = file.name;
+    var name = file.name.toLowerCase();
     var fileType = '';
     fileType = name.endsWith('.obj') ? 'obj' : fileType;
     fileType = name.endsWith('.stl') ? 'stl' : fileType;
