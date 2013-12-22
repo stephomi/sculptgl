@@ -23,6 +23,7 @@ function Gui(sculptgl)
   this.ctrlFov_ = null; //vertical field of view controller
   this.ctrlCut_ = null; //apply cut controller
   this.ctrlFillHoles_ = null; //fill holes controller
+  this.ctrlSubdDetailCut_ = null; //subdivision detail (fill holes) controller
 
   this.foldTopo_ = null; //fold topo controller
 
