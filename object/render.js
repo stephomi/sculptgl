@@ -257,7 +257,7 @@ Render.prototype = {
     var i = 0,
       j = 0,
       id = 0;
-    var len = nbTriangles * 9;
+    var len = nbTriangles * 3;
     for (i = 0; i < len; ++i)
     {
       j = i * 3;
