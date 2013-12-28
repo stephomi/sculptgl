@@ -8,7 +8,6 @@ function Render(gl)
   this.vertexBuffer_ = null; //vertices buffer
   this.normalBuffer_ = null; //normals buffer
   this.colorBuffer_ = null; //colors buffer
-  this.barycenterBuffer_ = null; //barycenter buffer
   this.indexBuffer_ = null; //indexes buffer
   this.reflectionLoc_ = null; //texture reflection
 
@@ -19,7 +18,6 @@ function Render(gl)
   this.vertexAttrib_ = null; //vertex attribute location
   this.colorAttrib_ = null; //color vertex attribute location
   this.normalAttrib_ = null; //normal attribute location
-  this.barycenterAttrib_ = null; //barycenter attribute location
 
   this.mvpMatrixUnif_ = null; //model view projection matrix uniform location
   this.mvMatrixUnif_ = null; //model view matrix uniform location
@@ -32,6 +30,9 @@ function Render(gl)
   this.lineNormalUnif_ = null; //line normal uniform location
 
   this.reflectionTexUnif_ = null; //reflection texture uniform location
+
+  this.cacheDrawArraysV_ = null; //cache array for vertices
+  this.cacheDrawArraysN_ = null; //cache array for normals
 }
 
 //the rendering mode
@@ -87,9 +88,7 @@ Render.prototype = {
 
     this.vertexAttrib_ = gl.getAttribLocation(this.shaderProgram_, 'vertex');
     this.normalAttrib_ = gl.getAttribLocation(this.shaderProgram_, 'normal');
-    if (this.shaderType_ === Render.mode.WIREFRAME)
-      this.barycenterAttrib_ = gl.getAttribLocation(this.shaderProgram_, 'barycenter');
-    else if (this.shaderType_ !== Render.mode.NORMAL)
+    if (this.shaderType_ !== Render.mode.NORMAL && this.shaderType_ !== Render.mode.WIREFRAME)
       this.colorAttrib_ = gl.getAttribLocation(this.shaderProgram_, 'color');
 
     this.mvpMatrixUnif_ = gl.getUniformLocation(shaderProgram, 'mvpMat');
@@ -115,7 +114,7 @@ Render.prototype = {
   {
     var gl = this.gl_;
     this.vertexShader_ = gl.createShader(gl.VERTEX_SHADER);
-    gl.shaderSource(this.vertexShader_, '\n'+vertex+'\n');
+    gl.shaderSource(this.vertexShader_, '\n' + vertex + '\n');
     gl.compileShader(this.vertexShader_);
     this.fragmentShader_ = gl.createShader(gl.FRAGMENT_SHADER);
     gl.shaderSource(this.fragmentShader_, fragment);
@@ -162,7 +161,10 @@ Render.prototype = {
 
     gl.enableVertexAttribArray(this.normalAttrib_);
     gl.bindBuffer(gl.ARRAY_BUFFER, this.normalBuffer_);
-    gl.vertexAttribPointer(this.normalAttrib_, 3, gl.FLOAT, false, 0, 0);
+    if (this.shaderType_ === Render.mode.WIREFRAME)
+      gl.vertexAttribPointer(this.normalAttrib_, 4, gl.FLOAT, false, 0, 0);
+    else
+      gl.vertexAttribPointer(this.normalAttrib_, 3, gl.FLOAT, false, 0, 0);
 
     if (this.shaderType_ !== Render.mode.WIREFRAME && this.shaderType_ !== Render.mode.NORMAL)
     {
@@ -193,9 +195,6 @@ Render.prototype = {
       gl.depthMask(true);
       break;
     case Render.mode.WIREFRAME:
-      gl.enableVertexAttribArray(this.barycenterAttrib_);
-      gl.bindBuffer(gl.ARRAY_BUFFER, this.barycenterBuffer_);
-      gl.vertexAttribPointer(this.barycenterAttrib_, 3, gl.FLOAT, false, 0, 0);
       gl.drawArrays(gl.TRIANGLES, 0, lengthIndexArray);
       break;
     case Render.mode.NORMAL:
@@ -219,11 +218,11 @@ Render.prototype = {
   },
 
   /** Update buffers */
-  updateBuffers: function (vAr, nAr, cAr, iAr)
+  updateBuffers: function (vAr, nAr, cAr, iAr, nbTriangles)
   {
     if (this.shaderType_ === Render.mode.WIREFRAME)
     {
-      this.makeWireframeBuffers(vAr, nAr, iAr);
+      this.makeWireframeBuffers(vAr, nAr, iAr, nbTriangles);
       return;
     }
     var gl = this.gl_;
@@ -241,53 +240,42 @@ Render.prototype = {
   },
 
   /** Create arrays for the drawArrays function */
-  makeWireframeBuffers: function (vAr, nAr, iAr)
+  makeWireframeBuffers: function (vAr, nAr, iAr, nbTriangles)
   {
     var gl = this.gl_;
-    var vArray = new Float32Array(iAr.length * 3);
+
+    var cdv = this.cacheDrawArraysV_;
+    var cdn = this.cacheDrawArraysN_;
+    if (cdv === null || cdv.length <= nbTriangles * 9)
+    {
+      this.cacheDrawArraysV_ = new Float32Array(nbTriangles * 9 * 1.5);
+      this.cacheDrawArraysN_ = new Float32Array(nbTriangles * 12 * 1.5);
+      cdv = this.cacheDrawArraysV_;
+      cdn = this.cacheDrawArraysN_;
+    }
+
     var i = 0,
       j = 0,
       id = 0;
-    for (i = 0; i < iAr.length; ++i)
+    var len = nbTriangles * 9;
+    for (i = 0; i < len; ++i)
     {
       j = i * 3;
       id = iAr[i] * 3;
-      vArray[j] = vAr[id];
-      vArray[j + 1] = vAr[id + 1];
-      vArray[j + 2] = vAr[id + 2];
+      cdv[j] = vAr[id];
+      cdv[j + 1] = vAr[id + 1];
+      cdv[j + 2] = vAr[id + 2];
+
+      j = i * 4;
+      cdn[j] = nAr[id];
+      cdn[j + 1] = nAr[id + 1];
+      cdn[j + 2] = nAr[id + 2];
+      cdn[j + 3] = i % 3;
     }
     gl.bindBuffer(gl.ARRAY_BUFFER, this.vertexBuffer_);
-    gl.bufferData(gl.ARRAY_BUFFER, vArray, gl.DYNAMIC_DRAW);
+    gl.bufferData(gl.ARRAY_BUFFER, cdv, gl.DYNAMIC_DRAW);
 
-    var nArray = new Float32Array(iAr.length * 3);
-    for (i = 0; i < iAr.length; ++i)
-    {
-      j = i * 3;
-      id = iAr[i] * 3;
-      nArray[j] = nAr[id];
-      nArray[j + 1] = nAr[id + 1];
-      nArray[j + 2] = nAr[id + 2];
-    }
     gl.bindBuffer(gl.ARRAY_BUFFER, this.normalBuffer_);
-    gl.bufferData(gl.ARRAY_BUFFER, nArray, gl.DYNAMIC_DRAW);
-
-    var baryArray = new Float32Array(iAr.length * 3);
-    for (i = 0; i < iAr.length / 3; ++i)
-    {
-      j = i * 9;
-      baryArray[j] = 1;
-      baryArray[j + 1] = 0;
-      baryArray[j + 2] = 0;
-      baryArray[j + 3] = 0;
-      baryArray[j + 4] = 1;
-      baryArray[j + 5] = 0;
-      baryArray[j + 6] = 0;
-      baryArray[j + 7] = 0;
-      baryArray[j + 8] = 1;
-    }
-    if (!this.barycenterBuffer_)
-      this.barycenterBuffer_ = gl.createBuffer();
-    gl.bindBuffer(gl.ARRAY_BUFFER, this.barycenterBuffer_);
-    gl.bufferData(gl.ARRAY_BUFFER, baryArray, gl.DYNAMIC_DRAW);
+    gl.bufferData(gl.ARRAY_BUFFER, cdn, gl.DYNAMIC_DRAW);
   }
 };

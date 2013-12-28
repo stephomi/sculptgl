@@ -286,7 +286,7 @@ Mesh.prototype = {
   /** Update the rendering buffers */
   updateBuffers: function ()
   {
-    this.render_.updateBuffers(this.vertexArray_, this.normalArray_, this.colorArray_, this.indexArray_);
+    this.render_.updateBuffers(this.vertexArray_, this.normalArray_, this.colorArray_, this.indexArray_, this.triangles_.length);
   },
 
   /** Update geometry  */
