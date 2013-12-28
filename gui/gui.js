@@ -251,7 +251,7 @@ Gui.prototype = {
     var optionsShaders = {
       'Phong': Render.mode.PHONG,
       'Transparency': Render.mode.TRANSPARENCY,
-      'Wireframe (slow)': Render.mode.WIREFRAME,
+      'Wireframe': Render.mode.WIREFRAME,
       'Normal shader': Render.mode.NORMAL,
       'Clay': Render.mode.MATERIAL,
       'Chavant': Render.mode.MATERIAL + 1,
