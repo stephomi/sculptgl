@@ -297,6 +297,7 @@ Gui.prototype = {
       else // fuck it
         main.sculpt_.color_ = [168, 66, 66];
     });
+    this.ctrlColor_.__li.hidden = true;
     foldMesh.open();
   },
 
