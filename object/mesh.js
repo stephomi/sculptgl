@@ -14,7 +14,7 @@ function Mesh(gl)
   this.octree_ = new Octree(); //octree
   this.matTransform_ = mat4.create(); //transformation matrix of the mesh
   this.leavesUpdate_ = []; //leaves of the octree to check
-  this.render_ = new Render(gl); //the mesh renderer
+  this.render_ = new Render(gl, this); //the mesh renderer
   this.scale_ = 1; //use for export in order to keep the same scale as import...
 }
 
@@ -215,11 +215,11 @@ Mesh.prototype = {
   /** Render the mesh */
   render: function (camera, picking, lineOrigin, lineNormal)
   {
-    this.render_.render(camera, picking, this.matTransform_, this.triangles_.length * 3, this.center_, lineOrigin, lineNormal);
+    this.render_.render(camera, picking, lineOrigin, lineNormal);
   },
 
   /** Initialize the mesh information : center, octree */
-  initMesh: function (textures, shaders)
+  initMesh: function ()
   {
     var vertices = this.vertices_;
     var triangles = this.triangles_;
@@ -279,14 +279,20 @@ Mesh.prototype = {
     ++Triangle.tagMask_;
     this.octree_ = new Octree();
     this.octree_.build(this, trianglesAll, aabb);
-    this.render_.initBuffers(this.vertexArray_, this.normalArray_, this.colorArray_, this.indexArray_);
-    this.render_.updateShaders(this.render_.shaderType_, textures, shaders);
+  },
+
+  /** Initialize buffers and shadr */
+  initRender: function (shaderType, textures, shaders)
+  {
+    this.render_.initBuffers();
+    this.render_.updateShaders(shaderType, textures, shaders);
+    this.render_.updateBuffers();
   },
 
   /** Update the rendering buffers */
   updateBuffers: function ()
   {
-    this.render_.updateBuffers(this.vertexArray_, this.normalArray_, this.colorArray_, this.indexArray_, this.triangles_.length);
+    this.render_.updateBuffers();
   },
 
   /** Update geometry  */

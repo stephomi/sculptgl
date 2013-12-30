@@ -7,6 +7,7 @@ function Gui(sculptgl)
   //ui stuffs
   this.ctrlColor_ = null; //color controller
   this.ctrlShaders_ = null; //shaders controller
+  this.flatShading_ = null; //flat shading controller
   this.ctrlSculpt_ = null; //sculpt controller
   this.ctrlClay_ = null; //clay sculpting controller
   this.ctrlNegative_ = null; //negative sculpting controller
@@ -249,28 +250,38 @@ Gui.prototype = {
     this.ctrlNbVertices_ = foldMesh.add(this, 'dummyFunc_').name('Ver : 0');
     this.ctrlNbTriangles_ = foldMesh.add(this, 'dummyFunc_').name('Tri : 0');
     var optionsShaders = {
-      'Phong': Render.mode.PHONG,
-      'Transparency': Render.mode.TRANSPARENCY,
-      'Wireframe': Render.mode.WIREFRAME,
-      'Normal shader': Render.mode.NORMAL,
-      'Clay': Render.mode.MATERIAL,
-      'Chavant': Render.mode.MATERIAL + 1,
-      'Skin': Render.mode.MATERIAL + 2,
-      'Drink': Render.mode.MATERIAL + 3,
-      'Red velvet': Render.mode.MATERIAL + 4,
-      'Orange': Render.mode.MATERIAL + 5,
-      'Bronze': Render.mode.MATERIAL + 6
+      'Phong': Shader.mode.PHONG,
+      'Transparency': Shader.mode.TRANSPARENCY,
+      'Wireframe': Shader.mode.WIREFRAME,
+      'Normal shader': Shader.mode.NORMAL,
+      'Clay': Shader.mode.MATERIAL,
+      'Chavant': Shader.mode.MATERIAL + 1,
+      'Skin': Shader.mode.MATERIAL + 2,
+      'Drink': Shader.mode.MATERIAL + 3,
+      'Red velvet': Shader.mode.MATERIAL + 4,
+      'Orange': Shader.mode.MATERIAL + 5,
+      'Bronze': Shader.mode.MATERIAL + 6
     };
-    this.ctrlShaders_ = foldMesh.add(new Render(), 'shaderType_', optionsShaders).name('Shader');
+    this.ctrlShaders_ = foldMesh.add(new Shader(), 'type_', optionsShaders).name('Shader');
     this.ctrlShaders_.onChange(function (value)
     {
       if (main.mesh_)
       {
-        main.mesh_.render_.updateShaders(parseInt(value, 10), main.textures_, main.shaders_);
+        main.mesh_.initRender(parseInt(value, 10), main.textures_, main.shaders_);
+        main.render();
+      }
+    });
+    this.ctrlFlatShading_ = foldMesh.add(new Render(), 'flatShading_').name('flat shading');
+    this.ctrlFlatShading_.onChange(function (value)
+    {
+      if (main.mesh_)
+      {
+        main.mesh_.render_.flatShading_ = value;
         main.mesh_.updateBuffers();
         main.render();
       }
     });
+
     this.ctrlColor_ = foldMesh.addColor(main.sculpt_, 'color_').name('Color');
     this.ctrlColor_.onChange(function (value)
     {
@@ -294,7 +305,7 @@ Gui.prototype = {
   {
     if (!mesh)
       return;
-    this.ctrlShaders_.object = mesh.render_;
+    this.ctrlShaders_.object = mesh.render_.shader_;
     this.ctrlShaders_.updateDisplay();
     this.updateMeshInfo(mesh.vertices_.length, mesh.triangles_.length);
   },

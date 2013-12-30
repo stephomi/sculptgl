@@ -170,17 +170,17 @@ SculptGL.prototype = {
         gl.generateMipmap(gl.TEXTURE_2D);
         gl.bindTexture(gl.TEXTURE_2D, null);
         self.textures_[mode] = idTex;
-        if (mode === Render.mode.MATERIAL)
+        if (mode === Shader.mode.MATERIAL)
           self.loadSphere();
       };
     };
-    loadTex('ressources/clay.jpg', Render.mode.MATERIAL);
-    loadTex('ressources/chavant.jpg', Render.mode.MATERIAL + 1);
-    loadTex('ressources/skin.jpg', Render.mode.MATERIAL + 2);
-    loadTex('ressources/drink.jpg', Render.mode.MATERIAL + 3);
-    loadTex('ressources/redvelvet.jpg', Render.mode.MATERIAL + 4);
-    loadTex('ressources/orange.jpg', Render.mode.MATERIAL + 5);
-    loadTex('ressources/bronze.jpg', Render.mode.MATERIAL + 6);
+    loadTex('ressources/clay.jpg', Shader.mode.MATERIAL);
+    loadTex('ressources/chavant.jpg', Shader.mode.MATERIAL + 1);
+    loadTex('ressources/skin.jpg', Shader.mode.MATERIAL + 2);
+    loadTex('ressources/drink.jpg', Shader.mode.MATERIAL + 3);
+    loadTex('ressources/redvelvet.jpg', Shader.mode.MATERIAL + 4);
+    loadTex('ressources/orange.jpg', Shader.mode.MATERIAL + 5);
+    loadTex('ressources/bronze.jpg', Shader.mode.MATERIAL + 6);
   },
 
   /** Load shaders as a string */
@@ -634,19 +634,11 @@ SculptGL.prototype = {
   endMeshLoad: function ()
   {
     var mesh = this.mesh_;
-    mesh.render_.shaderType_ = Render.mode.MATERIAL;
-    if (this.sculpt_.tool_ === Sculpt.tool.COLOR)
-    {
-      this.gui_.ctrlColor_.__li.hidden = false;
-      this.gui_.ctrlShaders_.setValue(Render.mode.PHONG);
-    }
-    else
-      this.gui_.ctrlColor_.__li.hidden = true;
-
-    mesh.initMesh(this.textures_, this.shaders_);
+    mesh.initMesh();
     mesh.moveTo([0, 0, 0]);
     this.camera_.reset();
     this.gui_.updateMesh(mesh);
+    mesh.initRender(Shader.mode.MATERIAL, this.textures_, this.shaders_);
     this.render();
   },
 
