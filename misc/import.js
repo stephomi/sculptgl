@@ -85,6 +85,7 @@ Import.importPLY = function (data, mesh)
   var nbFaces = -1;
   var colorIndex = -1;
   var i = 0;
+  var inv255 = 1.0 / 255.0;
   while (true)
   {
     var line = lines[i].trim();
@@ -120,7 +121,6 @@ Import.importPLY = function (data, mesh)
     {
       ++i;
       var endVertices = nbVertices + i;
-      var inv255 = 1 / 255;
       for (; i < endVertices; ++i)
       {
         line = lines[i].trim();
@@ -189,9 +189,9 @@ Import.importAsciiSTL = function (data, mesh)
   var split = [];
   var nbLength = lines.length;
   var mapVertices = {};
-  var x = 0,
-    y = 0,
-    z = 0;
+  var x = 0.0,
+    y = 0.0,
+    z = 0.0;
   var iv1 = 0,
     iv2 = 0,
     iv3 = 0;
@@ -237,9 +237,9 @@ Import.importBinarySTL = function (data, mesh)
     iAr = [];
   var nbTriangles = Import.getUint32(data, 80);
   var mapVertices = {};
-  var x = 0,
-    y = 0,
-    z = 0;
+  var x = 0.0,
+    y = 0.0,
+    z = 0.0;
   var iv1 = 0,
     iv2 = 0,
     iv3 = 0;

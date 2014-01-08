@@ -2,8 +2,8 @@
 
 function Aabb()
 {
-  this.min_ = [0, 0, 0]; //min vertex
-  this.max_ = [0, 0, 0]; //max vertex
+  this.min_ = [0.0, 0.0, 0.0]; //min vertex
+  this.max_ = [0.0, 0.0, 0.0]; //max vertex
 }
 
 Aabb.prototype = {
@@ -49,7 +49,7 @@ Aabb.prototype = {
   /** Compute center */
   computeCenter: function ()
   {
-    var temp = [0, 0, 0];
+    var temp = [0.0, 0.0, 0.0];
     return vec3.scale(temp, vec3.add(temp, this.min_, this.max_), 0.5);
   },
 
@@ -161,29 +161,32 @@ Aabb.prototype = {
   },
 
   /** Return true if a sphere intersect with the box */
-  intersectSphere: function (vert, radiusSquared)
+  intersectSphere: function ()
   {
-    var min = this.min_,
-      max = this.max_;
-    var vx = vert[0],
-      vy = vert[1],
-      vz = vert[2];
+    var nearest = [0.0, 0.0, 0.0];
+    return function (vert, radiusSquared)
+    {
+      var min = this.min_,
+        max = this.max_;
+      var vx = vert[0],
+        vy = vert[1],
+        vz = vert[2];
 
-    var nearest = [0, 0, 0];
-    if (min[0] > vx) nearest[0] = min[0];
-    else if (max[0] < vx) nearest[0] = max[0];
-    else nearest[0] = vx;
+      if (min[0] > vx) nearest[0] = min[0];
+      else if (max[0] < vx) nearest[0] = max[0];
+      else nearest[0] = vx;
 
-    if (min[1] > vy) nearest[1] = min[1];
-    else if (max[1] < vy) nearest[1] = max[1];
-    else nearest[1] = vy;
+      if (min[1] > vy) nearest[1] = min[1];
+      else if (max[1] < vy) nearest[1] = max[1];
+      else nearest[1] = vy;
 
-    if (min[2] > vz) nearest[2] = min[2];
-    else if (max[2] < vz) nearest[2] = max[2];
-    else nearest[2] = vz;
+      if (min[2] > vz) nearest[2] = min[2];
+      else if (max[2] < vz) nearest[2] = max[2];
+      else nearest[2] = vz;
 
-    return vec3.sqrDist(vert, nearest) < radiusSquared;
-  },
+      return vec3.sqrDist(vert, nearest) < radiusSquared;
+    };
+  }(),
 
   /** Check if the aabb is a plane, if so... enlarge it */
   enlargeIfFlat: function (offset)
@@ -220,9 +223,6 @@ Aabb.prototype = {
     var distToPlane = vec3.dot(vec3.sub(center, center, origin), normal);
     if (distToPlane * distToPlane < vec3.sqrDist(this.min_, this.max_) * 0.25)
       return 2;
-    if (distToPlane > 0)
-      return 1;
-    else
-      return 0;
+    return distToPlane > 0.0 ? 1 : 0;
   }
 };

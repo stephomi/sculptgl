@@ -15,7 +15,7 @@ Grid.prototype = {
   /** Constructor */
   setBoundaries: function (aabb)
   {
-    var vecShift = [0, 0, 0];
+    var vecShift = [0.0, 0.0, 0.0];
     vec3.sub(vecShift, aabb.max_, aabb.min_);
     vec3.scale(vecShift, vecShift, 0.1);
     vec3.sub(aabb.min_, aabb.min_, vecShift);
@@ -28,7 +28,7 @@ Grid.prototype = {
   {
     this.cellSize_ = cellSize;
     var aabb = this.aabb_;
-    var diff = [0, 0, 0];
+    var diff = [0.0, 0.0, 0.0];
     vec3.sub(diff, aabb.max_, aabb.min_);
     var dimX = Math.ceil(diff[0] / cellSize);
     var dimY = Math.ceil(diff[1] / cellSize);

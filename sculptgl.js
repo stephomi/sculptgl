@@ -21,8 +21,8 @@ function SculptGL()
   this.pressureIntensity_ = 0; //for continuous sculpting
   this.mouseX_ = 0; //for continuous sculpting
   this.mouseY_ = 0; //for continuous sculpting
-  this.ptPlane_ = [0, 0, 0]; //point origin of the plane symmetry
-  this.nPlane_ = [1, 0, 0]; //normal of plane symmetry
+  this.ptPlane_ = [0.0, 0.0, 0.0]; //point origin of the plane symmetry
+  this.nPlane_ = [1.0, 0.0, 0.0]; //normal of plane symmetry
 
   //core of the app
   this.states_ = new States(); //for undo-redo
@@ -405,8 +405,8 @@ SculptGL.prototype = {
     this.mouseButton_ = event.which;
     var button = event.which;
     var pressure = Tablet.pressure();
-    var pressureRadius = this.usePenRadius_ ? pressure : 1;
-    var pressureIntensity = this.usePenIntensity_ ? pressure : 1;
+    var pressureRadius = this.usePenRadius_ ? pressure : 1.0;
+    var pressureIntensity = this.usePenIntensity_ ? pressure : 1.0;
     if (button === 1 && !event.altKey)
     {
       if (this.mesh_)
@@ -477,7 +477,7 @@ SculptGL.prototype = {
   {
     event.stopPropagation();
     event.preventDefault();
-    this.camera_.zoom(delta / 100);
+    this.camera_.zoom(delta / 100.0);
     this.render();
   },
 
@@ -492,8 +492,8 @@ SculptGL.prototype = {
     var tool = this.sculpt_.tool_;
     var st = Sculpt.tool;
     var pressure = Tablet.pressure();
-    var pressureRadius = this.usePenRadius_ ? pressure : 1;
-    var pressureIntensity = this.usePenIntensity_ ? pressure : 1;
+    var pressureRadius = this.usePenRadius_ ? pressure : 1.0;
+    var pressureIntensity = this.usePenIntensity_ ? pressure : 1.0;
     var modifierPressed = event.altKey || event.ctrlKey || event.shiftKey;
     if (this.continuous_ && this.sculptTimer_ !== -1 && !modifierPressed)
     {
@@ -518,9 +518,9 @@ SculptGL.prototype = {
     else if (button === 3 || (event.altKey && !event.shiftKey && !event.ctrlKey))
       this.camera_.rotate(mouseX, mouseY);
     else if (button === 2 || (event.altKey && event.shiftKey))
-      this.camera_.translate((mouseX - this.lastMouseX_) / 3000, (mouseY - this.lastMouseY_) / 3000);
+      this.camera_.translate((mouseX - this.lastMouseX_) / 3000.0, (mouseY - this.lastMouseY_) / 3000.0);
     else if (event.altKey && event.ctrlKey)
-      this.camera_.zoom((mouseY - this.lastMouseY_) / 3000);
+      this.camera_.zoom((mouseY - this.lastMouseY_) / 3000.0);
     this.lastMouseX_ = mouseX;
     this.lastMouseY_ = mouseY;
     this.render();
@@ -635,7 +635,7 @@ SculptGL.prototype = {
   {
     var mesh = this.mesh_;
     mesh.initMesh();
-    mesh.moveTo([0, 0, 0]);
+    mesh.moveTo([0.0, 0.0, 0.0]);
     this.camera_.reset();
     this.gui_.updateMesh(mesh);
     mesh.initRender(Shader.mode.MATERIAL, this.textures_, this.shaders_);

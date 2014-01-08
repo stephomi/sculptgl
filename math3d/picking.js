@@ -5,19 +5,19 @@ function Picking(camera)
   this.mesh_ = null; //mesh
   this.pickedTriangle_ = -1; //triangle picked
   this.pickedVertices_ = []; //vertices selected
-  this.interPoint_ = [0, 0, 0]; //intersection point
-  this.rDisplay_ = 50; //radius of the selection area (screen unit)
-  this.rWorldSqr_ = 0; //radius of the selection area (world unit)
+  this.interPoint_ = [0.0, 0.0, 0.0]; //intersection point
+  this.rDisplay_ = 50.0; //radius of the selection area (screen unit)
+  this.rWorldSqr_ = 0.0; //radius of the selection area (world unit)
   this.camera_ = camera; //the camera
-  this.eyeDir_ = [0, 0, 0]; //eye direction
+  this.eyeDir_ = [0.0, 0.0, 0.0]; //eye direction
 }
 
 Picking.prototype = {
   /** Intersection between a ray the mouse position */
   intersectionMouseMesh: function (mesh, mouseX, mouseY, pressure, ptPlane, nPlane)
   {
-    var vNear = this.camera_.unproject(mouseX, mouseY, 0),
-      vFar = this.camera_.unproject(mouseX, mouseY, 1);
+    var vNear = this.camera_.unproject(mouseX, mouseY, 0.0),
+      vFar = this.camera_.unproject(mouseX, mouseY, 1.0);
     var matInverse = mat4.create();
     mat4.invert(matInverse, mesh.matTransform_);
     vec3.transformMat4(vNear, vNear, matInverse);
@@ -41,14 +41,14 @@ Picking.prototype = {
     var triangles = mesh.triangles_;
     var vAr = mesh.vertexArray_;
     var iAr = mesh.indexArray_;
-    var ray = [0, 0, 0];
+    var ray = [0.0, 0.0, 0.0];
     vec3.sub(ray, vFar, vNear);
     vec3.normalize(ray, ray);
-    var rayInv = [1 / ray[0], 1 / ray[1], 1 / ray[2]];
+    var rayInv = [1.0 / ray[0], 1.0 / ray[1], 1.0 / ray[2]];
     var iTrisCandidates = mesh.octree_.intersectRay(vNear, rayInv);
-    var distance = -1;
+    var distance = -1.0;
     var nbTrisCandidates = iTrisCandidates.length;
-    var vertInter = [0, 0, 0];
+    var vertInter = [0.0, 0.0, 0.0];
     for (var i = 0; i < nbTrisCandidates; ++i)
     {
       var indTri = iTrisCandidates[i] * 3;
@@ -62,7 +62,7 @@ Picking.prototype = {
       {
         var testDistance = vec3.sqrDist(vNear, vertInter);
         {
-          if (testDistance < distance || distance === -1)
+          if (testDistance < distance || distance < 0.0)
           {
             distance = testDistance;
             vec3.copy(this.interPoint_, vertInter);
@@ -77,7 +77,7 @@ Picking.prototype = {
       this.computeRadiusWorldSq(mouseX, mouseY, pressure);
     }
     else
-      this.rWorldSqr_ = 0;
+      this.rWorldSqr_ = 0.0;
   },
 
   /** Find all the vertices inside the sphere */
@@ -117,7 +117,7 @@ Picking.prototype = {
   /** Compute the selection radius in world space */
   computeRadiusWorldSq: function (mouseX, mouseY, pressure)
   {
-    var interPointTransformed = [0, 0, 0];
+    var interPointTransformed = [0.0, 0.0, 0.0];
     vec3.transformMat4(interPointTransformed, this.interPoint_, this.mesh_.matTransform_);
     var z = this.camera_.project(interPointTransformed)[2];
     var vCircle = this.camera_.unproject(mouseX + (this.rDisplay_ * pressure), mouseY, z);

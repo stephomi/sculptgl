@@ -59,13 +59,13 @@ Background.prototype = {
   {
     var gl = this.gl_;
 
-    var vertCoords = [-1, -1, -1, 1, 1, -1, -1, 1, 1, 1, 1, -1];
+    var vertCoords = [-1.0, -1.0, -1.0, 1.0, 1.0, -1.0, -1.0, 1.0, 1.0, 1.0, 1.0, -1.0];
 
     this.vertexBuffer_ = gl.createBuffer();
     gl.bindBuffer(gl.ARRAY_BUFFER, this.vertexBuffer_);
     gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(vertCoords), gl.DYNAMIC_DRAW);
 
-    var texCoords = [0, 1, 0, 0, 1, 1, 0, 0, 1, 0, 1, 1];
+    var texCoords = [0.0, 1.0, 0.0, 0.0, 1.0, 1.0, 0.0, 0.0, 1.0, 0.0, 1.0, 1.0];
 
     this.texBuffer_ = gl.createBuffer();
     gl.bindBuffer(gl.ARRAY_BUFFER, this.texBuffer_);

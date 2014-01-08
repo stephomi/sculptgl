@@ -22,7 +22,7 @@ Topology.prototype.cut = function (planeOrigin, planeNormal, fillHoles)
   this.states_.pushState(iTrisCulled, iVertsCulled);
   this.states_.pushState(iTrisIntersect, iVertsIntersect);
 
-  var tmp = [0, 0, 0];
+  var tmp = [0.0, 0.0, 0.0];
   var nbVertsIntersect = iVertsIntersect.length;
   for (i = 0; i < nbVertsIntersect; ++i)
   {
@@ -54,16 +54,16 @@ Topology.prototype.cut = function (planeOrigin, planeNormal, fillHoles)
   this.iTrisToDelete_ = iTrisCulled;
 
   //Update triangles on edges
+  var trisToUpdate = [];
   for (i = nbTrianglesBefore; i < nbTrianglesAfter; ++i)
-    mesh.updateTriangleAabbAndNormal(i);
+    trisToUpdate.push(i);
+  mesh.updateTrianglesAabbAndNormal(trisToUpdate);
 
   //Update vertices on edges
   var iVertsOnEdge = [];
   for (i = nbVerticesBefore; i < nbVerticesAfter; ++i)
-  {
     iVertsOnEdge.push(i);
-    mesh.updateVertexNormal(i);
-  }
+  mesh.updateVerticesNormal(iVertsOnEdge);
 
   var lengthMeanSq = 0.0;
   if (fillHoles)
@@ -243,7 +243,7 @@ Topology.prototype.getProjectedVertex = function (iv1, iv2, planeOrigin, planeNo
     vertices.push(new Vertex(ivMid));
     var i = iv1 * 3;
     var j = iv2 * 3;
-    var coordInter = [0, 0, 0]
+    var coordInter = [0.0, 0.0, 0.0]
     Geometry.intersectLinePlane([vAr[i], vAr[i + 1], vAr[i + 2]], [vAr[j], vAr[j + 1], vAr[j + 2]], planeOrigin, planeNormal, coordInter);
     i = ivMid * 3;
     vAr[i] = coordInter[0];
@@ -350,7 +350,7 @@ Topology.prototype.fillHoles = function (holes, planeOrigin, planeNormal)
     orz = planeOrigin[2];
 
   var perp = Geometry.getPerpendicularVector(planeNormal);
-  var perp2 = [0, 0, 0];
+  var perp2 = [0.0, 0.0, 0.0];
   vec3.cross(perp2, perp, planeNormal);
 
   var nbHoles = holes.length;

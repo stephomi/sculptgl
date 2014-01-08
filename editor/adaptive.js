@@ -19,9 +19,9 @@ Topology.prototype.adaptTopology = function (iTris, d2Thickness)
   var cx = center[0],
     cy = center[1],
     cz = center[2];
-  var dx = 0,
-    dy = 0,
-    dz = 0;
+  var dx = 0.0,
+    dy = 0.0,
+    dz = 0.0;
   for (i = 0; i < nbVerts; ++i)
   {
     var iVert = iVerts[i];

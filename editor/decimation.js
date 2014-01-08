@@ -19,7 +19,7 @@ Topology.prototype.decimation = function (iTris, detailMinSquared)
   var cenx = center[0],
     ceny = center[1],
     cenz = center[2];
-  var tmp = [0, 0, 0];
+  var tmp = [0.0, 0.0, 0.0];
 
   for (var i = 0; i < iTris.length; ++i)
   {
@@ -47,26 +47,26 @@ Topology.prototype.decimation = function (iTris, detailMinSquared)
       v3y = vAr[id + 1],
       v3z = vAr[id + 2];
 
-    var dx = (v1x + v2x + v3x) / 3 - cenx,
-      dy = (v1y + v2y + v3y) / 3 - ceny,
-      dz = (v1z + v2z + v3z) / 3 - cenz;
+    var dx = (v1x + v2x + v3x) / 3.0 - cenx,
+      dy = (v1y + v2y + v3y) / 3.0 - ceny,
+      dz = (v1z + v2z + v3z) / 3.0 - cenz;
     var fallOff = dx * dx + dy * dy + dz * dz;
     if (this.checkPlane_)
     {
       var po = this.planeOrigin_;
       var pn = this.planeNormal_;
-      if (vec3.dot(pn, vec3.sub(tmp, [v1x, v1y, v1z], po)) < 0 &&
-        vec3.dot(pn, vec3.sub(tmp, [v2x, v2y, v2z], po)) < 0 &&
-        vec3.dot(pn, vec3.sub(tmp, [v3x, v3y, v3z], po)) < 0)
+      if (vec3.dot(pn, vec3.sub(tmp, [v1x, v1y, v1z], po)) < 0.0 &&
+        vec3.dot(pn, vec3.sub(tmp, [v2x, v2y, v2z], po)) < 0.0 &&
+        vec3.dot(pn, vec3.sub(tmp, [v3x, v3y, v3z], po)) < 0.0)
         continue;
-      fallOff = 1;
+      fallOff = 1.0;
     }
     else if (fallOff < radiusSquared)
-      fallOff = 1;
-    else if (fallOff < radiusSquared * 2)
+      fallOff = 1.0;
+    else if (fallOff < radiusSquared * 2.0)
     {
       fallOff = (Math.sqrt(fallOff) - radius) / (radius * Math.SQRT2 - radius);
-      fallOff = 3 * fallOff * fallOff * fallOff * fallOff - 4 * fallOff * fallOff * fallOff + 1;
+      fallOff = 3.0 * fallOff * fallOff * fallOff * fallOff - 4.0 * fallOff * fallOff * fallOff + 1.0;
     }
     else
       continue;
@@ -323,7 +323,7 @@ Topology.prototype.edgeCollapse = function (iTri1, iTri2, iv1, iv2, ivOpp1, ivOp
   cAr[id] = (cAr[id] + cAr[id2]) * 0.5,
   cAr[id + 1] = (cAr[id + 1] + cAr[id2 + 1]) * 0.5,
   cAr[id + 2] = (cAr[id + 2] + cAr[id2 + 2]) * 0.5;
-  var len = 1 / Math.sqrt(nx * nx + ny * ny + nz * nz);
+  var len = 1.0 / Math.sqrt(nx * nx + ny * ny + nz * nz);
   nx *= len;
   ny *= len;
   nz *= len;
@@ -353,9 +353,9 @@ Topology.prototype.edgeCollapse = function (iTri1, iTri2, iv1, iv2, ivOpp1, ivOp
   mesh.computeRingVertices(iv1);
 
   //flat smooth the vertex...
-  var meanX = 0,
-    meanY = 0,
-    meanZ = 0;
+  var meanX = 0.0,
+    meanY = 0.0,
+    meanZ = 0.0;
   var nbRing1 = ring1.length;
   for (i = 0; i < nbRing1; ++i)
   {

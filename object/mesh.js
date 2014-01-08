@@ -10,16 +10,16 @@ function Mesh(gl)
   this.colorArray_ = null; //color vertices (Float32Array)
   this.indexArray_ = null; //triangles (Uint16Array or Uint32Array)
 
-  this.center_ = [0, 0, 0]; //center of mesh
+  this.center_ = [0.0, 0.0, 0.0]; //center of mesh
   this.octree_ = new Octree(); //octree
   this.matTransform_ = mat4.create(); //transformation matrix of the mesh
   this.leavesUpdate_ = []; //leaves of the octree to check
   this.render_ = new Render(gl, this); //the mesh renderer
-  this.scale_ = 1; //use for export in order to keep the same scale as import...
+  this.scale_ = 1.0; //use for export in order to keep the same scale as import...
 }
 
-Mesh.globalScale_ = 500; //for precision issue...
-Mesh.stateMask_ = 1; //for history
+Mesh.globalScale_ = 500.0; //for precision issue...
+Mesh.stateMask_ = 1.0; //for history
 
 Mesh.prototype = {
   /** Return all the triangles linked to a group of vertices */
@@ -257,7 +257,7 @@ Mesh.prototype = {
     vec3.scale(this.center_, this.center_, scale);
 
     //root octree bigger than minimum aabb...
-    var vecShift = [0, 0, 0];
+    var vecShift = [0.0, 0.0, 0.0];
     vec3.sub(vecShift, aabb.max_, aabb.min_);
     vec3.scale(vecShift, vecShift, 0.2);
     vec3.sub(aabb.min_, aabb.min_, vecShift);
@@ -265,12 +265,10 @@ Mesh.prototype = {
     aabb.enlargeIfFlat(vec3.length(vecShift)); //for plane mesh...
 
     //triangles' aabb and normal
-    for (i = 0; i < nbTriangles; ++i)
-      this.updateTriangleAabbAndNormal(i);
+    this.updateTrianglesAabbAndNormal();
 
-    //vertex normal
-    for (i = 0; i < nbVertices; ++i)
-      this.updateVertexNormal(i);
+    //vertices normal
+    this.updateVerticesNormal();
 
     //octree construction
     var trianglesAll = new Array(nbTriangles);
@@ -298,64 +296,73 @@ Mesh.prototype = {
   /** Update geometry  */
   updateMesh: function (iTris, iVerts)
   {
-    var nbVert = iVerts.length;
-    var nbTris = iTris.length;
-    var i = 0;
-    for (i = 0; i < nbTris; ++i)
-      this.updateTriangleAabbAndNormal(iTris[i]);
+    this.updateTrianglesAabbAndNormal(iTris);
     this.updateOctree(iTris);
-    for (i = 0; i < nbVert; ++i)
-      this.updateVertexNormal(iVerts[i]);
+    this.updateVerticesNormal(iVerts);
   },
 
-  /** Update a normal of a vertex */
-  updateTriangleAabbAndNormal: function (ind)
+  /** Update a group of triangles' normal and aabb */
+  updateTrianglesAabbAndNormal: function (iTris)
   {
     var triangles = this.triangles_;
     var vAr = this.vertexArray_;
     var iAr = this.indexArray_;
-    var t = triangles[ind];
-    ind *= 3;
-    var ind1 = iAr[ind] * 3,
-      ind2 = iAr[ind + 1] * 3,
-      ind3 = iAr[ind + 2] * 3;
-    var v1x = vAr[ind1],
-      v1y = vAr[ind1 + 1],
-      v1z = vAr[ind1 + 2];
-    var v2x = vAr[ind2],
-      v2y = vAr[ind2 + 1],
-      v2z = vAr[ind2 + 2];
-    var v3x = vAr[ind3],
-      v3y = vAr[ind3 + 1],
-      v3z = vAr[ind3 + 2];
-    Geometry.triangleNormal(t.normal_, v1x, v1y, v1z, v2x, v2y, v2z, v3x, v3y, v3z);
-    Geometry.computeTriangleAabb(t.aabb_, v1x, v1y, v1z, v2x, v2y, v2z, v3x, v3y, v3z);
+
+    var present = iTris !== undefined;
+    var nbTris = present ? iTris.length : triangles.length;
+    for (var i = 0; i < nbTris; ++i)
+    {
+      var ind = present ? iTris[i] : i;
+      var t = triangles[ind];
+      ind *= 3;
+      var ind1 = iAr[ind] * 3,
+        ind2 = iAr[ind + 1] * 3,
+        ind3 = iAr[ind + 2] * 3;
+      var v1x = vAr[ind1],
+        v1y = vAr[ind1 + 1],
+        v1z = vAr[ind1 + 2];
+      var v2x = vAr[ind2],
+        v2y = vAr[ind2 + 1],
+        v2z = vAr[ind2 + 2];
+      var v3x = vAr[ind3],
+        v3y = vAr[ind3 + 1],
+        v3z = vAr[ind3 + 2];
+      Geometry.triangleNormal(t.normal_, v1x, v1y, v1z, v2x, v2y, v2z, v3x, v3y, v3z);
+      Geometry.computeTriangleAabb(t.aabb_, v1x, v1y, v1z, v2x, v2y, v2z, v3x, v3y, v3z);
+    }
   },
 
-  /** Update a normal of a vertex */
-  updateVertexNormal: function (ind)
+  /** Update a group of vertices' normal */
+  updateVerticesNormal: function (iVerts)
   {
     var vertices = this.vertices_;
     var triangles = this.triangles_;
     var nAr = this.normalArray_;
-    var vert = vertices[ind];
-    var iTris = vert.tIndices_;
-    var nbTri = iTris.length;
-    var nx = 0,
-      ny = 0,
-      nz = 0;
-    for (var i = 0; i < nbTri; ++i)
+
+    var present = iVerts !== undefined;
+    var nbTris = present ? iVerts.length : vertices.length;
+    for (var i = 0; i < nbTris; ++i)
     {
-      var normTri = triangles[iTris[i]].normal_;
-      nx += normTri[0];
-      ny += normTri[1];
-      nz += normTri[2];
+      var ind = present ? iVerts[i] : i;
+      var vert = vertices[ind];
+      var iTris = vert.tIndices_;
+      var nbTri = iTris.length;
+      var nx = 0.0,
+        ny = 0.0,
+        nz = 0.0;
+      for (var j = 0; j < nbTri; ++j)
+      {
+        var normTri = triangles[iTris[j]].normal_;
+        nx += normTri[0];
+        ny += normTri[1];
+        nz += normTri[2];
+      }
+      var len = 1.0 / Math.sqrt(nx * nx + ny * ny + nz * nz);
+      ind *= 3;
+      nAr[ind] = nx * len;
+      nAr[ind + 1] = ny * len;
+      nAr[ind + 2] = nz * len;
     }
-    var len = 1 / Math.sqrt(nx * nx + ny * ny + nz * nz);
-    ind *= 3;
-    nAr[ind] = nx * len;
-    nAr[ind + 1] = ny * len;
-    nAr[ind + 2] = nz * len;
   },
 
   /**
@@ -399,7 +406,7 @@ Mesh.prototype = {
       {
         var aabb = new Aabb();
         aabb.setCopy(this.octree_.aabbSplit_.min_, this.octree_.aabbSplit_.max_);
-        var vecShift = [0, 0, 0];
+        var vecShift = [0.0, 0.0, 0.0];
         vec3.scale(vecShift, vec3.sub(vecShift, aabb.max_, aabb.min_), 0.2);
         vec3.sub(aabb.min_, aabb.min_, vecShift);
         vec3.add(aabb.max_, aabb.max_, vecShift);

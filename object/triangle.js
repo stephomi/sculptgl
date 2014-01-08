@@ -3,7 +3,7 @@
 function Triangle(id)
 {
   this.id_ = id; //id
-  this.normal_ = [0, 0, 1]; //normal of triangle
+  this.normal_ = [0.0, 0.0, 1.0]; //normal of triangle
   this.aabb_ = new Aabb(); //bounding box of the triangle
   this.leaf_ = null; //octree leaf
   this.posInLeaf_ = null; //position index in the leaf
