@@ -20,27 +20,36 @@ Geometry.mouseOnUnitSphere = function (mouseXY)
 };
 
 /** Compute intersection vertex between a ray and a triangle. Returne false if it doesn't intersect. */
-Geometry.intersectionRayTriangle = function (s1, s2, v1, v2, v3, normal, vertInter)
+Geometry.intersectionRayTriangle = function (orig, dir, v1, v2, v3, vertInter)
 {
-  var temp = [0, 0, 0];
-  var dist1 = vec3.dot(vec3.sub(temp, s1, v1), normal);
-  var dist2 = vec3.dot(vec3.sub(temp, s2, v1), normal);
-  //ray copplanar to triangle
-  if ((dist1 * dist2) >= 0)
+  // moller trumbore intersection algorithm
+  // http://www.scratchapixel.com/lessons/3d-basic-lessons/lesson-9-ray-triangle-intersection/m-ller-trumbore-algorithm/
+  var EPSILON = 0.000001;
+
+  var edge1 = [0.0, 0.0, 0.0];
+  vec3.sub(edge1, v2, v1);
+  var edge2 = [0.0, 0.0, 0.0];
+  vec3.sub(edge2, v3, v1);
+  var pvec = [0.0, 0.0, 0.0];
+  vec3.cross(pvec, dir, edge2);
+  var det = vec3.dot(edge1, pvec);
+  if (det > -EPSILON && det < EPSILON)
     return false;
-  //intersection between ray and triangle
-  var val = -dist1 / (dist2 - dist1);
-  vec3.scaleAndAdd(vertInter, s1, vec3.sub(temp, s2, s1), val);
-  var cross = [0, 0, 0];
-  vec3.cross(cross, normal, vec3.sub(temp, v2, v1));
-  if (vec3.dot(cross, vec3.sub(temp, vertInter, v1)) < 0)
+  var invDet = 1.0 / det;
+  var tvec = [0.0, 0.0, 0.0];
+  vec3.sub(tvec, orig, v1);
+  var u = vec3.dot(tvec, pvec) * invDet;
+  if (u < 0.0 || u > 1.0)
     return false;
-  vec3.cross(cross, normal, vec3.sub(temp, v3, v2));
-  if (vec3.dot(cross, vec3.sub(temp, vertInter, v2)) < 0)
+  var qvec = [0.0, 0.0, 0.0];
+  vec3.cross(qvec, tvec, edge1);
+  var v = vec3.dot(dir, qvec) * invDet;
+  if (v < 0.0 || u + v > 1.0)
     return false;
-  vec3.cross(cross, normal, vec3.sub(temp, v1, v3));
-  if (vec3.dot(cross, vec3.sub(temp, vertInter, v1)) < 0)
+  var t = vec3.dot(edge2, qvec) * invDet;
+  if (t < 0.0)
     return false;
+  vec3.scaleAndAdd(vertInter, orig, dir, t);
   return true;
 };
 

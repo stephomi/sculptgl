@@ -51,16 +51,14 @@ Picking.prototype = {
     var vertInter = [0, 0, 0];
     for (var i = 0; i < nbTrisCandidates; ++i)
     {
-      var indTri = iTrisCandidates[i];
-      var t = triangles[indTri];
-      indTri *= 3;
+      var indTri = iTrisCandidates[i] * 3;
       var ind1 = iAr[indTri] * 3,
         ind2 = iAr[indTri + 1] * 3,
         ind3 = iAr[indTri + 2] * 3;
       var v1 = [vAr[ind1], vAr[ind1 + 1], vAr[ind1 + 2]],
         v2 = [vAr[ind2], vAr[ind2 + 1], vAr[ind2 + 2]],
         v3 = [vAr[ind3], vAr[ind3 + 1], vAr[ind3 + 2]];
-      if (Geometry.intersectionRayTriangle(vNear, vFar, v1, v2, v3, t.normal_, vertInter))
+      if (Geometry.intersectionRayTriangle(vNear, ray, v1, v2, v3, vertInter))
       {
         var testDistance = vec3.sqrDist(vNear, vertInter);
         {
