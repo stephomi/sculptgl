@@ -108,7 +108,7 @@ Geometry.pointInsideTriangle = function (point, v1, v2, v3)
 };
 
 /** If a sphere intersect a triangle */
-Geometry.sphereIntersectTriangle = function (point, radiusSq, v1, v2, v3)
+Geometry.sphereIntersectTriangleEdges = function (point, radiusSq, v1, v2, v3)
 {
   if (Geometry.distanceSqToSegment(point, v1, v2) < radiusSq) return true;
   if (Geometry.distanceSqToSegment(point, v2, v3) < radiusSq) return true;
@@ -119,18 +119,18 @@ Geometry.sphereIntersectTriangle = function (point, radiusSq, v1, v2, v3)
 /** Minimum squared distance to a segment */
 Geometry.distanceSqToSegment = function (point, v1, v2)
 {
-  var pt = [0, 0, 0];
+  var pt = [0.0, 0.0, 0.0];
   vec3.sub(pt, point, v1);
-  var v2v1 = [0, 0, 0];
+  var v2v1 = [0.0, 0.0, 0.0];
   vec3.sub(v2v1, v2, v1);
   var len = vec3.sqrLen(v2v1);
   var t = vec3.dot(pt, v2v1) / len;
-  if (t < 0) return vec3.sqrLen(pt);
-  if (t > 1) return vec3.sqrLen(vec3.sub(pt, point, v2));
+  if (t < 0.0) return vec3.sqrLen(pt);
+  if (t > 1.0) return vec3.sqrLen(vec3.sub(pt, point, v2));
 
-  pt[0] = point[0] - v1[0] + t * v2v1[0];
-  pt[1] = point[1] - v1[1] + t * v2v1[1];
-  pt[2] = point[2] - v1[2] + t * v2v1[2];
+  pt[0] = point[0] - v1[0] - t * v2v1[0];
+  pt[1] = point[1] - v1[1] - t * v2v1[1];
+  pt[2] = point[2] - v1[2] - t * v2v1[2];
   return vec3.sqrLen(pt);
 };
 

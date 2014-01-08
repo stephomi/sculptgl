@@ -214,7 +214,7 @@ Topology.prototype.findSplit = function (iTri, detailMaxSquared, checkInsideSphe
   }
   else if (checkInsideSphere)
   {
-    if (!Geometry.sphereIntersectTriangle(this.center_, this.radiusSquared_ * 2, v1, v2, v3))
+    if (!Geometry.sphereIntersectTriangleEdges(this.center_, this.radiusSquared_ * 2, v1, v2, v3))
     {
       if (!Geometry.pointInsideTriangle(this.center_, v1, v2, v3))
       {
