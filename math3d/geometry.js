@@ -22,7 +22,7 @@ Geometry.mouseOnUnitSphere = function (mouseXY)
 /** Compute intersection vertex between a ray and a triangle. Returne false if it doesn't intersect. */
 Geometry.intersectionRayTriangle = function ()
 {
-  var EPSILON = 0.000001;
+  var EPSILON = 1E-20;
   var edge1 = [0.0, 0.0, 0.0];
   var edge2 = [0.0, 0.0, 0.0];
   var pvec = [0.0, 0.0, 0.0];
