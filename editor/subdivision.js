@@ -149,7 +149,7 @@ Topology.prototype.checkArrayLength = function (nbTris)
       temp[i] = cAr[i];
     this.mesh_.colorArray_ = temp;
   }
-  var iLen = nbTriangles * 3 + nbTris * nb;
+  var iLen = nbTriangles + nbTris * nb;
   if (iAr.length < iLen || iAr.length > iLen * 4)
   {
     temp = new SculptGL.indexArrayType(iLen * 2);
