@@ -27,11 +27,11 @@ Geometry.intersectionRayTriangle = function ()
   var edge2 = [0.0, 0.0, 0.0];
   var pvec = [0.0, 0.0, 0.0];
   var tvec = [0.0, 0.0, 0.0];
+  var qvec = [0.0, 0.0, 0.0];
   return function (orig, dir, v1, v2, v3, vertInter)
   {
     // moller trumbore intersection algorithm
     // http://www.scratchapixel.com/lessons/3d-basic-lessons/lesson-9-ray-triangle-intersection/m-ller-trumbore-algorithm/
-
     vec3.sub(edge1, v2, v1);
     vec3.sub(edge2, v3, v1);
     vec3.cross(pvec, dir, edge2);
@@ -43,7 +43,6 @@ Geometry.intersectionRayTriangle = function ()
     var u = vec3.dot(tvec, pvec) * invDet;
     if (u < 0.0 || u > 1.0)
       return false;
-    var qvec = [0.0, 0.0, 0.0];
     vec3.cross(qvec, tvec, edge1);
     var v = vec3.dot(dir, qvec) * invDet;
     if (v < 0.0 || u + v > 1.0)
