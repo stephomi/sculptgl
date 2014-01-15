@@ -135,8 +135,8 @@ Gui.prototype = {
       main.camera_.updateProjection();
       main.render();
     });
-    this.ctrlFov_ = cameraFold.add(main.camera_, 'fov_', 10, 150).name('Fov');
-    this.ctrlFov_.onChange(function ()
+    this.ctrlFov_ = cameraFold.add(main.camera_, 'fov_', 10, 80).name('Fov');
+    this.ctrlFov_.onChange(function (value)
     {
       main.camera_.updateProjection();
       main.render();
@@ -301,13 +301,14 @@ Gui.prototype = {
     foldMesh.open();
   },
 
-  /** Update information on mesh */
+  /** Update gui stuffs in relation to the mesh */
   updateMesh: function (mesh)
   {
     if (!mesh)
       return;
+    mesh.render_.shader_.type_ = this.ctrlShaders_.getValue();
     this.ctrlShaders_.object = mesh.render_.shader_;
-    this.ctrlShaders_.updateDisplay();
+    mesh.render_.flatShading_ = this.ctrlFlatShading_.getValue();
     this.updateMeshInfo(mesh.vertices_.length, mesh.triangles_.length);
   },
 

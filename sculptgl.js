@@ -638,7 +638,7 @@ SculptGL.prototype = {
     mesh.moveTo([0.0, 0.0, 0.0]);
     this.camera_.reset();
     this.gui_.updateMesh(mesh);
-    mesh.initRender(Shader.mode.MATERIAL, this.textures_, this.shaders_);
+    mesh.initRender(mesh.render_.shader_.type_, this.textures_, this.shaders_);
     this.render();
   },
 
@@ -647,7 +647,7 @@ SculptGL.prototype = {
   {
     this.states_.undo();
     this.render();
-    this.gui_.updateMesh(this.mesh_);
+    this.gui_.updateMeshInfo(this.mesh_.vertices_.length, this.mesh_.triangles_.length);
   },
 
   /** When the user redos an action */
@@ -655,6 +655,6 @@ SculptGL.prototype = {
   {
     this.states_.redo();
     this.render();
-    this.gui_.updateMesh(this.mesh_);
+    this.gui_.updateMeshInfo(this.mesh_.vertices_.length, this.mesh_.triangles_.length);
   }
 };

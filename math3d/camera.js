@@ -10,13 +10,13 @@ function Camera()
   this.lastNormalizedMouseXY_ = [0.0, 0.0]; //last mouse position ( 0..1 )
   this.width_ = 0; //viewport width
   this.height_ = 0; //viewport height
-  this.zoom_ = 20.0; //zoom value
+  this.zoom_ = 0.0; //zoom value
   this.transX_ = 0.0; //translation in x
   this.transY_ = 0.0; //translation in y
   this.speed_ = 1.0; //solve scale issue
   this.moveX_ = 0; //free look (strafe), possible values : -1, 0, 1
   this.moveZ_ = 0; //free look (strafe), possible values : -1, 0, 1
-  this.fov_ = 70.0; //vertical field of view
+  this.fov_ = 45.0; //vertical field of view
   this.center_ = [0.0, 0.0, 0.0]; //center of rotation
   this.stepCenter_ = [0.0, 0.0, 0.0]; //step vector to translate between pivots
   this.stepZoom_ = 0.0; //step zoom value
@@ -109,7 +109,7 @@ Camera.prototype = {
   {
     this.proj_ = mat4.create();
     if (this.type_ === Camera.projType.PERSPECTIVE)
-      mat4.perspective(this.proj_, this.fov_ * Math.PI / 180.0, this.width_ / this.height_, 0.01, 10000.0);
+      mat4.perspective(this.proj_, this.fov_ * Math.PI / 180.0, this.width_ / this.height_, 0.05, 5000.0);
     else
       this.updateOrtho();
   },
@@ -141,7 +141,7 @@ Camera.prototype = {
   /** Update orthographic projection */
   updateOrtho: function ()
   {
-    var delta = Math.abs(this.zoom_) * 0.001;
+    var delta = Math.abs(this.zoom_) * 0.00055;
     mat4.ortho(this.proj_, -this.width_ * delta, this.width_ * delta, -this.height_ * delta, this.height_ * delta, -10000.0, 10000.0);
   },
 
@@ -171,7 +171,7 @@ Camera.prototype = {
     this.rot_ = quat.create();
     this.center_ = [0.0, 0.0, 0.0];
     this.zoom_ = 0.0;
-    this.zoom(-0.4);
+    this.zoom(-0.6);
   },
 
   /** Reset view front */
