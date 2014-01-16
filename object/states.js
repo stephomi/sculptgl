@@ -449,13 +449,12 @@ States.prototype = {
     var mesh = this.mesh_;
     var triangles = mesh.triangles_;
     var nbTriangles = triangles.length;
-
-    var trianglesAll = new Array(nbTriangles);
+    var trianglesAll = [];
     for (var i = 0; i < nbTriangles; ++i)
-      trianglesAll[i] = i;
-    ++Triangle.tagMask_;
+      trianglesAll.push(i);
     mesh.octree_ = new Octree();
-    mesh.octree_.build(mesh, trianglesAll, aabbSplit);
+    mesh.octree_.aabbSplit_.copy(aabbSplit);
+    mesh.octree_.build(mesh, trianglesAll);
   },
 
   /** Reset */

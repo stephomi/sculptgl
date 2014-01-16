@@ -2,8 +2,9 @@
 
 function Aabb()
 {
-  this.min_ = [0.0, 0.0, 0.0]; //min vertex
-  this.max_ = [0.0, 0.0, 0.0]; //max vertex
+  this.min_ = [Infinity, Infinity, Infinity]; //min vertex
+  this.max_ = [-Infinity, -Infinity, -Infinity]; //max vertex
+  this.center_ = [0.0, 0.0, 0.0]; //center (computed only for triangle's aabb)
 }
 
 Aabb.prototype = {

@@ -59,13 +59,17 @@ Geometry.intersectionRayTriangle = function ()
 Geometry.computeTriangleAabb = function (aabb, v1x, v1y, v1z, v2x, v2y, v2z, v3x, v3y, v3z)
 {
   var min = aabb.min_,
-    max = aabb.max_;
+    max = aabb.max_,
+    center = aabb.center_;
   min[0] = Math.min(v1x, v2x, v3x);
   min[1] = Math.min(v1y, v2y, v3y);
   min[2] = Math.min(v1z, v2z, v3z);
   max[0] = Math.max(v1x, v2x, v3x);
   max[1] = Math.max(v1y, v2y, v3y);
   max[2] = Math.max(v1z, v2z, v3z);
+  center[0] = (min[0] + max[0]) * 0.5;
+  center[1] = (min[1] + max[1]) * 0.5;
+  center[2] = (min[2] + max[2]) * 0.5;
 };
 
 /** Compute from a plane defined by 3 vertices */
