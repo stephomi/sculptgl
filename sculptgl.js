@@ -85,9 +85,9 @@ SculptGL.prototype = {
     {
       self.onMouseUp(event);
     });
-    $canvas.mousewheel(function (event, delta)
+    $canvas.mousewheel(function (event)
     {
-      self.onMouseWheel(event, delta);
+      self.onMouseWheel(event);
     });
     $canvas.mousemove(function (event)
     {
@@ -473,11 +473,13 @@ SculptGL.prototype = {
   },
 
   /** Mouse wheel event */
-  onMouseWheel: function (event, delta)
+  onMouseWheel: function (event)
   {
     event.stopPropagation();
     event.preventDefault();
-    this.camera_.zoom(delta / 100.0);
+    var dy = event.deltaY;
+    dy = dy > 1.0 ? 1.0 : dy < -1.0 ? -1.0 : dy;
+    this.camera_.zoom(dy * 0.02);
     this.render();
   },
 
