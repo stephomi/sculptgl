@@ -489,8 +489,8 @@ Sculpt.prototype = {
       fallOff = 3.0 * fallOff * fallOff - 4.0 * fallOff * dist + 1.0;
       quat.setAxisAngle(rot, nPlane, angle * fallOff);
       coord[0] = vAr[ind] - cx;
-      coord[1] = vAr[ind + 1] - cz;
-      coord[2] = vAr[ind + 2] - cy;
+      coord[1] = vAr[ind + 1] - cy;
+      coord[2] = vAr[ind + 2] - cz;
       vec3.transformQuat(coord, coord, rot);
       coord[0] += cx;
       coord[1] += cy;
