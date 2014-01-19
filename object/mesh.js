@@ -270,11 +270,19 @@ Mesh.prototype = {
     this.updateVerticesNormal();
 
     //octree construction
+    this.computeOctree(aabb);
+  },
+
+  /** compute octree */
+  computeOctree: function (aabbSplit)
+  {
+    var triangles = this.triangles_;
+    var nbTriangles = triangles.length;
     var trianglesAll = [];
-    for (i = 0; i < nbTriangles; ++i)
+    for (var i = 0; i < nbTriangles; ++i)
       trianglesAll.push(i);
     this.octree_ = new Octree();
-    this.octree_.aabbSplit_.copy(aabb);
+    this.octree_.aabbSplit_.copy(aabbSplit);
     this.octree_.build(this, trianglesAll);
   },
 

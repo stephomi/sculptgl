@@ -162,32 +162,31 @@ Aabb.prototype = {
   },
 
   /** Return true if a sphere intersect with the box */
-  intersectSphere: function ()
+  intersectSphere: function (vert, radiusSquared)
   {
-    var nearest = [0.0, 0.0, 0.0];
-    return function (vert, radiusSquared)
-    {
-      var min = this.min_,
-        max = this.max_;
-      var vx = vert[0],
-        vy = vert[1],
-        vz = vert[2];
+    var min = this.min_,
+      max = this.max_;
+    var vx = vert[0],
+      vy = vert[1],
+      vz = vert[2];
+    var dx = 0.0,
+      dy = 0.0,
+      dz = 0.0;
 
-      if (min[0] > vx) nearest[0] = min[0];
-      else if (max[0] < vx) nearest[0] = max[0];
-      else nearest[0] = vx;
+    if (min[0] > vx) dx = min[0] - vx;
+    else if (max[0] < vx) dx = max[0] - vx;
+    else dx = 0.0;
 
-      if (min[1] > vy) nearest[1] = min[1];
-      else if (max[1] < vy) nearest[1] = max[1];
-      else nearest[1] = vy;
+    if (min[1] > vy) dy = min[1] - vy;
+    else if (max[1] < vy) dy = max[1] - vy;
+    else dy = 0.0;
 
-      if (min[2] > vz) nearest[2] = min[2];
-      else if (max[2] < vz) nearest[2] = max[2];
-      else nearest[2] = vz;
+    if (min[2] > vz) dz = min[2] - vz;
+    else if (max[2] < vz) dz = max[2] - vz;
+    else dz = 0.0;
 
-      return vec3.sqrDist(vert, nearest) < radiusSquared;
-    };
-  }(),
+    return (dx * dx + dy * dy + dz * dz) < radiusSquared;
+  },
 
   /** Check if the aabb is a plane, if so... enlarge it */
   enlargeIfFlat: function (offset)

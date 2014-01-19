@@ -20,7 +20,7 @@ Geometry.mouseOnUnitSphere = function (mouseXY)
 };
 
 /** Compute intersection vertex between a ray and a triangle. Returne false if it doesn't intersect. */
-Geometry.intersectionRayTriangle = function ()
+Geometry.intersectionRayTriangle = (function ()
 {
   var EPSILON = 1E-20;
   var edge1 = [0.0, 0.0, 0.0];
@@ -53,7 +53,7 @@ Geometry.intersectionRayTriangle = function ()
     vec3.scaleAndAdd(vertInter, orig, dir, t);
     return true;
   };
-}();
+})();
 
 /** Compute the bounding box of a triangle defined by three vertices */
 Geometry.computeTriangleAabb = function (aabb, v1x, v1y, v1z, v2x, v2y, v2z, v3x, v3y, v3z)
@@ -95,7 +95,7 @@ Geometry.triangleNormal = function (normal, v1x, v1y, v1z, v2x, v2y, v2z, v3x, v
 };
 
 /** If point is inside the triangle, test the sum of the areas */
-Geometry.pointInsideTriangle = function ()
+Geometry.pointInsideTriangle = (function ()
 {
   var vec1 = [0.0, 0.0, 0.0];
   var vec2 = [0.0, 0.0, 0.0];
@@ -114,10 +114,10 @@ Geometry.pointInsideTriangle = function ()
     var area3 = vec3.len(vec3.cross(temp, vecP1, vecP2));
     return Math.abs(total - (area1 + area2 + area3)) < 1E-20;
   };
-}();
+})();
 
 /** If a sphere intersect a triangle */
-Geometry.sphereIntersectTriangleEdges = function (point, radiusSq, v1, v2, v3)
+Geometry.triangleInsideSphere = function (point, radiusSq, v1, v2, v3)
 {
   if (Geometry.distanceSqToSegment(point, v1, v2) < radiusSq) return true;
   if (Geometry.distanceSqToSegment(point, v2, v3) < radiusSq) return true;
@@ -126,7 +126,7 @@ Geometry.sphereIntersectTriangleEdges = function (point, radiusSq, v1, v2, v3)
 };
 
 /** Minimum squared distance to a segment */
-Geometry.distanceSqToSegment = function ()
+Geometry.distanceSqToSegment = (function ()
 {
   var pt = [0.0, 0.0, 0.0];
   var v2v1 = [0.0, 0.0, 0.0];
@@ -144,7 +144,7 @@ Geometry.distanceSqToSegment = function ()
     pt[2] = point[2] - v1[2] - t * v2v1[2];
     return vec3.sqrLen(pt);
   };
-}();
+})();
 
 /** Sign angle between two 2d vectors in radians */
 Geometry.signedAngle2d = function (v1, v2)
@@ -157,27 +157,27 @@ Geometry.signedAngle2d = function (v1, v2)
 };
 
 /** Distance from a vertex and a plane */
-Geometry.pointPlaneDistance = function ()
+Geometry.pointPlaneDistance = (function ()
 {
   var temp = [0.0, 0.0, 0.0];
   return function (v, ptPlane, nPlane)
   {
     return vec3.dot(vec3.sub(temp, v, ptPlane), nPlane);
   };
-}();
+})();
 
 /** Mirror a vertex according to a plane */
-Geometry.mirrorPoint = function ()
+Geometry.mirrorPoint = (function ()
 {
   var temp = [0.0, 0.0, 0.0];
   return function (v, ptPlane, nPlane)
   {
     return vec3.sub(v, v, vec3.scale(temp, nPlane, Geometry.pointPlaneDistance(v, ptPlane, nPlane) * 2.0));
   };
-}();
+})();
 
 /** Compute the projection of a vertex on a line */
-Geometry.vertexOnLine = function ()
+Geometry.vertexOnLine = (function ()
 {
   var ab = [0.0, 0.0, 0.0];
   return function (vertex, vNear, vFar)
@@ -187,13 +187,11 @@ Geometry.vertexOnLine = function ()
     var dot = vec3.dot(ab, vec3.sub(proj, vertex, vNear));
     return vec3.scaleAndAdd(proj, vNear, ab, dot / vec3.sqrLen(ab));
   };
-}();
+})();
 
 /** Return the intersection between a ray and a plane */
 Geometry.intersectLinePlane = function (s1, s2, origin, normal, out)
 {
-  if (out === undefined)
-    out = [0.0, 0.0, 0.0];
   var dist1 = vec3.dot(vec3.sub(out, s1, origin), normal);
   var dist2 = vec3.dot(vec3.sub(out, s2, origin), normal);
   //ray copplanar to triangle

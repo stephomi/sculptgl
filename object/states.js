@@ -142,7 +142,7 @@ States.prototype = {
     this.pullUndoTriangles();
     this.pullUndoVertices();
 
-    this.recomputeOctree(this.undos_[this.curUndoIndex_].aabbState_);
+    this.mesh_.computeOctree(this.undos_[this.curUndoIndex_].aabbState_);
     mesh.updateBuffers();
 
     this.redos_.push(redoState);
@@ -366,7 +366,7 @@ States.prototype = {
     this.pullRedoTriangles();
     this.pullRedoVertices();
 
-    this.recomputeOctree(redoCur.aabbState_.clone());
+    this.mesh_.computeOctree(redoCur.aabbState_);
     mesh.updateBuffers();
 
     if (!this.firstState_) this.curUndoIndex_++;
@@ -441,20 +441,6 @@ States.prototype = {
       cAr[id + 1] = cArRedoState[j + 1];
       cAr[id + 2] = cArRedoState[j + 2];
     }
-  },
-
-  /** Recompute octree */
-  recomputeOctree: function (aabbSplit)
-  {
-    var mesh = this.mesh_;
-    var triangles = mesh.triangles_;
-    var nbTriangles = triangles.length;
-    var trianglesAll = [];
-    for (var i = 0; i < nbTriangles; ++i)
-      trianglesAll.push(i);
-    mesh.octree_ = new Octree();
-    mesh.octree_.aabbSplit_.copy(aabbSplit);
-    mesh.octree_.build(mesh, trianglesAll);
   },
 
   /** Reset */

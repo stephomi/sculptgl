@@ -429,6 +429,7 @@ SculptGL.prototype = {
           this.sculptTimer_ = setInterval(function ()
           {
             self.sculpt_.sculptStroke(self.mouseX_, self.mouseY_, self.pressureRadius_, self.pressureIntensity_, self);
+            self.gui_.updateMeshInfo();
             self.render();
           }, 20);
         }
@@ -456,6 +457,7 @@ SculptGL.prototype = {
       clearInterval(this.sculptTimer_);
       this.sculptTimer_ = -1;
     }
+    this.gui_.updateMeshInfo();
     this.mouseButton_ = 0;
   },
 
@@ -514,7 +516,7 @@ SculptGL.prototype = {
       else
       {
         this.sculpt_.sculptStroke(mouseX, mouseY, pressureRadius, pressureIntensity, this);
-        this.gui_.updateMeshInfo(this.mesh_.vertices_.length, this.mesh_.triangles_.length);
+        this.gui_.updateMeshInfo();
       }
     }
     else if (button === 3 || (event.altKey && !event.shiftKey && !event.ctrlKey))
@@ -614,7 +616,7 @@ SculptGL.prototype = {
   cut: function ()
   {
     this.sculpt_.cut(this.picking_);
-    this.gui_.updateMeshInfo(this.mesh_.vertices_.length, this.mesh_.triangles_.length);
+    this.gui_.updateMeshInfo();
     this.render();
   },
 
@@ -649,7 +651,7 @@ SculptGL.prototype = {
   {
     this.states_.undo();
     this.render();
-    this.gui_.updateMeshInfo(this.mesh_.vertices_.length, this.mesh_.triangles_.length);
+    this.gui_.updateMeshInfo();
   },
 
   /** When the user redos an action */
@@ -657,6 +659,6 @@ SculptGL.prototype = {
   {
     this.states_.redo();
     this.render();
-    this.gui_.updateMeshInfo(this.mesh_.vertices_.length, this.mesh_.triangles_.length);
+    this.gui_.updateMeshInfo();
   }
 };

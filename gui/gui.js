@@ -309,14 +309,17 @@ Gui.prototype = {
     mesh.render_.shader_.type_ = this.ctrlShaders_.getValue();
     this.ctrlShaders_.object = mesh.render_.shader_;
     mesh.render_.flatShading_ = this.ctrlFlatShading_.getValue();
-    this.updateMeshInfo(mesh.vertices_.length, mesh.triangles_.length);
+    this.updateMeshInfo();
   },
 
   /** Update number of vertices and triangles */
-  updateMeshInfo: function (nbVertices, nbTriangles)
+  updateMeshInfo: function ()
   {
-    this.ctrlNbVertices_.name('Ver : ' + nbVertices);
-    this.ctrlNbTriangles_.name('Tri : ' + nbTriangles);
+    var mesh = this.sculptgl_.mesh_;
+    if (!mesh)
+      return;
+    this.ctrlNbVertices_.name('Ver : ' + mesh.vertices_.length);
+    this.ctrlNbTriangles_.name('Tri : ' + mesh.triangles_.length);
   },
 
   /** Open file */

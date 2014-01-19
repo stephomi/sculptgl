@@ -34,51 +34,66 @@ Picking.prototype = {
   },
 
   /** Intersection between a ray and a mesh */
-  intersectionRayMesh: function (mesh, vNear, vFar, mouseX, mouseY, pressure)
+  intersectionRayMesh: (function ()
   {
-    this.mesh_ = null;
-    this.pickedTriangle_ = -1;
-    var triangles = mesh.triangles_;
-    var vAr = mesh.vertexArray_;
-    var iAr = mesh.indexArray_;
+    var v1 = [0.0, 0.0, 0.0];
+    var v2 = [0.0, 0.0, 0.0];
+    var v3 = [0.0, 0.0, 0.0];
     var ray = [0.0, 0.0, 0.0];
-    vec3.sub(ray, vFar, vNear);
-    vec3.normalize(ray, ray);
-    var rayInv = [1.0 / ray[0], 1.0 / ray[1], 1.0 / ray[2]];
-    var iTrisCandidates = mesh.octree_.intersectRay(vNear, rayInv);
-    var distance = -1.0;
-    var nbTrisCandidates = iTrisCandidates.length;
+    var rayInv = [0.0, 0.0, 0.0];
     var vertInter = [0.0, 0.0, 0.0];
-    for (var i = 0; i < nbTrisCandidates; ++i)
+    return function (mesh, vNear, vFar, mouseX, mouseY, pressure)
     {
-      var indTri = iTrisCandidates[i] * 3;
-      var ind1 = iAr[indTri] * 3,
-        ind2 = iAr[indTri + 1] * 3,
-        ind3 = iAr[indTri + 2] * 3;
-      var v1 = [vAr[ind1], vAr[ind1 + 1], vAr[ind1 + 2]],
-        v2 = [vAr[ind2], vAr[ind2 + 1], vAr[ind2 + 2]],
-        v3 = [vAr[ind3], vAr[ind3 + 1], vAr[ind3 + 2]];
-      if (Geometry.intersectionRayTriangle(vNear, ray, v1, v2, v3, vertInter))
+      this.mesh_ = null;
+      this.pickedTriangle_ = -1;
+      var triangles = mesh.triangles_;
+      var vAr = mesh.vertexArray_;
+      var iAr = mesh.indexArray_;
+      vec3.sub(ray, vFar, vNear);
+      vec3.normalize(ray, ray);
+      rayInv[0] = 1 / ray[0];
+      rayInv[1] = 1 / ray[1];
+      rayInv[2] = 1 / ray[2];
+      var iTrisCandidates = mesh.octree_.intersectRay(vNear, rayInv);
+      var distance = -1.0;
+      var nbTrisCandidates = iTrisCandidates.length;
+      for (var i = 0; i < nbTrisCandidates; ++i)
       {
-        var testDistance = vec3.sqrDist(vNear, vertInter);
+        var indTri = iTrisCandidates[i] * 3;
+        var ind1 = iAr[indTri] * 3,
+          ind2 = iAr[indTri + 1] * 3,
+          ind3 = iAr[indTri + 2] * 3;
+        v1[0] = vAr[ind1];
+        v1[1] = vAr[ind1 + 1];
+        v1[2] = vAr[ind1 + 2];
+        v2[0] = vAr[ind2];
+        v2[1] = vAr[ind2 + 1];
+        v2[2] = vAr[ind2 + 2];
+        v3[0] = vAr[ind3];
+        v3[1] = vAr[ind3 + 1];
+        v3[2] = vAr[ind3 + 2];
+        if (Geometry.intersectionRayTriangle(vNear, ray, v1, v2, v3, vertInter))
         {
-          if (testDistance < distance || distance < 0.0)
+          var testDistance = vec3.sqrDist(vNear, vertInter);
           {
-            distance = testDistance;
-            vec3.copy(this.interPoint_, vertInter);
-            this.pickedTriangle_ = iTrisCandidates[i];
+            if (testDistance < distance || distance < 0.0)
+            {
+              distance = testDistance;
+              vec3.copy(this.interPoint_, vertInter);
+              this.pickedTriangle_ = iTrisCandidates[i];
+            }
           }
         }
       }
-    }
-    if (this.pickedTriangle_ !== -1)
-    {
-      this.mesh_ = mesh;
-      this.computeRadiusWorldSq(mouseX, mouseY, pressure);
-    }
-    else
-      this.rWorldSqr_ = 0.0;
-  },
+      if (this.pickedTriangle_ !== -1)
+      {
+        this.mesh_ = mesh;
+        this.computeRadiusWorldSq(mouseX, mouseY, pressure);
+      }
+      else
+        this.rWorldSqr_ = 0.0;
+    };
+  })(),
 
   /** Find all the vertices inside the sphere */
   pickVerticesInSphere: function (rWorldSqr)
@@ -92,6 +107,10 @@ Picking.prototype = {
     var nbVerts = iVerts.length;
     var vertexSculptMask = ++Vertex.sculptMask_;
     var pickedVertices = this.pickedVertices_;
+    var inter = this.interPoint_;
+    var itx = inter[0],
+      ity = inter[1],
+      itz = inter[2];
     var ind = 0,
       j = 0;
     for (var i = 0; i < nbVerts; ++i)
@@ -99,8 +118,10 @@ Picking.prototype = {
       ind = iVerts[i];
       var v = vertices[ind];
       j = ind * 3;
-      var distSqr = vec3.sqrDist([vAr[j], vAr[j + 1], vAr[j + 2]], this.interPoint_);
-      if (distSqr < rWorldSqr)
+      var dx = itx - vAr[j],
+        dy = ity - vAr[j + 1],
+        dz = itz - vAr[j + 2];
+      if ((dx * dx + dy * dy + dz * dz) < rWorldSqr)
       {
         v.sculptFlag_ = vertexSculptMask;
         pickedVertices.push(iVerts[i]);

@@ -24,11 +24,18 @@ Topology.prototype.cut = function (planeOrigin, planeNormal, fillHoles)
 
   var tmp = [0.0, 0.0, 0.0];
   var nbVertsIntersect = iVertsIntersect.length;
+
+  var pox = planeOrigin[0],
+    poy = planeOrigin[1],
+    poz = planeOrigin[2];
+  var pnx = planeNormal[0],
+    pny = planeNormal[1],
+    pnz = planeNormal[2];
   for (i = 0; i < nbVertsIntersect; ++i)
   {
     var iv = iVertsIntersect[i];
     var iv3 = iv * 3;
-    if (vec3.dot(planeNormal, vec3.sub(tmp, [vAr[iv3], vAr[iv3 + 1], vAr[iv3 + 2]], planeOrigin)) > 0)
+    if ((pnx * (vAr[iv3] - pox) + pny * (vAr[iv3 + 1] - poy) + pnz * (vAr[iv3 + 2] - poz)) > 0.0)
       iVertsCulled.push(iv);
   }
 
@@ -70,7 +77,7 @@ Topology.prototype.cut = function (planeOrigin, planeNormal, fillHoles)
     lengthMeanSq = this.triangulateVerticesOnPlane(iVertsOnEdge, planeOrigin, planeNormal);
 
   this.applyDeletion(true);
-  this.states_.recomputeOctree(mesh.octree_.aabbSplit_);
+  mesh.computeOctree(mesh.octree_.aabbSplit_);
   return lengthMeanSq;
 };
 
@@ -226,42 +233,53 @@ Topology.prototype.makeTwoTrianglesSnapOnPlane = function (iTri, iv1, iv2, iv3, 
 };
 
 /** Return id of projected vertex on plane along the segment */
-Topology.prototype.getProjectedVertex = function (iv1, iv2, planeOrigin, planeNormal)
+Topology.prototype.getProjectedVertex = (function ()
 {
-  var mesh = this.mesh_;
-  var vAr = mesh.vertexArray_;
-  var cAr = mesh.colorArray_;
-  var nAr = mesh.normalArray_;
-  var vertices = mesh.vertices_;
-
-  var key = [Math.min(iv1, iv2), Math.max(iv1, iv2)];
-  var ivMid = this.verticesMap_[key];
-  if (ivMid === undefined)
+  var v1 = [0.0, 0.0, 0.0];
+  var v2 = [0.0, 0.0, 0.0];
+  var coordInter = [0.0, 0.0, 0.0];
+  return function (iv1, iv2, planeOrigin, planeNormal)
   {
-    ivMid = vertices.length;
-    this.verticesMap_[key] = ivMid;
-    vertices.push(new Vertex(ivMid));
-    var i = iv1 * 3;
-    var j = iv2 * 3;
-    var coordInter = [0.0, 0.0, 0.0]
-    Geometry.intersectLinePlane([vAr[i], vAr[i + 1], vAr[i + 2]], [vAr[j], vAr[j + 1], vAr[j + 2]], planeOrigin, planeNormal, coordInter);
-    i = ivMid * 3;
-    vAr[i] = coordInter[0];
-    vAr[i + 1] = coordInter[1];
-    vAr[i + 2] = coordInter[2];
+    var mesh = this.mesh_;
+    var vAr = mesh.vertexArray_;
+    var cAr = mesh.colorArray_;
+    var nAr = mesh.normalArray_;
+    var vertices = mesh.vertices_;
 
-    nAr[i] = nAr[j];
-    nAr[i + 1] = nAr[j + 1];
-    nAr[i + 2] = nAr[j + 2];
+    var key = [Math.min(iv1, iv2), Math.max(iv1, iv2)];
+    var ivMid = this.verticesMap_[key];
+    if (ivMid === undefined)
+    {
+      ivMid = vertices.length;
+      this.verticesMap_[key] = ivMid;
+      vertices.push(new Vertex(ivMid));
+      var i = iv1 * 3;
+      var j = iv2 * 3;
+      v1[0] = vAr[i];
+      v1[1] = vAr[i + 1];
+      v1[2] = vAr[i + 2];
+      v2[0] = vAr[j];
+      v2[1] = vAr[j + 1];
+      v2[2] = vAr[j + 2];
+      Geometry.intersectLinePlane(v1, v2, planeOrigin, planeNormal, coordInter);
+      i = ivMid * 3;
+      vAr[i] = coordInter[0];
+      vAr[i + 1] = coordInter[1];
+      vAr[i + 2] = coordInter[2];
 
-    cAr[i] = cAr[j];
-    cAr[i + 1] = cAr[j + 1];
-    cAr[i + 2] = cAr[j + 2];
-    vertices[iv1].ringVertices_.push(ivMid);
-    vertices[ivMid].ringVertices_.push(iv1);
-  }
-  return ivMid;
-};
+      nAr[i] = nAr[j];
+      nAr[i + 1] = nAr[j + 1];
+      nAr[i + 2] = nAr[j + 2];
+
+      cAr[i] = cAr[j];
+      cAr[i + 1] = cAr[j + 1];
+      cAr[i + 2] = cAr[j + 2];
+      vertices[iv1].ringVertices_.push(ivMid);
+      vertices[ivMid].ringVertices_.push(iv1);
+    }
+    return ivMid;
+  };
+})();
 
 /** Delaunay triangulation to make triangles on the plane */
 Topology.prototype.triangulateVerticesOnPlane = function (iVertsOnEdge, planeOrigin, planeNormal)
@@ -322,9 +340,12 @@ Topology.prototype.triangulateVerticesOnPlane = function (iVertsOnEdge, planeOri
     var nbPoints = hole.length;
     for (j = 1; j < nbPoints; ++j)
     {
-      var iv1 = hole[j - 1] * 3;
-      var iv2 = hole[j] * 3;
-      lengthMeanSq += vec3.sqrDist([vAr[iv1], vAr[iv1 + 1], vAr[iv1 + 2]], [vAr[iv2], vAr[iv2 + 1], vAr[iv2 + 2]]);
+      var id1 = hole[j - 1] * 3;
+      var id2 = hole[j] * 3;
+      var dx = vAr[id1] - vAr[id2],
+        dy = vAr[id1 + 1] - vAr[id2 + 1],
+        dz = vAr[id1 + 2] - vAr[id2 + 2];
+      lengthMeanSq += dx * dx + dy * dy + dz * dz;
     }
     totalPoint += nbPoints - 1;
   }
@@ -349,9 +370,19 @@ Topology.prototype.fillHoles = function (holes, planeOrigin, planeNormal)
     ory = planeOrigin[1],
     orz = planeOrigin[2];
 
+  var nx = planeNormal[0],
+    ny = planeNormal[1],
+    nz = planeNormal[2];
+
   var perp = Geometry.getPerpendicularVector(planeNormal);
   var perp2 = [0.0, 0.0, 0.0];
   vec3.cross(perp2, perp, planeNormal);
+  var px = perp[0],
+    py = perp[1],
+    pz = perp[2];
+  var p2x = perp2[0],
+    p2y = perp2[1],
+    p2z = perp2[2];
 
   var nbHoles = holes.length;
   for (i = 0; i < nbHoles; ++i)
@@ -363,8 +394,10 @@ Topology.prototype.fillHoles = function (holes, planeOrigin, planeNormal)
     for (j = 0; j < nbPoints; ++j)
     {
       var id = hole[j];
-      var vecPoint = [vAr[id * 3] - orx, vAr[id * 3 + 1] - ory, vAr[id * 3 + 2] - orz];
-      var pt = new poly2tri.Point(vec3.dot(perp, vecPoint), vec3.dot(perp2, vecPoint));
+      var vpx = vAr[id * 3] - orx,
+        vpy = vAr[id * 3 + 1] - ory,
+        vpz = vAr[id * 3 + 2] - orz;
+      var pt = new poly2tri.Point(px * vpx + py * vpy + pz * vpz, p2x * vpx + p2y * vpy + p2z * vpz);
       pt.id_ = id;
       contour[j] = pt;
     }
@@ -382,7 +415,10 @@ Topology.prototype.fillHoles = function (holes, planeOrigin, planeNormal)
       var ptTris = trisPlane[j].points_;
       var idTri = triangles.length;
       var t = new Triangle(idTri);
-      t.normal_ = planeNormal.slice();
+      var normal = t.normal_;
+      normal[0] = nx;
+      normal[1] = ny;
+      normal[2] = nz;
       triangles.push(t);
       var iv1 = ptTris[0].id_,
         iv2 = ptTris[1].id_,
