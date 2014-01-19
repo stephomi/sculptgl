@@ -12,8 +12,9 @@ Aabb.prototype = {
   clone: function ()
   {
     var ab = new Aabb();
-    ab.min_ = this.min_.slice();
-    ab.max_ = this.max_.slice();
+    vec3.copy(ab.min_, this.min_);
+    vec3.copy(ab.max_, this.max_);
+    vec3.copy(ab.center_, this.center_);
     return ab;
   },
 
