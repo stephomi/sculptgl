@@ -337,6 +337,7 @@ Gui.prototype = {
       var gl = bg.gl_;
       gl.deleteTexture(bg.backgroundLoc_);
       this.sculptgl_.background_ = null;
+      this.sculptgl_.render();
     }
   },
 

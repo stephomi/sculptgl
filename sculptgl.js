@@ -600,6 +600,7 @@ SculptGL.prototype = {
       bg.src = evt.target.result;
       self.background_.loadBackgroundTexture(bg);
       self.render();
+      $('#backgroundopen').replaceWith($('#backgroundopen').clone(true));
     };
     reader.readAsDataURL(file);
   },
