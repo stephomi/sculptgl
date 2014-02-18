@@ -19,7 +19,7 @@ function Mesh(gl)
 }
 
 Mesh.globalScale_ = 500.0; //for precision issue...
-Mesh.stateMask_ = 1.0; //for history
+Mesh.stateMask_ = 1; //for history
 
 Mesh.prototype = {
   /** Return all the triangles linked to a group of vertices */
