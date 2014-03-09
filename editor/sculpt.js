@@ -592,7 +592,7 @@ Sculpt.prototype = {
     var d2Move = this.d2Move_;
     var dMove = Math.sqrt(d2Move);
     var limitMove = this.topo_ === Sculpt.topo.ADAPTIVE;
-    var deformIntensity = intensity * radius * 0.005;
+    var deformIntensity = intensity * 0.05;
     for (var i = 0; i < nbVerts; ++i)
     {
       var ind = iVertsInRadius[i] * 3;
@@ -644,10 +644,10 @@ Sculpt.prototype = {
     var d2Move = this.d2Move_;
     var dMove = Math.sqrt(d2Move);
     var limitMove = this.topo_ === Sculpt.topo.ADAPTIVE;
-    var deformIntensity = intensity * radius * 0.005;
-    var brushFactor = 10.0;
+    var deformIntensity = intensity * 0.05;
+    var brushFactor = radius * deformIntensity;
     if (this.negative_)
-      brushFactor = -10.0;
+      brushFactor = -brushFactor;
     for (var i = 0; i < nbVerts; ++i)
     {
       var ind = iVertsInRadius[i] * 3;
@@ -660,8 +660,8 @@ Sculpt.prototype = {
       var distToCen = Math.sqrt(dx * dx + dy * dy + dz * dz) / radius;
       var fallOff = distToCen * distToCen;
       fallOff = 3.0 * fallOff * fallOff - 4.0 * fallOff * distToCen + 1.0;
-      var brushModifier = deformIntensity * Math.pow(2 - fallOff, -5) * brushFactor;
-      fallOff *= 0.1;
+      var brushModifier = Math.pow(2 - fallOff, -5) * brushFactor;
+      fallOff = deformIntensity * fallOff;
       dx = dx * fallOff + anx * brushModifier;
       dy = dy * fallOff + any * brushModifier;
       dz = dz * fallOff + anz * brushModifier;
