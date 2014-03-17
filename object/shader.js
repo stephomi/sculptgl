@@ -20,9 +20,6 @@ function Shader(gl)
   this.centerPickingUnif_ = null; //center of selection uniform location
   this.radiusSquaredUnif_ = null; //radius of selection uniform location
 
-  this.lineOriginUnif_ = null; //line origin uniform location
-  this.lineNormalUnif_ = null; //line normal uniform location
-
   this.reflectionTexUnif_ = null; //reflection texture uniform location
 }
 
@@ -78,9 +75,6 @@ Shader.prototype = {
     this.normalMatrixUnif_ = gl.getUniformLocation(program, 'nMat');
     this.centerPickingUnif_ = gl.getUniformLocation(program, 'centerPicking');
     this.radiusSquaredUnif_ = gl.getUniformLocation(program, 'radiusSquared');
-
-    this.lineOriginUnif_ = gl.getUniformLocation(program, 'lineOrigin');
-    this.lineNormalUnif_ = gl.getUniformLocation(program, 'lineNormal');
 
     if (this.type_ >= Shader.mode.MATERIAL)
       this.reflectionTexUnif_ = gl.getUniformLocation(program, 'refTex');

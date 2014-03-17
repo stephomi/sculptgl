@@ -2,7 +2,7 @@
 
 function Picking(camera)
 {
-  this.mesh_ = null; //mesh
+  this.multimesh_ = null; //mesh
   this.pickedTriangle_ = -1; //triangle picked
   this.pickedVertices_ = []; //vertices selected
   this.interPoint_ = [0.0, 0.0, 0.0]; //intersection point
@@ -14,12 +14,12 @@ function Picking(camera)
 
 Picking.prototype = {
   /** Intersection between a ray the mouse position */
-  intersectionMouseMesh: function (mesh, mouseX, mouseY, pressure, ptPlane, nPlane)
+  intersectionMouseMesh: function (multimesh, mouseX, mouseY, pressure, ptPlane, nPlane)
   {
     var vNear = this.camera_.unproject(mouseX, mouseY, 0.0),
       vFar = this.camera_.unproject(mouseX, mouseY, 1.0);
     var matInverse = mat4.create();
-    mat4.invert(matInverse, mesh.matTransform_);
+    mat4.invert(matInverse, multimesh.matTransform_);
     vec3.transformMat4(vNear, vNear, matInverse);
     vec3.transformMat4(vFar, vFar, matInverse);
     if (ptPlane)
@@ -27,7 +27,7 @@ Picking.prototype = {
       Geometry.mirrorPoint(vNear, ptPlane, nPlane);
       Geometry.mirrorPoint(vFar, ptPlane, nPlane);
     }
-    this.intersectionRayMesh(mesh, vNear, vFar, mouseX, mouseY, pressure);
+    this.intersectionRayMesh(multimesh, vNear, vFar, mouseX, mouseY, pressure);
     var eyeDir = this.eyeDir_;
     vec3.sub(eyeDir, vFar, vNear);
     vec3.normalize(eyeDir, eyeDir);
@@ -42,10 +42,11 @@ Picking.prototype = {
     var ray = [0.0, 0.0, 0.0];
     var rayInv = [0.0, 0.0, 0.0];
     var vertInter = [0.0, 0.0, 0.0];
-    return function (mesh, vNear, vFar, mouseX, mouseY, pressure)
+    return function (multimesh, vNear, vFar, mouseX, mouseY, pressure)
     {
-      this.mesh_ = null;
+      this.multimesh_ = null;
       this.pickedTriangle_ = -1;
+      var mesh = multimesh.getCurrent();
       var triangles = mesh.triangles_;
       var vAr = mesh.vertexArray_;
       var iAr = mesh.indexArray_;
@@ -87,7 +88,7 @@ Picking.prototype = {
       }
       if (this.pickedTriangle_ !== -1)
       {
-        this.mesh_ = mesh;
+        this.multimesh_ = multimesh;
         this.computeRadiusWorldSq(mouseX, mouseY, pressure);
       }
       else
@@ -99,11 +100,12 @@ Picking.prototype = {
   pickVerticesInSphere: function (rWorldSqr)
   {
     this.pickedVertices_ = [];
-    var vertices = this.mesh_.vertices_;
-    var vAr = this.mesh_.vertexArray_;
-    var leavesHit = this.mesh_.leavesUpdate_;
-    var iTrisInCells = this.mesh_.octree_.intersectSphere(this.interPoint_, rWorldSqr, leavesHit);
-    var iVerts = this.mesh_.getVerticesFromTriangles(iTrisInCells);
+    var mesh = this.multimesh_.getCurrent();
+    var vertices = mesh.vertices_;
+    var vAr = mesh.vertexArray_;
+    var leavesHit = mesh.leavesUpdate_;
+    var iTrisInCells = mesh.octree_.intersectSphere(this.interPoint_, rWorldSqr, leavesHit);
+    var iVerts = mesh.getVerticesFromTriangles(iTrisInCells);
     var nbVerts = iVerts.length;
     var vertexSculptMask = ++Vertex.sculptMask_;
     var pickedVertices = this.pickedVertices_;
@@ -129,7 +131,7 @@ Picking.prototype = {
     }
     if (this.pickedVertices_.length === 0 && this.pickedTriangle_ !== -1) //no vertices inside the brush radius (big triangle or small radius)
     {
-      var iAr = this.mesh_.indexArray_;
+      var iAr = mesh.indexArray_;
       j = this.pickedTriangle_ * 3;
       this.pickedVertices_.push(iAr[j], iAr[j + 1], iAr[j + 2]);
     }
@@ -139,7 +141,7 @@ Picking.prototype = {
   computeRadiusWorldSq: function (mouseX, mouseY, pressure)
   {
     var interPointTransformed = [0.0, 0.0, 0.0];
-    vec3.transformMat4(interPointTransformed, this.interPoint_, this.mesh_.matTransform_);
+    vec3.transformMat4(interPointTransformed, this.interPoint_, this.multimesh_.matTransform_);
     var z = this.camera_.project(interPointTransformed)[2];
     var vCircle = this.camera_.unproject(mouseX + (this.rDisplay_ * pressure), mouseY, z);
     this.rWorldSqr_ = vec3.sqrDist(interPointTransformed, vCircle);

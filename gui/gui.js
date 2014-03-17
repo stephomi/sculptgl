@@ -17,16 +17,9 @@ function Gui(sculptgl)
   this.ctrlRadius_ = null; //radius controller
   this.ctrlIntensity_ = null; //intensity sculpting controller
   this.ctrlCameraType_ = null; //camera type controller
-  this.ctrlDetailSubdivision_ = null; //subdivision detail slider
-  this.ctrlDetailDecimation_ = null; //decimation detail slider
   this.ctrlNbVertices_ = null; //display number of vertices controller
   this.ctrlNbTriangles_ = null; //display number of triangles controller
   this.ctrlFov_ = null; //vertical field of view controller
-  this.ctrlCut_ = null; //apply cut controller
-  this.ctrlFillHoles_ = null; //fill holes controller
-  this.ctrlSubdDetailCut_ = null; //subdivision detail (fill holes) controller
-
-  this.foldTopo_ = null; //fold topo controller
 
   //files functions
   this.open_ = this.openFile; //open file button (trigger hidden html input...)
@@ -135,8 +128,8 @@ Gui.prototype = {
       main.camera_.updateProjection();
       main.render();
     });
-    this.ctrlFov_ = cameraFold.add(main.camera_, 'fov_', 10, 80).name('Fov');
-    this.ctrlFov_.onChange(function (value)
+    this.ctrlFov_ = cameraFold.add(main.camera_, 'fov_', 10, 150).name('Fov');
+    this.ctrlFov_.onChange(function ()
     {
       main.camera_.updateProjection();
       main.render();
@@ -180,8 +173,7 @@ Gui.prototype = {
       'Crease (7)': Sculpt.tool.CREASE,
       'Drag (8)': Sculpt.tool.DRAG,
       'Paint (9)': Sculpt.tool.COLOR,
-      'Scale (0)': Sculpt.tool.SCALE,
-      'Cut': Sculpt.tool.CUT
+      'Scale (0)': Sculpt.tool.SCALE
     };
     this.ctrlSculpt_ = foldSculpt.add(main.sculpt_, 'tool_', optionsSculpt).name('Tool');
     this.ctrlSculpt_.onChange(function (value)
@@ -191,24 +183,9 @@ Gui.prototype = {
       var st = Sculpt.tool;
       self.ctrlClay_.__li.hidden = tool !== st.BRUSH;
       self.ctrlNegative_.__li.hidden = tool !== st.BRUSH && tool !== st.INFLATE && tool !== st.CREASE;
-      self.ctrlContinuous_.__li.hidden = tool === st.ROTATE || tool === st.DRAG || tool === st.SCALE || tool === st.CUT;
-      self.ctrlSymmetry_.__li.hidden = tool === st.CUT;
-      self.ctrlSculptCulling_.__li.hidden = tool === st.CUT;
-      self.ctrlRadius_.__li.hidden = tool === st.CUT;
+      self.ctrlContinuous_.__li.hidden = tool === st.ROTATE || tool === st.DRAG || tool === st.SCALE;
       self.ctrlIntensity_.__li.hidden = self.ctrlContinuous_.__li.hidden;
       self.ctrlColor_.__li.hidden = tool !== st.COLOR;
-      self.ctrlCameraType_.__li.hidden = tool === st.CUT;
-      self.ctrlCut_.__li.hidden = tool !== st.CUT;
-      self.ctrlFillHoles_.__li.hidden = tool !== st.CUT;
-      self.ctrlSubdDetailCut_.__li.hidden = tool !== st.CUT;
-      self.foldTopo_.__ul.hidden = tool === st.CUT;
-      if (tool === st.CUT)
-        self.ctrlCameraType_.setValue(Camera.projType.ORTHOGRAPHIC);
-      else
-      {
-        main.sculpt_.lineOrigin_ = [0, 0];
-        main.sculpt_.lineNormal_ = [0, 0];
-      }
     });
     this.ctrlClay_ = foldSculpt.add(main.sculpt_, 'clay_').name('Clay');
     this.ctrlNegative_ = foldSculpt.add(main.sculpt_, 'negative_').name('Negative (N)');
@@ -217,33 +194,14 @@ Gui.prototype = {
     this.ctrlSculptCulling_ = foldSculpt.add(main.sculpt_, 'culling_').name('Sculpt culling');
     this.ctrlRadius_ = foldSculpt.add(main.picking_, 'rDisplay_', 5, 200).name('Radius');
     this.ctrlIntensity_ = foldSculpt.add(main.sculpt_, 'intensity_', 0, 1).name('Intensity');
-    this.ctrlCut_ = foldSculpt.add(main, 'cut_', 0, 1).name('Click to cut !');
-    this.ctrlCut_.__li.hidden = true;
-    this.ctrlFillHoles_ = foldSculpt.add(main.sculpt_, 'fillHoles_', 0, 1).name('fill holes (buggy)');
-    this.ctrlSubdDetailCut_ = foldSculpt.add(main.sculpt_, 'subdDetailCut_', 0, 4).name('Detail');
-    this.ctrlSubdDetailCut_.__li.hidden = true;
-    this.ctrlFillHoles_.__li.hidden = true;
     foldSculpt.open();
 
-    //topo fold
-    this.foldTopo_ = gui.addFolder('Topology');
-    var optionsTopo = {
-      'Static': Sculpt.topo.STATIC,
-      'Dynamic': Sculpt.topo.SUBDIVISION,
-      'Adaptive (!)': Sculpt.topo.ADAPTIVE
-    };
-    var ctrlTopo = this.foldTopo_.add(main.sculpt_, 'topo_', optionsTopo).name('Tool');
-    ctrlTopo.onChange(function (value)
-    {
-      main.sculpt_.topo_ = parseInt(value, 10);
-      var topo = main.sculpt_.topo_;
-      var st = Sculpt.topo;
-      self.ctrlDetailSubdivision_.__li.hidden = topo === st.STATIC;
-      self.ctrlDetailDecimation_.__li.hidden = topo !== st.SUBDIVISION;
-    });
-    this.ctrlDetailSubdivision_ = this.foldTopo_.add(main.sculpt_, 'detailSubdivision_', 0, 1).name('Subdivision');
-    this.ctrlDetailDecimation_ = this.foldTopo_.add(main.sculpt_, 'detailDecimation_', 0, 1).name('Decimation');
-    this.foldTopo_.open();
+    //multires fold
+    var foldMultires = gui.addFolder('Multires');
+    foldMultires.add(this, 'subdivide');
+    foldMultires.add(this, 'lower');
+    foldMultires.add(this, 'higher');
+    foldMultires.open();
 
     //mesh fold
     var foldMesh = gui.addFolder('Mesh');
@@ -252,7 +210,7 @@ Gui.prototype = {
     var optionsShaders = {
       'Phong': Shader.mode.PHONG,
       'Transparency': Shader.mode.TRANSPARENCY,
-      'Wireframe': Shader.mode.WIREFRAME,
+      'Wireframe (slow)': Shader.mode.WIREFRAME,
       'Normal shader': Shader.mode.NORMAL,
       'Clay': Shader.mode.MATERIAL,
       'Chavant': Shader.mode.MATERIAL + 1,
@@ -265,19 +223,19 @@ Gui.prototype = {
     this.ctrlShaders_ = foldMesh.add(new Shader(), 'type_', optionsShaders).name('Shader');
     this.ctrlShaders_.onChange(function (value)
     {
-      if (main.mesh_)
+      if (main.multimesh_)
       {
-        main.mesh_.initRender(parseInt(value, 10), main.textures_, main.shaders_);
+        main.multimesh_.initRender(parseInt(value, 10), main.textures_, main.shaders_);
         main.render();
       }
     });
-    this.ctrlFlatShading_ = foldMesh.add(new Render(), 'flatShading_').name('flat shading');
+    this.ctrlFlatShading_ = foldMesh.add(new Render(), 'flatShading_').name('flat shading (slower)');
     this.ctrlFlatShading_.onChange(function (value)
     {
-      if (main.mesh_)
+      if (main.multimesh_)
       {
-        main.mesh_.render_.flatShading_ = value;
-        main.mesh_.updateBuffers();
+        main.multimesh_.render_.flatShading_ = value;
+        main.multimesh_.updateBuffers(true, true);
         main.render();
       }
     });
@@ -301,25 +259,23 @@ Gui.prototype = {
     foldMesh.open();
   },
 
-  /** Update gui stuffs in relation to the mesh */
-  updateMesh: function (mesh)
+  /** Update information on mesh */
+  updateMesh: function ()
   {
-    if (!mesh)
+    var main = this.sculptgl_;
+    if (!main.mesh_ || !main.multimesh_)
       return;
-    mesh.render_.shader_.type_ = this.ctrlShaders_.getValue();
-    this.ctrlShaders_.object = mesh.render_.shader_;
-    mesh.render_.flatShading_ = this.ctrlFlatShading_.getValue();
-    this.updateMeshInfo();
+    var mesh = main.multimesh_.getCurrent();
+    this.ctrlShaders_.object = main.multimesh_.render_.shader_;
+    this.ctrlShaders_.updateDisplay();
+    this.updateMeshInfo(mesh.vertices_.length, mesh.triangles_.length);
   },
 
   /** Update number of vertices and triangles */
-  updateMeshInfo: function ()
+  updateMeshInfo: function (nbVertices, nbTriangles)
   {
-    var mesh = this.sculptgl_.mesh_;
-    if (!mesh)
-      return;
-    this.ctrlNbVertices_.name('Ver : ' + mesh.vertices_.length);
-    this.ctrlNbTriangles_.name('Tri : ' + mesh.triangles_.length);
+    this.ctrlNbVertices_.name('Ver : ' + nbVertices);
+    this.ctrlNbTriangles_.name('Tri : ' + nbTriangles);
   },
 
   /** Open file */
@@ -337,7 +293,6 @@ Gui.prototype = {
       var gl = bg.gl_;
       gl.deleteTexture(bg.backgroundLoc_);
       this.sculptgl_.background_ = null;
-      this.sculptgl_.render();
     }
   },
 
@@ -417,5 +372,35 @@ Gui.prototype = {
       return;
     }
     Export.exportSketchfab(this.sculptgl_.mesh_, this.keySketchfab_);
+  },
+
+  /** Subdivide the mesh */
+  subdivide: function ()
+  {
+    var main = this.sculptgl_;
+    var mesh = main.multimesh_.addLevel();
+    main.mesh_ = mesh;
+    this.updateMeshInfo(mesh.vertices_.length, mesh.triangles_.length);
+    main.render();
+  },
+
+  /** Go to lower subdivision level */
+  lower: function ()
+  {
+    var main = this.sculptgl_;
+    var mesh = main.multimesh_.lowerLevel();
+    main.mesh_ = mesh;
+    this.updateMeshInfo(mesh.vertices_.length, mesh.triangles_.length);
+    main.render();
+  },
+
+  /** Go to higher subdivision level */
+  higher: function ()
+  {
+    var main = this.sculptgl_;
+    var mesh = main.multimesh_.higherLevel();
+    main.mesh_ = mesh;
+    this.updateMeshInfo(mesh.vertices_.length, mesh.triangles_.length);
+    main.render();
   }
 };

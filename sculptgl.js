@@ -21,8 +21,8 @@ function SculptGL()
   this.pressureIntensity_ = 0; //for continuous sculpting
   this.mouseX_ = 0; //for continuous sculpting
   this.mouseY_ = 0; //for continuous sculpting
-  this.ptPlane_ = [0.0, 0.0, 0.0]; //point origin of the plane symmetry
-  this.nPlane_ = [1.0, 0.0, 0.0]; //normal of plane symmetry
+  this.ptPlane_ = [0, 0, 0]; //point origin of the plane symmetry
+  this.nPlane_ = [1, 0, 0]; //normal of plane symmetry
 
   //core of the app
   this.states_ = new States(); //for undo-redo
@@ -31,6 +31,7 @@ function SculptGL()
   this.pickingSym_ = new Picking(this.camera_); //the symmetrical picking
   this.sculpt_ = new Sculpt(this.states_); //sculpting management
   this.background_ = null; //the background
+  this.multimesh_ = null; //the multiresolution mesh
   this.mesh_ = null; //the mesh
 
   //datas
@@ -46,7 +47,6 @@ function SculptGL()
   this.resetSphere_ = this.resetSphere; //load sphere
   this.undo_ = this.onUndo; //undo last action
   this.redo_ = this.onRedo; //redo last action
-  this.cut_ = this.cut; //apply cut tool
 }
 
 SculptGL.elementIndexType = 0; //element index type (ushort or uint)
@@ -234,8 +234,8 @@ SculptGL.prototype = {
       this.background_.render();
       gl.depthMask(true);
     }
-    if (this.mesh_)
-      this.mesh_.render(this.camera_, this.picking_, this.sculpt_.lineOrigin_, this.sculpt_.lineNormal_);
+    if (this.multimesh_)
+      this.multimesh_.render(this.camera_, this.picking_);
   },
 
   /** Called when the window is resized */
@@ -271,6 +271,12 @@ SculptGL.prototype = {
     {
       this.onRedo();
       return;
+    }
+    if (event.altKey)
+    {
+      if (this.camera_.usePivot_)
+        this.picking_.intersectionMouseMesh(this.multimesh_, this.lastMouseX_, this.lastMouseY_, 0.5);
+      this.camera_.start(this.lastMouseX_, this.lastMouseY_, this.picking_);
     }
     switch (key)
     {
@@ -403,13 +409,11 @@ SculptGL.prototype = {
     var pressureIntensity = this.usePenIntensity_ ? pressure : 1.0;
     if (button === 1 && !event.altKey)
     {
-      if (this.mesh_)
+      if (this.multimesh_)
       {
         this.sumDisplacement_ = 0;
         this.states_.start();
-        if (this.sculpt_.tool_ === Sculpt.tool.CUT)
-          this.sculpt_.setLineOrigin(mouseX, this.camera_.height_ - mouseY);
-        else if (this.sculpt_.tool_ === Sculpt.tool.ROTATE)
+        if (this.sculpt_.tool_ === Sculpt.tool.ROTATE)
           this.sculpt_.startRotate(this.picking_, mouseX, mouseY, this.pickingSym_, this.ptPlane_, this.nPlane_, this.symmetry_);
         else if (this.sculpt_.tool_ === Sculpt.tool.SCALE)
           this.sculpt_.startScale(this.picking_, mouseX, mouseY, this.pickingSym_, this.ptPlane_, this.nPlane_, this.symmetry_);
@@ -423,7 +427,6 @@ SculptGL.prototype = {
           this.sculptTimer_ = setInterval(function ()
           {
             self.sculpt_.sculptStroke(self.mouseX_, self.mouseY_, self.pressureRadius_, self.pressureIntensity_, self);
-            self.gui_.updateMeshInfo();
             self.render();
           }, 20);
         }
@@ -434,7 +437,7 @@ SculptGL.prototype = {
     if (button === 3 || (button === 1 && this.picking_.mesh_ === null) || (event.altKey && button !== 0)) {
       this.mouseButton_ = 3;
       if (this.camera_.usePivot_)
-        this.picking_.intersectionMouseMesh(this.mesh_, mouseX, mouseY, pressureRadius);
+        this.picking_.intersectionMouseMesh(this.multimesh_, mouseX, mouseY, pressureRadius);
       this.camera_.start(mouseX, mouseY, this.picking_);
     }
   },
@@ -444,22 +447,21 @@ SculptGL.prototype = {
   {
     event.stopPropagation();
     event.preventDefault();
-    if (this.mesh_)
-      this.mesh_.checkLeavesUpdate();
+    if (this.multimesh_)
+      this.multimesh_.checkLeavesUpdate();
     if (this.sculptTimer_ !== -1)
     {
       clearInterval(this.sculptTimer_);
       this.sculptTimer_ = -1;
     }
-    this.gui_.updateMeshInfo();
     this.mouseButton_ = 0;
   },
 
   /** Mouse out event */
   onMouseOut: function ()
   {
-    if (this.mesh_)
-      this.mesh_.checkLeavesUpdate();
+    if (this.multimesh_)
+      this.multimesh_.checkLeavesUpdate();
     if (this.sculptTimer_ !== -1)
     {
       clearInterval(this.sculptTimer_);
@@ -490,8 +492,8 @@ SculptGL.prototype = {
     var tool = this.sculpt_.tool_;
     var st = Sculpt.tool;
     var pressure = Tablet.pressure();
-    var pressureRadius = this.usePenRadius_ ? pressure : 1.0;
-    var pressureIntensity = this.usePenIntensity_ ? pressure : 1.0;
+    var pressureRadius = this.usePenRadius_ ? pressure : 1;
+    var pressureIntensity = this.usePenIntensity_ ? pressure : 1;
     var modifierPressed = event.altKey || event.ctrlKey || event.shiftKey;
     if (this.continuous_ && this.sculptTimer_ !== -1 && !modifierPressed)
     {
@@ -501,24 +503,16 @@ SculptGL.prototype = {
       this.mouseY_ = mouseY;
       return;
     }
-    if (tool !== st.CUT && this.mesh_ && (button !== 1 || (tool !== st.ROTATE && tool !== st.DRAG && tool !== st.SCALE)))
-      this.picking_.intersectionMouseMesh(this.mesh_, mouseX, mouseY, pressureRadius);
+    if (this.multimesh_ && (button !== 1 || (tool !== st.ROTATE && tool !== st.DRAG && tool !== st.SCALE)))
+      this.picking_.intersectionMouseMesh(this.multimesh_, mouseX, mouseY, pressureRadius);
     if (button === 1 && !event.altKey)
-    {
-      if (tool === st.CUT)
-        this.sculpt_.updateLineNormal(mouseX, this.camera_.height_ - mouseY);
-      else
-      {
-        this.sculpt_.sculptStroke(mouseX, mouseY, pressureRadius, pressureIntensity, this);
-        this.gui_.updateMeshInfo();
-      }
-    }
-    else if (button === 2 || (event.altKey && event.shiftKey && button !== 0))
-      this.camera_.translate((mouseX - this.lastMouseX_) / 3000.0, (mouseY - this.lastMouseY_) / 3000.0);
-    else if (event.altKey && event.ctrlKey && button !== 0)
-      this.camera_.zoom((mouseY - this.lastMouseY_) / 3000.0);
-    else if (button === 3 || (event.altKey && !event.shiftKey && !event.ctrlKey && button !== 0))
+      this.sculpt_.sculptStroke(mouseX, mouseY, pressureRadius, pressureIntensity, this);
+    else if (button === 3 || (event.altKey && !event.shiftKey && !event.ctrlKey))
       this.camera_.rotate(mouseX, mouseY);
+    else if (button === 2 || (event.altKey && event.shiftKey))
+      this.camera_.translate((mouseX - this.lastMouseX_) / 3000, (mouseY - this.lastMouseY_) / 3000);
+    else if (event.altKey && event.ctrlKey)
+      this.camera_.zoom((mouseY - this.lastMouseY_) / 3000);
     this.lastMouseX_ = mouseX;
     this.lastMouseY_ = mouseY;
     this.render();
@@ -607,21 +601,15 @@ SculptGL.prototype = {
     this.endMeshLoad();
   },
 
-  /** Apply cut tool */
-  cut: function ()
-  {
-    this.sculpt_.cut(this.picking_);
-    this.gui_.updateMeshInfo();
-    this.render();
-  },
-
   /** Initialization before loading the mesh */
   startMeshLoad: function ()
   {
     this.mesh_ = new Mesh(this.gl_);
+    this.multimesh_ = new Multimesh(this.gl_);
+    this.multimesh_.meshes_.push(this.mesh_);
     this.states_.reset();
-    this.states_.mesh_ = this.mesh_;
-    this.sculpt_.mesh_ = this.mesh_;
+    this.states_.multimesh_ = this.multimesh_;
+    this.sculpt_.multimesh_ = this.multimesh_;
     //reset flags (not necessary...)
     Mesh.stateMask_ = 1;
     Vertex.tagMask_ = 1;
@@ -632,12 +620,12 @@ SculptGL.prototype = {
   /** The loading is finished, set stuffs ... and update camera */
   endMeshLoad: function ()
   {
-    var mesh = this.mesh_;
-    mesh.initMesh();
-    mesh.moveTo([0.0, 0.0, 0.0]);
+    var multimesh = this.multimesh_;
+    multimesh.init();
+    multimesh.moveTo([0, 0, 0]);
     this.camera_.reset();
-    this.gui_.updateMesh(mesh);
-    mesh.initRender(mesh.render_.shader_.type_, this.textures_, this.shaders_);
+    this.gui_.updateMesh();
+    multimesh.initRender(Shader.mode.MATERIAL, this.textures_, this.shaders_);
     this.render();
   },
 
@@ -645,15 +633,17 @@ SculptGL.prototype = {
   onUndo: function ()
   {
     this.states_.undo();
+    this.multimesh_.updateBuffers(true, true);
     this.render();
-    this.gui_.updateMeshInfo();
+    this.gui_.updateMesh();
   },
 
   /** When the user redos an action */
   onRedo: function ()
   {
     this.states_.redo();
+    this.multimesh_.updateBuffers(true, true);
     this.render();
-    this.gui_.updateMeshInfo();
+    this.gui_.updateMesh();
   }
 };

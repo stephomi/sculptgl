@@ -1,21 +1,21 @@
 'use strict';
 
-function Mesh(gl)
+function Mesh()
 {
   this.vertices_ = []; //logical vertex
   this.triangles_ = []; //logical triangle
+
+  this.nbEdges_ = 0; // number of edges
+  this.verticesOnEdge_ = null; // vertices on edge (Uint8Array)
+  this.triEdgesArray_ = null; //triangles to edges (Uint32Array)
 
   this.vertexArray_ = null; //vertices (Float32Array)
   this.normalArray_ = null; //normals (Float32Array)
   this.colorArray_ = null; //color vertices (Float32Array)
   this.indexArray_ = null; //triangles (Uint16Array or Uint32Array)
 
-  this.center_ = [0.0, 0.0, 0.0]; //center of mesh
   this.octree_ = new Octree(); //octree
-  this.matTransform_ = mat4.create(); //transformation matrix of the mesh
   this.leavesUpdate_ = []; //leaves of the octree to check
-  this.render_ = new Render(gl, this); //the mesh renderer
-  this.scale_ = 1.0; //use for export in order to keep the same scale as import...
 }
 
 Mesh.globalScale_ = 500.0; //for precision issue...
@@ -171,133 +171,165 @@ Mesh.prototype = {
     }
   },
 
-  /** Compute the vertices around a vertex */
-  computeRingVertices: function (iVert)
+  /** Compute Aabb */
+  computeAabb: function ()
   {
-    var vertexTagMask = ++Vertex.tagMask_;
-    var vertices = this.vertices_;
-    var iAr = this.indexArray_;
-    var vert = vertices[iVert];
-    vert.ringVertices_.length = 0;
-    var ring = vert.ringVertices_;
-    var iTris = vert.tIndices_;
-    var nbTris = iTris.length;
-    for (var i = 0; i < nbTris; ++i)
-    {
-      var ind = iTris[i] * 3;
-      var iVer1 = iAr[ind],
-        iVer2 = iAr[ind + 1],
-        iVer3 = iAr[ind + 2];
-      if (iVer1 !== iVert && vertices[iVer1].tagFlag_ !== vertexTagMask)
-      {
-        ring.push(iVer1);
-        vertices[iVer1].tagFlag_ = vertexTagMask;
-      }
-      if (iVer2 !== iVert && vertices[iVer2].tagFlag_ !== vertexTagMask)
-      {
-        ring.push(iVer2);
-        vertices[iVer2].tagFlag_ = vertexTagMask;
-      }
-      if (iVer3 !== iVert && vertices[iVer3].tagFlag_ !== vertexTagMask)
-      {
-        ring.push(iVer3);
-        vertices[iVer3].tagFlag_ = vertexTagMask;
-      }
-    }
-  },
-
-  /** Move the mesh center to a certain point */
-  moveTo: function (destination)
-  {
-    mat4.translate(this.matTransform_, mat4.create(), vec3.sub(destination, destination, this.center_));
-  },
-
-  /** Render the mesh */
-  render: function (camera, picking, lineOrigin, lineNormal)
-  {
-    this.render_.render(camera, picking, lineOrigin, lineNormal);
-  },
-
-  /** Initialize the mesh information : center, octree */
-  initMesh: function ()
-  {
-    var vertices = this.vertices_;
-    var triangles = this.triangles_;
+    var nbVertices = this.vertices_.length;
     var vAr = this.vertexArray_;
-    var nbVertices = vertices.length;
-    var nbTriangles = triangles.length;
-
-    //ring vertices and mesh main aabb
     var aabb = new Aabb();
+    aabb.set(vAr[0], vAr[1], vAr[2], vAr[0], vAr[1], vAr[2]);
     var i = 0,
       j = 0;
     for (i = 0; i < nbVertices; ++i)
     {
-      this.computeRingVertices(i);
       j = i * 3;
       aabb.expandsWithPoint(vAr[j], vAr[j + 1], vAr[j + 2]);
     }
-    this.center_ = aabb.computeCenter();
-
-    //scale
-    var diag = vec3.dist(aabb.min_, aabb.max_);
-    this.scale_ = Mesh.globalScale_ / diag;
-    var scale = this.scale_;
-    for (i = 0; i < nbVertices; ++i)
-    {
-      j = i * 3;
-      vAr[j] *= scale;
-      vAr[j + 1] *= scale;
-      vAr[j + 2] *= scale;
-    }
-    mat4.scale(this.matTransform_, this.matTransform_, [scale, scale, scale]);
-    vec3.scale(aabb.min_, aabb.min_, scale);
-    vec3.scale(aabb.max_, aabb.max_, scale);
-    vec3.scale(this.center_, this.center_, scale);
-
-    //root octree bigger than minimum aabb...
-    var vecShift = [0.0, 0.0, 0.0];
-    vec3.sub(vecShift, aabb.max_, aabb.min_);
-    vec3.scale(vecShift, vecShift, 0.2);
-    vec3.sub(aabb.min_, aabb.min_, vecShift);
-    vec3.add(aabb.max_, aabb.max_, vecShift);
-    aabb.enlargeIfFlat(vec3.length(vecShift)); //for plane mesh...
-
-    //triangles' aabb and normal
-    this.updateTrianglesAabbAndNormal();
-
-    //vertices normal
-    this.updateVerticesNormal();
-
-    //octree construction
-    this.computeOctree(aabb);
+    return aabb;
   },
 
-  /** compute octree */
-  computeOctree: function (aabbSplit)
+  init: function ()
   {
-    var triangles = this.triangles_;
-    var nbTriangles = triangles.length;
+    this.verticesOnEdge_ = new Uint8Array(this.vertices_.length);
+    this.updateTopoGeom();
+    this.initEdges();
+  },
+
+  /** Computes the edges */
+  initEdges: function ()
+  {
+    var edgesMap = {};
+    var iAr = this.indexArray_;
+    this.triEdgesArray_ = new Uint32Array(iAr.length); // worst case upper bound
+    var teAr = this.triEdgesArray_;
+    var id1 = 0,
+      id2 = 0,
+      id3 = 0,
+      iv1 = 0,
+      iv2 = 0,
+      iv3 = 0,
+      nbEdges = 0,
+      key = 0,
+      idEdge = 0;
+    for (var i = 0, nbTris = this.triangles_.length; i < nbTris; ++i)
+    {
+      id1 = i * 3;
+      id2 = id1 + 1;
+      id3 = id1 + 2;
+      iv1 = iAr[id1];
+      iv2 = iAr[id2];
+      iv3 = iAr[id3];
+
+      key = iv1 < iv2 ? iv1 + '.' + iv2 : iv2 + '.' + iv1;
+      idEdge = edgesMap[key];
+      if (idEdge === undefined)
+      {
+        edgesMap[key] = idEdge = nbEdges;
+        ++nbEdges;
+      }
+      teAr[id1] = idEdge;
+
+      key = iv3 < iv2 ? iv3 + '.' + iv2 : iv2 + '.' + iv3;
+      idEdge = edgesMap[key];
+      if (idEdge === undefined)
+      {
+        edgesMap[key] = idEdge = nbEdges;
+        ++nbEdges;
+      }
+      teAr[id2] = idEdge;
+
+      key = iv1 < iv3 ? iv1 + '.' + iv3 : iv3 + '.' + iv1;
+      idEdge = edgesMap[key];
+      if (idEdge === undefined)
+      {
+        edgesMap[key] = idEdge = nbEdges;
+        ++nbEdges;
+      }
+      teAr[id3] = idEdge;
+    }
+    this.nbEdges_ = nbEdges;
+  },
+
+  /** Updates the mesh topology and geometry */
+  updateTopoGeom: function ()
+  {
+    this.updateTopo();
+    this.updateGeom();
+  },
+
+  /** Updates the mesh topology (computes ring vertices) */
+  updateTopo: function ()
+  {
+    var vertices = this.vertices_;
+    var iAr = this.indexArray_;
+    var verticesOnEdge = this.verticesOnEdge_;
+    for (var i = 0, l = vertices.length; i < l; ++i)
+    {
+      var vertexTagMask = ++Vertex.tagMask_;
+      var vert = vertices[i];
+      var ring = vert.ringVertices_;
+      ring.length = 0;
+      var iTris = vert.tIndices_;
+      var nbTris = iTris.length;
+      for (var j = 0; j < nbTris; ++j)
+      {
+        var ind = iTris[j] * 3;
+        var iVer1 = iAr[ind],
+          iVer2 = iAr[ind + 1],
+          iVer3 = iAr[ind + 2];
+        if (iVer1 !== i && vertices[iVer1].tagFlag_ !== vertexTagMask)
+        {
+          ring.push(iVer1);
+          vertices[iVer1].tagFlag_ = vertexTagMask;
+        }
+        if (iVer2 !== i && vertices[iVer2].tagFlag_ !== vertexTagMask)
+        {
+          ring.push(iVer2);
+          vertices[iVer2].tagFlag_ = vertexTagMask;
+        }
+        if (iVer3 !== i && vertices[iVer3].tagFlag_ !== vertexTagMask)
+        {
+          ring.push(iVer3);
+          vertices[iVer3].tagFlag_ = vertexTagMask;
+        }
+      }
+      if (nbTris !== ring.length)
+        verticesOnEdge[i * 3] = 1;
+    }
+  },
+
+  /** Updates the mesh Geometry */
+  updateGeom: function ()
+  {
+    //triangles' aabb and normal
+    this.updateTrianglesAabbAndNormal();
+    //vertex normal
+    this.updateVerticesNormal();
+  },
+
+  /** Compute the mesh octree */
+  computeOctree: function (aabbRoot, factor)
+  {
+    var aabb = aabbRoot.clone();
+    //root octree bigger than minimum aabb...
+    if (factor !== undefined && factor !== 0.0)
+    {
+      var vecShift = [0.0, 0.0, 0.0];
+      vec3.sub(vecShift, aabb.max_, aabb.min_);
+      vec3.scale(vecShift, vecShift, factor);
+      vec3.sub(aabb.min_, aabb.min_, vecShift);
+      vec3.add(aabb.max_, aabb.max_, vecShift);
+    }
+    aabb.enlargeIfFlat(vec3.dist(aabb.min_, aabb.max_) * 0.2); //for stupid case of plane mesh...
+
+    //octree construction
+    var nbTriangles = this.triangles_.length;
     var trianglesAll = [];
     for (var i = 0; i < nbTriangles; ++i)
       trianglesAll.push(i);
     this.octree_ = new Octree();
-    this.octree_.aabbSplit_.copy(aabbSplit);
+    this.octree_.aabbSplit_.copy(aabb);
     this.octree_.build(this, trianglesAll);
-  },
-
-  /** Initialize buffers and shadr */
-  initRender: function (shaderType, textures, shaders)
-  {
-    this.render_.initBuffers();
-    this.render_.updateShaders(shaderType, textures, shaders);
-    this.render_.updateBuffers();
-  },
-
-  /** Update the rendering buffers */
-  updateBuffers: function ()
-  {
-    this.render_.updateBuffers();
   },
 
   /** Update geometry  */

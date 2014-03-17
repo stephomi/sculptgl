@@ -290,10 +290,10 @@ Import.detectNewVertex = function (mapVertices, x, y, z, vertices, vAr, iTri)
 /** Initialize the mesh arrays */
 Import.initMeshArrays = function (mesh, vAr, iAr, cAr)
 {
-  mesh.vertexArray_ = new Float32Array(vAr.length * 2);
-  mesh.normalArray_ = new Float32Array(vAr.length * 2);
-  mesh.colorArray_ = new Float32Array(vAr.length * 2);
-  mesh.indexArray_ = new SculptGL.indexArrayType(iAr.length * 2);
+  mesh.vertexArray_ = new Float32Array(vAr.length);
+  mesh.normalArray_ = new Float32Array(vAr.length);
+  mesh.colorArray_ = new Float32Array(vAr.length);
+  mesh.indexArray_ = new SculptGL.indexArrayType(iAr.length);
   mesh.vertexArray_.set(vAr);
   mesh.indexArray_.set(iAr);
   if (cAr)

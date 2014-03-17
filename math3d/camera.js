@@ -8,9 +8,9 @@ function Camera()
   this.view_ = mat4.create(); //view matrix
   this.proj_ = mat4.create(); //projection matrix
   this.lastNormalizedMouseXY_ = [0.0, 0.0]; //last mouse position ( 0..1 )
-  this.width_ = 0; //viewport width
-  this.height_ = 0; //viewport height
-  this.zoom_ = 0.0; //zoom value
+  this.width_ = 0.0; //viewport width
+  this.height_ = 0.0; //viewport height
+  this.zoom_ = 20.0; //zoom value
   this.transX_ = 0.0; //translation in x
   this.transY_ = 0.0; //translation in y
   this.speed_ = 1.0; //solve scale issue
@@ -41,11 +41,11 @@ Camera.prototype = {
   start: function (mouseX, mouseY, picking)
   {
     this.lastNormalizedMouseXY_ = Geometry.normalizedMouse(mouseX, mouseY, this.width_, this.height_);
-    if (this.usePivot_ && picking.mesh_)
+    if (this.usePivot_ && picking.multimesh_)
     {
       this.stepCount_ = 10;
       //target center
-      vec3.transformMat4(this.stepCenter_, picking.interPoint_, picking.mesh_.matTransform_);
+      vec3.transformMat4(this.stepCenter_, picking.interPoint_, picking.multimesh_.matTransform_);
       //target zoom
       var targetZoom = vec3.dist(this.stepCenter_, this.computePosition());
       if (this.type_ === Camera.projType.PERSPECTIVE)
@@ -167,11 +167,11 @@ Camera.prototype = {
   {
     this.transX_ = 0.0;
     this.transY_ = 0.0;
-    this.speed_ = Mesh.globalScale_ * 1.4;
+    this.speed_ = /*Mesh.globalScale_ **/ 1.4;
     this.rot_ = quat.create();
     this.center_ = [0.0, 0.0, 0.0];
     this.zoom_ = 0.0;
-    this.zoom(-0.6);
+    this.zoom(-2.2);
   },
 
   /** Reset view front */

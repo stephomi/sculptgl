@@ -1,13 +1,10 @@
 precision mediump float;
 uniform sampler2D refTex;
 uniform vec3 centerPicking;
-uniform vec2 lineOrigin;
-uniform vec2 lineNormal;
 uniform float radiusSquared;
 varying vec3 vVertex;
 varying vec3 vNormal;
 varying vec3 vColor;
-const vec4 colorCutPlane = vec4(0.81, 0.31, 0.23, 1.0);
 const vec4 v4one = vec4(1.0);
 void main()
 {
@@ -21,8 +18,5 @@ void main()
   else if(dotSquared < radiusSquared)
     fragColor *= 1.1;
   fragColor.a = 1.0;
-  if(dot(lineNormal, vec2(gl_FragCoord) - lineOrigin) <= 0.0)
-    gl_FragColor = fragColor;
-  else
-    gl_FragColor = fragColor * colorCutPlane;
+  gl_FragColor = fragColor;
 }

@@ -2,7 +2,8 @@
 
 function Render(gl, mesh)
 {
-  this.mesh_ = mesh; //webgl context
+  this.multimesh_ = mesh; //webgl context
+  this.mesh_ = null; //webgl context
   this.gl_ = gl; //webgl context
   this.shader_ = new Shader(gl); //the program shader
 
@@ -40,7 +41,7 @@ Render.prototype = {
   },
 
   /** Render the mesh */
-  render: function (camera, picking, lineOrigin, lineNormal)
+  render: function (camera, picking)
   {
     var gl = this.gl_;
     var shader = this.shader_;
@@ -51,7 +52,7 @@ Render.prototype = {
     var centerPicking = picking.interPoint_;
     var radiusSquared = picking.rWorldSqr_;
     var mvMatrix = mat4.create();
-    mat4.mul(mvMatrix, camera.view_, this.mesh_.matTransform_);
+    mat4.mul(mvMatrix, camera.view_, this.multimesh_.matTransform_);
     var mvpMatrix = mat4.create();
     mat4.mul(mvpMatrix, camera.proj_, mvMatrix);
 
@@ -76,11 +77,8 @@ Render.prototype = {
     gl.uniformMatrix4fv(shader.mvMatrixUnif_, false, mvMatrix);
     gl.uniformMatrix4fv(shader.mvpMatrixUnif_, false, mvpMatrix);
     gl.uniformMatrix3fv(shader.normalMatrixUnif_, false, mat3.normalFromMat4(mat3.create(), mvMatrix));
-    gl.uniform3fv(shader.centerPickingUnif_, vec3.transformMat4([0, 0, 0], centerPicking, mvMatrix));
+    gl.uniform3fv(shader.centerPickingUnif_, vec3.transformMat4([0.0, 0.0, 0.0], centerPicking, mvMatrix));
     gl.uniform1f(shader.radiusSquaredUnif_, radiusSquared);
-
-    gl.uniform2fv(shader.lineOriginUnif_, lineOrigin);
-    gl.uniform2fv(shader.lineNormalUnif_, lineNormal);
 
     switch (shader.type_)
     {
@@ -123,7 +121,7 @@ Render.prototype = {
   },
 
   /** Update buffers */
-  updateBuffers: function ()
+  updateBuffers: function (updateColors, updateIndex)
   {
     if (this.shader_.type_ === Shader.mode.WIREFRAME)
       this.makeWireframeBuffers();
@@ -140,11 +138,17 @@ Render.prototype = {
       gl.bindBuffer(gl.ARRAY_BUFFER, this.normalBuffer_);
       gl.bufferData(gl.ARRAY_BUFFER, mesh.normalArray_, gl.DYNAMIC_DRAW);
 
-      gl.bindBuffer(gl.ARRAY_BUFFER, this.colorBuffer_);
-      gl.bufferData(gl.ARRAY_BUFFER, mesh.colorArray_, gl.DYNAMIC_DRAW);
+      if (updateColors)
+      {
+        gl.bindBuffer(gl.ARRAY_BUFFER, this.colorBuffer_);
+        gl.bufferData(gl.ARRAY_BUFFER, mesh.colorArray_, gl.DYNAMIC_DRAW);
+      }
 
-      gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this.indexBuffer_);
-      gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, mesh.indexArray_, gl.STATIC_DRAW);
+      if (updateIndex)
+      {
+        gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this.indexBuffer_);
+        gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, mesh.indexArray_, gl.STATIC_DRAW);
+      }
     }
   },
 
