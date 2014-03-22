@@ -1,7 +1,6 @@
 'use strict';
 
-function Multimesh(gl)
-{
+function Multimesh(gl) {
   this.gl_ = gl;
 
   this.meshes_ = [];
@@ -10,26 +9,34 @@ function Multimesh(gl)
 
   this.detail_ = [];
 
-  this.bbox_ = new Aabb();
+  this.bbox_ = [Infinity, Infinity, Infinity, -Infinity, -Infinity, -Infinity];
   this.center_ = [0.0, 0.0, 0.0]; //center of mesh, local space (before mesh transform)
   this.matTransform_ = mat4.create(); //transformation matrix of the mesh
   this.scale_ = -1.0; //used for export in order to keep the same scale as import...
 }
 
+Multimesh.SCALE = 100.0;
+
 Multimesh.prototype = {
-  getCurrent: function ()
-  {
+  getCurrent: function () {
     return this.meshes_[this.sel_];
   },
-  addLevel: function ()
-  {
+  getScale: function () {
+    return this.scale_;
+  },
+  getMatrix: function () {
+    return this.matTransform_;
+  },
+  addLevel: function () {
     if ((this.meshes_.length - 1) !== this.sel_)
       return this.getCurrent();
     var baseMesh = this.getCurrent();
     var newMesh = new Mesh(this.gl_);
 
     var subdiv = new Subdivision();
+    console.time('subdiv');
     subdiv.subdivide(baseMesh, newMesh);
+    console.timeEnd('subdiv');
     newMesh.computeOctree(newMesh.computeAabb(), 0.2);
 
     this.meshes_.push(newMesh);
@@ -40,8 +47,7 @@ Multimesh.prototype = {
 
     return newMesh;
   },
-  lowerLevel: function ()
-  {
+  lowerLevel: function () {
     if (this.sel_ === 0)
       return this.meshes_[0];
     this.lowerAnalysis();
@@ -52,8 +58,7 @@ Multimesh.prototype = {
     this.updateBuffers(true, true);
     return mesh;
   },
-  higherLevel: function ()
-  {
+  higherLevel: function () {
     if (this.sel_ === this.meshes_.length - 1)
       return this.getCurrent();
     this.sel_++;
@@ -63,74 +68,58 @@ Multimesh.prototype = {
     this.updateBuffers(true, true);
     return mesh;
   },
-  analysis: function ()
-  {
+  analysis: function () {
     // finer level to coarser level;
   },
-  init: function ()
-  {
+  init: function () {
     var mesh = this.meshes_[0];
     this.bbox_ = mesh.computeAabb();
-    this.center_ = this.bbox_.computeCenter();
+    var box = this.bbox_;
+    this.center_ = [(box[0] + box[3]) * 0.5, (box[1] + box[4]) * 0.5, (box[2] + box[5]) * 0.5];
 
     mesh.init();
-    mesh.computeOctree(this.bbox_, 0.2);
+    mesh.computeOctree(box, 0.2);
     this.render_.mesh_ = mesh;
 
-    //scale
-    // var diag = vec3.dist(aabb.min_, aabb.max_);
-    // this.scale_ = Mesh.globalScale_ / diag;
-    // var scale = this.scale_;
-    // for (i = 0; i < nbVertices; ++i)
-    // {
-    //   j = i * 3;
-    //   vAr[j] *= scale;
-    //   vAr[j + 1] *= scale;
-    //   vAr[j + 2] *= scale;
-    // }
-    // mat4.scale(this.matTransform_, this.matTransform_, [scale, scale, scale]);
-    // vec3.scale(aabb.min_, aabb.min_, scale);
-    // vec3.scale(aabb.max_, aabb.max_, scale);
-    // vec3.scale(this.center_, this.center_, scale);
-    // mesh.matTransform_ = this.matTransform_;
+    //scale and center
+    var diag = vec3.dist([box[0], box[1], box[2]], [box[3], box[4], box[5]]);
+    var scale = this.scale_ = Multimesh.SCALE / diag;
+    mat4.scale(this.matTransform_, this.matTransform_, [scale, scale, scale]);
+    this.moveTo([0.0, 0.0, 0.0]);
+    this.toto=mat4.create();
+    mat4.translate(this.toto, mat4.create(), vec3.sub([0.0,0.0,0.0], [0.0,0.0,0.0], this.center_));
   },
   /** Initialize buffers and shadr */
-  initRender: function (shaderType, textures, shaders)
-  {
+  initRender: function (shaderType, textures, shaders) {
     this.render_.initBuffers();
     this.render_.updateShaders(shaderType, textures, shaders);
     this.render_.updateBuffers(true, true);
   },
   /** Update the rendering buffers */
-  updateBuffers: function (updateColors, updateIndex)
-  {
+  updateBuffers: function (updateColors, updateIndex) {
     this.render_.updateBuffers(updateColors, updateIndex);
   },
-  render: function (camera, picking)
-  {
+  render: function (camera, picking) {
     this.render_.render(camera, picking);
   },
   /** Move the mesh center to a certain point */
-  moveTo: function (destination)
-  {
-    mat4.translate(this.matTransform_, mat4.create(), vec3.sub(destination, destination, this.center_));
+  moveTo: function (destination) {
+    mat4.translate(this.matTransform_, this.matTransform_, vec3.sub(destination, destination, this.center_));
   },
-  checkLeavesUpdate: function ()
-  {
+  checkLeavesUpdate: function () {
     this.getCurrent().checkLeavesUpdate();
   },
-  lowerAnalysis: function ()
-  {
+  lowerAnalysis: function () {
     var meshDown = this.meshes_[this.sel_ - 1];
     var meshUp = this.meshes_[this.sel_];
 
-    var verticesUp = meshUp.vertices_;
-    var vArUp = meshUp.vertexArray_;
-    var nArUp = meshUp.normalArray_;
+    var vertRingVertUp = meshUp.vertRingVert_;
+    var vArUp = meshUp.verticesXYZ_;
+    var nArUp = meshUp.normalsXYZ_;
     var smoArUp = meshUp.smoothArray_;
 
-    var vArDown = meshDown.vertexArray_;
-    var nbVertsDown = meshDown.vertices_.length;
+    var vArDown = meshDown.verticesXYZ_;
+    var nbVertsDown = meshDown.getNbVertices();
 
     var j = 0;
     var k = 0;
@@ -155,8 +144,7 @@ Multimesh.prototype = {
       biy = 0.0,
       biz = 0.0;
 
-    for (var i = 0; i < nbVertsDown; ++i)
-    {
+    for (var i = 0; i < nbVertsDown; ++i) {
       j = i * 3;
 
       // vertex coord
@@ -165,7 +153,7 @@ Multimesh.prototype = {
       vz = vArUp[j + 2];
 
       // neighborhood vert
-      k = verticesUp[i].ringVertices_[0] * 3;
+      k = vertRingVertUp[i][0] * 3;
       v2x = vArUp[k];
       v2y = vArUp[k + 1];
       v2z = vArUp[k + 2];
@@ -201,15 +189,11 @@ Multimesh.prototype = {
       biy = nz * tx - nx * tz;
       biz = nx * ty - ny * tx;
 
-      var r = vArDown[j];
-      var g = vArDown[j + 1];
-      var b = vArDown[j + 2];
-
       // detail vec in the local frame
       vArDown[j] = vx - (nx * dx + tx * dy + bix * dz);
       vArDown[j + 1] = vy - (ny * dx + ty * dy + biy * dz);
       vArDown[j + 2] = vz - (nz * dx + tz * dy + biz * dz);
     }
-    meshDown.updateGeom();
+    meshDown.updateGeometry();
   }
 };

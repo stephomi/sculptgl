@@ -1,58 +1,14 @@
 'use strict';
 
-function Subdivision()
-{
+function Subdivision() {
   this.baseMesh_ = null;
   this.newMesh_ = null;
 }
 
 Subdivision.prototype = {
-  subdivide: function (baseMesh, newMesh)
-  {
+  subdivide: function (baseMesh, newMesh) {
     this.baseMesh_ = baseMesh;
     this.newMesh_ = newMesh;
-    var i = 0;
-
-    var newNbVertices = baseMesh.vertices_.length + baseMesh.nbEdges_;
-
-    // init topo vertices
-    var newVerts = newMesh.vertices_;
-    newVerts.length = newNbVertices;
-    for (i = 0; i < newNbVertices; ++i)
-      newVerts[i] = new Vertex(i);
-
-    // init topo indices
-    var baseTris = baseMesh.triangles_;
-    var newTris = newMesh.triangles_;
-    var nbTris = baseTris.length;
-    var l = newTris.length = nbTris * 4; // we exactly know the size of tris
-    for (i = 0; i < nbTris; ++i)
-      newTris[i] = baseTris[i].clone();
-    for (i = nbTris; i < l; ++i)
-      newTris[i] = new Triangle(i);
-
-    // init vertex coords (no need to copy the old one because applyEvenSmooth will do it)
-    newMesh.vertexArray_ = new Float32Array(newNbVertices * 3);
-
-    // init normals
-    var baseNormals = baseMesh.normalArray_;
-    newMesh.normalArray_ = new Float32Array(baseNormals.length * 4);
-    newMesh.normalArray_.set(baseNormals);
-
-    // init colors
-    var baseColors = baseMesh.colorArray_;
-    newMesh.colorArray_ = new Float32Array(baseColors.length * 4);
-    newMesh.colorArray_.set(baseColors);
-
-    // init indices
-    var baseIndices = baseMesh.indexArray_;
-    newMesh.indexArray_ = new SculptGL.indexArrayType(baseIndices.length * 4);
-    newMesh.indexArray_.set(baseIndices);
-
-    // init triangles edges
-    newMesh.triEdgesArray_ = new Uint32Array(newMesh.indexArray_.length);
-    // init flag on edges
-    newMesh.verticesOnEdge_ = new Uint8Array(newNbVertices);
 
     //       v3
     //       /\
@@ -63,32 +19,50 @@ Subdivision.prototype = {
     //  /____\/____\ 
     // v1    m1    v2
 
+    this.allocateArrays();
     this.applyEvenSmooth();
-    console.time('t')
     this.subdivision();
-    console.timeEnd('t')
-    newMesh.updateTopoGeom();
+    newMesh.updateGeometry();
     this.testComputeInvertSmooth();
   },
-  subdivision: function ()
-  {
+  allocateArrays: function () {
+    var baseMesh = this.baseMesh_;
+    var newMesh = this.newMesh_;
+
+    var oldNbEdges = baseMesh.getNbEdges();
+    var oldNbVertices = baseMesh.getNbVertices();
+    var oldNbTriangles = baseMesh.getNbTriangles();
+
+    // init main arrays
+    newMesh.verticesXYZ_ = new Float32Array((oldNbVertices + oldNbEdges) * 3);
+    newMesh.indicesABC_ = new SculptGL.indexArrayType(oldNbTriangles * 4 * 3);
+    newMesh.edges_ = new Uint8Array(oldNbEdges * 2 + oldNbTriangles * 3);
+    // init everything else
+    newMesh.allocateArrays();
+    // keep colors
+    newMesh.colorsRGB_.set(baseMesh.colorsRGB_);
+  },
+  subdivision: function () {
     var i = 0;
     var baseMesh = this.baseMesh_;
-    var vArOld = baseMesh.vertexArray_;
-    var triEdgesOld = baseMesh.triEdgesArray_;
-    var verticesOnEdgeOld = baseMesh.verticesOnEdge_;
+    var vArOld = baseMesh.verticesXYZ_;
+    var iArOld = baseMesh.indicesABC_;
+    var teArOld = baseMesh.triEdges_;
+    var eArOld = baseMesh.edges_;
 
     var newMesh = this.newMesh_;
-    var vertices = newMesh.vertices_;
-    var iAr = newMesh.indexArray_;
-    var cAr = newMesh.colorArray_;
-    var vAr = newMesh.vertexArray_;
-    var triEdges = newMesh.triEdgesArray_;
-    var verticesOnEdge = newMesh.verticesOnEdge_;
+    var iAr = newMesh.indicesABC_;
+    var cAr = newMesh.colorsRGB_;
+    var vAr = newMesh.verticesXYZ_;
+    var teAr = newMesh.triEdges_;
+    var vertOnEdge = newMesh.vertOnEdge_;
+    var eAr = newMesh.edges_;
+    var vertRingVert = newMesh.vertRingVert_;
+    var vertRingTri = newMesh.vertRingTri_;
 
-    var nbTagEdges = newMesh.nbEdges_ = baseMesh.nbEdges_ * 2 + baseMesh.indexArray_.length;
-    var tagEdges = new Int32Array(nbTagEdges);
-    for (i = 0; i < nbTagEdges; ++i)
+    var nbEdges = newMesh.edges_.length;
+    var tagEdges = new Int32Array(nbEdges);
+    for (i = 0; i < nbEdges; ++i)
       tagEdges[i] = -1;
 
     var id = 0,
@@ -101,9 +75,6 @@ Subdivision.prototype = {
     var ide1 = 0,
       ide2 = 0,
       ide3 = 0;
-    var e1 = 0,
-      e2 = 0,
-      e3 = 0;
     var tri1 = 0,
       tri2 = 0,
       tri3 = 0;
@@ -115,32 +86,28 @@ Subdivision.prototype = {
     var e1center = 0,
       e2center = 0,
       e3center = 0;
-    var nbVertices = baseMesh.vertices_.length;
+    var tag1 = 0,
+      tag2 = 0,
+      tag3 = 0;
+    var nbVertices = baseMesh.getNbVertices();
 
-    var triEdgesOffset = baseMesh.triEdgesArray_.length;
-    var nbTriEdges = newMesh.triEdgesArray_.length;
-    var nbTris = baseMesh.triangles_.length;
-    for (i = 0; i < nbTris; ++i)
-    {
+    var nbTris = baseMesh.indicesABC_.length / 3;
+    var nbEdgesOffset = baseMesh.indicesABC_.length;
+    for (i = 0; i < nbTris; ++i) {
       id = i * 3;
-      iv1 = iAr[id];
-      iv2 = iAr[id + 1];
-      iv3 = iAr[id + 2];
+      iv1 = iArOld[id];
+      iv2 = iArOld[id + 1];
+      iv3 = iArOld[id + 2];
 
-      ide1 = triEdgesOld[id];
-      ide2 = triEdgesOld[id + 1];
-      ide3 = triEdgesOld[id + 2];
-
-      e1 = verticesOnEdgeOld[iv1];
-      e2 = verticesOnEdgeOld[iv2];
-      e3 = verticesOnEdgeOld[iv3];
+      ide1 = teArOld[id];
+      ide2 = teArOld[id + 1];
+      ide3 = teArOld[id + 2];
 
       //  edge V1-v2
-      if (e1 && e2)
-      {
+      if (eArOld[ide1] === 1) {
+        tag1 = -1;
         ivMid1 = nbVertices++;
-        verticesOnEdge[ivMid1] = 1;
-
+        vertOnEdge[ivMid1] = 1;
         idMid = ivMid1 * 3;
         id1 = iv1 * 3;
         id2 = iv2 * 3;
@@ -152,13 +119,10 @@ Subdivision.prototype = {
         cAr[idMid] = 0.5 * (cAr[id1] + cAr[id2]);
         cAr[idMid + 1] = 0.5 * (cAr[id1 + 1] + cAr[id2 + 1]);
         cAr[idMid + 2] = 0.5 * (cAr[id1 + 2] + cAr[id2 + 2]);
-      }
-      else
-      {
-        ivMid1 = tagEdges[ide1];
+      } else {
+        tag1 = tagEdges[ide1];
         idOpp = iv3 * 3;
-        if (ivMid1 === -1)
-        {
+        if (tag1 === -1) {
           ivMid1 = nbVertices++;
           tagEdges[ide1] = ivMid1;
           idMid = ivMid1 * 3;
@@ -171,9 +135,8 @@ Subdivision.prototype = {
           cAr[idMid] = 0.125 * cAr[idOpp] + 0.375 * (cAr[id1] + cAr[id2]);
           cAr[idMid + 1] = 0.125 * cAr[idOpp + 1] + 0.375 * (cAr[id1 + 1] + cAr[id2 + 1]);
           cAr[idMid + 2] = 0.125 * cAr[idOpp + 2] + 0.375 * (cAr[id1 + 2] + cAr[id2 + 2]);
-        }
-        else
-        {
+        } else {
+          ivMid1 = tag1;
           idMid = ivMid1 * 3;
           vAr[idMid] += 0.125 * vArOld[idOpp];
           vAr[idMid + 1] += 0.125 * vArOld[idOpp + 1];
@@ -186,11 +149,10 @@ Subdivision.prototype = {
       }
 
       //  edge V2-v3
-      if (e2 && e3)
-      {
+      if (eArOld[ide2] === 1) {
+        tag2 = -1;
         ivMid2 = nbVertices++;
-        verticesOnEdge[ivMid2] = 1;
-
+        vertOnEdge[ivMid2] = 1;
         idMid = ivMid2 * 3;
         id2 = iv2 * 3;
         id3 = iv3 * 3;
@@ -202,13 +164,10 @@ Subdivision.prototype = {
         cAr[idMid] = 0.5 * (cAr[id2] + cAr[id3]);
         cAr[idMid + 1] = 0.5 * (cAr[id2 + 1] + cAr[id3 + 1]);
         cAr[idMid + 2] = 0.5 * (cAr[id2 + 2] + cAr[id3 + 2]);
-      }
-      else
-      {
-        ivMid2 = tagEdges[ide2];
+      } else {
+        tag2 = tagEdges[ide2];
         idOpp = iv1 * 3;
-        if (ivMid2 === -1)
-        {
+        if (tag2 === -1) {
           ivMid2 = nbVertices++;
           tagEdges[ide2] = ivMid2;
           idMid = ivMid2 * 3;
@@ -221,9 +180,8 @@ Subdivision.prototype = {
           cAr[idMid] = 0.125 * cAr[idOpp] + 0.375 * (cAr[id2] + cAr[id3]);
           cAr[idMid + 1] = 0.125 * cAr[idOpp + 1] + 0.375 * (cAr[id2 + 1] + cAr[id3 + 1]);
           cAr[idMid + 2] = 0.125 * cAr[idOpp + 2] + 0.375 * (cAr[id2 + 2] + cAr[id3 + 2]);
-        }
-        else
-        {
+        } else {
+          ivMid2 = tag2;
           idMid = ivMid2 * 3;
           vAr[idMid] += 0.125 * vArOld[idOpp];
           vAr[idMid + 1] += 0.125 * vArOld[idOpp + 1];
@@ -236,11 +194,10 @@ Subdivision.prototype = {
       }
 
       //  edge V1-v3
-      if (e1 && e3)
-      {
+      if (eArOld[ide3] === 1) {
+        tag3 = -1;
         ivMid3 = nbVertices++;
-        verticesOnEdge[ivMid3] = 1;
-
+        vertOnEdge[ivMid3] = 1;
         idMid = ivMid3 * 3;
         id1 = iv1 * 3;
         id3 = iv3 * 3;
@@ -252,13 +209,10 @@ Subdivision.prototype = {
         cAr[idMid] = 0.5 * (cAr[id1] + cAr[id3]);
         cAr[idMid + 1] = 0.5 * (cAr[id1 + 1] + cAr[id3 + 1]);
         cAr[idMid + 2] = 0.5 * (cAr[id1 + 2] + cAr[id3 + 2]);
-      }
-      else
-      {
-        ivMid3 = tagEdges[ide3];
+      } else {
+        tag3 = tagEdges[ide3];
         idOpp = iv2 * 3;
-        if (ivMid3 === -1)
-        {
+        if (tag3 === -1) {
           ivMid3 = nbVertices++;
           tagEdges[ide3] = ivMid3;
           idMid = ivMid3 * 3;
@@ -271,9 +225,8 @@ Subdivision.prototype = {
           cAr[idMid] = 0.125 * cAr[idOpp] + 0.375 * (cAr[id1] + cAr[id3]);
           cAr[idMid + 1] = 0.125 * cAr[idOpp + 1] + 0.375 * (cAr[id1 + 1] + cAr[id3 + 1]);
           cAr[idMid + 2] = 0.125 * cAr[idOpp + 2] + 0.375 * (cAr[id1 + 2] + cAr[id3 + 2]);
-        }
-        else
-        {
+        } else {
+          ivMid3 = tag3;
           idMid = ivMid3 * 3;
           vAr[idMid] += 0.125 * vArOld[idOpp];
           vAr[idMid + 1] += 0.125 * vArOld[idOpp + 1];
@@ -292,9 +245,9 @@ Subdivision.prototype = {
       iAr[id] = ivMid1;
       iAr[id + 1] = ivMid2;
       iAr[id + 2] = ivMid3;
-      triEdges[id] = e1center;
-      triEdges[id + 1] = e2center;
-      triEdges[id + 2] = e3center;
+      teAr[id] = e1center;
+      teAr[id + 1] = e2center;
+      teAr[id + 2] = e3center;
 
       id += nbTris;
       tri1 = id;
@@ -305,47 +258,73 @@ Subdivision.prototype = {
       iAr[id] = iv1;
       iAr[id + 1] = ivMid1;
       iAr[id + 2] = ivMid3;
-      triEdges[id] = iv1 < iv2 ? triEdgesOffset + ide1 : nbTriEdges - ide1 - 1;
-      triEdges[id + 1] = e3center;
-      triEdges[id + 2] = iv3 > iv1 ? triEdgesOffset + ide3 : nbTriEdges - ide3 - 1;
+      teAr[id] = iv1 < iv2 ? nbEdgesOffset + ide1 : nbEdges - ide1 - 1;
+      teAr[id + 1] = e3center;
+      teAr[id + 2] = iv3 > iv1 ? nbEdgesOffset + ide3 : nbEdges - ide3 - 1;
 
       id = tri2 * 3;
       iAr[id] = ivMid1;
       iAr[id + 1] = iv2;
       iAr[id + 2] = ivMid2;
-      triEdges[id] = iv1 > iv2 ? triEdgesOffset + ide1 : nbTriEdges - ide1 - 1;
-      triEdges[id + 1] = iv2 < iv3 ? triEdgesOffset + ide2 : nbTriEdges - ide2 - 1;
-      triEdges[id + 2] = e1center;
+      teAr[id] = iv1 > iv2 ? nbEdgesOffset + ide1 : nbEdges - ide1 - 1;
+      teAr[id + 1] = iv2 < iv3 ? nbEdgesOffset + ide2 : nbEdges - ide2 - 1;
+      teAr[id + 2] = e1center;
 
       id = tri3 * 3;
       iAr[id] = ivMid2;
       iAr[id + 1] = iv3;
       iAr[id + 2] = ivMid3;
-      triEdges[id] = iv2 > iv3 ? triEdgesOffset + ide2 : nbTriEdges - ide2 - 1;
-      triEdges[id + 1] = iv3 < iv1 ? triEdgesOffset + ide3 : nbTriEdges - ide3 - 1;
-      triEdges[id + 2] = e2center;
+      teAr[id] = iv2 > iv3 ? nbEdgesOffset + ide2 : nbEdges - ide2 - 1;
+      teAr[id + 1] = iv3 < iv1 ? nbEdgesOffset + ide3 : nbEdges - ide3 - 1;
+      teAr[id + 2] = e2center;
 
-      vertices[iv1].tIndices_.push(tri1);
-      vertices[iv2].tIndices_.push(tri2);
-      vertices[iv3].tIndices_.push(tri3);
-      vertices[ivMid1].tIndices_.push(i, tri1, tri2);
-      vertices[ivMid2].tIndices_.push(i, tri2, tri3);
-      vertices[ivMid3].tIndices_.push(i, tri1, tri3);
+      // Update vertex topology
+
+      vertRingTri[ivMid1].push(i, tri1, tri2);
+      vertRingTri[ivMid2].push(i, tri2, tri3);
+      vertRingTri[ivMid3].push(i, tri1, tri3);
+
+      vertRingTri[iv1].push(tri1);
+      vertRingTri[iv2].push(tri2);
+      vertRingTri[iv3].push(tri3);
+
+      if (tag1 === -1) {
+        vertRingVert[ivMid1].push(iv1, iv2, ivMid2, ivMid3);
+        vertRingVert[iv1].push(ivMid1);
+        vertRingVert[iv2].push(ivMid1);
+      } else
+        vertRingVert[ivMid1].push(ivMid2, ivMid3);
+
+      if (tag2 === -1) {
+        vertRingVert[ivMid2].push(iv2, iv3, ivMid1, ivMid3);
+        vertRingVert[iv2].push(ivMid2);
+        vertRingVert[iv3].push(ivMid2);
+      } else
+        vertRingVert[ivMid2].push(ivMid1, ivMid3);
+
+      if (tag3 === -1) {
+        vertRingVert[ivMid3].push(iv1, iv3, ivMid1, ivMid2);
+        vertRingVert[iv1].push(ivMid3);
+        vertRingVert[iv3].push(ivMid3);
+      } else
+        vertRingVert[ivMid3].push(ivMid1, ivMid2);
     }
+    var nbTriEdges = teAr.length;
+    for (i = 0; i < nbTriEdges; ++i)
+      eAr[teAr[i]]++;
   },
   /** Even vertices smoothing. */
-  applyEvenSmooth: function ()
-  {
-    var vertices = this.baseMesh_.vertices_;
-    var vArOld = this.baseMesh_.vertexArray_;
-    var verticesOnEdgeOld = this.baseMesh_.verticesOnEdge_;
-    var nbVerts = vertices.length;
+  applyEvenSmooth: function () {
+    var baseMesh = this.baseMesh_;
+    var vArOld = baseMesh.verticesXYZ_;
+    var vertOnEdgeOld = baseMesh.vertOnEdge_;
+    var vertRingVert = baseMesh.vertRingVert_;
+    var nbVerts = baseMesh.getNbVertices();
 
-    var vAr = this.newMesh_.vertexArray_;
-    for (var i = 0; i < nbVerts; ++i)
-    {
+    var vAr = this.newMesh_.verticesXYZ_;
+    for (var i = 0; i < nbVerts; ++i) {
       var j = i * 3;
-      var ring = vertices[i].ringVertices_;
+      var ring = vertRingVert[i];
       var nbVRing = ring.length;
       var avx = 0.0,
         avy = 0.0,
@@ -353,14 +332,11 @@ Subdivision.prototype = {
       var beta = 0.0,
         betaComp = 0.0;
       var k = 0;
-      if (verticesOnEdgeOld[i]) //edge vertex
-      {
+      if (vertOnEdgeOld[i]) { //edge vertex
         var comp = 0;
-        for (k = 0; k < nbVRing; ++k)
-        {
+        for (k = 0; k < nbVRing; ++k) {
           var ind = ring[k];
-          if (vertices[ind].onEdge_)
-          {
+          if (vertOnEdgeOld[ind]) {
             ind *= 3;
             avx += vArOld[ind];
             avy += vArOld[ind + 1];
@@ -372,28 +348,20 @@ Subdivision.prototype = {
         vAr[j] = vArOld[j] * 0.75 + avx * comp;
         vAr[j + 1] = vArOld[j + 1] * 0.75 + avy * comp;
         vAr[j + 2] = vArOld[j + 2] * 0.75 + avz * comp;
-      }
-      else
-      {
-        for (k = 0; k < nbVRing; ++k)
-        {
+      } else {
+        for (k = 0; k < nbVRing; ++k) {
           var id = ring[k] * 3;
           avx += vArOld[id];
           avy += vArOld[id + 1];
           avz += vArOld[id + 2];
         }
-        if (nbVRing === 6)
-        {
+        if (nbVRing === 6) {
           beta = 0.0625;
           betaComp = 0.625;
-        }
-        else if (nbVRing === 3) //warren weights
-        {
+        } else if (nbVRing === 3) { //warren weights
           beta = 0.1875;
           betaComp = 0.4375;
-        }
-        else
-        {
+        } else {
           beta = 0.375 / nbVRing;
           betaComp = 0.625;
         }
@@ -403,17 +371,18 @@ Subdivision.prototype = {
       }
     }
   },
-  testComputeInvertSmooth: function ()
-  {
-    var vertices = this.baseMesh_.vertices_;
-    var vArOld = this.baseMesh_.vertexArray_;
-    var nbVerts = vertices.length;
+  testComputeInvertSmooth: function () {
+    var baseMesh = this.baseMesh_;
+    var vertRingVert = baseMesh.vertRingVert_;
+    var vArOld = baseMesh.verticesXYZ_;
+    var nbVerts = baseMesh.getNbVertices();
 
-    var vAr = this.newMesh_.vertexArray_;
-    var nAr = this.newMesh_.normalArray_;
+    var newMesh = this.newMesh_;
+    var vAr = newMesh.verticesXYZ_;
+    var nAr = newMesh.normalsXYZ_;
 
-    this.newMesh_.smoothArray_ = new Float32Array(vArOld.length);
-    var smoAr = this.newMesh_.smoothArray_;
+    newMesh.smoothArray_ = new Float32Array(vArOld.length);
+    var smoAr = newMesh.smoothArray_;
 
     var j = 0;
     var k = 0;
@@ -438,8 +407,7 @@ Subdivision.prototype = {
       biy = 0.0,
       biz = 0.0;
 
-    for (var i = 0; i < nbVerts; ++i)
-    {
+    for (var i = 0; i < nbVerts; ++i) {
       j = i * 3;
 
       // vertex coord
@@ -448,7 +416,7 @@ Subdivision.prototype = {
       vz = vAr[j + 2];
 
       // neighborhood vert
-      k = vertices[i].ringVertices_[0] * 3;
+      k = vertRingVert[i][0] * 3;
       v2x = vAr[k];
       v2y = vAr[k + 1];
       v2z = vAr[k + 2];

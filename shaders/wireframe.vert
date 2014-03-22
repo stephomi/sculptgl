@@ -15,7 +15,7 @@ void main()
     vBarycenter = vec3(0,1,0);
   else
     vBarycenter = vec3(1,0,0);
-  vNormal = nMat * vec3(normal);
+  vNormal = normalize(nMat * vec3(normal));
   vVertex = vec3(mvMat * vertex4);
   gl_Position = mvpMat * vertex4;
 }

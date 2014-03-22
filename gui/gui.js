@@ -1,7 +1,6 @@
 'use strict';
 
-function Gui(sculptgl)
-{
+function Gui(sculptgl) {
   this.sculptgl_ = sculptgl; //main application
 
   //ui stuffs
@@ -46,8 +45,7 @@ function Gui(sculptgl)
 
 Gui.prototype = {
   /** Initialize dat-gui stuffs */
-  initGui: function ()
-  {
+  initGui: function () {
     var guiGeneral = new dat.GUI();
     guiGeneral.domElement.style.position = 'absolute';
     guiGeneral.domElement.style.height = '650px';
@@ -57,27 +55,21 @@ Gui.prototype = {
     this.initEditingGui(guiEditing);
 
     var main = this.sculptgl_;
-    guiGeneral.domElement.addEventListener('mouseout', function ()
-    {
+    guiGeneral.domElement.addEventListener('mouseout', function () {
       main.focusGui_ = false;
     }, false);
-    guiEditing.domElement.addEventListener('mouseout', function ()
-    {
+    guiEditing.domElement.addEventListener('mouseout', function () {
       main.focusGui_ = false;
     }, false);
-    guiGeneral.domElement.addEventListener('mouseover', function ()
-    {
+    guiGeneral.domElement.addEventListener('mouseover', function () {
       main.focusGui_ = true;
     }, false);
-    guiEditing.domElement.addEventListener('mouseover', function ()
-    {
+    guiEditing.domElement.addEventListener('mouseover', function () {
       main.focusGui_ = true;
     }, false);
   },
-
   /** Initialize the general gui (on the left) */
-  initGeneralGui: function (gui)
-  {
+  initGeneralGui: function (gui) {
     var main = this.sculptgl_;
     var self = this;
 
@@ -112,8 +104,7 @@ Gui.prototype = {
       'Plane': Camera.mode.PLANE
     };
     var ctrlCameraMode = cameraFold.add(main.camera_, 'mode_', optionsCameraMode).name('Mode');
-    ctrlCameraMode.onChange(function (value)
-    {
+    ctrlCameraMode.onChange(function (value) {
       main.camera_.mode_ = parseInt(value, 10);
     });
     var optionsCameraType = {
@@ -121,22 +112,19 @@ Gui.prototype = {
       'Orthographic': Camera.projType.ORTHOGRAPHIC
     };
     this.ctrlCameraType_ = cameraFold.add(main.camera_, 'type_', optionsCameraType).name('Type');
-    this.ctrlCameraType_.onChange(function (value)
-    {
+    this.ctrlCameraType_.onChange(function (value) {
       main.camera_.type_ = parseInt(value, 10);
       self.ctrlFov_.__li.hidden = main.camera_.type_ === Camera.projType.ORTHOGRAPHIC;
       main.camera_.updateProjection();
       main.render();
     });
     this.ctrlFov_ = cameraFold.add(main.camera_, 'fov_', 10, 150).name('Fov');
-    this.ctrlFov_.onChange(function ()
-    {
+    this.ctrlFov_.onChange(function () {
       main.camera_.updateProjection();
       main.render();
     });
     var ctrlPivot = cameraFold.add(main.camera_, 'usePivot_').name('Picking pivot');
-    ctrlPivot.onChange(function ()
-    {
+    ctrlPivot.onChange(function () {
       main.camera_.toggleUsePivot();
       main.render();
     });
@@ -154,10 +142,8 @@ Gui.prototype = {
     foldHistory.add(main, 'redo_').name('Redo (Ctrl+Y)');
     foldHistory.open();
   },
-
   /** Initialize the mesh editing gui (on the right) */
-  initEditingGui: function (gui)
-  {
+  initEditingGui: function (gui) {
     var main = this.sculptgl_;
     var self = this;
 
@@ -176,8 +162,7 @@ Gui.prototype = {
       'Scale (0)': Sculpt.tool.SCALE
     };
     this.ctrlSculpt_ = foldSculpt.add(main.sculpt_, 'tool_', optionsSculpt).name('Tool');
-    this.ctrlSculpt_.onChange(function (value)
-    {
+    this.ctrlSculpt_.onChange(function (value) {
       main.sculpt_.tool_ = parseInt(value, 10);
       var tool = main.sculpt_.tool_;
       var st = Sculpt.tool;
@@ -221,19 +206,15 @@ Gui.prototype = {
       'Bronze': Shader.mode.MATERIAL + 6
     };
     this.ctrlShaders_ = foldMesh.add(new Shader(), 'type_', optionsShaders).name('Shader');
-    this.ctrlShaders_.onChange(function (value)
-    {
-      if (main.multimesh_)
-      {
+    this.ctrlShaders_.onChange(function (value) {
+      if (main.multimesh_) {
         main.multimesh_.initRender(parseInt(value, 10), main.textures_, main.shaders_);
         main.render();
       }
     });
     this.ctrlFlatShading_ = foldMesh.add(new Render(), 'flatShading_').name('flat shading (slower)');
-    this.ctrlFlatShading_.onChange(function (value)
-    {
-      if (main.multimesh_)
-      {
+    this.ctrlFlatShading_.onChange(function (value) {
+      if (main.multimesh_) {
         main.multimesh_.render_.flatShading_ = value;
         main.multimesh_.updateBuffers(true, true);
         main.render();
@@ -241,166 +222,127 @@ Gui.prototype = {
     });
 
     this.ctrlColor_ = foldMesh.addColor(main.sculpt_, 'color_').name('Color');
-    this.ctrlColor_.onChange(function (value)
-    {
-      if (value.length === 3) // rgb [255, 255, 255]
-      {
+    this.ctrlColor_.onChange(function (value) {
+      if (value.length === 3) { // rgb [255, 255, 255]
         main.sculpt_.color_ = [value[0], value[1], value[2]];
-      }
-      else if (value.length === 7) // hex (24 bits style) "#ffaabb"
-      {
+      } else if (value.length === 7) { // hex (24 bits style) "#ffaabb"
         var intVal = parseInt(value.slice(1), 16);
         main.sculpt_.color_ = [(intVal >> 16), (intVal >> 8 & 0xff), (intVal & 0xff)];
-      }
-      else // fuck it
+      } else // fuck it
         main.sculpt_.color_ = [168, 66, 66];
     });
     this.ctrlColor_.__li.hidden = true;
     foldMesh.open();
   },
-
   /** Update information on mesh */
-  updateMesh: function ()
-  {
+  updateMesh: function () {
     var main = this.sculptgl_;
     if (!main.mesh_ || !main.multimesh_)
       return;
     var mesh = main.multimesh_.getCurrent();
     this.ctrlShaders_.object = main.multimesh_.render_.shader_;
     this.ctrlShaders_.updateDisplay();
-    this.updateMeshInfo(mesh.vertices_.length, mesh.triangles_.length);
+    this.updateMeshInfo(mesh.getNbVertices(), mesh.getNbTriangles());
   },
-
   /** Update number of vertices and triangles */
-  updateMeshInfo: function (nbVertices, nbTriangles)
-  {
+  updateMeshInfo: function (nbVertices, nbTriangles) {
     this.ctrlNbVertices_.name('Ver : ' + nbVertices);
     this.ctrlNbTriangles_.name('Tri : ' + nbTriangles);
   },
-
   /** Open file */
-  openFile: function ()
-  {
+  openFile: function () {
     $('#fileopen').trigger('click');
   },
-
   /** Reset background */
-  resetBackground: function ()
-  {
+  resetBackground: function () {
     var bg = this.sculptgl_.background_;
-    if (bg)
-    {
+    if (bg) {
       var gl = bg.gl_;
       gl.deleteTexture(bg.backgroundLoc_);
       this.sculptgl_.background_ = null;
     }
   },
-
   /** Immort background */
-  resetCamera: function ()
-  {
+  resetCamera: function () {
     this.sculptgl_.camera_.reset();
     this.sculptgl_.render();
   },
-
   /** Immort background */
-  importBackground: function ()
-  {
+  importBackground: function () {
     $('#backgroundopen').trigger('click');
   },
-
   /** Save file as OBJ*/
-  saveFileAsOBJ: function ()
-  {
+  saveFileAsOBJ: function () {
     if (!this.sculptgl_.mesh_)
       return;
     var data = [Export.exportOBJ(this.sculptgl_.mesh_)];
-    var blob = new Blob(data,
-    {
+    var blob = new Blob(data, {
       type: 'text/plain;charset=utf-8'
     });
     saveAs(blob, 'yourMesh.obj');
   },
-
   /** Save file as PLY */
-  saveFileAsPLY: function ()
-  {
+  saveFileAsPLY: function () {
     if (!this.sculptgl_.mesh_)
       return;
     var data = [Export.exportPLY(this.sculptgl_.mesh_)];
-    var blob = new Blob(data,
-    {
+    var blob = new Blob(data, {
       type: 'text/plain;charset=utf-8'
     });
     saveAs(blob, 'yourMesh.ply');
   },
-
   /** Save file as STL */
-  saveFileAsSTL: function ()
-  {
+  saveFileAsSTL: function () {
     if (!this.sculptgl_.mesh_)
       return;
     var data = [Export.exportSTL(this.sculptgl_.mesh_)];
-    var blob = new Blob(data,
-    {
+    var blob = new Blob(data, {
       type: 'text/plain;charset=utf-8'
     });
     saveAs(blob, 'yourMesh.stl');
   },
-
   /** Export to Verold */
-  exportVerold: function ()
-  {
+  exportVerold: function () {
     if (!this.sculptgl_.mesh_)
       return;
-    if (this.keyVerold_ === '')
-    {
+    if (this.keyVerold_ === '') {
       alert('Please enter a verold API Key.');
       return;
     }
     Export.exportVerold(this.sculptgl_.mesh_, this.keyVerold_);
   },
-
   /** Export to Sketchfab */
-  exportSketchfab: function ()
-  {
+  exportSketchfab: function () {
     if (!this.sculptgl_.mesh_)
       return;
-    if (this.keySketchfab_ === '')
-    {
+    if (this.keySketchfab_ === '') {
       alert('Please enter a sketchfab API Key.');
       return;
     }
     Export.exportSketchfab(this.sculptgl_.mesh_, this.keySketchfab_);
   },
-
   /** Subdivide the mesh */
-  subdivide: function ()
-  {
+  subdivide: function () {
     var main = this.sculptgl_;
     var mesh = main.multimesh_.addLevel();
     main.mesh_ = mesh;
-    this.updateMeshInfo(mesh.vertices_.length, mesh.triangles_.length);
+    this.updateMeshInfo(mesh.getNbVertices(), mesh.getNbTriangles());
     main.render();
   },
-
   /** Go to lower subdivision level */
-  lower: function ()
-  {
+  lower: function () {
     var main = this.sculptgl_;
     var mesh = main.multimesh_.lowerLevel();
     main.mesh_ = mesh;
-    this.updateMeshInfo(mesh.vertices_.length, mesh.triangles_.length);
+    this.updateMeshInfo(mesh.getNbVertices(), mesh.getNbTriangles());
     main.render();
   },
-
   /** Go to higher subdivision level */
-  higher: function ()
-  {
+  higher: function () {
     var main = this.sculptgl_;
     var mesh = main.multimesh_.higherLevel();
     main.mesh_ = mesh;
-    this.updateMeshInfo(mesh.vertices_.length, mesh.triangles_.length);
+    this.updateMeshInfo(mesh.getNbVertices(), mesh.getNbTriangles());
     main.render();
   }
 };

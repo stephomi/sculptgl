@@ -1,7 +1,6 @@
 'use strict';
 
-function SculptGL()
-{
+function SculptGL() {
   this.gl_ = null; //webgl context
 
   //controllers stuffs
@@ -54,8 +53,7 @@ SculptGL.indexArrayType = Uint16Array; //typed array for index element (uint16Ar
 
 SculptGL.prototype = {
   /** Initialization */
-  start: function ()
-  {
+  start: function () {
     this.initWebGL();
     this.loadShaders();
     this.gui_.initGui();
@@ -63,81 +61,60 @@ SculptGL.prototype = {
     this.loadTextures();
     this.initEvents();
   },
-
   /** Initialize */
-  initEvents: function ()
-  {
+  initEvents: function () {
     var self = this;
     var $canvas = $('#canvas');
-    $('#fileopen').change(function (event)
-    {
+    $('#fileopen').change(function (event) {
       self.loadFile(event);
     });
-    $('#backgroundopen').change(function (event)
-    {
+    $('#backgroundopen').change(function (event) {
       self.loadBackground(event);
     });
-    $canvas.mousedown(function (event)
-    {
+    $canvas.mousedown(function (event) {
       self.onMouseDown(event);
     });
-    $canvas.mouseup(function (event)
-    {
+    $canvas.mouseup(function (event) {
       self.onMouseUp(event);
     });
-    $canvas.mousewheel(function (event)
-    {
+    $canvas.mousewheel(function (event) {
       self.onMouseWheel(event);
     });
-    $canvas.mousemove(function (event)
-    {
+    $canvas.mousemove(function (event) {
       self.onMouseMove(event);
     });
-    $canvas.mouseout(function (event)
-    {
+    $canvas.mouseout(function (event) {
       self.onMouseOut(event);
     });
     $canvas[0].addEventListener('webglcontextlost', self.onContextLost, false);
     $canvas[0].addEventListener('webglcontextrestored', self.onContextRestored, false);
-    $(window).keydown(function (event)
-    {
+    $(window).keydown(function (event) {
       self.onKeyDown(event);
     });
-    $(window).keyup(function (event)
-    {
+    $(window).keyup(function (event) {
       self.onKeyUp(event);
     });
-    $(window).resize(function (event)
-    {
+    $(window).resize(function (event) {
       self.onWindowResize(event);
     });
   },
-
   /** Load webgl context */
-  initWebGL: function ()
-  {
+  initWebGL: function () {
     var attributes = {
       antialias: false,
       stencil: true
     };
-    try
-    {
+    try {
       this.gl_ = $('#canvas')[0].getContext('webgl', attributes) || $('#canvas')[0].getContext('experimental-webgl', attributes);
-    }
-    catch (e)
-    {
+    } catch (e) {
       alert('Could not initialise WebGL.');
     }
     var gl = this.gl_;
-    if (gl)
-    {
-      if (gl.getExtension('OES_element_index_uint'))
-      {
+    if (gl) {
+      if (gl.getExtension('OES_element_index_uint')) {
         SculptGL.elementIndexType = gl.UNSIGNED_INT;
         SculptGL.indexArrayType = Uint32Array;
-      }
-      else
-      {
+      } else {
         SculptGL.elementIndexType = gl.UNSIGNED_SHORT;
         SculptGL.indexArrayType = Uint16Array;
       }
@@ -150,18 +127,14 @@ SculptGL.prototype = {
       gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
     }
   },
-
   /** Load textures (preload) */
-  loadTextures: function ()
-  {
+  loadTextures: function () {
     var self = this;
-    var loadTex = function (path, mode)
-    {
+    var loadTex = function (path, mode) {
       var mat = new Image();
       mat.src = path;
       var gl = self.gl_;
-      mat.onload = function ()
-      {
+      mat.onload = function () {
         var idTex = gl.createTexture();
         gl.bindTexture(gl.TEXTURE_2D, idTex);
         gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, mat);
@@ -182,12 +155,9 @@ SculptGL.prototype = {
     loadTex('ressources/orange.jpg', Shader.mode.MATERIAL + 5);
     loadTex('ressources/bronze.jpg', Shader.mode.MATERIAL + 6);
   },
-
   /** Load shaders as a string */
-  loadShaders: function ()
-  {
-    var xhrShader = function (path)
-    {
+  loadShaders: function () {
+    var xhrShader = function (path) {
       var shaderXhr = new XMLHttpRequest();
       shaderXhr.open('GET', path, false);
       shaderXhr.send(null);
@@ -207,29 +177,23 @@ SculptGL.prototype = {
     shaders.backgroundVertex = xhrShader('shaders/background.vert');
     shaders.backgroundFragment = xhrShader('shaders/background.frag');
   },
-
   /** Load the sphere */
-  loadSphere: function ()
-  {
+  loadSphere: function () {
     var sphereXhr = new XMLHttpRequest();
     sphereXhr.open('GET', 'ressources/sphere.obj', true);
     var self = this;
-    sphereXhr.onload = function ()
-    {
+    sphereXhr.onload = function () {
       self.sphere_ = this.responseText;
       self.resetSphere();
     };
     sphereXhr.send(null);
   },
-
   /** Render mesh */
-  render: function ()
-  {
+  render: function () {
     var gl = this.gl_;
     gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
     this.camera_.updateView();
-    if (this.background_)
-    {
+    if (this.background_) {
       gl.depthMask(false);
       this.background_.render();
       gl.depthMask(true);
@@ -237,10 +201,8 @@ SculptGL.prototype = {
     if (this.multimesh_)
       this.multimesh_.render(this.camera_, this.picking_);
   },
-
   /** Called when the window is resized */
-  onWindowResize: function ()
-  {
+  onWindowResize: function () {
     var newWidth = $(window).width(),
       newHeight = $(window).height();
     this.camera_.width_ = newWidth;
@@ -254,32 +216,25 @@ SculptGL.prototype = {
     this.camera_.updateProjection();
     this.render();
   },
-
   /** Key pressed event */
-  onKeyDown: function (event)
-  {
+  onKeyDown: function (event) {
     event.stopPropagation();
     if (!this.focusGui_)
       event.preventDefault();
     var key = event.which;
-    if (event.ctrlKey && key === 90) //z key
-    {
+    if (event.ctrlKey && key === 90) { //z key
       this.onUndo();
       return;
-    }
-    else if (event.ctrlKey && key === 89) //y key
-    {
+    } else if (event.ctrlKey && key === 89) { //y key
       this.onRedo();
       return;
     }
-    if (event.altKey)
-    {
+    if (event.altKey) {
       if (this.camera_.usePivot_)
         this.picking_.intersectionMouseMesh(this.multimesh_, this.lastMouseX_, this.lastMouseY_, 0.5);
       this.camera_.start(this.lastMouseX_, this.lastMouseY_, this.picking_);
     }
-    switch (key)
-    {
+    switch (key) {
     case 48: // 0
     case 96: // NUMPAD 0
       this.gui_.ctrlSculpt_.setValue(Sculpt.tool.SCALE);
@@ -343,24 +298,19 @@ SculptGL.prototype = {
       break;
     }
     var self = this;
-    if (this.cameraTimer_ === -1)
-    {
-      this.cameraTimer_ = setInterval(function ()
-      {
+    if (this.cameraTimer_ === -1) {
+      this.cameraTimer_ = setInterval(function () {
         self.camera_.updateTranslation();
         self.render();
       }, 20);
     }
   },
-
   /** Key released event */
-  onKeyUp: function (event)
-  {
+  onKeyUp: function (event) {
     event.stopPropagation();
     event.preventDefault();
     var key = event.which;
-    switch (key)
-    {
+    switch (key) {
     case 37: // LEFT
     case 81: // Q
     case 65: // A
@@ -388,16 +338,13 @@ SculptGL.prototype = {
       this.render();
       break;
     }
-    if (this.cameraTimer_ !== -1 && this.camera_.moveX_ === 0 && this.camera_.moveZ_ === 0)
-    {
+    if (this.cameraTimer_ !== -1 && this.camera_.moveX_ === 0 && this.camera_.moveZ_ === 0) {
       clearInterval(this.cameraTimer_);
       this.cameraTimer_ = -1;
     }
   },
-
   /** Mouse pressed event */
-  onMouseDown: function (event)
-  {
+  onMouseDown: function (event) {
     event.stopPropagation();
     event.preventDefault();
     var mouseX = event.pageX,
@@ -407,72 +354,57 @@ SculptGL.prototype = {
     var pressure = Tablet.pressure();
     var pressureRadius = this.usePenRadius_ ? pressure : 1.0;
     var pressureIntensity = this.usePenIntensity_ ? pressure : 1.0;
-    if (button === 1 && !event.altKey)
-    {
-      if (this.multimesh_)
-      {
+    if (button === 1 && !event.altKey) {
+      if (this.multimesh_) {
         this.sumDisplacement_ = 0;
         this.states_.start();
         if (this.sculpt_.tool_ === Sculpt.tool.ROTATE)
           this.sculpt_.startRotate(this.picking_, mouseX, mouseY, this.pickingSym_, this.ptPlane_, this.nPlane_, this.symmetry_);
         else if (this.sculpt_.tool_ === Sculpt.tool.SCALE)
           this.sculpt_.startScale(this.picking_, mouseX, mouseY, this.pickingSym_, this.ptPlane_, this.nPlane_, this.symmetry_);
-        else if (this.continuous_ && this.sculpt_.tool_ !== Sculpt.tool.DRAG)
-        {
+        else if (this.continuous_ && this.sculpt_.tool_ !== Sculpt.tool.DRAG) {
           this.pressureRadius_ = pressureRadius;
           this.pressureIntensity_ = pressureIntensity;
           this.mouseX_ = mouseX;
           this.mouseY_ = mouseY;
           var self = this;
-          this.sculptTimer_ = setInterval(function ()
-          {
+          this.sculptTimer_ = setInterval(function () {
             self.sculpt_.sculptStroke(self.mouseX_, self.mouseY_, self.pressureRadius_, self.pressureIntensity_, self);
             self.render();
           }, 20);
-        }
-        else
+        } else
           this.sculpt_.sculptStroke(mouseX, mouseY, pressureRadius, pressureIntensity, this);
       }
-    }
-    if (button === 3 || (button === 1 && this.picking_.mesh_ === null) || (event.altKey && button !== 0)) {
-      this.mouseButton_ = 3;
+    } else if (button === 3) {
       if (this.camera_.usePivot_)
         this.picking_.intersectionMouseMesh(this.multimesh_, mouseX, mouseY, pressureRadius);
       this.camera_.start(mouseX, mouseY, this.picking_);
     }
   },
-
   /** Mouse released event */
-  onMouseUp: function (event)
-  {
+  onMouseUp: function (event) {
     event.stopPropagation();
     event.preventDefault();
     if (this.multimesh_)
       this.multimesh_.checkLeavesUpdate();
-    if (this.sculptTimer_ !== -1)
-    {
+    if (this.sculptTimer_ !== -1) {
       clearInterval(this.sculptTimer_);
       this.sculptTimer_ = -1;
     }
     this.mouseButton_ = 0;
   },
-
   /** Mouse out event */
-  onMouseOut: function ()
-  {
+  onMouseOut: function () {
     if (this.multimesh_)
       this.multimesh_.checkLeavesUpdate();
-    if (this.sculptTimer_ !== -1)
-    {
+    if (this.sculptTimer_ !== -1) {
       clearInterval(this.sculptTimer_);
       this.sculptTimer_ = -1;
     }
     this.mouseButton_ = 0;
   },
-
   /** Mouse wheel event */
-  onMouseWheel: function (event)
-  {
+  onMouseWheel: function (event) {
     event.stopPropagation();
     event.preventDefault();
     var dy = event.deltaY;
@@ -480,10 +412,8 @@ SculptGL.prototype = {
     this.camera_.zoom(dy * 0.02);
     this.render();
   },
-
   /** Mouse move event */
-  onMouseMove: function (event)
-  {
+  onMouseMove: function (event) {
     event.stopPropagation();
     event.preventDefault();
     var mouseX = event.pageX,
@@ -495,8 +425,7 @@ SculptGL.prototype = {
     var pressureRadius = this.usePenRadius_ ? pressure : 1;
     var pressureIntensity = this.usePenIntensity_ ? pressure : 1;
     var modifierPressed = event.altKey || event.ctrlKey || event.shiftKey;
-    if (this.continuous_ && this.sculptTimer_ !== -1 && !modifierPressed)
-    {
+    if (this.continuous_ && this.sculptTimer_ !== -1 && !modifierPressed) {
       this.pressureRadius_ = pressureRadius;
       this.pressureIntensity_ = pressureIntensity;
       this.mouseX_ = mouseX;
@@ -517,22 +446,16 @@ SculptGL.prototype = {
     this.lastMouseY_ = mouseY;
     this.render();
   },
-
   /** WebGL context is lost */
-  onContextLost: function ()
-  {
+  onContextLost: function () {
     alert('shit happens : context lost');
   },
-
   /** WebGL context is restored */
-  onContextRestored: function ()
-  {
+  onContextRestored: function () {
     alert('context is restored');
   },
-
   /** Load file */
-  loadFile: function (event)
-  {
+  loadFile: function (event) {
     event.stopPropagation();
     event.preventDefault();
     if (event.target.files.length === 0)
@@ -547,8 +470,7 @@ SculptGL.prototype = {
       return;
     var reader = new FileReader();
     var self = this;
-    reader.onload = function (evt)
-    {
+    reader.onload = function (evt) {
       self.startMeshLoad();
       if (fileType === 'obj')
         Import.importOBJ(evt.target.result, self.mesh_);
@@ -566,24 +488,20 @@ SculptGL.prototype = {
     else if (fileType === 'ply')
       reader.readAsBinaryString(file);
   },
-
   /** Load background */
-  loadBackground: function (event)
-  {
+  loadBackground: function (event) {
     if (event.target.files.length === 0)
       return;
     var file = event.target.files[0];
     if (!file.type.match('image.*'))
       return;
-    if (!this.background_)
-    {
+    if (!this.background_) {
       this.background_ = new Background(this.gl_);
       this.background_.init(this.shaders_);
     }
     var reader = new FileReader();
     var self = this;
-    reader.onload = function (evt)
-    {
+    reader.onload = function (evt) {
       var bg = new Image();
       bg.src = evt.target.result;
       self.background_.loadBackgroundTexture(bg);
@@ -592,18 +510,14 @@ SculptGL.prototype = {
     };
     reader.readAsDataURL(file);
   },
-
   /** Open file */
-  resetSphere: function ()
-  {
+  resetSphere: function () {
     this.startMeshLoad();
     Import.importOBJ(this.sphere_, this.mesh_);
     this.endMeshLoad();
   },
-
   /** Initialization before loading the mesh */
-  startMeshLoad: function ()
-  {
+  startMeshLoad: function () {
     this.mesh_ = new Mesh(this.gl_);
     this.multimesh_ = new Multimesh(this.gl_);
     this.multimesh_.meshes_.push(this.mesh_);
@@ -611,36 +525,28 @@ SculptGL.prototype = {
     this.states_.multimesh_ = this.multimesh_;
     this.sculpt_.multimesh_ = this.multimesh_;
     //reset flags (not necessary...)
-    Mesh.stateMask_ = 1;
-    Vertex.tagMask_ = 1;
-    Vertex.sculptMask_ = 1;
-    Triangle.tagMask_ = 1;
+    Mesh.TAG_FLAG = 1;
+    Mesh.SCULPT_FLAG = 1;
+    Mesh.STATE_FLAG = 1;
   },
-
   /** The loading is finished, set stuffs ... and update camera */
-  endMeshLoad: function ()
-  {
+  endMeshLoad: function () {
     var multimesh = this.multimesh_;
     multimesh.init();
-    multimesh.moveTo([0, 0, 0]);
     this.camera_.reset();
     this.gui_.updateMesh();
     multimesh.initRender(Shader.mode.MATERIAL, this.textures_, this.shaders_);
     this.render();
   },
-
   /** When the user undos an action */
-  onUndo: function ()
-  {
+  onUndo: function () {
     this.states_.undo();
     this.multimesh_.updateBuffers(true, true);
     this.render();
     this.gui_.updateMesh();
   },
-
   /** When the user redos an action */
-  onRedo: function ()
-  {
+  onRedo: function () {
     this.states_.redo();
     this.multimesh_.updateBuffers(true, true);
     this.render();

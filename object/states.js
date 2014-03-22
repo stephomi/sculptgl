@@ -1,19 +1,17 @@
 'use strict';
 
-function State()
-{
+function State() {
   this.mesh_ = null; //the mesh
   this.vArState_ = []; //copies of vertices coordinates
   this.nArState_ = []; //copies of normal coordinates
   this.cArState_ = []; //copies of color vertices
   this.iArState_ = []; //copies of indices
-  this.vState_ = []; //copies of vertex topology
-  this.tState_ = []; //copies of triangle topology
-  this.aabbState_ = new Aabb(); //root aabb
+  this.idTriState_ = []; // ids of triangles
+  this.idVertState_ = []; // ids of vertices
+  this.aabbState_ = [Infinity, Infinity, Infinity, -Infinity, -Infinity, -Infinity]; //root aabb
 }
 
-function States()
-{
+function States() {
   this.multimesh_ = null; //the multires mesh
   this.undos_ = []; //undo actions
   this.redos_ = []; //redo actions
@@ -23,24 +21,20 @@ function States()
 
 States.prototype = {
   /** Start push state */
-  start: function ()
-  {
-    ++Mesh.stateMask_;
+  start: function () {
+    ++Mesh.STATE_FLAG;
     var undos = this.undos_;
     if (this.firstState_) undos.length = 0;
-    else if (undos.length > 10)
-    {
+    else if (undos.length > 10) {
       undos.shift();
       --this.curUndoIndex_;
     }
 
     this.firstState_ = false;
     this.redos_.length = 0;
-    if (undos.length)
-    {
+    if (undos.length) {
       var index = undos.length - 1;
-      while (index !== this.curUndoIndex_)
-      {
+      while (index !== this.curUndoIndex_) {
         undos.pop();
         --index;
       }
@@ -50,70 +44,59 @@ States.prototype = {
     this.curUndoIndex_ = undos.length - 1;
     var undoCur = undos[this.curUndoIndex_];
     undoCur.mesh_ = this.multimesh_.getCurrent();
-    undoCur.aabbState_ = undoCur.mesh_.octree_.aabbSplit_.clone();
+    var ab = undoCur.mesh_.octree_.aabbSplit_;
+    undoCur.aabbState_ = [ab[0], ab[1], ab[2], ab[3], ab[4], ab[5]];
   },
-
   /** Push verts and tris */
-  pushState: function (iTris, iVerts)
-  {
+  pushState: function (iTris, iVerts) {
     if (iTris && iTris.length > 0)
       this.pushStateTriangles(iTris);
     if (iVerts && iVerts.length > 0)
       this.pushStateVertices(iVerts);
   },
-
   /** Push triangles */
-  pushStateTriangles: function (iTris)
-  {
+  pushStateTriangles: function (iTris) {
     var undoCur = this.undos_[this.curUndoIndex_];
     var iArState = undoCur.iArState_;
-    var tState = undoCur.tState_;
+    var idTriUndoState = undoCur.idTriState_;
 
     var mesh = undoCur.mesh_;
-    var iAr = mesh.indexArray_;
-    var triangles = mesh.triangles_;
+    var iAr = mesh.indicesABC_;
+    var triStateFlags = mesh.triStateFlags_;
 
-    var meshStateMask = Mesh.stateMask_;
+    var stateFlag = Mesh.STATE_FLAG;
     var nbTris = iTris.length;
-    for (var i = 0; i < nbTris; ++i)
-    {
+    for (var i = 0; i < nbTris; ++i) {
       var id = iTris[i];
-      var t = triangles[id];
-      if (t.stateFlag_ !== meshStateMask)
-      {
-        t.stateFlag_ = meshStateMask;
-        tState.push(t.clone());
+      if (triStateFlags[id] !== stateFlag) {
+        triStateFlags[id] = stateFlag;
+        idTriUndoState.push(id);
         id *= 3;
         iArState.push(iAr[id], iAr[id + 1], iAr[id + 2]);
       }
     }
   },
-
   /** Push vertices */
-  pushStateVertices: function (iVerts)
-  {
+  pushStateVertices: function (iVerts) {
     var undoCur = this.undos_[this.curUndoIndex_];
     var vArState = undoCur.vArState_;
     var nArState = undoCur.nArState_;
     var cArState = undoCur.cArState_;
-    var vState = undoCur.vState_;
+    var idVertState = undoCur.idVertState_;
 
     var mesh = undoCur.mesh_;
-    var vAr = mesh.vertexArray_;
-    var nAr = mesh.normalArray_;
-    var cAr = mesh.colorArray_;
-    var vertices = mesh.vertices_;
+    var vAr = mesh.verticesXYZ_;
+    var nAr = mesh.normalsXYZ_;
+    var cAr = mesh.colorsRGB_;
+    var vertStateFlags = mesh.vertStateFlags_;
 
-    var meshStateMask = Mesh.stateMask_;
+    var stateFlag = Mesh.STATE_FLAG;
     var nbVerts = iVerts.length;
-    for (var i = 0; i < nbVerts; ++i)
-    {
+    for (var i = 0; i < nbVerts; ++i) {
       var id = iVerts[i];
-      var v = vertices[id];
-      if (v.stateFlag_ !== meshStateMask)
-      {
-        v.stateFlag_ = meshStateMask;
-        vState.push(v.clone());
+      if (vertStateFlags[id] !== stateFlag) {
+        vertStateFlags[id] = stateFlag;
+        idVertState.push(id);
         id *= 3;
         vArState.push(vAr[id], vAr[id + 1], vAr[id + 2]);
         nArState.push(nAr[id], nAr[id + 1], nAr[id + 2]);
@@ -121,10 +104,8 @@ States.prototype = {
       }
     }
   },
-
   /** Undo (also push the redo) */
-  undo: function ()
-  {
+  undo: function () {
     if (!this.undos_.length || this.firstState_)
       return;
     var curMesh = this.undos_[this.curUndoIndex_].mesh_;
@@ -134,7 +115,8 @@ States.prototype = {
 
     var redoState = new State();
     redoState.mesh_ = curMesh;
-    redoState.aabbState_ = curMesh.octree_.aabbSplit_.clone();
+    var ab = curMesh.octree_.aabbSplit_;
+    redoState.aabbState_ = [ab[0], ab[1], ab[2], ab[3], ab[4], ab[5]];
 
     this.pushRedoTriangles(redoState);
     this.pushRedoVertices(redoState);
@@ -144,81 +126,71 @@ States.prototype = {
     curMesh.computeOctree(this.undos_[this.curUndoIndex_].aabbState_);
 
     this.redos_.push(redoState);
-    if (this.curUndoIndex_)
-    {
+    if (this.curUndoIndex_) {
       this.firstState_ = false;
       --this.curUndoIndex_;
-    }
-    else
+    } else
       this.firstState_ = true;
   },
-
   /** Push redo triangles */
-  pushRedoTriangles: function (redoState)
-  {
+  pushRedoTriangles: function (redoState) {
     var mesh = redoState.mesh_;
-    var iAr = mesh.indexArray_;
-    var triangles = mesh.triangles_;
+    var iAr = mesh.indicesABC_;
 
     var undoCur = this.undos_[this.curUndoIndex_];
-    var tUndoState = undoCur.tState_;
-    var nbTris = tUndoState.length;
+    var idTriUndoState = undoCur.idTriState_;
+    var nbTris = idTriUndoState.length;
 
     var iArRedoState = redoState.iArState_;
-    var tRedoState = redoState.tState_;
+    var idTriRedoState = redoState.idTriState_;
 
     var i = 0,
       id = 0;
     for (i = 0; i < nbTris; ++i)
-      tRedoState.push(triangles[tUndoState[i].id_].clone());
+      idTriRedoState.push(idTriUndoState[i]);
 
     //fill states arrays
-    var nbState = tRedoState.length;
+    var nbState = idTriRedoState.length;
     iArRedoState.length = nbState * 3;
     var j = 0;
-    for (i = 0; i < nbState; ++i)
-    {
-      id = tRedoState[i].id_ * 3;
+    for (i = 0; i < nbState; ++i) {
+      id = idTriRedoState[i] * 3;
       j = i * 3;
       iArRedoState[j] = iAr[id];
       iArRedoState[j + 1] = iAr[id + 1];
       iArRedoState[j + 2] = iAr[id + 2];
     }
   },
-
   /** Push redo vertices */
-  pushRedoVertices: function (redoState)
-  {
+  pushRedoVertices: function (redoState) {
     var mesh = redoState.mesh_;
-    var vAr = mesh.vertexArray_;
-    var nAr = mesh.normalArray_;
-    var cAr = mesh.colorArray_;
-    var vertices = mesh.vertices_;
+    var vAr = mesh.verticesXYZ_;
+    var nAr = mesh.normalsXYZ_;
+    var cAr = mesh.colorsRGB_;
 
     var undoCur = this.undos_[this.curUndoIndex_];
-    var vUndoState = undoCur.vState_;
-    var nbVerts = vUndoState.length;
+    var idVertUndoState = undoCur.idVertState_;
+    var nbVerts = idVertUndoState.length;
 
     var vArRedoState = redoState.vArState_;
     var nArRedoState = redoState.nArState_;
     var cArRedoState = redoState.cArState_;
-    var vRedoState = redoState.vState_;
+    var idVertRedoState = redoState.idVertState_;
 
     var i = 0,
       id = 0;
 
     for (i = 0; i < nbVerts; ++i)
-      vRedoState.push(vertices[vUndoState[i].id_].clone());
+      idVertRedoState.push(idVertUndoState[i]);
 
     //fill states arrays
-    var nbState = vRedoState.length;
+    var nbState = idVertRedoState.length;
     vArRedoState.length = nbState * 3;
     nArRedoState.length = nbState * 3;
     cArRedoState.length = nbState * 3;
     var j = 0;
-    for (i = 0; i < nbState; ++i)
-    {
-      id = vRedoState[i].id_ * 3;
+    for (i = 0; i < nbState; ++i) {
+      id = idVertRedoState[i] * 3;
       j = i * 3;
       vArRedoState[j] = vAr[id];
       vArRedoState[j + 1] = vAr[id + 1];
@@ -231,60 +203,46 @@ States.prototype = {
       cArRedoState[j + 2] = cAr[id + 2];
     }
   },
-
   /** Pull undo triangles */
-  pullUndoTriangles: function ()
-  {
+  pullUndoTriangles: function () {
     var undoCur = this.undos_[this.curUndoIndex_];
     var mesh = undoCur.mesh_;
-    var iAr = mesh.indexArray_;
-    var triangles = mesh.triangles_;
+    var iAr = mesh.indicesABC_;
 
-    var tUndoState = undoCur.tState_;
+    var idTriUndoState = undoCur.idTriState_;
     var iArUndoState = undoCur.iArState_;
 
-    var nbTris = tUndoState.length;
+    var nbTris = idTriUndoState.length;
     var i = 0,
       j = 0,
       id = 0;
-    for (i = 0; i < nbTris; ++i)
-    {
-      var t = tUndoState[i];
-      id = t.id_;
-      triangles[id] = t.clone();
-      id *= 3;
+    for (i = 0; i < nbTris; ++i) {
+      id = idTriUndoState[i] * 3;
       j = i * 3;
       iAr[id] = iArUndoState[j];
       iAr[id + 1] = iArUndoState[j + 1];
       iAr[id + 2] = iArUndoState[j + 2];
     }
   },
-
   /** Pull undo vertices */
-  pullUndoVertices: function ()
-  {
+  pullUndoVertices: function () {
     var undoCur = this.undos_[this.curUndoIndex_];
     var mesh = undoCur.mesh_;
-    var vAr = mesh.vertexArray_;
-    var nAr = mesh.normalArray_;
-    var cAr = mesh.colorArray_;
-    var vertices = mesh.vertices_;
+    var vAr = mesh.verticesXYZ_;
+    var nAr = mesh.normalsXYZ_;
+    var cAr = mesh.colorsRGB_;
 
-    var vUndoState = undoCur.vState_;
     var vArUndoState = undoCur.vArState_;
     var nArUndoState = undoCur.nArState_;
     var cArUndoState = undoCur.cArState_;
+    var idVertUndoState = undoCur.idVertState_;
 
-    var nbVerts = vUndoState.length;
+    var nbVerts = idVertUndoState.length;
     var i = 0,
       j = 0,
       id = 0;
-    for (i = 0; i < nbVerts; ++i)
-    {
-      var v = vUndoState[i];
-      id = v.id_;
-      vertices[id] = v.clone();
-      id *= 3;
+    for (i = 0; i < nbVerts; ++i) {
+      id = idVertUndoState[i] * 3;
       j = i * 3;
       vAr[id] = vArUndoState[j];
       vAr[id + 1] = vArUndoState[j + 1];
@@ -297,16 +255,14 @@ States.prototype = {
       cAr[id + 2] = cArUndoState[j + 2];
     }
   },
-
   /** Redo */
-  redo: function ()
-  {
+  redo: function () {
     if (!this.redos_.length)
       return;
 
     var redoCur = this.redos_[this.redos_.length - 1];
     // TODO smarter multires redo...
-    if(redoCur.mesh_ !== this.multimesh_.getCurrent())
+    if (redoCur.mesh_ !== this.multimesh_.getCurrent())
       return;
 
     this.pullRedoTriangles();
@@ -320,27 +276,21 @@ States.prototype = {
   },
 
   /** Pull redo triangles */
-  pullRedoTriangles: function ()
-  {
+  pullRedoTriangles: function () {
     var redoCur = this.redos_[this.redos_.length - 1];
 
     var iArRedoState = redoCur.iArState_;
-    var tRedoState = redoCur.tState_;
-    var nbTris = tRedoState.length;
+    var idTriRedoState = redoCur.idTriState_;
+    var nbTris = idTriRedoState.length;
 
     var mesh = redoCur.mesh_;
-    var iAr = mesh.indexArray_;
-    var triangles = mesh.triangles_;
+    var iAr = mesh.indicesABC_;
 
     var i = 0,
       j = 0,
       id = 0;
-    for (i = 0; i < nbTris; ++i)
-    {
-      var t = tRedoState[i];
-      id = t.id_;
-      triangles[id] = t.clone();
-      id *= 3;
+    for (i = 0; i < nbTris; ++i) {
+      id = idTriRedoState[i] * 3;
       j = i * 3;
       iAr[id] = iArRedoState[j];
       iAr[id + 1] = iArRedoState[j + 1];
@@ -348,33 +298,26 @@ States.prototype = {
     }
 
   },
-
   /** Pull redo vertices */
-  pullRedoVertices: function ()
-  {
+  pullRedoVertices: function () {
     var redoCur = this.redos_[this.redos_.length - 1];
 
     var vArRedoState = redoCur.vArState_;
     var nArRedoState = redoCur.nArState_;
     var cArRedoState = redoCur.cArState_;
-    var vRedoState = redoCur.vState_;
-    var nbVerts = vRedoState.length;
+    var idVertRedoState = redoCur.idVertState_;
+    var nbVerts = idVertRedoState.length;
 
     var mesh = redoCur.mesh_;
-    var vAr = mesh.vertexArray_;
-    var nAr = mesh.normalArray_;
-    var cAr = mesh.colorArray_;
-    var vertices = mesh.vertices_;
+    var vAr = mesh.verticesXYZ_;
+    var nAr = mesh.normalsXYZ_;
+    var cAr = mesh.colorsRGB_;
 
     var i = 0,
       j = 0,
       id = 0;
-    for (i = 0; i < nbVerts; ++i)
-    {
-      var v = vRedoState[i];
-      id = v.id_;
-      vertices[id] = v.clone();
-      id *= 3;
+    for (i = 0; i < nbVerts; ++i) {
+      id = idVertRedoState[i] * 3;
       j = i * 3;
       vAr[id] = vArRedoState[j];
       vAr[id + 1] = vArRedoState[j + 1];
@@ -387,10 +330,8 @@ States.prototype = {
       cAr[id + 2] = cArRedoState[j + 2];
     }
   },
-
   /** Reset */
-  reset: function ()
-  {
+  reset: function () {
     this.multimesh_ = null;
     this.undos_ = [];
     this.redos_ = [];

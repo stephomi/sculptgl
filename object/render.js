@@ -1,9 +1,7 @@
 'use strict';
 
-function Render(gl, mesh)
-{
+function Render(gl, mesh) {
   this.multimesh_ = mesh; //webgl context
-  this.mesh_ = null; //webgl context
   this.gl_ = gl; //webgl context
   this.shader_ = new Shader(gl); //the program shader
 
@@ -22,37 +20,32 @@ function Render(gl, mesh)
 
 Render.prototype = {
   /** Update the shaders on the mesh, load the texture(s) first if the shaders need it */
-  updateShaders: function (shaderType, textures, shaders)
-  {
+  updateShaders: function (shaderType, textures, shaders) {
     if (shaderType >= Shader.mode.MATERIAL)
       this.reflectionLoc_ = textures[shaderType];
     this.shader_.type_ = shaderType;
     this.shader_.init(shaders);
   },
-
   /** Initialize Vertex Buffer Object (VBO) */
-  initBuffers: function ()
-  {
+  initBuffers: function () {
     var gl = this.gl_;
     this.vertexBuffer_ = gl.createBuffer();
     this.normalBuffer_ = gl.createBuffer();
     this.colorBuffer_ = gl.createBuffer();
     this.indexBuffer_ = gl.createBuffer();
   },
-
   /** Render the mesh */
-  render: function (camera, picking)
-  {
+  render: function (camera, picking) {
     var gl = this.gl_;
     var shader = this.shader_;
-    var lengthIndexArray = this.mesh_.triangles_.length * 3;
+    var lengthIndexArray = this.multimesh_.getCurrent().getNbTriangles() * 3;
 
     gl.useProgram(shader.program_);
 
     var centerPicking = picking.interPoint_;
     var radiusSquared = picking.rWorldSqr_;
     var mvMatrix = mat4.create();
-    mat4.mul(mvMatrix, camera.view_, this.multimesh_.matTransform_);
+    mat4.mul(mvMatrix, camera.view_, this.multimesh_.getMatrix());
     var mvpMatrix = mat4.create();
     mat4.mul(mvpMatrix, camera.proj_, mvMatrix);
 
@@ -67,8 +60,7 @@ Render.prototype = {
     else
       gl.vertexAttribPointer(shader.normalAttrib_, 3, gl.FLOAT, false, 0, 0);
 
-    if (shader.type_ !== Shader.mode.WIREFRAME && shader.type_ !== Shader.mode.NORMAL)
-    {
+    if (shader.type_ !== Shader.mode.WIREFRAME && shader.type_ !== Shader.mode.NORMAL) {
       gl.enableVertexAttribArray(shader.colorAttrib_);
       gl.bindBuffer(gl.ARRAY_BUFFER, this.colorBuffer_);
       gl.vertexAttribPointer(shader.colorAttrib_, 3, gl.FLOAT, false, 0, 0);
@@ -80,8 +72,7 @@ Render.prototype = {
     gl.uniform3fv(shader.centerPickingUnif_, vec3.transformMat4([0.0, 0.0, 0.0], centerPicking, mvMatrix));
     gl.uniform1f(shader.radiusSquaredUnif_, radiusSquared);
 
-    switch (shader.type_)
-    {
+    switch (shader.type_) {
     case Shader.mode.PHONG:
       this.drawBuffer(lengthIndexArray);
       break;
@@ -106,78 +97,64 @@ Render.prototype = {
       break;
     }
   },
-
   /** Draw buffer */
-  drawBuffer: function (lengthIndexArray)
-  {
+  drawBuffer: function (lengthIndexArray) {
     var gl = this.gl_;
     if (this.flatShading_ === true)
       gl.drawArrays(gl.TRIANGLES, 0, lengthIndexArray);
-    else
-    {
+    else {
       gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this.indexBuffer_);
       gl.drawElements(gl.TRIANGLES, lengthIndexArray, SculptGL.elementIndexType, 0);
     }
   },
-
   /** Update buffers */
-  updateBuffers: function (updateColors, updateIndex)
-  {
+  updateBuffers: function (updateColors, updateIndex) {
     if (this.shader_.type_ === Shader.mode.WIREFRAME)
       this.makeWireframeBuffers();
     else if (this.flatShading_ === true)
       this.flatShadingBuffers();
-    else
-    {
+    else {
       var gl = this.gl_;
-      var mesh = this.mesh_;
+      var mesh = this.multimesh_.getCurrent();
 
       gl.bindBuffer(gl.ARRAY_BUFFER, this.vertexBuffer_);
-      gl.bufferData(gl.ARRAY_BUFFER, mesh.vertexArray_, gl.DYNAMIC_DRAW);
+      gl.bufferData(gl.ARRAY_BUFFER, mesh.verticesXYZ_, gl.DYNAMIC_DRAW);
 
       gl.bindBuffer(gl.ARRAY_BUFFER, this.normalBuffer_);
-      gl.bufferData(gl.ARRAY_BUFFER, mesh.normalArray_, gl.DYNAMIC_DRAW);
+      gl.bufferData(gl.ARRAY_BUFFER, mesh.normalsXYZ_, gl.DYNAMIC_DRAW);
 
-      if (updateColors)
-      {
+      if (updateColors) {
         gl.bindBuffer(gl.ARRAY_BUFFER, this.colorBuffer_);
-        gl.bufferData(gl.ARRAY_BUFFER, mesh.colorArray_, gl.DYNAMIC_DRAW);
+        gl.bufferData(gl.ARRAY_BUFFER, mesh.colorsRGB_, gl.DYNAMIC_DRAW);
       }
 
-      if (updateIndex)
-      {
+      if (updateIndex) {
         gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this.indexBuffer_);
-        gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, mesh.indexArray_, gl.STATIC_DRAW);
+        gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, mesh.indicesABC_, gl.STATIC_DRAW);
       }
     }
   },
-
   /** Create arrays for the drawArrays function */
-  flatShadingBuffers: function ()
-  {
+  flatShadingBuffers: function () {
     var gl = this.gl_;
-    var mesh = this.mesh_;
-    var triangles = mesh.triangles_;
-    var nbTriangles = triangles.length;
-    var vAr = mesh.vertexArray_;
-    var cAr = mesh.colorArray_;
-    var iAr = mesh.indexArray_;
+    var mesh = this.multimesh_.getCurrent();
+    var nbTriangles = mesh.getNbTriangles();
+    var vAr = mesh.verticesXYZ_;
+    var cAr = mesh.colorsRGB_;
+    var iAr = mesh.indicesABC_;
 
     var cdv = this.cacheDrawArraysV_;
     var cdn = this.cacheDrawArraysN_;
     var cdc = this.cacheDrawArraysC_;
-    if (cdv === null || cdv.length <= nbTriangles * 9)
-    {
+    if (cdv === null || cdv.length <= nbTriangles * 9) {
       this.cacheDrawArraysV_ = new Float32Array(nbTriangles * 9 * 1.5);
       cdv = this.cacheDrawArraysV_;
     }
-    if (cdn === null || cdn.length <= nbTriangles * 9)
-    {
+    if (cdn === null || cdn.length <= nbTriangles * 9) {
       this.cacheDrawArraysN_ = new Float32Array(nbTriangles * 9 * 1.5);
       cdn = this.cacheDrawArraysN_;
     }
-    if (cdc === null || cdc.length <= nbTriangles * 9)
-    {
+    if (cdc === null || cdc.length <= nbTriangles * 9) {
       this.cacheDrawArraysC_ = new Float32Array(nbTriangles * 9 * 1.5);
       cdc = this.cacheDrawArraysC_;
     }
@@ -185,23 +162,24 @@ Render.prototype = {
     var i = 0,
       j = 0,
       id = 0;
+    var triNormals = mesh.triNormalsXYZ_;
     var len = nbTriangles * 3;
-    for (i = 0; i < len; ++i)
-    {
+    for (i = 0; i < len; ++i) {
       j = i * 3;
       id = iAr[i] * 3;
       cdv[j] = vAr[id];
       cdv[j + 1] = vAr[id + 1];
       cdv[j + 2] = vAr[id + 2];
 
-      var normal = triangles[Math.floor(i / 3)].normal_;
-      cdn[j] = normal[0];
-      cdn[j + 1] = normal[1];
-      cdn[j + 2] = normal[2];
-
       cdc[j] = cAr[id];
       cdc[j + 1] = cAr[id + 1];
       cdc[j + 2] = cAr[id + 2];
+
+      id = Math.floor(i / 3) * 3;
+      cdn[j] = triNormals[id];
+      cdn[j + 1] = triNormals[id + 1];
+      cdn[j + 2] = triNormals[id + 2];
+
     }
     gl.bindBuffer(gl.ARRAY_BUFFER, this.vertexBuffer_);
     gl.bufferData(gl.ARRAY_BUFFER, cdv, gl.DYNAMIC_DRAW);
@@ -212,26 +190,22 @@ Render.prototype = {
     gl.bindBuffer(gl.ARRAY_BUFFER, this.colorBuffer_);
     gl.bufferData(gl.ARRAY_BUFFER, cdc, gl.DYNAMIC_DRAW);
   },
-
   /** Create arrays for the drawArrays function */
-  makeWireframeBuffers: function ()
-  {
+  makeWireframeBuffers: function () {
     var gl = this.gl_;
-    var mesh = this.mesh_;
-    var nbTriangles = mesh.triangles_.length;
-    var vAr = mesh.vertexArray_;
-    var nAr = mesh.normalArray_;
-    var iAr = mesh.indexArray_;
+    var mesh = this.multimesh_.getCurrent();
+    var nbTriangles = mesh.getNbTriangles();
+    var vAr = mesh.verticesXYZ_;
+    var nAr = mesh.normalsXYZ_;
+    var iAr = mesh.indicesABC_;
 
     var cdv = this.cacheDrawArraysV_;
     var cdn = this.cacheDrawArraysN_;
-    if (cdv === null || cdv.length <= nbTriangles * 9)
-    {
+    if (cdv === null || cdv.length <= nbTriangles * 9) {
       this.cacheDrawArraysV_ = new Float32Array(nbTriangles * 9 * 1.5);
       cdv = this.cacheDrawArraysV_;
     }
-    if (cdn === null || cdn.length <= nbTriangles * 12)
-    {
+    if (cdn === null || cdn.length <= nbTriangles * 12) {
       this.cacheDrawArraysN_ = new Float32Array(nbTriangles * 12 * 1.5);
       cdn = this.cacheDrawArraysN_;
     }
@@ -240,8 +214,7 @@ Render.prototype = {
       j = 0,
       id = 0;
     var len = nbTriangles * 3;
-    for (i = 0; i < len; ++i)
-    {
+    for (i = 0; i < len; ++i) {
       j = i * 3;
       id = iAr[i] * 3;
       cdv[j] = vAr[id];

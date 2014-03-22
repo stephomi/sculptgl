@@ -1,7 +1,6 @@
 'use strict';
 
-function Shader(gl)
-{
+function Shader(gl) {
   this.gl_ = gl; //webgl context
   this.type_ = Shader.mode.MATERIAL; //type of shader
 
@@ -12,7 +11,7 @@ function Shader(gl)
   this.vertexAttrib_ = null; //vertex attribute location
   this.colorAttrib_ = null; //color vertex attribute location
   this.normalAttrib_ = null; //normal attribute location
-  
+
   this.mvpMatrixUnif_ = null; //model view projection matrix uniform location
   this.mvMatrixUnif_ = null; //model view matrix uniform location
   this.normalMatrixUnif_ = null; //normal matrix uniform location
@@ -34,11 +33,9 @@ Shader.mode = {
 
 Shader.prototype = {
   /** Initialize the shaders on the mesh */
-  init: function (shaders)
-  {
+  init: function (shaders) {
     var gl = this.gl_;
-    switch (this.type_)
-    {
+    switch (this.type_) {
     case Shader.mode.PHONG:
       this.loadShaders(shaders.phongVertex, shaders.phongFragment);
       break;
@@ -84,10 +81,8 @@ Shader.prototype = {
     gl.detachShader(program, this.vertexShader_);
     gl.deleteShader(this.vertexShader_);
   },
-
   /** Load vertex and fragment shaders */
-  loadShaders: function (vertex, fragment)
-  {
+  loadShaders: function (vertex, fragment) {
     var gl = this.gl_;
     this.vertexShader_ = gl.createShader(gl.VERTEX_SHADER);
     gl.shaderSource(this.vertexShader_, vertex);

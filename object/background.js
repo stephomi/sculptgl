@@ -1,7 +1,6 @@
 'use strict';
 
-function Background(gl)
-{
+function Background(gl) {
   this.gl_ = gl; //webgl context
 
   this.vertexBuffer_ = null; //vertices buffer
@@ -19,8 +18,7 @@ function Background(gl)
 
 Background.prototype = {
   /** Initialize the shaders on the mesh */
-  initShaders: function (shaders)
-  {
+  initShaders: function (shaders) {
     var gl = this.gl_;
     this.loadShaders(shaders.backgroundVertex, shaders.backgroundFragment);
 
@@ -41,10 +39,8 @@ Background.prototype = {
     gl.detachShader(shaderProgram, this.vertexShader_);
     gl.deleteShader(this.vertexShader_);
   },
-
   /** Load vertex and fragment shaders */
-  loadShaders: function (vertex, fragment)
-  {
+  loadShaders: function (vertex, fragment) {
     var gl = this.gl_;
     this.vertexShader_ = gl.createShader(gl.VERTEX_SHADER);
     gl.shaderSource(this.vertexShader_, vertex);
@@ -53,10 +49,8 @@ Background.prototype = {
     gl.shaderSource(this.fragmentShader_, fragment);
     gl.compileShader(this.fragmentShader_);
   },
-
   /** Initialize Vertex Buffer Object (VBO) */
-  initBuffer: function ()
-  {
+  initBuffer: function () {
     var gl = this.gl_;
 
     var vertCoords = [-1.0, -1.0, -1.0, 1.0, 1.0, -1.0, -1.0, 1.0, 1.0, 1.0, 1.0, -1.0];
@@ -71,17 +65,13 @@ Background.prototype = {
     gl.bindBuffer(gl.ARRAY_BUFFER, this.texBuffer_);
     gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(texCoords), gl.DYNAMIC_DRAW);
   },
-
   /** Initialize Vertex Buffer Object (VBO) */
-  init: function (shaders)
-  {
+  init: function (shaders) {
     this.initBuffer();
     this.initShaders(shaders);
   },
-
   /** Load background texture */
-  loadBackgroundTexture: function (tex)
-  {
+  loadBackgroundTexture: function (tex) {
     var gl = this.gl_;
     if (this.backgroundLoc_)
       gl.deleteTexture(this.backgroundLoc_);
@@ -93,10 +83,8 @@ Background.prototype = {
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
     gl.bindTexture(gl.TEXTURE_2D, null);
   },
-
   /** Render the background */
-  render: function ()
-  {
+  render: function () {
     var gl = this.gl_;
     gl.useProgram(this.shaderProgram_);
 
