@@ -123,6 +123,7 @@ States.prototype = {
     this.pullUndoTriangles();
     this.pullUndoVertices();
 
+    curMesh.updateTrianglesAabbAndNormal();
     curMesh.computeOctree(this.undos_[this.curUndoIndex_].aabbState_);
 
     this.redos_.push(redoState);
@@ -268,6 +269,7 @@ States.prototype = {
     this.pullRedoTriangles();
     this.pullRedoVertices();
 
+    curMesh.updateTrianglesAabbAndNormal();
     redoCur.mesh_.computeOctree(redoCur.aabbState_);
 
     if (!this.firstState_) this.curUndoIndex_++;
