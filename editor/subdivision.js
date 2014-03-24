@@ -6,7 +6,7 @@ function Subdivision() {
 }
 
 Subdivision.prototype = {
-  subdivide: function (baseMesh, newMesh) {
+  applyLoopSubdivision: function (baseMesh, newMesh) {
     this.baseMesh_ = baseMesh;
     this.newMesh_ = newMesh;
 
@@ -20,10 +20,9 @@ Subdivision.prototype = {
     // v1    m1    v2
 
     this.allocateArrays();
-    this.applyEvenSmooth();
+    this.applyEvenSmooth(baseMesh, newMesh.verticesXYZ_);
     this.subdivision();
     newMesh.updateGeometry();
-    this.testComputeInvertSmooth();
   },
   allocateArrays: function () {
     var baseMesh = this.baseMesh_;
@@ -60,7 +59,7 @@ Subdivision.prototype = {
     var vertRingVert = newMesh.vertRingVert_;
     var vertRingTri = newMesh.vertRingTri_;
 
-    var nbEdges = newMesh.edges_.length;
+    var nbEdges = newMesh.getNbEdges();
     var tagEdges = new Int32Array(nbEdges);
     for (i = 0; i < nbEdges; ++i)
       tagEdges[i] = -1;
@@ -91,7 +90,7 @@ Subdivision.prototype = {
       tag3 = 0;
     var nbVertices = baseMesh.getNbVertices();
 
-    var nbTris = baseMesh.indicesABC_.length / 3;
+    var nbTris = baseMesh.getNbTriangles();
     var nbEdgesOffset = baseMesh.indicesABC_.length;
     for (i = 0; i < nbTris; ++i) {
       id = i * 3;
@@ -313,15 +312,18 @@ Subdivision.prototype = {
     for (i = 0; i < nbTriEdges; ++i)
       eAr[teAr[i]]++;
   },
+  /** Apply loop subdivision without topology update */
+  geometrySubdivide: function (baseMesh, out) {
+    this.applyEvenSmooth(baseMesh, out);
+    this.applyOddSmooth(baseMesh, out);
+  },
   /** Even vertices smoothing. */
-  applyEvenSmooth: function () {
-    var baseMesh = this.baseMesh_;
+  applyEvenSmooth: function (baseMesh, even) {
     var vArOld = baseMesh.verticesXYZ_;
     var vertOnEdgeOld = baseMesh.vertOnEdge_;
     var vertRingVert = baseMesh.vertRingVert_;
     var nbVerts = baseMesh.getNbVertices();
 
-    var vAr = this.newMesh_.verticesXYZ_;
     for (var i = 0; i < nbVerts; ++i) {
       var j = i * 3;
       var ring = vertRingVert[i];
@@ -345,9 +347,9 @@ Subdivision.prototype = {
           }
         }
         comp = 0.25 / comp;
-        vAr[j] = vArOld[j] * 0.75 + avx * comp;
-        vAr[j + 1] = vArOld[j + 1] * 0.75 + avy * comp;
-        vAr[j + 2] = vArOld[j + 2] * 0.75 + avz * comp;
+        even[j] = vArOld[j] * 0.75 + avx * comp;
+        even[j + 1] = vArOld[j + 1] * 0.75 + avy * comp;
+        even[j + 2] = vArOld[j + 2] * 0.75 + avz * comp;
       } else {
         for (k = 0; k < nbVRing; ++k) {
           var id = ring[k] * 3;
@@ -365,97 +367,141 @@ Subdivision.prototype = {
           beta = 0.375 / nbVRing;
           betaComp = 0.625;
         }
-        vAr[j] = vArOld[j] * betaComp + avx * beta;
-        vAr[j + 1] = vArOld[j + 1] * betaComp + avy * beta;
-        vAr[j + 2] = vArOld[j + 2] * betaComp + avz * beta;
+        even[j] = vArOld[j] * betaComp + avx * beta;
+        even[j + 1] = vArOld[j + 1] * betaComp + avy * beta;
+        even[j + 2] = vArOld[j + 2] * betaComp + avz * beta;
       }
     }
   },
-  testComputeInvertSmooth: function () {
-    var baseMesh = this.baseMesh_;
-    var vertRingVert = baseMesh.vertRingVert_;
-    var vArOld = baseMesh.verticesXYZ_;
-    var nbVerts = baseMesh.getNbVertices();
+  applyOddSmooth: function (mesh, odds) {
+    var i = 0;
+    var iAr = mesh.indicesABC_;
+    var vAr = mesh.verticesXYZ_;
+    var teAr = mesh.triEdges_;
+    var eAr = mesh.edges_;
+    var nbVertices = mesh.getNbVertices();
+    var nbTris = mesh.getNbTriangles();
 
-    var newMesh = this.newMesh_;
-    var vAr = newMesh.verticesXYZ_;
-    var nAr = newMesh.normalsXYZ_;
+    var nbEdges = mesh.getNbEdges();
+    var tagEdges = new Int32Array(nbEdges);
+    for (i = 0; i < nbEdges; ++i)
+      tagEdges[i] = -1;
 
-    newMesh.smoothArray_ = new Float32Array(vArOld.length);
-    var smoAr = newMesh.smoothArray_;
+    var id = 0,
+      id1 = 0,
+      id2 = 0,
+      id3 = 0;
+    var iv1 = 0,
+      iv2 = 0,
+      iv3 = 0;
+    var ide1 = 0,
+      ide2 = 0,
+      ide3 = 0;
+    var ivMid1 = 0,
+      ivMid2 = 0,
+      ivMid3 = 0;
+    var idMid = 0,
+      idOpp = 0;
+    for (i = 0; i < nbTris; ++i) {
+      id = i * 3;
+      iv1 = iAr[id];
+      iv2 = iAr[id + 1];
+      iv3 = iAr[id + 2];
 
-    var j = 0;
-    var k = 0;
-    var len = 0.0;
+      ide1 = teAr[id];
+      ide2 = teAr[id + 1];
+      ide3 = teAr[id + 2];
 
-    var vx = 0.0,
-      vy = 0.0,
-      vz = 0.0;
-    var v2x = 0.0,
-      v2y = 0.0,
-      v2z = 0.0;
-    var dx = 0.0,
-      dy = 0.0,
-      dz = 0.0;
-    var nx = 0.0,
-      ny = 0.0,
-      nz = 0.0;
-    var tx = 0.0,
-      ty = 0.0,
-      tz = 0.0;
-    var bix = 0.0,
-      biy = 0.0,
-      biz = 0.0;
+      //  edge V1-v2
+      if (eAr[ide1] === 1) {
+        ivMid1 = nbVertices++;
+        idMid = ivMid1 * 3;
+        id1 = iv1 * 3;
+        id2 = iv2 * 3;
 
-    for (var i = 0; i < nbVerts; ++i) {
-      j = i * 3;
+        odds[idMid] = 0.5 * (vAr[id1] + vAr[id2]);
+        odds[idMid + 1] = 0.5 * (vAr[id1 + 1] + vAr[id2 + 1]);
+        odds[idMid + 2] = 0.5 * (vAr[id1 + 2] + vAr[id2 + 2]);
+      } else {
+        ivMid1 = tagEdges[ide1];
+        idOpp = iv3 * 3;
+        if (ivMid1 === -1) {
+          ivMid1 = nbVertices++;
+          tagEdges[ide1] = ivMid1;
+          idMid = ivMid1 * 3;
+          id1 = iv1 * 3;
+          id2 = iv2 * 3;
+          odds[idMid] = 0.125 * vAr[idOpp] + 0.375 * (vAr[id1] + vAr[id2]);
+          odds[idMid + 1] = 0.125 * vAr[idOpp + 1] + 0.375 * (vAr[id1 + 1] + vAr[id2 + 1]);
+          odds[idMid + 2] = 0.125 * vAr[idOpp + 2] + 0.375 * (vAr[id1 + 2] + vAr[id2 + 2]);
 
-      // vertex coord
-      vx = vAr[j];
-      vy = vAr[j + 1];
-      vz = vAr[j + 2];
+        } else {
+          idMid = ivMid1 * 3;
+          odds[idMid] += 0.125 * vAr[idOpp];
+          odds[idMid + 1] += 0.125 * vAr[idOpp + 1];
+          odds[idMid + 2] += 0.125 * vAr[idOpp + 2];
+        }
+      }
 
-      // neighborhood vert
-      k = vertRingVert[i][0] * 3;
-      v2x = vAr[k];
-      v2y = vAr[k + 1];
-      v2z = vAr[k + 2];
+      //  edge V2-v3
+      if (eAr[ide2] === 1) {
+        ivMid2 = nbVertices++;
+        idMid = ivMid2 * 3;
+        id2 = iv2 * 3;
+        id3 = iv3 * 3;
 
-      // displacement/detail vector (object space)
-      dx = vx - vArOld[j];
-      dy = vy - vArOld[j + 1];
-      dz = vz - vArOld[j + 2];
+        odds[idMid] = 0.5 * (vAr[id2] + vAr[id3]);
+        odds[idMid + 1] = 0.5 * (vAr[id2 + 1] + vAr[id3 + 1]);
+        odds[idMid + 2] = 0.5 * (vAr[id2 + 2] + vAr[id3 + 2]);
+      } else {
+        ivMid2 = tagEdges[ide2];
+        idOpp = iv1 * 3;
+        if (ivMid2 === -1) {
+          ivMid2 = nbVertices++;
+          tagEdges[ide2] = ivMid2;
+          idMid = ivMid2 * 3;
+          id2 = iv2 * 3;
+          id3 = iv3 * 3;
+          odds[idMid] = 0.125 * vAr[idOpp] + 0.375 * (vAr[id2] + vAr[id3]);
+          odds[idMid + 1] = 0.125 * vAr[idOpp + 1] + 0.375 * (vAr[id2 + 1] + vAr[id3 + 1]);
+          odds[idMid + 2] = 0.125 * vAr[idOpp + 2] + 0.375 * (vAr[id2 + 2] + vAr[id3 + 2]);
+        } else {
+          idMid = ivMid2 * 3;
+          odds[idMid] += 0.125 * vAr[idOpp];
+          odds[idMid + 1] += 0.125 * vAr[idOpp + 1];
+          odds[idMid + 2] += 0.125 * vAr[idOpp + 2];
+        }
+      }
 
-      // normal vec
-      nx = nAr[j];
-      ny = nAr[j + 1];
-      nz = nAr[j + 2];
+      //  edge V1-v3
+      if (eAr[ide3] === 1) {
+        ivMid3 = nbVertices++;
+        idMid = ivMid3 * 3;
+        id1 = iv1 * 3;
+        id3 = iv3 * 3;
 
-      // tangent vec (vertex - vertex neighbor)
-      tx = v2x - vx;
-      ty = v2y - vy;
-      tz = v2z - vz;
-      // distance to normal plane
-      len = tx * nx + ty * ny + tz * nz;
-      // project on normal plane
-      tx -= nx * len;
-      ty -= ny * len;
-      tz -= nz * len;
-      // normalize vector
-      len = 1.0 / Math.sqrt(tx * tx + ty * ty + tz * tz);
-      tx *= len;
-      ty *= len;
-      tz *= len;
-
-      // bi normal/tangent
-      bix = ny * tz - nz * ty;
-      biy = nz * tx - nx * tz;
-      biz = nx * ty - ny * tx;
-
-      // order : n/t/bi
-      smoAr[j] = nx * dx + ny * dy + nz * dz;
-      smoAr[j + 1] = tx * dx + ty * dy + tz * dz;
-      smoAr[j + 2] = bix * dx + biy * dy + biz * dz;
+        odds[idMid] = 0.5 * (vAr[id1] + vAr[id3]);
+        odds[idMid + 1] = 0.5 * (vAr[id1 + 1] + vAr[id3 + 1]);
+        odds[idMid + 2] = 0.5 * (vAr[id1 + 2] + vAr[id3 + 2]);
+      } else {
+        ivMid3 = tagEdges[ide3];
+        idOpp = iv2 * 3;
+        if (ivMid3 === -1) {
+          ivMid3 = nbVertices++;
+          tagEdges[ide3] = ivMid3;
+          idMid = ivMid3 * 3;
+          id1 = iv1 * 3;
+          id3 = iv3 * 3;
+          odds[idMid] = 0.125 * vAr[idOpp] + 0.375 * (vAr[id1] + vAr[id3]);
+          odds[idMid + 1] = 0.125 * vAr[idOpp + 1] + 0.375 * (vAr[id1 + 1] + vAr[id3 + 1]);
+          odds[idMid + 2] = 0.125 * vAr[idOpp + 2] + 0.375 * (vAr[id1 + 2] + vAr[id3 + 2]);
+        } else {
+          idMid = ivMid3 * 3;
+          odds[idMid] += 0.125 * vAr[idOpp];
+          odds[idMid + 1] += 0.125 * vAr[idOpp + 1];
+          odds[idMid + 2] += 0.125 * vAr[idOpp + 2];
+        }
+      }
     }
   }
 };

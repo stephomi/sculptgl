@@ -146,16 +146,16 @@ Render.prototype = {
     var cdv = this.cacheDrawArraysV_;
     var cdn = this.cacheDrawArraysN_;
     var cdc = this.cacheDrawArraysC_;
-    if (cdv === null || cdv.length <= nbTriangles * 9) {
-      this.cacheDrawArraysV_ = new Float32Array(nbTriangles * 9 * 1.5);
+    if (cdv === null || cdv.length !== nbTriangles * 9) {
+      this.cacheDrawArraysV_ = new Float32Array(nbTriangles * 9);
       cdv = this.cacheDrawArraysV_;
     }
-    if (cdn === null || cdn.length <= nbTriangles * 9) {
-      this.cacheDrawArraysN_ = new Float32Array(nbTriangles * 9 * 1.5);
+    if (cdn === null || cdn.length !== nbTriangles * 9) {
+      this.cacheDrawArraysN_ = new Float32Array(nbTriangles * 9);
       cdn = this.cacheDrawArraysN_;
     }
-    if (cdc === null || cdc.length <= nbTriangles * 9) {
-      this.cacheDrawArraysC_ = new Float32Array(nbTriangles * 9 * 1.5);
+    if (cdc === null || cdc.length !== nbTriangles * 9) {
+      this.cacheDrawArraysC_ = new Float32Array(nbTriangles * 9);
       cdc = this.cacheDrawArraysC_;
     }
 
@@ -201,12 +201,12 @@ Render.prototype = {
 
     var cdv = this.cacheDrawArraysV_;
     var cdn = this.cacheDrawArraysN_;
-    if (cdv === null || cdv.length <= nbTriangles * 9) {
-      this.cacheDrawArraysV_ = new Float32Array(nbTriangles * 9 * 1.5);
+    if (cdv === null || cdv.length !== nbTriangles * 9) {
+      this.cacheDrawArraysV_ = new Float32Array(nbTriangles * 9);
       cdv = this.cacheDrawArraysV_;
     }
-    if (cdn === null || cdn.length <= nbTriangles * 12) {
-      this.cacheDrawArraysN_ = new Float32Array(nbTriangles * 12 * 1.5);
+    if (cdn === null || cdn.length !== nbTriangles * 12) {
+      this.cacheDrawArraysN_ = new Float32Array(nbTriangles * 12);
       cdn = this.cacheDrawArraysN_;
     }
 

@@ -14,9 +14,9 @@ function Mesh() {
   this.indicesABC_ = null; //triangles (Uint16Array or Uint32Array)
 
   // vertices stuffs
-  this.vertOnEdge_ = null; // vertices on edge (Uint8Array) (1 => on edge)
-  this.vertRingTri_ = []; // array of array (neighborhood triangles)
-  this.vertRingVert_ = []; // array of array (ring vertices)
+  this.vertOnEdge_ = null; //vertices on edge (Uint8Array) (1 => on edge)
+  this.vertRingTri_ = []; //array of array (neighborhood triangles)
+  this.vertRingVert_ = []; //array of array (ring vertices)
   this.verticesXYZ_ = null; //vertices (Float32Array)
   this.colorsRGB_ = null; //color vertices (Float32Array)
   this.normalsXYZ_ = null; //normals (Float32Array)
@@ -31,6 +31,9 @@ function Mesh() {
   // flag for history
   this.triStateFlags_ = null; //state flags (Uint32Array)
   this.vertStateFlags_ = null; //state flags (Uint32Array)
+
+  // for multiresolution sculpting
+  this.detailsXYZ_ = null; //details vectors (Float32Array)
 
   this.octree_ = new Octree(); //octree
   this.leavesUpdate_ = []; //leaves of the octree to check

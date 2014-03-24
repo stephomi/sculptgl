@@ -195,7 +195,7 @@ Gui.prototype = {
     var optionsShaders = {
       'Phong': Shader.mode.PHONG,
       'Transparency': Shader.mode.TRANSPARENCY,
-      'Wireframe (slow)': Shader.mode.WIREFRAME,
+      'Wireframe (slower)': Shader.mode.WIREFRAME,
       'Normal shader': Shader.mode.NORMAL,
       'Clay': Shader.mode.MATERIAL,
       'Chavant': Shader.mode.MATERIAL + 1,
@@ -212,7 +212,7 @@ Gui.prototype = {
         main.render();
       }
     });
-    this.ctrlFlatShading_ = foldMesh.add(new Render(), 'flatShading_').name('flat shading (slower)');
+    this.ctrlFlatShading_ = foldMesh.add(new Render(), 'flatShading_').name('flat (slower)');
     this.ctrlFlatShading_.onChange(function (value) {
       if (main.multimesh_) {
         main.multimesh_.render_.flatShading_ = value;

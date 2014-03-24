@@ -625,9 +625,9 @@ Sculpt.prototype = {
       var id = iVerts[i];
       var ivRing = vertRingVert[id];
       var nbVRing = ivRing.length;
-      var nx = 0.0,
-        ny = 0.0,
-        nz = 0.0;
+      var avx = 0.0,
+        avy = 0.0,
+        avz = 0.0;
       var j = 0,
         ind = 0;
       if (vertOnEdge[id] === 1) {
@@ -637,25 +637,25 @@ Sculpt.prototype = {
           //we average only with vertices that are also on the edge
           if (vertOnEdge[ind] === 1) {
             ind *= 3;
-            nx += vAr[ind];
-            ny += vAr[ind + 1];
-            nz += vAr[ind + 2];
+            avx += vAr[ind];
+            avy += vAr[ind + 1];
+            avz += vAr[ind + 2];
             ++nbVertEdge;
           }
         }
-        smoothVerts[i3] = nx / nbVertEdge;
-        smoothVerts[i3 + 1] = ny / nbVertEdge;
-        smoothVerts[i3 + 2] = nz / nbVertEdge;
+        smoothVerts[i3] = avx / nbVertEdge;
+        smoothVerts[i3 + 1] = avy / nbVertEdge;
+        smoothVerts[i3 + 2] = avz / nbVertEdge;
       } else {
         for (j = 0; j < nbVRing; ++j) {
           ind = ivRing[j] * 3;
-          nx += vAr[ind];
-          ny += vAr[ind + 1];
-          nz += vAr[ind + 2];
+          avx += vAr[ind];
+          avy += vAr[ind + 1];
+          avz += vAr[ind + 2];
         }
-        smoothVerts[i3] = nx / nbVRing;
-        smoothVerts[i3 + 1] = ny / nbVRing;
-        smoothVerts[i3 + 2] = nz / nbVRing;
+        smoothVerts[i3] = avx / nbVRing;
+        smoothVerts[i3 + 1] = avy / nbVRing;
+        smoothVerts[i3 + 2] = avz / nbVRing;
       }
     }
   },
