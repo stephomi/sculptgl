@@ -5,8 +5,8 @@ function Gui(sculptgl) {
 
   //ui stuffs
   this.ctrlColor_ = null; //color controller
+  this.ctrlFlatShading_ = null; //symmetry controller
   this.ctrlShaders_ = null; //shaders controller
-  this.flatShading_ = null; //flat shading controller
   this.ctrlSculpt_ = null; //sculpt controller
   this.ctrlClay_ = null; //clay sculpting controller
   this.ctrlNegative_ = null; //negative sculpting controller
@@ -208,7 +208,7 @@ Gui.prototype = {
     this.ctrlShaders_ = foldMesh.add(new Shader(), 'type_', optionsShaders).name('Shader');
     this.ctrlShaders_.onChange(function (value) {
       if (main.multimesh_) {
-        main.multimesh_.initRender(parseInt(value, 10), main.textures_, main.shaders_);
+        main.multimesh_.updateShaders(parseInt(value, 10), main.textures_, main.shaders_);
         main.render();
       }
     });
@@ -344,5 +344,17 @@ Gui.prototype = {
     main.mesh_ = mesh;
     this.updateMeshInfo(mesh.getNbVertices(), mesh.getNbTriangles());
     main.render();
+  },
+  getFlatShading: function () {
+    return this.ctrlFlatShading_.getValue();
+  },
+  getShader: function () {
+    return this.ctrlShaders_.getValue();
+  },
+  setSculptTool: function (value) {
+    this.ctrlSculpt_.setValue(value);
+  },
+  setNegative: function (value) {
+    this.ctrlNegative_.setValue(value);
   }
 };

@@ -234,49 +234,50 @@ SculptGL.prototype = {
         this.picking_.intersectionMouseMesh(this.multimesh_, this.lastMouseX_, this.lastMouseY_, 0.5);
       this.camera_.start(this.lastMouseX_, this.lastMouseY_, this.picking_);
     }
+    var gui = this.gui_;
     switch (key) {
     case 48: // 0
     case 96: // NUMPAD 0
-      this.gui_.ctrlSculpt_.setValue(Sculpt.tool.SCALE);
+      gui.setSculptTool(Sculpt.tool.SCALE);
       break;
     case 49: // 1
     case 97: // NUMPAD 1
-      this.gui_.ctrlSculpt_.setValue(Sculpt.tool.BRUSH);
+      gui.setSculptTool(Sculpt.tool.BRUSH);
       break;
     case 50: // 2
     case 98: // NUMPAD 2
-      this.gui_.ctrlSculpt_.setValue(Sculpt.tool.INFLATE);
+      gui.setSculptTool(Sculpt.tool.INFLATE);
       break;
     case 51: // 3
     case 99: // NUMPAD 3
-      this.gui_.ctrlSculpt_.setValue(Sculpt.tool.ROTATE);
+      gui.setSculptTool(Sculpt.tool.ROTATE);
       break;
     case 52: // 4
     case 100: // NUMPAD 4
-      this.gui_.ctrlSculpt_.setValue(Sculpt.tool.SMOOTH);
+      gui.setSculptTool(Sculpt.tool.SMOOTH);
       break;
     case 53: // 5
     case 101: // NUMPAD 5
-      this.gui_.ctrlSculpt_.setValue(Sculpt.tool.FLATTEN);
+      gui.setSculptTool(Sculpt.tool.FLATTEN);
       break;
     case 54: // 6
     case 102: // NUMPAD 6
-      this.gui_.ctrlSculpt_.setValue(Sculpt.tool.PINCH);
+      gui.setSculptTool(Sculpt.tool.PINCH);
       break;
     case 55: // 7
     case 103: // NUMPAD 7
-      this.gui_.ctrlSculpt_.setValue(Sculpt.tool.CREASE);
+      gui.setSculptTool(Sculpt.tool.CREASE);
       break;
     case 56: // 8
     case 104: // NUMPAD 8
-      this.gui_.ctrlSculpt_.setValue(Sculpt.tool.DRAG);
+      gui.setSculptTool(Sculpt.tool.DRAG);
       break;
     case 57: // 9
     case 105: // NUMPAD 9
-      this.gui_.ctrlSculpt_.setValue(Sculpt.tool.COLOR);
+      gui.setSculptTool(Sculpt.tool.COLOR);
       break;
     case 78: // N
-      this.gui_.ctrlNegative_.setValue(!this.sculpt_.negative_);
+      gui.setNegative(!this.sculpt_.negative_);
       break;
     case 37: // LEFT
     case 81: // Q
@@ -531,11 +532,12 @@ SculptGL.prototype = {
   },
   /** The loading is finished, set stuffs ... and update camera */
   endMeshLoad: function () {
+    var gui = this.gui_;
     var multimesh = this.multimesh_;
     multimesh.init();
     this.camera_.reset();
-    this.gui_.updateMesh();
-    multimesh.initRender(Shader.mode.MATERIAL, this.textures_, this.shaders_);
+    multimesh.initRender(this.textures_, this.shaders_, gui.getShader(), gui.getFlatShading());
+    gui.updateMesh();
     this.render();
   },
   /** When the user undos an action */

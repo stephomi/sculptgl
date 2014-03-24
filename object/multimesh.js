@@ -7,8 +7,6 @@ function Multimesh(gl) {
   this.sel_ = 0;
   this.render_ = new Render(gl, this);
 
-  this.detail_ = [];
-
   this.bbox_ = [Infinity, Infinity, Infinity, -Infinity, -Infinity, -Infinity];
   this.center_ = [0.0, 0.0, 0.0]; //center of mesh, local space (before mesh transform)
   this.matTransform_ = mat4.create(); //transformation matrix of the mesh
@@ -18,15 +16,19 @@ function Multimesh(gl) {
 Multimesh.SCALE = 100.0;
 
 Multimesh.prototype = {
+  /** Return the current mesh */
   getCurrent: function () {
     return this.meshes_[this.sel_];
   },
-  getScale: function () {
-    return this.scale_;
-  },
+  /** Return transformation matrix */
   getMatrix: function () {
     return this.matTransform_;
   },
+  /** Return the scale (which is applied in the transform matrix) */
+  getScale: function () {
+    return this.scale_;
+  },
+  /** Add an extra level to the mesh (loop subdivision) */
   addLevel: function () {
     if ((this.meshes_.length - 1) !== this.sel_)
       return this.getCurrent();
@@ -47,10 +49,11 @@ Multimesh.prototype = {
 
     return newMesh;
   },
+  /** Go to one level below in mesh resolution */
   lowerLevel: function () {
     if (this.sel_ === 0)
       return this.meshes_[0];
-    this.lowerAnalysis();
+    this.lowerAnalysis(this.getCurrent(), this.meshes_[this.sel_ - 1]);
     this.sel_--;
     var mesh = this.getCurrent();
     mesh.computeOctree(mesh.computeAabb(), 0.2);
@@ -58,9 +61,11 @@ Multimesh.prototype = {
     this.updateBuffers(true, true);
     return mesh;
   },
+  /** Go to one level higher in mesh resolution, if available */
   higherLevel: function () {
     if (this.sel_ === this.meshes_.length - 1)
       return this.getCurrent();
+    this.higherSynthesis(this.getCurrent(), this.meshes_[this.sel_ + 1]);
     this.sel_++;
     var mesh = this.getCurrent();
     mesh.computeOctree(mesh.computeAabb(), 0.2);
@@ -68,30 +73,36 @@ Multimesh.prototype = {
     this.updateBuffers(true, true);
     return mesh;
   },
-  analysis: function () {
-    // finer level to coarser level;
-  },
+  /** Initialize the mesh, octree, topology, geometry, bbox, transformation */
   init: function () {
     var mesh = this.meshes_[0];
-    this.bbox_ = mesh.computeAabb();
-    var box = this.bbox_;
+    var box = this.bbox_ = mesh.computeAabb();
     this.center_ = [(box[0] + box[3]) * 0.5, (box[1] + box[4]) * 0.5, (box[2] + box[5]) * 0.5];
 
     mesh.init();
     mesh.computeOctree(box, 0.2);
-    this.render_.mesh_ = mesh;
 
     //scale and center
     var diag = vec3.dist([box[0], box[1], box[2]], [box[3], box[4], box[5]]);
     var scale = this.scale_ = Multimesh.SCALE / diag;
     mat4.scale(this.matTransform_, this.matTransform_, [scale, scale, scale]);
     this.moveTo([0.0, 0.0, 0.0]);
-    this.toto=mat4.create();
-    mat4.translate(this.toto, mat4.create(), vec3.sub([0.0,0.0,0.0], [0.0,0.0,0.0], this.center_));
+    this.toto = mat4.create();
+    mat4.translate(this.toto, mat4.create(), vec3.sub([0.0, 0.0, 0.0], [0.0, 0.0, 0.0], this.center_));
   },
-  /** Initialize buffers and shadr */
-  initRender: function (shaderType, textures, shaders) {
+  /** Move the mesh center to a certain point */
+  moveTo: function (destination) {
+    mat4.translate(this.matTransform_, this.matTransform_, vec3.sub(destination, destination, this.center_));
+  },
+  /** Initialize rendering */
+  initRender: function (textures, shaders, shaderType, flatShading) {
+    this.render_.mesh_ = this.getCurrent();
+    this.render_.flatShading_ = flatShading;
     this.render_.initBuffers();
+    this.updateShaders(shaderType, textures, shaders);
+  },
+  /** Initialize buffers and shaders */
+  updateShaders: function (shaderType, textures, shaders) {
     this.render_.updateShaders(shaderType, textures, shaders);
     this.render_.updateBuffers(true, true);
   },
@@ -99,20 +110,20 @@ Multimesh.prototype = {
   updateBuffers: function (updateColors, updateIndex) {
     this.render_.updateBuffers(updateColors, updateIndex);
   },
+  /** Render the mesh */
   render: function (camera, picking) {
     this.render_.render(camera, picking);
   },
-  /** Move the mesh center to a certain point */
-  moveTo: function (destination) {
-    mat4.translate(this.matTransform_, this.matTransform_, vec3.sub(destination, destination, this.center_));
-  },
+  /** Analyse the cells in the octree that needs an update */
   checkLeavesUpdate: function () {
     this.getCurrent().checkLeavesUpdate();
   },
-  lowerAnalysis: function () {
-    var meshDown = this.meshes_[this.sel_ - 1];
-    var meshUp = this.meshes_[this.sel_];
+  /** Go to one level above (down to up) */
+  higherSynthesis: function (meshDown, meshUp) {
 
+  },
+  /** Go to one level below (up to down) */
+  lowerAnalysis: function (meshUp, meshDown) {
     var vertRingVertUp = meshUp.vertRingVert_;
     var vArUp = meshUp.verticesXYZ_;
     var nArUp = meshUp.normalsXYZ_;
