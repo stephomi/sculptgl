@@ -58,7 +58,7 @@ Multimesh.prototype = {
   lowerLevel: function () {
     if (this.sel_ === 0)
       return this.meshes_[0];
-    this.lowerAnalysis(this.getCurrent(), this.meshes_[--this.sel_]);
+    Multiresolution.lowerAnalysis(this.getCurrent(), this.meshes_[--this.sel_]);
     this.updateResolution();
     return this.getCurrent();
   },
@@ -66,7 +66,7 @@ Multimesh.prototype = {
   higherLevel: function () {
     if (this.sel_ === this.meshes_.length - 1)
       return this.getCurrent();
-    this.higherSynthesis(this.getCurrent(), this.meshes_[++this.sel_]);
+    Multiresolution.higherSynthesis(this.getCurrent(), this.meshes_[++this.sel_]);
     this.updateResolution();
     return this.getCurrent();
   },
@@ -78,20 +78,6 @@ Multimesh.prototype = {
       this.render_.updateLinesBuffer();
     }
     this.updateBuffers(true, true);
-  },
-  /** Go to one level above (down to up) */
-  higherSynthesis: function (meshDown, meshUp) {
-    Subdivision.geometrySubdivide(meshDown, meshUp.verticesXYZ_);
-    Multiresolution.applyDetails(meshUp);
-  },
-  /** Go to one level below (up to down) */
-  lowerAnalysis: function (meshUp, meshDown) {
-    // TODO try to perform the dual of loop subdivision ? (taubin smooth)
-    // Multiresolution.taubinSmoothing(meshUp, meshDown);
-    meshDown.verticesXYZ_.set(meshUp.verticesXYZ_.subarray(0, meshDown.getNbVertices() * 3));
-    var subdVerts = new Float32Array(meshUp.getNbVertices() * 3);
-    Subdivision.geometrySubdivide(meshDown, subdVerts);
-    Multiresolution.computeDetails(meshUp, subdVerts);
   },
   /** Initialize the mesh, octree, topology, geometry, bbox, transformation */
   init: function () {

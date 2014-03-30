@@ -85,8 +85,9 @@ Picking.prototype = {
       if (this.pickedTriangle_ !== -1) {
         this.multimesh_ = multimesh;
         this.computeRadiusWorldSq(mouseX, mouseY, pressure);
-      } else
+      } else {
         this.rLocalSqr_ = 0.0;
+      }
     };
   })(),
   /** Find all the vertices inside the sphere */

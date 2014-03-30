@@ -1,6 +1,84 @@
+/*global
+Subdivision:false,
+Mesh:false
+*/
 'use strict';
 
 var Multiresolution = {};
+
+/** Go to one level above (down to up) */
+Multiresolution.higherSynthesis = function (meshDown, meshUp) {
+  Subdivision.geometrySubdivide(meshDown, meshUp.verticesXYZ_);
+  Multiresolution.applyColors(meshDown, meshUp);
+  Multiresolution.applyDetails(meshUp);
+};
+
+/** Go to one level below (up to down) */
+Multiresolution.lowerAnalysis = function (meshUp, meshDown) {
+  // TODO try to perform the dual of loop subdivision ? (taubin smooth)
+  // Multiresolution.taubinSmoothing(meshUp, meshDown);
+  meshUp.sculptRef_ = Mesh.SCULPT_FLAG;
+  meshDown.verticesXYZ_.set(meshUp.verticesXYZ_.subarray(0, meshDown.getNbVertices() * 3));
+  meshDown.colorsRGB_.set(meshUp.colorsRGB_.subarray(0, meshDown.getNbVertices() * 3));
+  var subdVerts = new Float32Array(meshUp.getNbVertices() * 3);
+  Subdivision.geometrySubdivide(meshDown, subdVerts);
+  Multiresolution.computeDetails(meshUp, subdVerts);
+};
+
+Multiresolution.applyColors = function (meshDown, meshUp) {
+  var sculptRef = meshUp.sculptRef_;
+  meshUp.colorsRGB_.set(meshDown.colorsRGB_);
+  meshUp.vertPaintFlags_.set(meshDown.vertPaintFlags_);
+  var iArDown = meshDown.indicesABC_;
+  var cArDown = meshDown.colorsRGB_;
+  var nbTriangles = meshDown.getNbTriangles();
+
+  var iArUp = meshUp.indicesABC_;
+  var vPfUp = meshUp.vertPaintFlags_;
+  var cArUp = meshUp.colorsRGB_;
+  var sculptFlag = Mesh.SCULPT_FLAG;
+
+  for (var i = 0; i < nbTriangles; ++i) {
+    var id = i * 3;
+    var iv1 = iArDown[id];
+    var iv2 = iArDown[id + 1];
+    var iv3 = iArDown[id + 2];
+
+    var ivMid1 = iArUp[id];
+    var ivMid2 = iArUp[id + 1];
+    var ivMid3 = iArUp[id + 2];
+
+    var vp1 = vPfUp[iv1];
+    var vp2 = vPfUp[iv2];
+    var vp3 = vPfUp[iv3];
+
+    iv1 *= 3;
+    iv2 *= 3;
+    iv3 *= 3;
+
+    if (vp1 > sculptRef || vp2 > sculptRef) {
+      vPfUp[ivMid1] = sculptFlag;
+      ivMid1 *= 3;
+      cArUp[ivMid1] = 0.5 * (cArDown[iv1] + cArDown[iv2]);
+      cArUp[ivMid1 + 1] = 0.5 * (cArDown[iv1 + 1] + cArDown[iv2 + 1]);
+      cArUp[ivMid1 + 2] = 0.5 * (cArDown[iv1 + 2] + cArDown[iv2 + 2]);
+    }
+    if (vp2 > sculptRef || vp3 > sculptRef) {
+      vPfUp[ivMid2] = sculptFlag;
+      ivMid2 *= 3;
+      cArUp[ivMid2] = 0.5 * (cArDown[iv2] + cArDown[iv3]);
+      cArUp[ivMid2 + 1] = 0.5 * (cArDown[iv2 + 1] + cArDown[iv3 + 1]);
+      cArUp[ivMid2 + 2] = 0.5 * (cArDown[iv2 + 2] + cArDown[iv3 + 2]);
+    }
+    if (vp1 > sculptRef || vp3 > sculptRef) {
+      vPfUp[ivMid3] = sculptFlag;
+      ivMid3 *= 3;
+      cArUp[ivMid3] = 0.5 * (cArDown[iv1] + cArDown[iv3]);
+      cArUp[ivMid3 + 1] = 0.5 * (cArDown[iv1 + 1] + cArDown[iv3 + 1]);
+      cArUp[ivMid3 + 2] = 0.5 * (cArDown[iv1 + 2] + cArDown[iv3 + 2]);
+    }
+  }
+};
 
 /** Apply back the detail vectors */
 Multiresolution.applyDetails = function (meshUp) {
@@ -13,58 +91,36 @@ Multiresolution.applyDetails = function (meshUp) {
 
   var dAr = meshUp.detailsXYZ_;
 
-  var j = 0,
-    k = 0;
-  var len = 0.0;
-  var vx = 0.0,
-    vy = 0.0,
-    vz = 0.0;
-  var v2x = 0.0,
-    v2y = 0.0,
-    v2z = 0.0;
-  var dx = 0.0,
-    dy = 0.0,
-    dz = 0.0;
-  var nx = 0.0,
-    ny = 0.0,
-    nz = 0.0;
-  var tx = 0.0,
-    ty = 0.0,
-    tz = 0.0;
-  var bix = 0.0,
-    biy = 0.0,
-    biz = 0.0;
-
   for (var i = 0; i < nbVertsUp; ++i) {
-    j = i * 3;
+    var j = i * 3;
 
     // vertex coord
-    vx = vArUp[j];
-    vy = vArUp[j + 1];
-    vz = vArUp[j + 2];
+    var vx = vArUp[j];
+    var vy = vArUp[j + 1];
+    var vz = vArUp[j + 2];
 
     // neighborhood vert
-    k = vertRingVertUp[i][0] * 3;
-    v2x = vArUp[k];
-    v2y = vArUp[k + 1];
-    v2z = vArUp[k + 2];
+    var k = vertRingVertUp[i][0] * 3;
+    var v2x = vArUp[k];
+    var v2y = vArUp[k + 1];
+    var v2z = vArUp[k + 2];
 
     // displacement/detail vector (object space)
-    dx = dAr[j];
-    dy = dAr[j + 1];
-    dz = dAr[j + 2];
+    var dx = dAr[j];
+    var dy = dAr[j + 1];
+    var dz = dAr[j + 2];
 
     // normal vec
-    nx = nArUp[j];
-    ny = nArUp[j + 1];
-    nz = nArUp[j + 2];
+    var nx = nArUp[j];
+    var ny = nArUp[j + 1];
+    var nz = nArUp[j + 2];
 
     // tangent vec (vertex - vertex neighbor)
-    tx = v2x - vx;
-    ty = v2y - vy;
-    tz = v2z - vz;
+    var tx = v2x - vx;
+    var ty = v2y - vy;
+    var tz = v2z - vz;
     // distance to normal plane
-    len = tx * nx + ty * ny + tz * nz;
+    var len = tx * nx + ty * ny + tz * nz;
     // project on normal plane
     tx -= nx * len;
     ty -= ny * len;
@@ -76,9 +132,9 @@ Multiresolution.applyDetails = function (meshUp) {
     tz *= len;
 
     // bi normal/tangent
-    bix = ny * tz - nz * ty;
-    biy = nz * tx - nx * tz;
-    biz = nx * ty - ny * tx;
+    var bix = ny * tz - nz * ty;
+    var biy = nz * tx - nx * tz;
+    var biz = nx * ty - ny * tx;
 
     // detail vec in the local frame
     vArOut[j] = vx + nx * dx + tx * dy + bix * dz;
@@ -97,58 +153,36 @@ Multiresolution.computeDetails = function (meshUp, downSubd) {
 
   var dAr = meshUp.detailsXYZ_ = new Float32Array(downSubd.length);
 
-  var j = 0,
-    k = 0;
-  var len = 0.0;
-  var vx = 0.0,
-    vy = 0.0,
-    vz = 0.0;
-  var v2x = 0.0,
-    v2y = 0.0,
-    v2z = 0.0;
-  var dx = 0.0,
-    dy = 0.0,
-    dz = 0.0;
-  var nx = 0.0,
-    ny = 0.0,
-    nz = 0.0;
-  var tx = 0.0,
-    ty = 0.0,
-    tz = 0.0;
-  var bix = 0.0,
-    biy = 0.0,
-    biz = 0.0;
-
   for (var i = 0; i < nbVertices; ++i) {
-    j = i * 3;
+    var j = i * 3;
 
     // vertex coord
-    vx = vArUp[j];
-    vy = vArUp[j + 1];
-    vz = vArUp[j + 2];
+    var vx = vArUp[j];
+    var vy = vArUp[j + 1];
+    var vz = vArUp[j + 2];
 
     // neighborhood vert
-    k = vertRingVertUp[i][0] * 3;
-    v2x = vArUp[k];
-    v2y = vArUp[k + 1];
-    v2z = vArUp[k + 2];
+    var k = vertRingVertUp[i][0] * 3;
+    var v2x = vArUp[k];
+    var v2y = vArUp[k + 1];
+    var v2z = vArUp[k + 2];
 
     // displacement/detail vector (object space)
-    dx = vx - downSubd[j];
-    dy = vy - downSubd[j + 1];
-    dz = vz - downSubd[j + 2];
+    var dx = vx - downSubd[j];
+    var dy = vy - downSubd[j + 1];
+    var dz = vz - downSubd[j + 2];
 
     // normal vec
-    nx = nArUp[j];
-    ny = nArUp[j + 1];
-    nz = nArUp[j + 2];
+    var nx = nArUp[j];
+    var ny = nArUp[j + 1];
+    var nz = nArUp[j + 2];
 
     // tangent vec (vertex - vertex neighbor)
-    tx = v2x - vx;
-    ty = v2y - vy;
-    tz = v2z - vz;
+    var tx = v2x - vx;
+    var ty = v2y - vy;
+    var tz = v2z - vz;
     // distance to normal plane
-    len = tx * nx + ty * ny + tz * nz;
+    var len = tx * nx + ty * ny + tz * nz;
     // project on normal plane
     tx -= nx * len;
     ty -= ny * len;
@@ -160,9 +194,9 @@ Multiresolution.computeDetails = function (meshUp, downSubd) {
     tz *= len;
 
     // bi normal/tangent
-    bix = ny * tz - nz * ty;
-    biy = nz * tx - nx * tz;
-    biz = nx * ty - ny * tx;
+    var bix = ny * tz - nz * ty;
+    var biy = nz * tx - nx * tz;
+    var biz = nx * ty - ny * tx;
 
     // order : n/t/bi
     dAr[j] = nx * dx + ny * dy + nz * dz;
@@ -186,21 +220,18 @@ Multiresolution.laplaceSmooth = function (mesh, target, source, factor) {
   var vertOnEdge = mesh.vertOnEdge_;
   var vertRingVert = mesh.vertRingVert_;
   var nbVerts = target.length / 3;
-  var avx = 0.0,
-    avy = 0.0,
-    avz = 0.0;
   var sx = 0.0,
     sy = 0.0,
     sz = 0.0;
-  var i = 0,
-    j = 0,
-    it = 0,
+  var j = 0,
     is = 0;
-  for (i = 0; i < nbVerts; ++i) {
-    it = i * 3;
+  for (var i = 0; i < nbVerts; ++i) {
+    var it = i * 3;
     var ivRing = vertRingVert[i];
     var nbVRing = ivRing.length;
-    avx = avy = avz = 0.0;
+    var avx = 0.0,
+      avy = 0.0,
+      avz = 0.0;
     if (vertOnEdge[i] === 1) {
       var nbVertEdge = 0;
       for (j = 0; j < nbVRing; ++j) {

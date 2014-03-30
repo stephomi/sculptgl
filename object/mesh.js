@@ -27,18 +27,16 @@ function Mesh() {
   this.normalsXYZ_ = null; //normals (Float32Array)
 
   // flag for general purposes
-  this.vertTagFlags_ = null; //tag flags (Uint32Array)
-  this.triTagFlags_ = null; //triangles tag (Uint32Array)
+  this.vertTagFlags_ = null; //tag flags (<= Mesh.TAG_FLAG) (Uint32Array)
+  this.triTagFlags_ = null; //triangles tag (<= Mesh.TAG_FLAG) (Uint32Array)
 
-  // flag for sculpting
-  this.vertSculptFlags_ = null; //state flags (Uint32Array)
+  // flag for editing
+  this.vertSculptFlags_ = null; //sculpt flags (<= Mesh.SCULPT_FLAG) (Uint32Array)
+  this.vertPaintFlags_ = null; //paint flags (<= Mesh.SCULPT_FLAG) (Uint32Array)
 
   // flag for history
-  this.triStateFlags_ = null; //state flags (Uint32Array)
-  this.vertStateFlags_ = null; //state flags (Uint32Array)
-
-  // for multiresolution sculpting
-  this.detailsXYZ_ = null; //details vectors (Float32Array)
+  this.triStateFlags_ = null; //state flags (<= Mesh.STATE_FLAG) (Uint32Array)
+  this.vertStateFlags_ = null; //state flags (<= Mesh.STATE_FLAG) (Uint32Array)
 
   // for multiresolution sculpting
   this.detailsXYZ_ = null; //details vectors (Float32Array)
@@ -52,6 +50,7 @@ function Mesh() {
 
   this.octree_ = new Octree(); //octree
   this.leavesUpdate_ = []; //leaves of the octree to check
+  this.sculptRef_ = 1; //last sculpt flag
 }
 
 Mesh.TAG_FLAG = 1; //flag value for comparison (always >= tags values)
@@ -219,10 +218,8 @@ Mesh.prototype = {
     var xmax = -Infinity,
       ymax = -Infinity,
       zmax = -Infinity;
-    var i = 0,
-      j = 0;
-    for (i = 0; i < nbVertices; ++i) {
-      j = i * 3;
+    for (var i = 0; i < nbVertices; ++i) {
+      var j = i * 3;
       var vx = vAr[j],
         vy = vAr[j + 1],
         vz = vAr[j + 2];
@@ -257,6 +254,7 @@ Mesh.prototype = {
     this.triStateFlags_ = new Uint32Array(nbTriangles);
     this.vertTagFlags_ = new Uint32Array(nbVertices);
     this.vertSculptFlags_ = new Uint32Array(nbVertices);
+    this.vertPaintFlags_ = new Uint32Array(nbVertices);
     this.vertStateFlags_ = new Uint32Array(nbVertices);
 
     // init vertices stuffs
@@ -282,25 +280,17 @@ Mesh.prototype = {
     var edgesMap = {};
     var iAr = this.indicesABC_;
     var teAr = this.triEdges_;
-    var id1 = 0,
-      id2 = 0,
-      id3 = 0,
-      iv1 = 0,
-      iv2 = 0,
-      iv3 = 0,
-      nbEdges = 0,
-      key = 0,
-      idEdge = 0;
+    var nbEdges = 0;
     for (var i = 0, nbTris = this.getNbTriangles(); i < nbTris; ++i) {
-      id1 = i * 3;
-      id2 = id1 + 1;
-      id3 = id1 + 2;
-      iv1 = iAr[id1];
-      iv2 = iAr[id2];
-      iv3 = iAr[id3];
+      var id1 = i * 3;
+      var id2 = id1 + 1;
+      var id3 = id1 + 2;
+      var iv1 = iAr[id1];
+      var iv2 = iAr[id2];
+      var iv3 = iAr[id3];
 
-      key = iv1 < iv2 ? iv1 + '.' + iv2 : iv2 + '.' + iv1;
-      idEdge = edgesMap[key];
+      var key = iv1 < iv2 ? iv1 + '.' + iv2 : iv2 + '.' + iv1;
+      var idEdge = edgesMap[key];
       if (idEdge === undefined)
         edgesMap[key] = idEdge = nbEdges++;
       teAr[id1] = idEdge;
@@ -401,7 +391,6 @@ Mesh.prototype = {
   },
   /** Update a group of triangles' normal and aabb */
   updateTrianglesAabbAndNormal: function (iTris) {
-    var i = 0;
     var triNormals = this.triNormalsXYZ_;
     var triBoxes = this.triBoxes_;
     var triCenters = this.triCentersXYZ_;
@@ -410,75 +399,44 @@ Mesh.prototype = {
 
     var full = iTris === undefined;
     var nbTris = full ? this.getNbTriangles() : iTris.length;
-    var ind1 = 0,
-      ind2 = 0,
-      ind3 = 0;
-    var ind = 0,
-      idTri = 0,
-      idBox = 0;
-    var v1x = 0.0,
-      v1y = 0.0,
-      v1z = 0.0;
-    var v2x = 0.0,
-      v2y = 0.0,
-      v2z = 0.0;
-    var v3x = 0.0,
-      v3y = 0.0,
-      v3z = 0.0;
-    var xmin = 0.0,
-      ymin = 0.0,
-      zmin = 0.0;
-    var xmax = 0.0,
-      ymax = 0.0,
-      zmax = 0.0;
-    var ax = 0.0,
-      ay = 0.0,
-      az = 0.0;
-    var bx = 0.0,
-      by = 0.0,
-      bz = 0.0;
-    var nx = 0.0,
-      ny = 0.0,
-      nz = 0.0;
-    var len = 0.0;
-    for (i = 0; i < nbTris; ++i) {
-      ind = full ? i : iTris[i];
-      idTri = ind * 3;
-      idBox = ind * 6;
-      ind1 = iAr[idTri] * 3;
-      ind2 = iAr[idTri + 1] * 3;
-      ind3 = iAr[idTri + 2] * 3;
-      v1x = vAr[ind1];
-      v1y = vAr[ind1 + 1];
-      v1z = vAr[ind1 + 2];
-      v2x = vAr[ind2];
-      v2y = vAr[ind2 + 1];
-      v2z = vAr[ind2 + 2];
-      v3x = vAr[ind3];
-      v3y = vAr[ind3 + 1];
-      v3z = vAr[ind3 + 2];
+    for (var i = 0; i < nbTris; ++i) {
+      var ind = full ? i : iTris[i];
+      var idTri = ind * 3;
+      var idBox = ind * 6;
+      var ind1 = iAr[idTri] * 3;
+      var ind2 = iAr[idTri + 1] * 3;
+      var ind3 = iAr[idTri + 2] * 3;
+      var v1x = vAr[ind1];
+      var v1y = vAr[ind1 + 1];
+      var v1z = vAr[ind1 + 2];
+      var v2x = vAr[ind2];
+      var v2y = vAr[ind2 + 1];
+      var v2z = vAr[ind2 + 2];
+      var v3x = vAr[ind3];
+      var v3y = vAr[ind3 + 1];
+      var v3z = vAr[ind3 + 2];
       // compute normals
-      ax = v2x - v1x;
-      ay = v2y - v1y;
-      az = v2z - v1z;
-      bx = v3x - v1x;
-      by = v3y - v1y;
-      bz = v3z - v1z;
-      nx = ay * bz - az * by;
-      ny = az * bx - ax * bz;
-      nz = ax * by - ay * bx;
-      len = 1.0 / Math.sqrt(nx * nx + ny * ny + nz * nz);
+      var ax = v2x - v1x;
+      var ay = v2y - v1y;
+      var az = v2z - v1z;
+      var bx = v3x - v1x;
+      var by = v3y - v1y;
+      var bz = v3z - v1z;
+      var nx = ay * bz - az * by;
+      var ny = az * bx - ax * bz;
+      var nz = ax * by - ay * bx;
+      var len = 1.0 / Math.sqrt(nx * nx + ny * ny + nz * nz);
       triNormals[idTri] = nx * len;
       triNormals[idTri + 1] = ny * len;
       triNormals[idTri + 2] = nz * len;
       // compute boxes
       // for code readability of course
-      xmin = v1x < v2x ? v1x < v3x ? v1x : v3x : v2x < v3x ? v2x : v3x;
-      xmax = v1x > v2x ? v1x > v3x ? v1x : v3x : v2x > v3x ? v2x : v3x;
-      ymin = v1y < v2y ? v1y < v3y ? v1y : v3y : v2y < v3y ? v2y : v3y;
-      ymax = v1y > v2y ? v1y > v3y ? v1y : v3y : v2z > v3y ? v2y : v3y;
-      zmin = v1z < v2z ? v1z < v3z ? v1z : v3z : v2z < v3z ? v2z : v3z;
-      zmax = v1z > v2z ? v1z > v3z ? v1z : v3z : v2y > v3z ? v2z : v3z;
+      var xmin = v1x < v2x ? v1x < v3x ? v1x : v3x : v2x < v3x ? v2x : v3x;
+      var xmax = v1x > v2x ? v1x > v3x ? v1x : v3x : v2x > v3x ? v2x : v3x;
+      var ymin = v1y < v2y ? v1y < v3y ? v1y : v3y : v2y < v3y ? v2y : v3y;
+      var ymax = v1y > v2y ? v1y > v3y ? v1y : v3y : v2z > v3y ? v2y : v3y;
+      var zmin = v1z < v2z ? v1z < v3z ? v1z : v3z : v2z < v3z ? v2z : v3z;
+      var zmax = v1z > v2z ? v1z > v3z ? v1z : v3z : v2y > v3z ? v2z : v3z;
       triBoxes[idBox] = xmin;
       triBoxes[idBox + 1] = ymin;
       triBoxes[idBox + 2] = zmin;
@@ -673,20 +631,14 @@ Mesh.prototype = {
       cdc = this.cacheDrawArraysC_;
     }
 
-    var i = 0,
-      j = 0,
-      vId = 0;
-    var id1 = 0,
-      id2 = 0,
-      id3 = 0;
     var nbTris = full ? nbTriangles : iTris.length;
-    for (i = 0; i < nbTris; ++i) {
-      j = full ? i * 3 : iTris[i] * 3;
-      vId = j * 3;
+    for (var i = 0; i < nbTris; ++i) {
+      var j = full ? i * 3 : iTris[i] * 3;
+      var vId = j * 3;
 
-      id1 = iAr[j] * 3;
-      id2 = iAr[j + 1] * 3;
-      id3 = iAr[j + 2] * 3;
+      var id1 = iAr[j] * 3;
+      var id2 = iAr[j + 1] * 3;
+      var id3 = iAr[j + 2] * 3;
 
       cdv[vId] = vAr[id1];
       cdv[vId + 1] = vAr[id1 + 1];
@@ -733,28 +685,19 @@ Mesh.prototype = {
     var teAr = this.triEdges_;
     var nbTriangles = this.getNbTriangles();
 
-    var i = 0,
-      id = 0,
-      nbLines = 0;
-    var iv1 = 0,
-      iv2 = 0,
-      iv3 = 0;
-    var ide1 = 0,
-      ide2 = 0,
-      ide3 = 0;
-
+    var nbLines = 0;
     var tagEdges = new Int32Array(nbEdges);
 
-    for (i = 0; i < nbTriangles; ++i) {
-      id = i * 3;
+    for (var i = 0; i < nbTriangles; ++i) {
+      var id = i * 3;
 
-      iv1 = flatShading ? id : iAr[id];
-      iv2 = flatShading ? id + 1 : iAr[id + 1];
-      iv3 = flatShading ? id + 2 : iAr[id + 2];
+      var iv1 = flatShading ? id : iAr[id];
+      var iv2 = flatShading ? id + 1 : iAr[id + 1];
+      var iv3 = flatShading ? id + 2 : iAr[id + 2];
 
-      ide1 = teAr[id];
-      ide2 = teAr[id + 1];
-      ide3 = teAr[id + 2];
+      var ide1 = teAr[id];
+      var ide2 = teAr[id + 1];
+      var ide3 = teAr[id + 2];
 
       if (tagEdges[ide1] === 0) {
         tagEdges[ide1] = 1;

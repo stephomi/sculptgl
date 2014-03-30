@@ -35,6 +35,8 @@ Subdivision.allocateArrays = function (baseMesh, newMesh) {
   newMesh.allocateArrays();
   // keep colors
   newMesh.colorsRGB_.set(baseMesh.colorsRGB_);
+  // keep the vertex on edge
+  newMesh.vertOnEdge_.set(baseMesh.vertOnEdge_);
 };
 
 /** Compute the position of odd verties + creates triangles (+ topology) */
@@ -59,43 +61,31 @@ Subdivision.subdivision = function (baseMesh, newMesh) {
   for (i = 0; i < nbEdges; ++i)
     tagEdges[i] = -1;
 
-  var id = 0,
-    id1 = 0,
-    id2 = 0,
-    id3 = 0;
-  var iv1 = 0,
-    iv2 = 0,
-    iv3 = 0;
-  var ide1 = 0,
-    ide2 = 0,
-    ide3 = 0;
-  var tri1 = 0,
-    tri2 = 0,
-    tri3 = 0;
-  var ivMid1 = 0,
-    ivMid2 = 0,
-    ivMid3 = 0;
-  var idMid = 0,
-    idOpp = 0;
-  var e1center = 0,
-    e2center = 0,
-    e3center = 0;
+  var nbVertices = baseMesh.getNbVertices();
+
   var tag1 = 0,
     tag2 = 0,
     tag3 = 0;
-  var nbVertices = baseMesh.getNbVertices();
+  var ivMid1 = 0,
+    ivMid2 = 0,
+    ivMid3 = 0;
+  var id1 = 0,
+    id2 = 0,
+    id3 = 0;
+  var idMid = 0,
+    idOpp = 0;
 
   var nbTris = baseMesh.getNbTriangles();
   var nbEdgesOffset = baseMesh.indicesABC_.length;
   for (i = 0; i < nbTris; ++i) {
-    id = i * 3;
-    iv1 = iArOld[id];
-    iv2 = iArOld[id + 1];
-    iv3 = iArOld[id + 2];
+    var id = i * 3;
+    var iv1 = iArOld[id];
+    var iv2 = iArOld[id + 1];
+    var iv3 = iArOld[id + 2];
 
-    ide1 = teArOld[id];
-    ide2 = teArOld[id + 1];
-    ide3 = teArOld[id + 2];
+    var ide1 = teArOld[id];
+    var ide2 = teArOld[id + 1];
+    var ide3 = teArOld[id + 2];
 
     //  edge V1-v2
     if (eArOld[ide1] === 1) {
@@ -232,9 +222,9 @@ Subdivision.subdivision = function (baseMesh, newMesh) {
       }
     }
 
-    e1center = id;
-    e2center = id + 1;
-    e3center = id + 2;
+    var e1center = id;
+    var e2center = id + 1;
+    var e3center = id + 2;
 
     iAr[id] = ivMid1;
     iAr[id + 1] = ivMid2;
@@ -244,9 +234,9 @@ Subdivision.subdivision = function (baseMesh, newMesh) {
     teAr[id + 2] = e3center;
 
     id += nbTris;
-    tri1 = id;
-    tri2 = id + 1;
-    tri3 = id + 2;
+    var tri1 = id;
+    var tri2 = id + 1;
+    var tri3 = id + 2;
 
     id = tri1 * 3;
     iAr[id] = iv1;
@@ -286,22 +276,25 @@ Subdivision.subdivision = function (baseMesh, newMesh) {
       vertRingVert[ivMid1].push(iv1, iv2, ivMid2, ivMid3);
       vertRingVert[iv1].push(ivMid1);
       vertRingVert[iv2].push(ivMid1);
-    } else
+    } else {
       vertRingVert[ivMid1].push(ivMid2, ivMid3);
+    }
 
     if (tag2 === -1) {
       vertRingVert[ivMid2].push(iv2, iv3, ivMid1, ivMid3);
       vertRingVert[iv2].push(ivMid2);
       vertRingVert[iv3].push(ivMid2);
-    } else
+    } else {
       vertRingVert[ivMid2].push(ivMid1, ivMid3);
+    }
 
     if (tag3 === -1) {
       vertRingVert[ivMid3].push(iv1, iv3, ivMid1, ivMid2);
       vertRingVert[iv1].push(ivMid3);
       vertRingVert[iv3].push(ivMid3);
-    } else
+    } else {
       vertRingVert[ivMid3].push(ivMid1, ivMid2);
+    }
   }
   var nbTriEdges = teAr.length;
   for (i = 0; i < nbTriEdges; ++i)
@@ -309,9 +302,9 @@ Subdivision.subdivision = function (baseMesh, newMesh) {
 };
 
 /** Apply loop subdivision without topology update */
-Subdivision.geometrySubdivide = function (baseMesh, out) {
-  this.applyEvenSmooth(baseMesh, out);
-  this.applyOddSmooth(baseMesh, out);
+Subdivision.geometrySubdivide = function (baseMesh, vertOut) {
+  Subdivision.applyEvenSmooth(baseMesh, vertOut);
+  Subdivision.applyOddSmooth(baseMesh, vertOut);
 };
 
 /** Even vertices smoothing */
@@ -386,30 +379,23 @@ Subdivision.applyOddSmooth = function (mesh, odds) {
   for (i = 0; i < nbEdges; ++i)
     tagEdges[i] = -1;
 
-  var id = 0,
-    id1 = 0,
+  var id1 = 0,
     id2 = 0,
     id3 = 0;
-  var iv1 = 0,
-    iv2 = 0,
-    iv3 = 0;
-  var ide1 = 0,
-    ide2 = 0,
-    ide3 = 0;
   var ivMid1 = 0,
     ivMid2 = 0,
     ivMid3 = 0;
   var idMid = 0,
     idOpp = 0;
   for (i = 0; i < nbTris; ++i) {
-    id = i * 3;
-    iv1 = iAr[id];
-    iv2 = iAr[id + 1];
-    iv3 = iAr[id + 2];
+    var id = i * 3;
+    var iv1 = iAr[id];
+    var iv2 = iAr[id + 1];
+    var iv3 = iAr[id + 2];
 
-    ide1 = teAr[id];
-    ide2 = teAr[id + 1];
-    ide3 = teAr[id + 2];
+    var ide1 = teAr[id];
+    var ide2 = teAr[id + 1];
+    var ide3 = teAr[id + 2];
 
     //  edge V1-v2
     if (eAr[ide1] === 1) {
@@ -417,7 +403,6 @@ Subdivision.applyOddSmooth = function (mesh, odds) {
       idMid = ivMid1 * 3;
       id1 = iv1 * 3;
       id2 = iv2 * 3;
-
       odds[idMid] = 0.5 * (vAr[id1] + vAr[id2]);
       odds[idMid + 1] = 0.5 * (vAr[id1 + 1] + vAr[id2 + 1]);
       odds[idMid + 2] = 0.5 * (vAr[id1 + 2] + vAr[id2 + 2]);
@@ -433,7 +418,6 @@ Subdivision.applyOddSmooth = function (mesh, odds) {
         odds[idMid] = 0.125 * vAr[idOpp] + 0.375 * (vAr[id1] + vAr[id2]);
         odds[idMid + 1] = 0.125 * vAr[idOpp + 1] + 0.375 * (vAr[id1 + 1] + vAr[id2 + 1]);
         odds[idMid + 2] = 0.125 * vAr[idOpp + 2] + 0.375 * (vAr[id1 + 2] + vAr[id2 + 2]);
-
       } else {
         idMid = ivMid1 * 3;
         odds[idMid] += 0.125 * vAr[idOpp];
@@ -448,7 +432,6 @@ Subdivision.applyOddSmooth = function (mesh, odds) {
       idMid = ivMid2 * 3;
       id2 = iv2 * 3;
       id3 = iv3 * 3;
-
       odds[idMid] = 0.5 * (vAr[id2] + vAr[id3]);
       odds[idMid + 1] = 0.5 * (vAr[id2 + 1] + vAr[id3 + 1]);
       odds[idMid + 2] = 0.5 * (vAr[id2 + 2] + vAr[id3 + 2]);
@@ -478,7 +461,6 @@ Subdivision.applyOddSmooth = function (mesh, odds) {
       idMid = ivMid3 * 3;
       id1 = iv1 * 3;
       id3 = iv3 * 3;
-
       odds[idMid] = 0.5 * (vAr[id1] + vAr[id3]);
       odds[idMid + 1] = 0.5 * (vAr[id1 + 1] + vAr[id3 + 1]);
       odds[idMid + 2] = 0.5 * (vAr[id1 + 2] + vAr[id3 + 2]);
