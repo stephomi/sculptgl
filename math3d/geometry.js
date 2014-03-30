@@ -1,3 +1,6 @@
+/*global
+vec3:false
+*/
 'use strict';
 
 var Geometry = {};

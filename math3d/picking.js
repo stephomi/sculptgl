@@ -1,3 +1,9 @@
+/*global
+Mesh:false,
+Geometry:false,
+mat4:false,
+vec3:false
+*/
 'use strict';
 
 function Picking(camera) {

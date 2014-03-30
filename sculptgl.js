@@ -1,3 +1,18 @@
+/*global
+Multimesh:false,
+Background:false,
+Mesh:false,
+States:false,
+Camera:false,
+Sculpt:false,
+Import:false,
+Gui:false,
+$:false,
+alert:false,
+Shader:false,
+Tablet:false,
+Picking:false
+*/
 'use strict';
 
 function SculptGL() {
@@ -100,8 +115,9 @@ SculptGL.prototype = {
   },
   /** Load webgl context */
   initWebGL: function () {
+    // TODO : add an option to toggle antialias if possible ?
     var attributes = {
-      antialias: false,
+      antialias: true,
       stencil: true
     };
     try {
@@ -536,21 +552,21 @@ SculptGL.prototype = {
     var multimesh = this.multimesh_;
     multimesh.init();
     this.camera_.reset();
-    multimesh.initRender(this.textures_, this.shaders_, gui.getShader(), gui.getFlatShading());
+    multimesh.initRender(this.textures_, this.shaders_, gui.getShader(), gui.getFlatShading(), gui.getWireframe());
     gui.updateMesh();
     this.render();
   },
   /** When the user undos an action */
   onUndo: function () {
     this.states_.undo();
-    this.multimesh_.updateBuffers(true, true);
+    this.multimesh_.updateHistory();
     this.render();
     this.gui_.updateMesh();
   },
   /** When the user redos an action */
   onRedo: function () {
     this.states_.redo();
-    this.multimesh_.updateBuffers(true, true);
+    this.multimesh_.updateHistory();
     this.render();
     this.gui_.updateMesh();
   }

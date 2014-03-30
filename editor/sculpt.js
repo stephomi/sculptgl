@@ -1,3 +1,11 @@
+/*global
+Geometry:false,
+Mesh:false,
+mat4:false,
+vec3:false,
+vec2:false,
+quat:false
+*/
 'use strict';
 
 function Sculpt(states) {
@@ -209,7 +217,7 @@ Sculpt.prototype = {
       }
     }
 
-    mesh.updateMesh(iTris, iVertsSelected);
+    this.multimesh_.updateMesh(iTris, iVertsSelected);
   },
   /** Brush stroke, move vertices along a direction computed by their averaging normals */
   brush: function (center, iVertsInRadius, iVertsFront, radiusSquared, intensity) {

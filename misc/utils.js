@@ -1,3 +1,4 @@
+'use strict';
 var Utils = {};
 
 /** Return the nearest power of two value */
@@ -42,15 +43,6 @@ Utils.intersectionArrays = function (a, b) {
 		}
 	}
 	return result;
-};
-
-/** Array rotation */
-Utils.rotateArray = function (array, inc) {
-	inc = -inc;
-	for (var l = array.length, inc = (Math.abs(inc) >= l && (inc %= l), inc < 0 && (inc += l), inc), i, x; inc; inc = (Math.ceil(l / inc) - 1) * inc - l + (l = inc)) {
-		for (i = l; i > inc; x = array[--i], array[i] = array[i - inc], array[i - inc] = x) {}
-	}
-	return array;
 };
 
 var Tablet = {};

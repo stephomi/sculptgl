@@ -1,3 +1,7 @@
+/*global
+alert:false
+*/
+'use strict';
 var Export = {};
 
 /** Export OBJ file */
@@ -85,32 +89,6 @@ Export.exportAsciiPLY = function (mesh) {
     data += '3 ' + iAr[j] + ' ' + iAr[j + 1] + ' ' + iAr[j + 2] + '\n';
   }
   return data;
-};
-
-/** Export OBJ file to Verold */
-Export.exportVerold = function (mesh, key) {
-  var fd = new FormData();
-
-  fd.append('api_key', key);
-  var model = Export.exportOBJ(mesh);
-
-  fd.append('model', new Blob([model]), 'model.obj');
-  fd.append('title', 'Model');
-  fd.append('description', 'Imported from SculptGL.');
-
-  var xhr = new XMLHttpRequest();
-  xhr.open('POST', 'http://studio.verold.com/projects.json');
-
-  var result = function () {
-    var res = JSON.parse(xhr.responseText);
-    console.log(res);
-    if (res.errors)
-      alert('Verold upload error :\n' + res.errors[0]);
-    else
-      alert('Upload success !');
-  };
-  xhr.addEventListener('load', result, true);
-  xhr.send(fd);
 };
 
 /** Export OBJ file to Sketchfab */

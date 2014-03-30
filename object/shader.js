@@ -14,7 +14,7 @@ function Shader(gl) {
 
   this.mvpMatrixUnif_ = null; //model view projection matrix uniform location
   this.mvMatrixUnif_ = null; //model view matrix uniform location
-  this.normalMatrixUnif_ = null; //normal matrix uniform location
+  this.nMatrixUnif_ = null; //normal matrix uniform location
 
   this.centerPickingUnif_ = null; //center of selection uniform location
   this.radiusSquaredUnif_ = null; //radius of selection uniform location
@@ -63,15 +63,19 @@ Shader.prototype = {
     gl.useProgram(program);
 
     this.vertexAttrib_ = gl.getAttribLocation(program, 'vertex');
-    this.normalAttrib_ = gl.getAttribLocation(program, 'normal');
-    if (this.type_ !== Shader.mode.NORMAL && this.type_ !== Shader.mode.WIREFRAME)
-      this.colorAttrib_ = gl.getAttribLocation(program, 'color');
+    if (this.type_ !== Shader.mode.WIREFRAME) {
+      this.normalAttrib_ = gl.getAttribLocation(program, 'normal');
+      if (this.type_ !== Shader.mode.NORMAL)
+        this.colorAttrib_ = gl.getAttribLocation(program, 'color');
+    }
 
+    if (this.type_ !== Shader.mode.WIREFRAME) {
+      this.nMatrixUnif_ = gl.getUniformLocation(program, 'nMat');
+      this.centerPickingUnif_ = gl.getUniformLocation(program, 'centerPicking');
+      this.radiusSquaredUnif_ = gl.getUniformLocation(program, 'radiusSquared');
+      this.mvMatrixUnif_ = gl.getUniformLocation(program, 'mvMat');
+    }
     this.mvpMatrixUnif_ = gl.getUniformLocation(program, 'mvpMat');
-    this.mvMatrixUnif_ = gl.getUniformLocation(program, 'mvMat');
-    this.normalMatrixUnif_ = gl.getUniformLocation(program, 'nMat');
-    this.centerPickingUnif_ = gl.getUniformLocation(program, 'centerPicking');
-    this.radiusSquaredUnif_ = gl.getUniformLocation(program, 'radiusSquared');
 
     if (this.type_ >= Shader.mode.MATERIAL)
       this.reflectionTexUnif_ = gl.getUniformLocation(program, 'refTex');

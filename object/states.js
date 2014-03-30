@@ -1,3 +1,6 @@
+/*global
+Mesh:false
+*/
 'use strict';
 
 function State() {
@@ -19,20 +22,22 @@ function States() {
   this.firstState_ = false; //end of undo action
 }
 
+States.STACK_LENGTH = 10;
+
 States.prototype = {
   /** Start push state */
   start: function () {
     ++Mesh.STATE_FLAG;
     var undos = this.undos_;
     if (this.firstState_) undos.length = 0;
-    else if (undos.length > 10) {
+    else if (undos.length > States.STACK_LENGTH) {
       undos.shift();
       --this.curUndoIndex_;
     }
 
     this.firstState_ = false;
     this.redos_.length = 0;
-    if (undos.length) {
+    if (undos.length > 0) {
       var index = undos.length - 1;
       while (index !== this.curUndoIndex_) {
         undos.pop();
@@ -109,21 +114,24 @@ States.prototype = {
     if (!this.undos_.length || this.firstState_)
       return;
     var curMesh = this.undos_[this.curUndoIndex_].mesh_;
-    // TODO : smarter undo (go to lower/higher level ?)
-    if (curMesh !== this.multimesh_.getCurrent())
-      return;
 
     var redoState = new State();
     redoState.mesh_ = curMesh;
     var ab = curMesh.octree_.aabbSplit_;
     redoState.aabbState_ = [ab[0], ab[1], ab[2], ab[3], ab[4], ab[5]];
 
-    this.pushRedoTriangles(redoState);
-    this.pushRedoVertices(redoState);
-    this.pullUndoTriangles();
-    this.pullUndoVertices();
+    if (curMesh !== this.multimesh_.getCurrent()) {
+      this.multimesh_.goToMesh(curMesh);
+    } else {
+      this.pushRedoTriangles(redoState);
+      this.pushRedoVertices(redoState);
+      this.pullUndoTriangles();
+      this.pullUndoVertices();
+    }
 
+    // we don't save the triangles normal's and aabb
     curMesh.updateTrianglesAabbAndNormal();
+    // and we don't save the octree neither
     curMesh.computeOctree(this.undos_[this.curUndoIndex_].aabbState_);
 
     this.redos_.push(redoState);
@@ -262,14 +270,17 @@ States.prototype = {
       return;
 
     var redoCur = this.redos_[this.redos_.length - 1];
-    // TODO smarter multires redo...
-    if (redoCur.mesh_ !== this.multimesh_.getCurrent())
-      return;
 
-    this.pullRedoTriangles();
-    this.pullRedoVertices();
+    if (redoCur.mesh_ !== this.multimesh_.getCurrent()) {
+      this.multimesh_.goToMesh(redoCur.mesh_);
+    } else {
+      this.pullRedoTriangles();
+      this.pullRedoVertices();
+    }
 
-    curMesh.updateTrianglesAabbAndNormal();
+    // we don't save the triangles normal's and aabb
+    redoCur.mesh_.updateTrianglesAabbAndNormal();
+    // and we don't save the octree neither
     redoCur.mesh_.computeOctree(redoCur.aabbState_);
 
     if (!this.firstState_) this.curUndoIndex_++;

@@ -1,24 +1,35 @@
+/*global 
+Shader:false,
+mat4:false,
+mat3:false,
+vec3:false,
+SculptGL:false
+*/
 'use strict';
 
 function Render(gl, mesh) {
   this.multimesh_ = mesh; //webgl context
   this.gl_ = gl; //webgl context
   this.shader_ = new Shader(gl); //the program shader
+  this.shaderWireframe_ = new Shader(gl); //the program shader for the wireframe
 
-  this.flatShading_ = false; //use of drawArrays vs drawElements
+  this.flatShading_ = true; //use of drawArrays vs drawElements
+  this.showWireframe_ = true; //show wireframe
 
   this.vertexBuffer_ = null; //vertices buffer
   this.normalBuffer_ = null; //normals buffer
   this.colorBuffer_ = null; //colors buffer
   this.indexBuffer_ = null; //indexes buffer
+  this.wireframeBuffer_ = null; //wireframe buffer
   this.reflectionLoc_ = null; //texture reflection
-
-  this.cacheDrawArraysV_ = null; //cache array for vertices
-  this.cacheDrawArraysN_ = null; //cache array for normals
-  this.cacheDrawArraysC_ = null; //cache array for colors
 }
 
 Render.prototype = {
+  /** Creates the wireframe shader */
+  initShaderWireframe: function (shaders) {
+    this.shaderWireframe_.type_ = Shader.mode.WIREFRAME;
+    this.shaderWireframe_.init(shaders);
+  },
   /** Update the shaders on the mesh, load the texture(s) first if the shaders need it */
   updateShaders: function (shaderType, textures, shaders) {
     if (shaderType >= Shader.mode.MATERIAL)
@@ -33,6 +44,7 @@ Render.prototype = {
     this.normalBuffer_ = gl.createBuffer();
     this.colorBuffer_ = gl.createBuffer();
     this.indexBuffer_ = gl.createBuffer();
+    this.wireframeBuffer_ = gl.createBuffer();
   },
   /** Render the mesh */
   render: function (camera, picking) {
@@ -55,12 +67,9 @@ Render.prototype = {
 
     gl.enableVertexAttribArray(shader.normalAttrib_);
     gl.bindBuffer(gl.ARRAY_BUFFER, this.normalBuffer_);
-    if (shader.type_ === Shader.mode.WIREFRAME)
-      gl.vertexAttribPointer(shader.normalAttrib_, 4, gl.FLOAT, false, 0, 0);
-    else
-      gl.vertexAttribPointer(shader.normalAttrib_, 3, gl.FLOAT, false, 0, 0);
+    gl.vertexAttribPointer(shader.normalAttrib_, 3, gl.FLOAT, false, 0, 0);
 
-    if (shader.type_ !== Shader.mode.WIREFRAME && shader.type_ !== Shader.mode.NORMAL) {
+    if (shader.type_ !== Shader.mode.NORMAL) {
       gl.enableVertexAttribArray(shader.colorAttrib_);
       gl.bindBuffer(gl.ARRAY_BUFFER, this.colorBuffer_);
       gl.vertexAttribPointer(shader.colorAttrib_, 3, gl.FLOAT, false, 0, 0);
@@ -68,7 +77,7 @@ Render.prototype = {
 
     gl.uniformMatrix4fv(shader.mvMatrixUnif_, false, mvMatrix);
     gl.uniformMatrix4fv(shader.mvpMatrixUnif_, false, mvpMatrix);
-    gl.uniformMatrix3fv(shader.normalMatrixUnif_, false, mat3.normalFromMat4(mat3.create(), mvMatrix));
+    gl.uniformMatrix3fv(shader.nMatrixUnif_, false, mat3.normalFromMat4(mat3.create(), mvMatrix));
     gl.uniform3fv(shader.centerPickingUnif_, vec3.transformMat4([0.0, 0.0, 0.0], centerPicking, mvMatrix));
     gl.uniform1f(shader.radiusSquaredUnif_, radiusSquared);
 
@@ -83,9 +92,6 @@ Render.prototype = {
       gl.disable(gl.BLEND);
       gl.depthMask(true);
       break;
-    case Shader.mode.WIREFRAME:
-      gl.drawArrays(gl.TRIANGLES, 0, lengthIndexArray);
-      break;
     case Shader.mode.NORMAL:
       this.drawBuffer(lengthIndexArray);
       break;
@@ -96,6 +102,22 @@ Render.prototype = {
       this.drawBuffer(lengthIndexArray);
       break;
     }
+    if (this.showWireframe_ === true) {
+      var shaderWire = this.shaderWireframe_;
+      gl.useProgram(shaderWire.program_);
+      gl.enableVertexAttribArray(shaderWire.vertexAttrib_);
+      gl.bindBuffer(gl.ARRAY_BUFFER, this.vertexBuffer_);
+      gl.vertexAttribPointer(shaderWire.vertexAttrib_, 3, gl.FLOAT, false, 0, 0);
+
+      gl.uniformMatrix4fv(shaderWire.mvpMatrixUnif_, false, mvpMatrix);
+      gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this.wireframeBuffer_);
+      gl.enable(gl.BLEND);
+      gl.drawElements(gl.LINES, this.multimesh_.getCurrent().getNbEdges() * 2, SculptGL.elementIndexType, 0);
+      gl.disable(gl.BLEND);
+    }
+    // bind to null
+    gl.bindBuffer(gl.ARRAY_BUFFER, null);
+    gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, null);
   },
   /** Draw buffer */
   drawBuffer: function (lengthIndexArray) {
@@ -109,128 +131,55 @@ Render.prototype = {
   },
   /** Update buffers */
   updateBuffers: function (updateColors, updateIndex) {
-    if (this.shader_.type_ === Shader.mode.WIREFRAME)
-      this.makeWireframeBuffers();
-    else if (this.flatShading_ === true)
-      this.flatShadingBuffers();
-    else {
-      var gl = this.gl_;
-      var mesh = this.multimesh_.getCurrent();
-
-      gl.bindBuffer(gl.ARRAY_BUFFER, this.vertexBuffer_);
-      gl.bufferData(gl.ARRAY_BUFFER, mesh.verticesXYZ_, gl.DYNAMIC_DRAW);
-
-      gl.bindBuffer(gl.ARRAY_BUFFER, this.normalBuffer_);
-      gl.bufferData(gl.ARRAY_BUFFER, mesh.normalsXYZ_, gl.DYNAMIC_DRAW);
-
-      if (updateColors) {
-        gl.bindBuffer(gl.ARRAY_BUFFER, this.colorBuffer_);
-        gl.bufferData(gl.ARRAY_BUFFER, mesh.colorsRGB_, gl.DYNAMIC_DRAW);
-      }
-
-      if (updateIndex) {
-        gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this.indexBuffer_);
-        gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, mesh.indicesABC_, gl.STATIC_DRAW);
-      }
-    }
+    if (this.flatShading_ === true)
+      this.updateDrawArrays(updateColors);
+    else
+      this.updateDrawElements(updateColors, updateIndex);
   },
-  /** Create arrays for the drawArrays function */
-  flatShadingBuffers: function () {
+  /** Updates DrawArrays buffers */
+  updateDrawArrays: function (updateColors) {
     var gl = this.gl_;
     var mesh = this.multimesh_.getCurrent();
-    var nbTriangles = mesh.getNbTriangles();
-    var vAr = mesh.verticesXYZ_;
-    var cAr = mesh.colorsRGB_;
-    var iAr = mesh.indicesABC_;
 
-    var cdv = this.cacheDrawArraysV_;
-    var cdn = this.cacheDrawArraysN_;
-    var cdc = this.cacheDrawArraysC_;
-    if (cdv === null || cdv.length !== nbTriangles * 9) {
-      this.cacheDrawArraysV_ = new Float32Array(nbTriangles * 9);
-      cdv = this.cacheDrawArraysV_;
-    }
-    if (cdn === null || cdn.length !== nbTriangles * 9) {
-      this.cacheDrawArraysN_ = new Float32Array(nbTriangles * 9);
-      cdn = this.cacheDrawArraysN_;
-    }
-    if (cdc === null || cdc.length !== nbTriangles * 9) {
-      this.cacheDrawArraysC_ = new Float32Array(nbTriangles * 9);
-      cdc = this.cacheDrawArraysC_;
-    }
-
-    var i = 0,
-      j = 0,
-      id = 0;
-    var triNormals = mesh.triNormalsXYZ_;
-    var len = nbTriangles * 3;
-    for (i = 0; i < len; ++i) {
-      j = i * 3;
-      id = iAr[i] * 3;
-      cdv[j] = vAr[id];
-      cdv[j + 1] = vAr[id + 1];
-      cdv[j + 2] = vAr[id + 2];
-
-      cdc[j] = cAr[id];
-      cdc[j + 1] = cAr[id + 1];
-      cdc[j + 2] = cAr[id + 2];
-
-      id = Math.floor(i / 3) * 3;
-      cdn[j] = triNormals[id];
-      cdn[j + 1] = triNormals[id + 1];
-      cdn[j + 2] = triNormals[id + 2];
-
-    }
     gl.bindBuffer(gl.ARRAY_BUFFER, this.vertexBuffer_);
-    gl.bufferData(gl.ARRAY_BUFFER, cdv, gl.DYNAMIC_DRAW);
+    gl.bufferData(gl.ARRAY_BUFFER, mesh.cacheDrawArraysV_, gl.DYNAMIC_DRAW);
 
     gl.bindBuffer(gl.ARRAY_BUFFER, this.normalBuffer_);
-    gl.bufferData(gl.ARRAY_BUFFER, cdn, gl.DYNAMIC_DRAW);
+    gl.bufferData(gl.ARRAY_BUFFER, mesh.cacheDrawArraysN_, gl.DYNAMIC_DRAW);
 
-    gl.bindBuffer(gl.ARRAY_BUFFER, this.colorBuffer_);
-    gl.bufferData(gl.ARRAY_BUFFER, cdc, gl.DYNAMIC_DRAW);
+    if (updateColors) {
+      gl.bindBuffer(gl.ARRAY_BUFFER, this.colorBuffer_);
+      gl.bufferData(gl.ARRAY_BUFFER, mesh.cacheDrawArraysC_, gl.DYNAMIC_DRAW);
+    }
   },
-  /** Create arrays for the drawArrays function */
-  makeWireframeBuffers: function () {
+  /** Updates DrawElements buffers */
+  updateDrawElements: function (updateColors, updateIndex) {
     var gl = this.gl_;
     var mesh = this.multimesh_.getCurrent();
-    var nbTriangles = mesh.getNbTriangles();
-    var vAr = mesh.verticesXYZ_;
-    var nAr = mesh.normalsXYZ_;
-    var iAr = mesh.indicesABC_;
 
-    var cdv = this.cacheDrawArraysV_;
-    var cdn = this.cacheDrawArraysN_;
-    if (cdv === null || cdv.length !== nbTriangles * 9) {
-      this.cacheDrawArraysV_ = new Float32Array(nbTriangles * 9);
-      cdv = this.cacheDrawArraysV_;
-    }
-    if (cdn === null || cdn.length !== nbTriangles * 12) {
-      this.cacheDrawArraysN_ = new Float32Array(nbTriangles * 12);
-      cdn = this.cacheDrawArraysN_;
-    }
-
-    var i = 0,
-      j = 0,
-      id = 0;
-    var len = nbTriangles * 3;
-    for (i = 0; i < len; ++i) {
-      j = i * 3;
-      id = iAr[i] * 3;
-      cdv[j] = vAr[id];
-      cdv[j + 1] = vAr[id + 1];
-      cdv[j + 2] = vAr[id + 2];
-
-      j = i * 4;
-      cdn[j] = nAr[id];
-      cdn[j + 1] = nAr[id + 1];
-      cdn[j + 2] = nAr[id + 2];
-      cdn[j + 3] = i % 3;
-    }
     gl.bindBuffer(gl.ARRAY_BUFFER, this.vertexBuffer_);
-    gl.bufferData(gl.ARRAY_BUFFER, cdv, gl.DYNAMIC_DRAW);
+    gl.bufferData(gl.ARRAY_BUFFER, mesh.verticesXYZ_, gl.DYNAMIC_DRAW);
 
     gl.bindBuffer(gl.ARRAY_BUFFER, this.normalBuffer_);
-    gl.bufferData(gl.ARRAY_BUFFER, cdn, gl.DYNAMIC_DRAW);
+    gl.bufferData(gl.ARRAY_BUFFER, mesh.normalsXYZ_, gl.DYNAMIC_DRAW);
+
+    if (updateColors) {
+      gl.bindBuffer(gl.ARRAY_BUFFER, this.colorBuffer_);
+      gl.bufferData(gl.ARRAY_BUFFER, mesh.colorsRGB_, gl.DYNAMIC_DRAW);
+    }
+
+    if (updateIndex) {
+      gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this.indexBuffer_);
+      gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, mesh.indicesABC_, gl.STATIC_DRAW);
+    }
+  },
+  /** Updates wireframe buffer */
+  updateLinesBuffer: function () {
+    var gl = this.gl_;
+    var mesh = this.multimesh_.getCurrent();
+    var lineBuffer = this.flatShading_ ? mesh.cacheDrawArraysWireframe_ : mesh.cacheDrawElementsWireframe_;
+
+    gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this.wireframeBuffer_);
+    gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, lineBuffer, gl.STATIC_DRAW);
   }
 };

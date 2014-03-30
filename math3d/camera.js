@@ -1,3 +1,13 @@
+/*global
+Geometry:false,
+Multimesh:false,
+quat:false,
+mat4:false,
+mat3:false,
+vec4:false,
+vec3:false,
+vec2:false
+*/
 'use strict';
 
 function Camera() {
@@ -140,7 +150,7 @@ Camera.prototype = {
   reset: function () {
     this.transX_ = 0.0;
     this.transY_ = 0.0;
-    this.speed_ = Multimesh.SCALE * 1.4;
+    this.speed_ = Multimesh.SCALE * 0.9;
     this.rot_ = quat.create();
     this.center_ = [0.0, 0.0, 0.0];
     this.zoom_ = 0.0;

@@ -1,3 +1,8 @@
+/*global
+Octree:false,
+SculptGL:false,
+Utils:false
+*/
 'use strict';
 
 function Mesh() {
@@ -35,6 +40,16 @@ function Mesh() {
   // for multiresolution sculpting
   this.detailsXYZ_ = null; //details vectors (Float32Array)
 
+  // for multiresolution sculpting
+  this.detailsXYZ_ = null; //details vectors (Float32Array)
+
+  // for extra rendering stuffs
+  this.cacheDrawArraysV_ = null; //cache array for vertices
+  this.cacheDrawArraysN_ = null; //cache array for normals
+  this.cacheDrawArraysC_ = null; //cache array for colors
+  this.cacheDrawArraysWireframe_ = null; //cache array for the wireframe (lines)
+  this.cacheDrawElementsWireframe_ = null; //cache array for the wireframe (lines)
+
   this.octree_ = new Octree(); //octree
   this.leavesUpdate_ = []; //leaves of the octree to check
 }
@@ -52,6 +67,23 @@ Mesh.prototype = {
   },
   getNbEdges: function () {
     return this.edges_.length;
+  },
+  /** Initialize stuffs for the mesh */
+  init: function () {
+    this.allocateArrays();
+    this.initTopology();
+    this.updateGeometry();
+  },
+  /** Init topoloy information */
+  initTopology: function () {
+    this.initRings();
+    this.initEdges();
+  },
+  /** Updates the mesh Geometry */
+  updateGeometry: function (iTris, iVerts) {
+    this.updateTrianglesAabbAndNormal(iTris);
+    this.updateVerticesNormal(iVerts);
+    this.updateOctree(iTris);
   },
   /** Return all the triangles linked to a group of vertices */
   getTrianglesFromVertices: function (iVerts) {
@@ -203,12 +235,6 @@ Mesh.prototype = {
     }
     return [xmin, ymin, zmin, xmax, ymax, zmax];
   },
-  /** Initialize stuffs for the mesh */
-  init: function () {
-    this.allocateArrays();
-    this.initTopology();
-    this.updateGeometry();
-  },
   /** Allocate arrays, except for :
    *    - vertices coords (verticesXYZ_)
    *    - indices of primitives (indicesABC_)
@@ -240,20 +266,16 @@ Mesh.prototype = {
       this.colorsRGB_ = new Float32Array(nbVertices * 3);
     this.normalsXYZ_ = new Float32Array(nbVertices * 3);
     var vertRingVert = this.vertRingVert_;
+    var i = 0;
     if (vertRingVert.length !== nbVertices) {
       vertRingVert.length = nbVertices;
-      for (var i = 0; i < nbVertices; ++i) vertRingVert[i] = [];
+      for (i = 0; i < nbVertices; ++i) vertRingVert[i] = [];
     }
     var vertRingTri = this.vertRingTri_;
     if (vertRingTri.length !== nbVertices) {
       vertRingTri.length = nbVertices;
       for (i = 0; i < nbVertices; ++i) vertRingTri[i] = [];
     }
-  },
-  /** Init topoloy information */
-  initTopology: function () {
-    this.initRings();
-    this.initEdges();
   },
   /** Computes the edges */
   initEdges: function () {
@@ -335,13 +357,6 @@ Mesh.prototype = {
         vertOnEdge[i] = 1;
     }
   },
-  /** Updates the mesh Geometry */
-  updateGeometry: function () {
-    //triangles' aabb and normal
-    this.updateTrianglesAabbAndNormal();
-    //vertex normal
-    this.updateVerticesNormal();
-  },
   /** Compute the mesh octree */
   computeOctree: function (abRoot, factor) {
     if (abRoot === undefined)
@@ -384,12 +399,6 @@ Mesh.prototype = {
     this.octree_.setAabbSplit(xmin, ymin, zmin, xmax, ymax, zmax);
     this.octree_.build(this, trianglesAll);
   },
-  /** Update geometry  */
-  updateMesh: function (iTris, iVerts) {
-    this.updateTrianglesAabbAndNormal(iTris);
-    this.updateOctree(iTris);
-    this.updateVerticesNormal(iVerts);
-  },
   /** Update a group of triangles' normal and aabb */
   updateTrianglesAabbAndNormal: function (iTris) {
     var i = 0;
@@ -399,8 +408,8 @@ Mesh.prototype = {
     var vAr = this.verticesXYZ_;
     var iAr = this.indicesABC_;
 
-    var present = iTris !== undefined;
-    var nbTris = present ? iTris.length : this.getNbTriangles();
+    var full = iTris === undefined;
+    var nbTris = full ? this.getNbTriangles() : iTris.length;
     var ind1 = 0,
       ind2 = 0,
       ind3 = 0;
@@ -433,7 +442,7 @@ Mesh.prototype = {
       nz = 0.0;
     var len = 0.0;
     for (i = 0; i < nbTris; ++i) {
-      ind = present ? iTris[i] : i;
+      ind = full ? i : iTris[i];
       idTri = ind * 3;
       idBox = ind * 6;
       ind1 = iAr[idTri] * 3;
@@ -488,10 +497,10 @@ Mesh.prototype = {
     var nAr = this.normalsXYZ_;
     var triNormals = this.triNormalsXYZ_;
 
-    var present = iVerts !== undefined;
-    var nbTris = present ? iVerts.length : this.getNbVertices();
+    var full = iVerts === undefined;
+    var nbTris = full ? this.getNbVertices() : iVerts.length;
     for (var i = 0; i < nbTris; ++i) {
-      var ind = present ? iVerts[i] : i;
+      var ind = full ? i : iVerts[i];
       var iTris = vertRingTri[ind];
       var nbTri = iTris.length;
       var nx = 0.0,
@@ -517,7 +526,10 @@ Mesh.prototype = {
    * We push back the marked triangles into the octree
    */
   updateOctree: function (iTris) {
-    this.updateOctreeAdd(this.updateOctreeRemove(iTris));
+    if (iTris)
+      this.updateOctreeAdd(this.updateOctreeRemove(iTris));
+    else
+      this.computeOctree(undefined, 0.3);
   },
   updateOctreeRemove: function (iTris) {
     var triCenters = this.triCentersXYZ_;
@@ -636,5 +648,132 @@ Mesh.prototype = {
         leaf.constructCells(this);
     }
     this.leavesUpdate_.length = 0;
+  },
+  /** Updates the arrays that are going to be used for webgl */
+  updateCacheDrawArrays: function (iTris) {
+    var vAr = this.verticesXYZ_;
+    var cAr = this.colorsRGB_;
+    var iAr = this.indicesABC_;
+    var triNormals = this.triNormalsXYZ_;
+    var nbTriangles = this.getNbTriangles();
+
+    var full = iTris === undefined;
+    var cdv = this.cacheDrawArraysV_;
+    var cdn = this.cacheDrawArraysN_;
+    var cdc = this.cacheDrawArraysC_;
+
+    if (full) {
+      this.cacheDrawArraysV_ = new Float32Array(nbTriangles * 9);
+      cdv = this.cacheDrawArraysV_;
+
+      this.cacheDrawArraysN_ = new Float32Array(nbTriangles * 9);
+      cdn = this.cacheDrawArraysN_;
+
+      this.cacheDrawArraysC_ = new Float32Array(nbTriangles * 9);
+      cdc = this.cacheDrawArraysC_;
+    }
+
+    var i = 0,
+      j = 0,
+      vId = 0;
+    var id1 = 0,
+      id2 = 0,
+      id3 = 0;
+    var nbTris = full ? nbTriangles : iTris.length;
+    for (i = 0; i < nbTris; ++i) {
+      j = full ? i * 3 : iTris[i] * 3;
+      vId = j * 3;
+
+      id1 = iAr[j] * 3;
+      id2 = iAr[j + 1] * 3;
+      id3 = iAr[j + 2] * 3;
+
+      cdv[vId] = vAr[id1];
+      cdv[vId + 1] = vAr[id1 + 1];
+      cdv[vId + 2] = vAr[id1 + 2];
+      cdv[vId + 3] = vAr[id2];
+      cdv[vId + 4] = vAr[id2 + 1];
+      cdv[vId + 5] = vAr[id2 + 2];
+      cdv[vId + 6] = vAr[id3];
+      cdv[vId + 7] = vAr[id3 + 1];
+      cdv[vId + 8] = vAr[id3 + 2];
+
+      cdc[vId] = cAr[id1];
+      cdc[vId + 1] = cAr[id1 + 1];
+      cdc[vId + 2] = cAr[id1 + 2];
+      cdc[vId + 3] = cAr[id2];
+      cdc[vId + 4] = cAr[id2 + 1];
+      cdc[vId + 5] = cAr[id2 + 2];
+      cdc[vId + 6] = cAr[id3];
+      cdc[vId + 7] = cAr[id3 + 1];
+      cdc[vId + 8] = cAr[id3 + 2];
+
+      cdn[vId] = cdn[vId + 3] = cdn[vId + 6] = triNormals[j];
+      cdn[vId + 1] = cdn[vId + 4] = cdn[vId + 7] = triNormals[j + 1];
+      cdn[vId + 2] = cdn[vId + 5] = cdn[vId + 8] = triNormals[j + 2];
+    }
+  },
+  /** Updates the arrays that are going to be used for webgl */
+  updateCacheWireframe: function (flatShading) {
+    var nbEdges = this.getNbEdges();
+    var cdw;
+    if (flatShading) {
+      if (this.cacheDrawArraysWireframe_ && this.cacheDrawArraysWireframe_.length === nbEdges * 2) {
+        return;
+      }
+      cdw = this.cacheDrawArraysWireframe_ = new SculptGL.indexArrayType(nbEdges * 2);
+    } else {
+      if (this.cacheDrawElementsWireframe_ && this.cacheDrawElementsWireframe_.length === nbEdges * 2) {
+        return;
+      }
+      cdw = this.cacheDrawElementsWireframe_ = new SculptGL.indexArrayType(nbEdges * 2);
+    }
+
+    var iAr = this.indicesABC_;
+    var teAr = this.triEdges_;
+    var nbTriangles = this.getNbTriangles();
+
+    var i = 0,
+      id = 0,
+      nbLines = 0;
+    var iv1 = 0,
+      iv2 = 0,
+      iv3 = 0;
+    var ide1 = 0,
+      ide2 = 0,
+      ide3 = 0;
+
+    var tagEdges = new Int32Array(nbEdges);
+
+    for (i = 0; i < nbTriangles; ++i) {
+      id = i * 3;
+
+      iv1 = flatShading ? id : iAr[id];
+      iv2 = flatShading ? id + 1 : iAr[id + 1];
+      iv3 = flatShading ? id + 2 : iAr[id + 2];
+
+      ide1 = teAr[id];
+      ide2 = teAr[id + 1];
+      ide3 = teAr[id + 2];
+
+      if (tagEdges[ide1] === 0) {
+        tagEdges[ide1] = 1;
+        cdw[nbLines * 2] = iv1;
+        cdw[nbLines * 2 + 1] = iv2;
+        nbLines++;
+      }
+      if (tagEdges[ide2] === 0) {
+        tagEdges[ide2] = 1;
+        cdw[nbLines * 2] = iv2;
+        cdw[nbLines * 2 + 1] = iv3;
+        nbLines++;
+      }
+      if (tagEdges[ide3] === 0) {
+        tagEdges[ide3] = 1;
+        cdw[nbLines * 2] = iv3;
+        cdw[nbLines * 2 + 1] = iv1;
+        nbLines++;
+      }
+    }
   }
 };

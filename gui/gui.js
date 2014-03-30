@@ -1,12 +1,30 @@
+/*global
+dat:false,
+Camera:false,
+Sculpt:false,
+Shader:false,
+$:false,
+Render:false,
+Export:false,
+saveAs:false,
+alert:false
+*/
 'use strict';
 
 function Gui(sculptgl) {
   this.sculptgl_ = sculptgl; //main application
 
-  //ui stuffs
+  //ui shading
   this.ctrlColor_ = null; //color controller
-  this.ctrlFlatShading_ = null; //symmetry controller
+  this.ctrlFlatShading_ = null; //flat shading controller
+  this.ctrlShowWireframe_ = null; //wireframe controller
   this.ctrlShaders_ = null; //shaders controller
+
+  //ui info
+  this.ctrlNbVertices_ = null; //display number of vertices controller
+  this.ctrlNbTriangles_ = null; //display number of triangles controller
+
+  //ui sculpting
   this.ctrlSculpt_ = null; //sculpt controller
   this.ctrlClay_ = null; //clay sculpting controller
   this.ctrlNegative_ = null; //negative sculpting controller
@@ -15,10 +33,11 @@ function Gui(sculptgl) {
   this.ctrlSculptCulling_ = null; //sculpt culling controller
   this.ctrlRadius_ = null; //radius controller
   this.ctrlIntensity_ = null; //intensity sculpting controller
+
+  //ui camera
   this.ctrlCameraType_ = null; //camera type controller
-  this.ctrlNbVertices_ = null; //display number of vertices controller
-  this.ctrlNbTriangles_ = null; //display number of triangles controller
   this.ctrlFov_ = null; //vertical field of view controller
+  this.resetCamera_ = this.resetCamera; //reset camera position and rotation
 
   //files functions
   this.open_ = this.openFile; //open file button (trigger hidden html input...)
@@ -27,17 +46,12 @@ function Gui(sculptgl) {
   this.saveSTL_ = this.saveFileAsSTL; //save mesh as STL
 
   //online exporters
-  this.keyVerold_ = ''; //verold api key
-  this.exportVerold_ = this.exportVerold; //upload file on verold
   this.keySketchfab_ = ''; //sketchfab api key
   this.exportSketchfab_ = this.exportSketchfab; //upload file on sketchfab
 
   //background functions
   this.resetBg_ = this.resetBackground; //reset background
   this.importBg_ = this.importBackground; //import background image
-
-  //functions
-  this.resetCamera_ = this.resetCamera; //reset camera position and rotation
 
   //misc
   this.dummyFunc_ = function () {}; //empty function... stupid trick to get a simple button in dat.gui
@@ -85,11 +99,6 @@ Gui.prototype = {
     foldFiles.add(this, 'saveOBJ_').name('Export (obj)');
     foldFiles.add(this, 'savePLY_').name('Export (ply)');
     foldFiles.add(this, 'saveSTL_').name('Export (stl)');
-
-    //Verold fold
-    var foldVerold = gui.addFolder('Go to Verold !');
-    foldVerold.add(this, 'keyVerold_').name('API key');
-    foldVerold.add(this, 'exportVerold_').name('Upload');
 
     //Sketchfab fold
     var foldSketchfab = gui.addFolder('Go to Sketchfab !');
@@ -195,7 +204,6 @@ Gui.prototype = {
     var optionsShaders = {
       'Phong': Shader.mode.PHONG,
       'Transparency': Shader.mode.TRANSPARENCY,
-      'Wireframe (slower)': Shader.mode.WIREFRAME,
       'Normal shader': Shader.mode.NORMAL,
       'Clay': Shader.mode.MATERIAL,
       'Chavant': Shader.mode.MATERIAL + 1,
@@ -215,8 +223,14 @@ Gui.prototype = {
     this.ctrlFlatShading_ = foldMesh.add(new Render(), 'flatShading_').name('flat (slower)');
     this.ctrlFlatShading_.onChange(function (value) {
       if (main.multimesh_) {
-        main.multimesh_.render_.flatShading_ = value;
-        main.multimesh_.updateBuffers(true, true);
+        main.multimesh_.setFlatShading(value);
+        main.render();
+      }
+    });
+    this.ctrlShowWireframe_ = foldMesh.add(new Render(), 'showWireframe_').name('wireframe');
+    this.ctrlShowWireframe_.onChange(function (value) {
+      if (main.multimesh_) {
+        main.multimesh_.setWireframe(value);
         main.render();
       }
     });
@@ -301,16 +315,6 @@ Gui.prototype = {
     });
     saveAs(blob, 'yourMesh.stl');
   },
-  /** Export to Verold */
-  exportVerold: function () {
-    if (!this.sculptgl_.mesh_)
-      return;
-    if (this.keyVerold_ === '') {
-      alert('Please enter a verold API Key.');
-      return;
-    }
-    Export.exportVerold(this.sculptgl_.mesh_, this.keyVerold_);
-  },
   /** Export to Sketchfab */
   exportSketchfab: function () {
     if (!this.sculptgl_.mesh_)
@@ -324,6 +328,7 @@ Gui.prototype = {
   /** Subdivide the mesh */
   subdivide: function () {
     var main = this.sculptgl_;
+    main.states_.start();
     var mesh = main.multimesh_.addLevel();
     main.mesh_ = mesh;
     this.updateMeshInfo(mesh.getNbVertices(), mesh.getNbTriangles());
@@ -347,6 +352,9 @@ Gui.prototype = {
   },
   getFlatShading: function () {
     return this.ctrlFlatShading_.getValue();
+  },
+  getWireframe: function () {
+    return this.ctrlShowWireframe_.getValue();
   },
   getShader: function () {
     return this.ctrlShaders_.getValue();

@@ -1,3 +1,7 @@
+/*global
+SculptGL:false
+*/
+'use strict';
 var Import = {};
 
 /** Import OBJ file */
