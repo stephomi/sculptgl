@@ -1,3 +1,5 @@
+#!/bin/sh
+
 rm -rf sculptgl
 mkdir sculptgl
 mkdir sculptgl/css
@@ -11,5 +13,5 @@ cp ../ressources/*.obj sculptgl/ressources/
 cp ../shaders/*.vert sculptgl/shaders/
 cp ../shaders/*.frag sculptgl/shaders/
 cp ../css/*.css sculptgl/css/
-cp cache.manifest sculptgl/
+sed "1 a# $(date)" cache.manifest > sculptgl/cache.manifest
 cp index-min.html sculptgl/index.html
