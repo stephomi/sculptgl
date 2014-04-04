@@ -35,7 +35,6 @@ function Mesh() {
   this.vertPaintFlags_ = null; //paint flags (<= Mesh.SCULPT_FLAG) (Uint32Array)
 
   // flag for history
-  this.triStateFlags_ = null; //state flags (<= Mesh.STATE_FLAG) (Uint32Array)
   this.vertStateFlags_ = null; //state flags (<= Mesh.STATE_FLAG) (Uint32Array)
 
   // for multiresolution sculpting
@@ -251,7 +250,6 @@ Mesh.prototype = {
 
     // init tags stuffs
     this.triTagFlags_ = new Uint32Array(nbTriangles);
-    this.triStateFlags_ = new Uint32Array(nbTriangles);
     this.vertTagFlags_ = new Uint32Array(nbVertices);
     this.vertSculptFlags_ = new Uint32Array(nbVertices);
     this.vertPaintFlags_ = new Uint32Array(nbVertices);

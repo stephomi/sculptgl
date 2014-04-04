@@ -155,11 +155,10 @@ Sculpt.prototype = {
     var center = picking.interPoint_;
     var eyeDir = picking.eyeDir_;
     var vertSculptFlags = mesh.vertSculptFlags_;
-    var iTris = mesh.getTrianglesFromVertices(iVertsSelected);
     var intensity = this.intensity_ * pressureIntensity;
 
     //undo-redo
-    this.states_.pushState(iTris, iVertsSelected);
+    this.states_.pushVertices(iVertsSelected, this.tool_ === Sculpt.tool.COLOR);
 
     var nbVertsSelected = iVertsSelected.length;
     var iVertsInRadius = [];
@@ -217,7 +216,7 @@ Sculpt.prototype = {
       }
     }
 
-    this.multimesh_.updateMesh(iTris, iVertsSelected);
+    this.multimesh_.updateMesh(mesh.getTrianglesFromVertices(iVertsSelected), iVertsSelected);
   },
   /** Brush stroke, move vertices along a direction computed by their averaging normals */
   brush: function (center, iVertsInRadius, iVertsFront, radiusSquared, intensity) {

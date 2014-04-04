@@ -2,6 +2,7 @@
 dat:false,
 Camera:false,
 Sculpt:false,
+States:false,
 Shader:false,
 $:false,
 Render:false,
@@ -328,7 +329,7 @@ Gui.prototype = {
   /** Subdivide the mesh */
   subdivide: function () {
     var main = this.sculptgl_;
-    main.states_.start();
+    main.states_.start(main.multimesh_, States.STATE_RESOLUTION);
     var mesh = main.multimesh_.addLevel();
     main.mesh_ = mesh;
     this.updateMeshInfo(mesh.getNbVertices(), mesh.getNbTriangles());
@@ -337,6 +338,7 @@ Gui.prototype = {
   /** Go to lower subdivision level */
   lower: function () {
     var main = this.sculptgl_;
+    main.states_.start(main.multimesh_, States.STATE_RESOLUTION);
     var mesh = main.multimesh_.lowerLevel();
     main.mesh_ = mesh;
     this.updateMeshInfo(mesh.getNbVertices(), mesh.getNbTriangles());
@@ -345,6 +347,7 @@ Gui.prototype = {
   /** Go to higher subdivision level */
   higher: function () {
     var main = this.sculptgl_;
+    main.states_.start(main.multimesh_, States.STATE_RESOLUTION);
     var mesh = main.multimesh_.higherLevel();
     main.mesh_ = mesh;
     this.updateMeshInfo(mesh.getNbVertices(), mesh.getNbTriangles());

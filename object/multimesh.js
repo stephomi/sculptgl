@@ -167,11 +167,22 @@ Multimesh.prototype = {
     }
     this.updateBuffers(true, true);
   },
+  /** Find a select index of a mesh */
+  findIndexFromMesh: function (mesh) {
+    var meshes = this.meshes_;
+    for (var i = 0, l = meshes.length; i < l; ++i) {
+      if (mesh === meshes[i])
+        return i;
+    }
+  },
   /** Find a select the mesh */
-  goToMesh: function (mesh) {
-    if (this.meshes_[this.sel_ + 1] === mesh)
-      this.higherLevel();
-    else
+  selectMesh: function (mesh) {
+    var val = this.findIndexFromMesh(mesh);
+    while (this.sel_ > val) {
       this.lowerLevel();
+    }
+    while (this.sel_ < val) {
+      this.higherLevel();
+    }
   }
 };

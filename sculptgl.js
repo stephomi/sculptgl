@@ -374,12 +374,13 @@ SculptGL.prototype = {
     if (button === 1 && !event.altKey) {
       if (this.multimesh_) {
         this.sumDisplacement_ = 0;
-        this.states_.start();
-        if (this.sculpt_.tool_ === Sculpt.tool.ROTATE)
+        var tool = this.sculpt_.tool_;
+        this.states_.start(this.multimesh_, tool === Sculpt.tool.COLOR ? States.STATE_COLOR : States.STATE_GEOMETRY);
+        if (tool === Sculpt.tool.ROTATE)
           this.sculpt_.startRotate(this.picking_, mouseX, mouseY, this.pickingSym_, this.ptPlane_, this.nPlane_, this.symmetry_);
-        else if (this.sculpt_.tool_ === Sculpt.tool.SCALE)
+        else if (tool === Sculpt.tool.SCALE)
           this.sculpt_.startScale(this.picking_, mouseX, mouseY, this.pickingSym_, this.ptPlane_, this.nPlane_, this.symmetry_);
-        else if (this.continuous_ && this.sculpt_.tool_ !== Sculpt.tool.DRAG) {
+        else if (this.continuous_ && tool !== Sculpt.tool.DRAG) {
           this.pressureRadius_ = pressureRadius;
           this.pressureIntensity_ = pressureIntensity;
           this.mouseX_ = mouseX;
