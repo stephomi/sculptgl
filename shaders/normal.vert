@@ -8,7 +8,7 @@ varying vec3 vNormal;
 void main()
 {
   vec4 vert4 = vec4(vertex, 1.0);
-  vNormal = normal;
+  vNormal = normalize(normal);
   vVertex = vec3(mvMat * vert4);
   gl_Position = mvpMat * vert4;
 }

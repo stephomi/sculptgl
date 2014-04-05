@@ -1,0 +1,27 @@
+{
+  "name": "multiresGL",
+  "version": "0.0.5",
+  "description": "A WebGL digital sculpting app",
+  "main": "index.js",
+  "dependencies": {
+    "grunt": "*",
+    "grunt-manifest": "*",
+    "grunt-requirejs": "*",
+    "grunt-contrib-clean": "*",
+    "grunt-contrib-copy": "*",
+    "grunt-contrib-jshint": "*"
+  },
+  "scripts": {
+    "test": "no test"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/stephomi/sculptgl.git"
+  },
+  "author": "Stéphane GINIER",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/stephomi/sculptgl/issues"
+  },
+  "homepage": "https://github.com/stephomi/sculptgl"
+}

@@ -1,18 +1,22 @@
-﻿<!doctype html>
-<html lang='en'>
+<!doctype html>
+<html manifest='manifest.appcache' lang='en'>
 <head>
   <meta charset='utf-8' />
   <meta name='description' content='MultiresGL is a small sculpting application powered by JavaScript and webGL.'>
   <meta name='author' content='stéphane GINIER'>
   <title> MultiresGL - A WebGL sculpting app </title>
   <link rel='stylesheet' href='css/style.css' type='text/css' />
-  <!-- 3rd party libraries -->
   <script src='lib/jquery-2.0.3.min.js'></script>
-  <script src='lib/jquery.mousewheel.js'></script> 
-  <script src='lib/dat.gui.min.js'></script>
-  <script src='lib/FileSaver.js'></script>
-  <script src='lib/gl-matrix-min.js'></script>
-  <script data-main='main' src='tools/require.js'></script>
+  <script src='lib/jquery.mousewheel.js'></script>
+  <script>
+  'use strict';
+  $(document).ready(function ()
+  {
+    var SculptGL = require('Sculptgl');
+    var sculptgl = new SculptGL();
+    sculptgl.start();
+  });
+  </script>
 </head>
 <!--
   __  __       _ _   _                ____ _     
@@ -33,5 +37,12 @@ Stéphane GINIER
   <!-- wacom tablet plugin -->
   <object id='tablet-plugin' type='application/x-wacomtabletplugin'></object>
 
+  <!-- 3rd party libraries -->
+  <script src='lib/dat.gui.min.js'></script>
+  <script src='lib/FileSaver.js'></script>
+  <script src='lib/gl-matrix-min.js'></script>
+
+  <!-- minified multiresgl -->
+  <script src='multiresgl.min.js'></script>
 </body>
 </html>

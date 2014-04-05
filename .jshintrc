@@ -27,5 +27,9 @@
   "trailing": true,
   "undef": true,
   "unused": true,
-  "white": true
+  "white": true,
+  "globals": {
+        "define": false,
+        "require": false
+  }
 }

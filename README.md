@@ -1,6 +1,21 @@
-SculptGL
+MultiresGL
 ========
 
-#### A WebGL sculpting app ####
+#### A WebGL sculpting <applet></applet>
 
-[Website](http://stephaneginier.com/) 
+[MultiresGL demo](http://stephaneginier.com/test/multiresgl) 
+
+Tools
+======
+
+#### Development
+
+Nothing to do.
+Simply open `index.html`.
+
+#### Release
+
+Use grunt :
+
+    npm install
+    grunt
