@@ -280,39 +280,56 @@ define([
     },
     /** Computes the edges */
     initEdges: function () {
-      var edgesMap = {};
       var iAr = this.indicesABC_;
       var teAr = this.triEdges_;
       var nbEdges = 0;
-      for (var i = 0, nbTris = this.getNbTriangles(); i < nbTris; ++i) {
-        var id1 = i * 3;
-        var id2 = id1 + 1;
-        var id3 = id1 + 2;
-        var iv1 = iAr[id1];
-        var iv2 = iAr[id2];
-        var iv3 = iAr[id3];
-
-        var key = iv1 < iv2 ? iv1 + '.' + iv2 : iv2 + '.' + iv1;
-        var idEdge = edgesMap[key];
-        if (idEdge === undefined)
-          edgesMap[key] = idEdge = nbEdges++;
-        teAr[id1] = idEdge;
-
-        key = iv3 < iv2 ? iv3 + '.' + iv2 : iv2 + '.' + iv3;
-        idEdge = edgesMap[key];
-        if (idEdge === undefined)
-          edgesMap[key] = idEdge = nbEdges++;
-        teAr[id2] = idEdge;
-
-        key = iv1 < iv3 ? iv1 + '.' + iv3 : iv3 + '.' + iv1;
-        idEdge = edgesMap[key];
-        if (idEdge === undefined)
-          edgesMap[key] = idEdge = nbEdges++;
-        teAr[id3] = idEdge;
+      var vertEdgeTemp = new Uint32Array(this.getNbVertices());
+      var t = 0;
+      var idEdge = 0;
+      var vrt = this.vertRingTri_;
+      for (var i = 0, nbVerts = this.getNbVertices(); i < nbVerts; ++i) {
+        var ring = vrt[i];
+        var compTest = nbEdges;
+        for (var j = 0, len = ring.length; j < len; ++j) {
+          var id = ring[j] * 3;
+          var iv1 = iAr[id];
+          var iv2 = iAr[id + 1];
+          var iv3 = iAr[id + 2];
+          if (i > iv1) {
+            t = vertEdgeTemp[iv1];
+            idEdge = id + (i === iv2 ? 0 : 2);
+            if (t <= compTest) {
+              teAr[idEdge] = nbEdges;
+              vertEdgeTemp[iv1] = ++nbEdges;
+            } else {
+              teAr[idEdge] = t - 1;
+            }
+          }
+          if (i > iv2) {
+            t = vertEdgeTemp[iv2];
+            idEdge = id + (i === iv1 ? 0 : 1);
+            if (t <= compTest) {
+              teAr[idEdge] = nbEdges;
+              vertEdgeTemp[iv2] = ++nbEdges;
+            } else {
+              teAr[idEdge] = t - 1;
+            }
+          }
+          if (i > iv3) {
+            t = vertEdgeTemp[iv3];
+            idEdge = id + (i === iv1 ? 2 : 1);
+            if (t <= compTest) {
+              teAr[idEdge] = nbEdges;
+              vertEdgeTemp[iv3] = ++nbEdges;
+            } else {
+              teAr[idEdge] = t - 1;
+            }
+          }
+        }
       }
       var eAr = this.edges_ = new Uint8Array(nbEdges);
-      for (var j = 0, nbTrisEdges = teAr.length; j < nbTrisEdges; ++j) {
-        eAr[teAr[j]]++;
+      for (var k = 0, nbTrisEdges = teAr.length; k < nbTrisEdges; ++k) {
+        eAr[teAr[k]]++;
       }
     },
     /** Computes triangles ring around vertices */
