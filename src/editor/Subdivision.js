@@ -22,7 +22,6 @@ define([
     this.eAr_ = mesh.edges_;
     this.nbVertices_ = mesh.getNbVertices();
     this.tagEdges_ = new Int32Array(mesh.getNbEdges());
-    this.currentEdge_ = [-1, -1]; // [ivMid, tagIsOnEdge]
     this.init();
   };
 
@@ -77,12 +76,12 @@ define([
 
   var Subdivision = {};
 
-  /** Apply a complete loop subdivision */
+  /** Apply a complete loop subdivision (by updating the topology) */
   Subdivision.fullSubdivision = function (baseMesh, newMesh) {
     Subdivision.allocateArrays(baseMesh, newMesh);
     Subdivision.applyEvenSmooth(baseMesh, newMesh.verticesXYZ_, newMesh.colorsRGB_);
     Subdivision.applyOddSmooth(baseMesh, newMesh.verticesXYZ_, newMesh.colorsRGB_, newMesh.indicesABC_);
-    Subdivision.applyTopology(baseMesh, newMesh);
+    newMesh.initTopology();
   };
 
   /** Apply loop subdivision without topology computation */
@@ -91,81 +90,13 @@ define([
     Subdivision.applyOddSmooth(baseMesh, vertOut, colorOut);
   };
 
-  /** Apply a complete loop subdivision */
+  /** Allocate the arrays for the new mesh */
   Subdivision.allocateArrays = function (baseMesh, newMesh) {
-    var oldNbEdges = baseMesh.getNbEdges();
-    var oldNbVertices = baseMesh.getNbVertices();
-    var oldNbTriangles = baseMesh.getNbTriangles();
-    // init main arrays
-    newMesh.verticesXYZ_ = new Float32Array((oldNbVertices + oldNbEdges) * 3);
-    newMesh.indicesABC_ = new Utils.indexArrayType(oldNbTriangles * 4 * 3);
-    newMesh.edges_ = new Uint8Array(oldNbEdges * 2 + oldNbTriangles * 3);
-    // init everything else
+    newMesh.verticesXYZ_ = new Float32Array((baseMesh.getNbVertices() + baseMesh.getNbEdges()) * 3);
+    newMesh.indicesABC_ = new Utils.indexArrayType(baseMesh.getNbTriangles() * 4 * 3);
+    // not necessary because the edges will be computed later
+    // newMesh.edges_ = new Uint8Array(baseMesh.getNbEdges() * 2 + baseMesh.getNbTriangles() * 3);
     newMesh.allocateArrays();
-  };
-
-  /** Compute the position of odd verties + creates triangles (+ topology) */
-  Subdivision.applyTopology = function (baseMesh, newMesh) {
-    var i = 0;
-    var iArOld = baseMesh.indicesABC_;
-    var teArOld = baseMesh.triEdges_;
-    var iAr = newMesh.indicesABC_;
-    var teAr = newMesh.triEdges_;
-    var nbEdges = newMesh.getNbEdges();
-    var nbTris = baseMesh.getNbTriangles();
-    var nbEdgesOffset = baseMesh.indicesABC_.length;
-    for (i = 0; i < nbTris; ++i) {
-      var id = i * 3;
-      var iv1 = iArOld[id];
-      var iv2 = iArOld[id + 1];
-      var iv3 = iArOld[id + 2];
-
-      var ide1 = teArOld[id];
-      var ide2 = teArOld[id + 1];
-      var ide3 = teArOld[id + 2];
-
-      var e1center = id;
-      var e2center = id + 1;
-      var e3center = id + 2;
-
-      var ivMid1 = iAr[id];
-      var ivMid2 = iAr[id + 1];
-      var ivMid3 = iAr[id + 2];
-      teAr[id] = e1center;
-      teAr[id + 1] = e2center;
-      teAr[id + 2] = e3center;
-
-      id += nbTris;
-      var idt1 = id * 3;
-      var idt2 = (id + 1) * 3;
-      var idt3 = (id + 2) * 3;
-
-      iAr[idt1] = iv1;
-      iAr[idt1 + 1] = ivMid1;
-      iAr[idt1 + 2] = ivMid3;
-      teAr[idt1] = iv1 < iv2 ? nbEdgesOffset + ide1 : nbEdges - ide1 - 1;
-      teAr[idt1 + 1] = e3center;
-      teAr[idt1 + 2] = iv3 > iv1 ? nbEdgesOffset + ide3 : nbEdges - ide3 - 1;
-
-      iAr[idt2] = ivMid1;
-      iAr[idt2 + 1] = iv2;
-      iAr[idt2 + 2] = ivMid2;
-      teAr[idt2] = iv1 > iv2 ? nbEdgesOffset + ide1 : nbEdges - ide1 - 1;
-      teAr[idt2 + 1] = iv2 < iv3 ? nbEdgesOffset + ide2 : nbEdges - ide2 - 1;
-      teAr[idt2 + 2] = e1center;
-
-      iAr[idt3] = ivMid2;
-      iAr[idt3 + 1] = iv3;
-      iAr[idt3 + 2] = ivMid3;
-      teAr[idt3] = iv2 > iv3 ? nbEdgesOffset + ide2 : nbEdges - ide2 - 1;
-      teAr[idt3 + 1] = iv3 < iv1 ? nbEdgesOffset + ide3 : nbEdges - ide3 - 1;
-      teAr[idt3 + 2] = e2center;
-    }
-    newMesh.initVerticesTopology();
-    var nbTriEdges = teAr.length;
-    var eAr = newMesh.edges_;
-    for (i = 0; i < nbTriEdges; ++i)
-      eAr[teAr[i]]++;
   };
 
   /** Even vertices smoothing */
@@ -244,6 +175,22 @@ define([
         iArOut[id] = ivMid1;
         iArOut[id + 1] = ivMid2;
         iArOut[id + 2] = ivMid3;
+
+        id += nbTris;
+        var idt1 = id * 3;
+        iArOut[idt1] = iv1;
+        iArOut[idt1 + 1] = ivMid1;
+        iArOut[idt1 + 2] = ivMid3;
+
+        var idt2 = (id + 1) * 3;
+        iArOut[idt2] = ivMid1;
+        iArOut[idt2 + 1] = iv2;
+        iArOut[idt2 + 2] = ivMid2;
+
+        var idt3 = (id + 2) * 3;
+        iArOut[idt3] = ivMid2;
+        iArOut[idt3 + 1] = iv3;
+        iArOut[idt3 + 2] = ivMid3;
       }
     }
   };

@@ -71,15 +71,11 @@ define([
       this.initTopology();
       this.updateGeometry();
     },
-    /** Init topoloy information */
+    /** Init topoloy stuffs */
     initTopology: function () {
-      this.initVerticesTopology();
-      this.initEdges();
-    },
-    /** Init vertices topoloy */
-    initVerticesTopology: function () {
       this.initTriangleRings();
       this.initVertexRings();
+      this.initEdges();
     },
     /** Updates the mesh Geometry */
     updateGeometry: function (iTris, iVerts) {
@@ -381,48 +377,6 @@ define([
           vertOnEdge[i] = 1;
       }
     },
-    /** Compute the mesh octree */
-    computeOctree: function (abRoot, factor) {
-      if (abRoot === undefined)
-        abRoot = this.computeAabb();
-      var xmin = abRoot[0],
-        ymin = abRoot[1],
-        zmin = abRoot[2];
-      var xmax = abRoot[3],
-        ymax = abRoot[4],
-        zmax = abRoot[5];
-      var dx = xmax - xmin;
-      var dy = ymax - ymin;
-      var dz = zmax - zmin;
-      //root octree bigger than minimum aabb...
-      if (factor !== undefined && factor !== 0.0) {
-        var dfx = dx * factor;
-        var dfy = dy * factor;
-        var dfz = dz * factor;
-        xmin -= dfx;
-        xmax += dfx;
-        ymin -= dfy;
-        ymax += dfy;
-        zmin -= dfz;
-        zmax += dfz;
-      }
-      var offset = Math.sqrt(dx * dx + dy * dy + dz * dz) * 0.2;
-      xmin = xmin === xmax ? xmin - offset : xmin;
-      xmax = xmin === xmax ? xmax + offset : xmax;
-      ymin = ymin === ymax ? ymin - offset : ymin;
-      ymax = ymin === ymax ? ymin + offset : ymax;
-      zmin = zmin === zmax ? zmin - offset : zmin;
-      zmax = zmin === zmax ? zmin + offset : zmax;
-
-      //octree construction
-      var nbTriangles = this.getNbTriangles();
-      var trianglesAll = [];
-      for (var i = 0; i < nbTriangles; ++i)
-        trianglesAll.push(i);
-      this.octree_ = new Octree();
-      this.octree_.setAabbSplit(xmin, ymin, zmin, xmax, ymax, zmax);
-      this.octree_.build(this, trianglesAll);
-    },
     /** Update a group of triangles' normal and aabb */
     updateTrianglesAabbAndNormal: function (iTris) {
       var triNormals = this.triNormalsXYZ_;
@@ -506,6 +460,48 @@ define([
         nAr[ind + 1] = ny * len;
         nAr[ind + 2] = nz * len;
       }
+    },
+    /** Compute the mesh octree */
+    computeOctree: function (abRoot, factor) {
+      if (abRoot === undefined)
+        abRoot = this.computeAabb();
+      var xmin = abRoot[0],
+        ymin = abRoot[1],
+        zmin = abRoot[2];
+      var xmax = abRoot[3],
+        ymax = abRoot[4],
+        zmax = abRoot[5];
+      var dx = xmax - xmin;
+      var dy = ymax - ymin;
+      var dz = zmax - zmin;
+      //root octree bigger than minimum aabb...
+      if (factor !== undefined && factor !== 0.0) {
+        var dfx = dx * factor;
+        var dfy = dy * factor;
+        var dfz = dz * factor;
+        xmin -= dfx;
+        xmax += dfx;
+        ymin -= dfy;
+        ymax += dfy;
+        zmin -= dfz;
+        zmax += dfz;
+      }
+      var offset = Math.sqrt(dx * dx + dy * dy + dz * dz) * 0.2;
+      xmin = xmin === xmax ? xmin - offset : xmin;
+      xmax = xmin === xmax ? xmax + offset : xmax;
+      ymin = ymin === ymax ? ymin - offset : ymin;
+      ymax = ymin === ymax ? ymin + offset : ymax;
+      zmin = zmin === zmax ? zmin - offset : zmin;
+      zmax = zmin === zmax ? zmin + offset : zmax;
+
+      //octree construction
+      var nbTriangles = this.getNbTriangles();
+      var trianglesAll = [];
+      for (var i = 0; i < nbTriangles; ++i)
+        trianglesAll.push(i);
+      this.octree_ = new Octree();
+      this.octree_.setAabbSplit(xmin, ymin, zmin, xmax, ymax, zmax);
+      this.octree_.build(this, trianglesAll);
     },
     /**
      * Update Octree
