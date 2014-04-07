@@ -60,7 +60,7 @@ define([
         rayInv[1] = 1 / ray[1];
         rayInv[2] = 1 / ray[2];
         var iTrisCandidates = mesh.octree_.intersectRay(vNear, rayInv);
-        var distance = -1.0;
+        var distance = Infinity;
         var nbTrisCandidates = iTrisCandidates.length;
         for (var i = 0; i < nbTrisCandidates; ++i) {
           var indTri = iTrisCandidates[i] * 3;
@@ -78,7 +78,7 @@ define([
           v3[2] = vAr[ind3 + 2];
           if (Geometry.intersectionRayTriangle(vNear, ray, v1, v2, v3, vertInter)) {
             var testDistance = vec3.sqrDist(vNear, vertInter); {
-              if (testDistance < distance || distance < 0.0) {
+              if (testDistance < distance) {
                 distance = testDistance;
                 vec3.copy(this.interPoint_, vertInter);
                 this.pickedTriangle_ = iTrisCandidates[i];
