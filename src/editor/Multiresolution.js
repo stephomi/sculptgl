@@ -24,6 +24,7 @@ define([
 
   /** Apply back the detail vectors */
   Multiresolution.applyDetails = function (meshUp) {
+    var vrrStartCountUp = meshUp.vrrStartCount_;
     var vertRingVertUp = meshUp.vertRingVert_;
     var vArUp = meshUp.verticesXYZ_;
     var nArUp = meshUp.normalsXYZ_;
@@ -53,7 +54,7 @@ define([
       nz *= len;
 
       // tangent vec (vertex neighbor - vertex)
-      var k = vertRingVertUp[i][0] * 3;
+      var k = vertRingVertUp[vrrStartCountUp[i * 2]] * 3;
       var tx = vArUp[k] - vx;
       var ty = vArUp[k + 1] - vy;
       var tz = vArUp[k + 2] - vz;
@@ -93,6 +94,7 @@ define([
 
   /** Compute the detail vectors */
   Multiresolution.computeDetails = function (meshUp, downSubd, subdColors) {
+    var vrrStartCountUp = meshUp.vrrStartCount_;
     var vertRingVertUp = meshUp.vertRingVert_;
     var vArUp = meshUp.verticesXYZ_;
     var nArUp = meshUp.normalsXYZ_;
@@ -116,7 +118,7 @@ define([
       nz *= len;
 
       // tangent vec (vertex neighbor - vertex)
-      var k = vertRingVertUp[i][0] * 3;
+      var k = vertRingVertUp[vrrStartCountUp[i * 2]] * 3;
       var tx = downSubd[k] - downSubd[j];
       var ty = downSubd[k + 1] - downSubd[j + 1];
       var tz = downSubd[k + 2] - downSubd[j + 2];
@@ -166,6 +168,7 @@ define([
   // /** Apply laplaciant smoothing */
   // Multiresolution.laplaceSmooth = function (mesh, target, source, factor) {
   //   var vertOnEdge = mesh.vertOnEdge_;
+  //   var vrrStartCount = mesh.vrrStartCount_;
   //   var vertRingVert = mesh.vertRingVert_;
   //   var nbVerts = target.length / 3;
   //   var sx = 0.0,
@@ -175,15 +178,15 @@ define([
   //     is = 0;
   //   for (var i = 0; i < nbVerts; ++i) {
   //     var it = i * 3;
-  //     var ivRing = vertRingVert[i];
-  //     var nbVRing = ivRing.length;
+  //     var start = vrrStartCount[i * 2];
+  //     var count = vrrStartCount[i * 2 + 1];
   //     var avx = 0.0,
   //       avy = 0.0,
   //       avz = 0.0;
   //     if (vertOnEdge[i] === 1) {
   //       var nbVertEdge = 0;
-  //       for (j = 0; j < nbVRing; ++j) {
-  //         is = ivRing[j];
+  //       for (j = 0; j < count; ++j) {
+  //         is = vertRingVert[start + j];
   //         //we average only with vertices that are also on the edge
   //         if (vertOnEdge[is] === 1) {
   //           is *= 3;
@@ -193,10 +196,10 @@ define([
   //           ++nbVertEdge;
   //         }
   //       }
-  //       nbVRing = nbVertEdge;
+  //       count = nbVertEdge;
   //     } else {
-  //       for (j = 0; j < nbVRing; ++j) {
-  //         is = ivRing[j] * 3;
+  //       for (j = 0; j < count; ++j) {
+  //         is = vertRingVert[start + j] * 3;
   //         avx += source[is];
   //         avy += source[is + 1];
   //         avz += source[is + 2];
@@ -205,9 +208,9 @@ define([
   //     sx = source[it];
   //     sy = source[it + 1];
   //     sz = source[it + 2];
-  //     target[it] = sx + ((avx / nbVRing) - sx) * factor;
-  //     target[it + 1] = sy + ((avy / nbVRing) - sy) * factor;
-  //     target[it + 2] = sz + ((avz / nbVRing) - sz) * factor;
+  //     target[it] = sx + ((avx / count) - sx) * factor;
+  //     target[it + 1] = sy + ((avy / count) - sy) * factor;
+  //     target[it + 2] = sz + ((avz / count) - sz) * factor;
   //   }
   // };
   return Multiresolution;

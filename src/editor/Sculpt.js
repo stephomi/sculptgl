@@ -633,6 +633,7 @@ define([
     /** Laplacian smooth. Special rule for vertex on the edge of the mesh. */
     laplacianSmooth: function (iVerts, smoothVerts) {
       var mesh = this.multimesh_.getCurrent();
+      var vrrStartCount = mesh.vrrStartCount_;
       var vertRingVert = mesh.vertRingVert_;
       var vertOnEdge = mesh.vertOnEdge_;
       var vAr = mesh.verticesXYZ_;
@@ -640,8 +641,8 @@ define([
       for (var i = 0; i < nbVerts; ++i) {
         var i3 = i * 3;
         var id = iVerts[i];
-        var ivRing = vertRingVert[id];
-        var nbVRing = ivRing.length;
+        var start = vrrStartCount[id * 2];
+        var count = vrrStartCount[id * 2 + 1];
         var avx = 0.0,
           avy = 0.0,
           avz = 0.0;
@@ -649,8 +650,8 @@ define([
           ind = 0;
         if (vertOnEdge[id] === 1) {
           var nbVertEdge = 0;
-          for (j = 0; j < nbVRing; ++j) {
-            ind = ivRing[j];
+          for (j = 0; j < count; ++j) {
+            ind = vertRingVert[start + j];
             //we average only with vertices that are also on the edge
             if (vertOnEdge[ind] === 1) {
               ind *= 3;
@@ -660,20 +661,18 @@ define([
               ++nbVertEdge;
             }
           }
-          smoothVerts[i3] = avx / nbVertEdge;
-          smoothVerts[i3 + 1] = avy / nbVertEdge;
-          smoothVerts[i3 + 2] = avz / nbVertEdge;
+          count = nbVertEdge;
         } else {
-          for (j = 0; j < nbVRing; ++j) {
-            ind = ivRing[j] * 3;
+          for (j = 0; j < count; ++j) {
+            ind = vertRingVert[start + j] * 3;
             avx += vAr[ind];
             avy += vAr[ind + 1];
             avz += vAr[ind + 2];
           }
-          smoothVerts[i3] = avx / nbVRing;
-          smoothVerts[i3 + 1] = avy / nbVRing;
-          smoothVerts[i3 + 2] = avz / nbVRing;
         }
+        smoothVerts[i3] = avx / count;
+        smoothVerts[i3 + 1] = avy / count;
+        smoothVerts[i3 + 2] = avz / count;
       }
     },
     /** Compute average normal of a group of vertices with culling */

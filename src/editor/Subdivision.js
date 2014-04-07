@@ -104,56 +104,55 @@ define([
     colorOut.set(baseMesh.colorsRGB_);
     var vArOld = baseMesh.verticesXYZ_;
     var vertOnEdgeOld = baseMesh.vertOnEdge_;
+    var vrrStartCount = baseMesh.vrrStartCount_;
     var vertRingVert = baseMesh.vertRingVert_;
     var nbVerts = baseMesh.getNbVertices();
 
     for (var i = 0; i < nbVerts; ++i) {
       var j = i * 3;
-      var ring = vertRingVert[i];
-      var nbVRing = ring.length;
+      var start = vrrStartCount[i * 2];
+      var count = vrrStartCount[i * 2 + 1];
       var avx = 0.0,
         avy = 0.0,
         avz = 0.0;
       var beta = 0.0,
         betaComp = 0.0;
       var k = 0;
+      var id = 0;
       if (vertOnEdgeOld[i]) { //edge vertex
-        var comp = 0;
-        for (k = 0; k < nbVRing; ++k) {
-          var ind = ring[k];
-          if (vertOnEdgeOld[ind]) {
-            ind *= 3;
-            avx += vArOld[ind];
-            avy += vArOld[ind + 1];
-            avz += vArOld[ind + 2];
-            comp++;
+        for (k = 0; k < count; ++k) {
+          id = vertRingVert[start + k];
+          if (vertOnEdgeOld[id]) {
+            id *= 3;
+            avx += vArOld[id];
+            avy += vArOld[id + 1];
+            avz += vArOld[id + 2];
+            beta++;
           }
         }
-        comp = 0.25 / comp;
-        even[j] = vArOld[j] * 0.75 + avx * comp;
-        even[j + 1] = vArOld[j + 1] * 0.75 + avy * comp;
-        even[j + 2] = vArOld[j + 2] * 0.75 + avz * comp;
+        beta = 0.25 / beta;
+        betaComp = 0.75;
       } else {
-        for (k = 0; k < nbVRing; ++k) {
-          var id = ring[k] * 3;
+        for (k = 0; k < count; ++k) {
+          id = vertRingVert[start + k] * 3;
           avx += vArOld[id];
           avy += vArOld[id + 1];
           avz += vArOld[id + 2];
         }
-        if (nbVRing === 6) {
+        if (count === 6) {
           beta = 0.0625;
           betaComp = 0.625;
-        } else if (nbVRing === 3) { //warren weights
+        } else if (count === 3) { //warren weights
           beta = 0.1875;
           betaComp = 0.4375;
         } else {
-          beta = 0.375 / nbVRing;
+          beta = 0.375 / count;
           betaComp = 0.625;
         }
-        even[j] = vArOld[j] * betaComp + avx * beta;
-        even[j + 1] = vArOld[j + 1] * betaComp + avy * beta;
-        even[j + 2] = vArOld[j + 2] * betaComp + avz * beta;
       }
+      even[j] = vArOld[j] * betaComp + avx * beta;
+      even[j + 1] = vArOld[j + 1] * betaComp + avy * beta;
+      even[j + 2] = vArOld[j + 2] * betaComp + avz * beta;
     }
   };
 

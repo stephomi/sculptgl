@@ -20,8 +20,10 @@ define([
 
     // vertices stuffs
     this.vertOnEdge_ = null; //vertices on edge (Uint8Array) (1 => on edge)
-    this.vertRingTri_ = []; //array of array (neighborhood triangles)
-    this.vertRingVert_ = []; //array of array (ring vertices)
+    this.vrtStartCount_ = null; //array of neighborhood triangles (start/count) (Uint32Array)
+    this.vertRingTri_ = null; //array of neighborhood triangles (Uint32Array)
+    this.vrrStartCount_ = null; //array of neighborhood vertices (start/count) (Uint32Array)
+    this.vertRingVert_ = null; //array neighborhood vertices (Uint32Array)
     this.verticesXYZ_ = null; //vertices (Float32Array)
     this.colorsRGB_ = null; //color vertices (Float32Array)
     this.normalsXYZ_ = null; //normals (Float32Array)
@@ -74,8 +76,8 @@ define([
     /** Init topoloy stuffs */
     initTopology: function () {
       this.initTriangleRings();
-      this.initVertexRings();
       this.initEdges();
+      this.initVertexRings();
     },
     /** Updates the mesh Geometry */
     updateGeometry: function (iTris, iVerts) {
@@ -88,13 +90,15 @@ define([
       var tagFlag = ++Mesh.TAG_FLAG;
       var iTris = [];
       var nbVerts = iVerts.length;
+      var vrtStartCount = this.vrtStartCount_;
       var vertRingTri = this.vertRingTri_;
       var triTagFlags = this.triTagFlags_;
       for (var i = 0; i < nbVerts; ++i) {
-        var ringTris = vertRingTri[iVerts[i]];
-        var nbTris = ringTris.length;
-        for (var j = 0; j < nbTris; ++j) {
-          var iTri = ringTris[j];
+        var idVert = iVerts[i] * 2;
+        var start = vrtStartCount[idVert];
+        var count = vrtStartCount[idVert + 1];
+        for (var j = 0; j < count; ++j) {
+          var iTri = vertRingTri[start + j];
           if (triTagFlags[iTri] !== tagFlag) {
             iTris.push(iTri);
             triTagFlags[iTri] = tagFlag;
@@ -134,6 +138,7 @@ define([
     expandsTriangles: function (iTris, nRing) {
       var tagFlag = ++Mesh.TAG_FLAG;
       var nbTris = iTris.length;
+      var vrtStartCount = this.vrtStartCount_;
       var vertRingTri = this.vertRingTri_;
       var triTagFlags = this.triTagFlags_;
       var iAr = this.indicesABC_;
@@ -147,28 +152,35 @@ define([
         --nRing;
         for (i = iBegin; i < nbTris; ++i) {
           var ind = iTris[i] * 3;
-          var iTris1 = vertRingTri[iAr[ind]],
-            iTris2 = vertRingTri[iAr[ind + 1]],
-            iTris3 = vertRingTri[iAr[ind + 2]];
-          var nbTris1 = iTris1.length,
-            nbTris2 = iTris2.length,
-            nbTris3 = iTris3.length;
-          for (j = 0; j < nbTris1; ++j) {
-            id = iTris1[j];
+          var idv1 = iAr[ind] * 2;
+          var idv2 = iAr[ind + 1] * 2;
+          var idv3 = iAr[ind + 2] * 2;
+
+          var start = vrtStartCount[idv1];
+          var count = vrtStartCount[idv1 + 1];
+
+          for (j = 0; j < count; ++j) {
+            id = vertRingTri[start + j];
             if (triTagFlags[id] !== tagFlag) {
               iTris.push(id);
               triTagFlags[id] = tagFlag;
             }
           }
-          for (j = 0; j < nbTris2; ++j) {
-            id = iTris2[j];
+
+          start = vrtStartCount[idv2];
+          count = vrtStartCount[idv2 + 1];
+          for (j = 0; j < count; ++j) {
+            id = vertRingTri[start + j];
             if (triTagFlags[id] !== tagFlag) {
               iTris.push(id);
               triTagFlags[id] = tagFlag;
             }
           }
-          for (j = 0; j < nbTris3; ++j) {
-            id = iTris3[j];
+
+          start = vrtStartCount[idv3];
+          count = vrtStartCount[idv3 + 1];
+          for (j = 0; j < count; ++j) {
+            id = vertRingTri[start + j];
             if (triTagFlags[id] !== tagFlag) {
               iTris.push(id);
               triTagFlags[id] = tagFlag;
@@ -183,20 +195,21 @@ define([
     expandsVertices: function (iVerts, nRing) {
       var tagFlag = ++Mesh.TAG_FLAG;
       var nbVerts = iVerts.length;
+      var vrrStartCount = this.vrrStartCount_;
       var vertRingVert = this.vertRingVert_;
       var vertTagFlags = this.vertTagFlags_;
-      var i = 0,
-        j = 0;
+      var i = 0;
       for (i = 0; i < nbVerts; ++i)
         vertTagFlags[iVerts[i]] = tagFlag;
       var iBegin = 0;
       while (nRing) {
         --nRing;
         for (i = iBegin; i < nbVerts; ++i) {
-          var ring = vertRingVert[iVerts[i]];
-          var nbRing = ring.length;
-          for (j = 0; j < nbRing; ++j) {
-            var id = ring[j];
+          var idVert = iVerts[i] * 2;
+          var start = vrrStartCount[idVert];
+          var count = vrrStartCount[idVert + 1];
+          for (var j = 0; j < count; ++j) {
+            var id = vertRingVert[start + j];
             if (vertTagFlags[id] !== tagFlag) {
               iVerts.push(id);
               vertTagFlags[id] = tagFlag;
@@ -262,17 +275,10 @@ define([
       if (this.colorsRGB_ === null || this.colorsRGB_.length !== nbVertices * 3)
         this.colorsRGB_ = new Float32Array(nbVertices * 3);
       this.normalsXYZ_ = new Float32Array(nbVertices * 3);
-      var vertRingVert = this.vertRingVert_;
-      var i = 0;
-      if (vertRingVert.length !== nbVertices) {
-        vertRingVert.length = nbVertices;
-        for (i = 0; i < nbVertices; ++i) vertRingVert[i] = [];
-      }
-      var vertRingTri = this.vertRingTri_;
-      if (vertRingTri.length !== nbVertices) {
-        vertRingTri.length = nbVertices;
-        for (i = 0; i < nbVertices; ++i) vertRingTri[i] = [];
-      }
+
+      this.vrrStartCount_ = new Uint32Array(nbVertices * 2);
+      this.vrtStartCount_ = new Uint32Array(nbVertices * 2);
+      this.vertRingTri_ = new Uint32Array(nbTriangles * 3);
     },
     /** Computes the edges */
     initEdges: function () {
@@ -282,12 +288,14 @@ define([
       var vertEdgeTemp = new Uint32Array(this.getNbVertices());
       var t = 0;
       var idEdge = 0;
-      var vrt = this.vertRingTri_;
+      var vrtStartCount = this.vrtStartCount_;
+      var vertRingTri = this.vertRingTri_;
       for (var i = 0, nbVerts = this.getNbVertices(); i < nbVerts; ++i) {
-        var ring = vrt[i];
+        var start = vrtStartCount[i * 2];
+        var count = vrtStartCount[i * 2 + 1];
         var compTest = nbEdges;
-        for (var j = 0, len = ring.length; j < len; ++j) {
-          var id = ring[j] * 3;
+        for (var j = 0; j < count; ++j) {
+          var id = vertRingTri[start + j] * 3;
           var iv1 = iAr[id];
           var iv2 = iAr[id + 1];
           var iv3 = iAr[id + 2];
@@ -330,50 +338,74 @@ define([
     },
     /** Computes triangles ring around vertices */
     initTriangleRings: function () {
-      var vertRingTri = this.vertRingTri_;
       var iAr = this.indicesABC_;
-      for (var i = 0, l = this.getNbTriangles(); i < l; ++i) {
-        var id = i * 3;
+      var nbVertices = this.getNbVertices();
+      var nbTriangles = this.getNbTriangles();
+      var i = 0;
+      var id = 0;
+      var countRing = new Uint32Array(this.getNbVertices());
+      for (i = 0; i < nbTriangles; ++i) {
+        id = i * 3;
+        ++countRing[iAr[id]];
+        ++countRing[iAr[id + 1]];
+        ++countRing[iAr[id + 2]];
+      }
+      var ringTri = this.vrtStartCount_;
+      var acc = 0;
+      for (i = 0; i < nbVertices; ++i) {
+        var count = countRing[i];
+        ringTri[i * 2] = acc;
+        ringTri[i * 2 + 1] = count;
+        acc += count;
+      }
+      var vertRingTri = this.vertRingTri_;
+      for (i = 0; i < nbTriangles; ++i) {
+        id = i * 3;
         var iv1 = iAr[id];
         var iv2 = iAr[id + 1];
         var iv3 = iAr[id + 2];
-        vertRingTri[iv1].push(i);
-        vertRingTri[iv2].push(i);
-        vertRingTri[iv3].push(i);
+        vertRingTri[ringTri[iv1 * 2] + (--countRing[iv1])] = i;
+        vertRingTri[ringTri[iv2 * 2] + (--countRing[iv2])] = i;
+        vertRingTri[ringTri[iv3 * 2] + (--countRing[iv3])] = i;
       }
     },
     /** Computes vertex ring around vertices */
     initVertexRings: function () {
+      var vrrStartCount = this.vrrStartCount_;
+      var vertRingVert = this.vertRingVert_ = new Uint32Array(this.getNbEdges() * 2);
+      var vrtStartCount = this.vrtStartCount_;
       var vertRingTri = this.vertRingTri_;
-      var vertRingVert = this.vertRingVert_;
       var vertTagFlags = this.vertTagFlags_;
       var iAr = this.indicesABC_;
       var vertOnEdge = this.vertOnEdge_;
+      var vrrStart = 0;
       for (var i = 0, l = this.getNbVertices(); i < l; ++i) {
         var tagFlag = ++Mesh.TAG_FLAG;
-        var ring = vertRingVert[i];
-        ring.length = 0;
-        var iTris = vertRingTri[i];
-        var nbTris = iTris.length;
-        for (var j = 0; j < nbTris; ++j) {
-          var ind = iTris[j] * 3;
+        var vrtStart = vrtStartCount[i * 2];
+        var vrtCount = vrtStartCount[i * 2 + 1];
+        var vrrCount = 0;
+        for (var j = 0; j < vrtCount; ++j) {
+          var ind = vertRingTri[vrtStart + j] * 3;
           var iVer1 = iAr[ind],
             iVer2 = iAr[ind + 1],
             iVer3 = iAr[ind + 2];
           if (iVer1 !== i && vertTagFlags[iVer1] !== tagFlag) {
-            ring.push(iVer1);
+            vertRingVert[vrrStart + (vrrCount++)] = iVer1;
             vertTagFlags[iVer1] = tagFlag;
           }
           if (iVer2 !== i && vertTagFlags[iVer2] !== tagFlag) {
-            ring.push(iVer2);
+            vertRingVert[vrrStart + (vrrCount++)] = iVer2;
             vertTagFlags[iVer2] = tagFlag;
           }
           if (iVer3 !== i && vertTagFlags[iVer3] !== tagFlag) {
-            ring.push(iVer3);
+            vertRingVert[vrrStart + (vrrCount++)] = iVer3;
             vertTagFlags[iVer3] = tagFlag;
           }
         }
-        if (nbTris !== ring.length)
+        vrrStartCount[i * 2] = vrrStart;
+        vrrStartCount[i * 2 + 1] = vrrCount;
+        vrrStart += vrrCount;
+        if (vrtCount !== vrrCount)
           vertOnEdge[i] = 1;
       }
     },
@@ -435,6 +467,7 @@ define([
     },
     /** Update a group of vertices' normal */
     updateVerticesNormal: function (iVerts) {
+      var vrtStartCount = this.vrtStartCount_;
       var vertRingTri = this.vertRingTri_;
       var nAr = this.normalsXYZ_;
       var triNormals = this.triNormalsXYZ_;
@@ -443,13 +476,13 @@ define([
       var nbTris = full ? this.getNbVertices() : iVerts.length;
       for (var i = 0; i < nbTris; ++i) {
         var ind = full ? i : iVerts[i];
-        var iTris = vertRingTri[ind];
-        var nbTri = iTris.length;
+        var start = vrtStartCount[ind * 2];
+        var count = vrtStartCount[ind * 2 + 1];
         var nx = 0.0,
           ny = 0.0,
           nz = 0.0;
-        for (var j = 0; j < nbTri; ++j) {
-          var id = iTris[j] * 3;
+        for (var j = 0; j < count; ++j) {
+          var id = vertRingTri[start + j] * 3;
           nx += triNormals[id];
           ny += triNormals[id + 1];
           nz += triNormals[id + 2];
