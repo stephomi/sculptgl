@@ -450,9 +450,9 @@ define([
         var xmin = v1x < v2x ? v1x < v3x ? v1x : v3x : v2x < v3x ? v2x : v3x;
         var xmax = v1x > v2x ? v1x > v3x ? v1x : v3x : v2x > v3x ? v2x : v3x;
         var ymin = v1y < v2y ? v1y < v3y ? v1y : v3y : v2y < v3y ? v2y : v3y;
-        var ymax = v1y > v2y ? v1y > v3y ? v1y : v3y : v2z > v3y ? v2y : v3y;
+        var ymax = v1y > v2y ? v1y > v3y ? v1y : v3y : v2y > v3y ? v2y : v3y;
         var zmin = v1z < v2z ? v1z < v3z ? v1z : v3z : v2z < v3z ? v2z : v3z;
-        var zmax = v1z > v2z ? v1z > v3z ? v1z : v3z : v2y > v3z ? v2z : v3z;
+        var zmax = v1z > v2z ? v1z > v3z ? v1z : v3z : v2z > v3z ? v2z : v3z;
         triBoxes[idBox] = xmin;
         triBoxes[idBox + 1] = ymin;
         triBoxes[idBox + 2] = zmin;
