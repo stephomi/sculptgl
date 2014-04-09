@@ -51,19 +51,44 @@ define([], function () {
     return result;
   };
 
-  var Tablet = {};
+  Utils.outputsACMRandATVR = function (mesh) {
+    var iAr = mesh.indicesABC_;
+    var sizeCache = 32;
+    var cache = new Array(sizeCache);
 
-  /** wacom tablet plugin element **/
-  Tablet.plugin = document.querySelector('object[type=\'application/x-wacomtabletplugin\']');
+    var isCacheMiss = function (id) {
+      for (var k = 0; k < sizeCache; ++k) {
+        if (cache[k] === undefined) {
+          cache[k] = id;
+          return 1;
+        } else if (cache[k] === id) {
+          // not sure about that one...
+          // Is a cache HIT moves the vert
+          // up in the FIFO ?
+          // cache.splice(k,1)
+          // cache.push(id)
+          return 0;
+        }
+      }
+      cache.shift();
+      cache.push(id);
+      return 1;
+    };
 
-  /** Returns the pressure of pen: [0, 1] **/
-  Tablet.pressure = function () {
-    var pen;
-    if (Tablet.plugin)
-      pen = Tablet.plugin.penAPI;
-    return (pen && pen.pointerType) ? pen.pressure : 1;
+    var nbTriangles = mesh.getNbTriangles();
+    var cacheMiss = 0;
+    for (var i = 0; i < nbTriangles; ++i) {
+      var id = i * 3;
+      cacheMiss += isCacheMiss(iAr[id]);
+      cacheMiss += isCacheMiss(iAr[id + 1]);
+      cacheMiss += isCacheMiss(iAr[id + 2]);
+    }
+
+    console.log(cacheMiss / nbTriangles);
+    console.log(cacheMiss / mesh.getNbVertices());
   };
 
+  // Not sure I should put theses functions here...
   /** endsWith function */
   if (typeof String.prototype.endsWith !== 'function') {
     String.prototype.endsWith = function (str) {

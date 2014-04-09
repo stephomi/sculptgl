@@ -160,9 +160,8 @@ define([
   Subdivision.applyOddSmooth = function (mesh, odds, colorOut, iArOut) {
     var iAr = mesh.indicesABC_;
     var teAr = mesh.triEdges_;
-    var nbTris = mesh.getNbTriangles();
     var midComputer = new MidEdgeComputer(mesh, odds, colorOut);
-    for (var i = 0; i < nbTris; ++i) {
+    for (var i = 0, l = mesh.getNbTriangles(); i < l; ++i) {
       var id = i * 3;
       var iv1 = iAr[id];
       var iv2 = iAr[id + 1];
@@ -171,25 +170,25 @@ define([
       var ivMid2 = midComputer.computeMidEdge(iv2, iv3, iv1, teAr[id + 1]);
       var ivMid3 = midComputer.computeMidEdge(iv3, iv1, iv2, teAr[id + 2]);
       if (iArOut) {
+        id *= 4;
         iArOut[id] = ivMid1;
         iArOut[id + 1] = ivMid2;
         iArOut[id + 2] = ivMid3;
 
-        id += nbTris;
-        var idt1 = id * 3;
-        iArOut[idt1] = iv1;
-        iArOut[idt1 + 1] = ivMid1;
-        iArOut[idt1 + 2] = ivMid3;
+        id += 3;
+        iArOut[id] = iv1;
+        iArOut[id + 1] = ivMid1;
+        iArOut[id + 2] = ivMid3;
 
-        var idt2 = (id + 1) * 3;
-        iArOut[idt2] = ivMid1;
-        iArOut[idt2 + 1] = iv2;
-        iArOut[idt2 + 2] = ivMid2;
+        id += 3;
+        iArOut[id] = ivMid1;
+        iArOut[id + 1] = iv2;
+        iArOut[id + 2] = ivMid2;
 
-        var idt3 = (id + 2) * 3;
-        iArOut[idt3] = ivMid2;
-        iArOut[idt3 + 1] = iv3;
-        iArOut[idt3 + 2] = ivMid3;
+        id += 3;
+        iArOut[id] = ivMid2;
+        iArOut[id + 1] = iv3;
+        iArOut[id + 2] = ivMid3;
       }
     }
   };
