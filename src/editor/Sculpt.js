@@ -90,13 +90,11 @@ define([
       var drag = this.tool_ === Sculpt.tool.DRAG;
       if (drag) {
         minSpacing = 0.0;
+        if (picking.multimesh_ === null)
+          return;
         picking.multimesh_ = pickingSym.multimesh_ = multimesh;
-        var inter = picking.interPoint_;
-        var interSym = pickingSym.interPoint_;
-        interSym[0] = inter[0];
-        interSym[1] = inter[1];
-        interSym[2] = inter[2];
-        Geometry.mirrorPoint(interSym, ptPlane, nPlane);
+        vec3.copy(pickingSym.interPoint_, picking.interPoint_);
+        Geometry.mirrorPoint(pickingSym.interPoint_, ptPlane, nPlane);
       }
       if (sumDisp > minSpacing * 100.0 && !drag)
         sumDisp = 0.0;
