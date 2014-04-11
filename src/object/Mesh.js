@@ -58,17 +58,21 @@ define([
   Mesh.STATE_FLAG = 1; //flag value for sculpt (always >= tags values)
 
   Mesh.prototype = {
+    /** Return the number of triangles */
     getNbTriangles: function () {
       return this.indicesABC_.length / 3;
     },
+    /** Return the number of vertices */
     getNbVertices: function () {
       return this.verticesXYZ_.length / 3;
     },
+    /** Return the number of edges */
     getNbEdges: function () {
       return this.edges_.length;
     },
     /** Initialize stuffs for the mesh */
     init: function () {
+      this.initColors();
       this.allocateArrays();
       this.initTopology();
       this.updateGeometry();
@@ -84,6 +88,15 @@ define([
       this.updateTrianglesAabbAndNormal(iTris);
       this.updateVerticesNormal(iVerts);
       this.updateOctree(iTris);
+    },
+    /** Init color array */
+    initColors: function () {
+      var len = this.getNbVertices() * 3;
+      if (this.colorsRGB_ && this.colorsRGB_.length === len)
+        return;
+      var cAr = this.colorsRGB_ = new Float32Array(len);
+      for (var i = 0; i < len; ++i)
+        cAr[i] = 1.0;
     },
     /** Return all the triangles linked to a group of vertices */
     getTrianglesFromVertices: function (iVerts) {
@@ -271,9 +284,7 @@ define([
 
       // init vertices stuffs
       this.vertOnEdge_ = new Uint8Array(nbVertices);
-      // might already be filled on import
-      if (this.colorsRGB_ === null || this.colorsRGB_.length !== nbVertices * 3)
-        this.colorsRGB_ = new Float32Array(nbVertices * 3);
+      this.colorsRGB_ = this.colorsRGB_ === null ? new Float32Array(nbVertices * 3) : this.colorsRGB_;
       this.normalsXYZ_ = new Float32Array(nbVertices * 3);
 
       this.vrrStartCount_ = new Uint32Array(nbVertices * 2);

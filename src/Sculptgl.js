@@ -191,12 +191,17 @@ define([
     },
     /** Load the sphere */
     loadSphere: function () {
+      var self = this;
       var sphereXhr = new XMLHttpRequest();
       sphereXhr.open('GET', 'ressources/sphere.obj', true);
-      var self = this;
+      sphereXhr.responseType = 'arraybuffer';
       sphereXhr.onload = function () {
-        self.sphere_ = this.responseText;
-        self.resetSphere();
+        var reader = new FileReader();
+        reader.onload = function (evt) {
+          self.sphere_ = evt.target.result;
+          self.resetSphere();
+        };
+        reader.readAsBinaryString(new Blob([this.response]));
       };
       sphereXhr.send(null);
     },

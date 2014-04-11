@@ -7,6 +7,12 @@ define([], function () {
   Utils.elementIndexType = 0; //element index type (ushort or uint)
   Utils.indexArrayType = Uint16Array; //typed array for index element (uint16Array or uint32Array)
 
+  Utils.littleEndian = (function () {
+    var buffer = new ArrayBuffer(2);
+    new DataView(buffer).setInt16(0, 256, true);
+    return new Int16Array(buffer)[0] === 256;
+  })();
+
   /** Return the nearest power of two value */
   Utils.nextHighestPowerOfTwo = function (x) {
     --x;
@@ -49,6 +55,35 @@ define([], function () {
       }
     }
     return result;
+  };
+
+  /** Get bytes */
+  Utils.getBytes = function (data, offset) {
+    return [data[offset].charCodeAt(), data[offset + 1].charCodeAt(), data[offset + 2].charCodeAt(), data[offset + 3].charCodeAt()];
+  };
+
+  /** Read a binary uint32 */
+  Utils.getUint32 = function (data, offset) {
+    var b = Utils.getBytes(data, offset);
+    return (b[0] << 0) | (b[1] << 8) | (b[2] << 16) | (b[3] << 24);
+  };
+
+  /** Read a binary float32 */
+  Utils.getFloat32 = function (data, offset) {
+    var b = Utils.getBytes(data, offset),
+      sign = 1 - (2 * (b[3] >> 7)),
+      exponent = (((b[3] << 1) & 0xff) | (b[2] >> 7)) - 127,
+      mantissa = ((b[2] & 0x7f) << 16) | (b[1] << 8) | b[0];
+
+    if (exponent === 128) {
+      if (mantissa !== 0)
+        return NaN;
+      else
+        return sign * Infinity;
+    }
+    if (exponent === -127)
+      return sign * mantissa * Math.pow(2, -126 - 23);
+    return sign * (1 + mantissa * Math.pow(2, -23)) * Math.pow(2, exponent);
   };
 
   Utils.outputsACMRandATVR = function (mesh) {

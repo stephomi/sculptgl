@@ -291,30 +291,21 @@ define([
     saveFileAsOBJ: function () {
       if (!this.sculptgl_.mesh_)
         return;
-      var data = [Export.exportOBJ(this.sculptgl_.mesh_)];
-      var blob = new Blob(data, {
-        type: 'text/plain;charset=utf-8'
-      });
+      var blob = Export.exportOBJ(this.sculptgl_.mesh_);
       saveAs(blob, 'yourMesh.obj');
     },
     /** Save file as PLY */
     saveFileAsPLY: function () {
       if (!this.sculptgl_.mesh_)
         return;
-      var data = [Export.exportPLY(this.sculptgl_.mesh_)];
-      var blob = new Blob(data, {
-        type: 'text/plain;charset=utf-8'
-      });
+      var blob = Export.exportPLY(this.sculptgl_.mesh_);
       saveAs(blob, 'yourMesh.ply');
     },
     /** Save file as STL */
     saveFileAsSTL: function () {
       if (!this.sculptgl_.mesh_)
         return;
-      var data = [Export.exportSTL(this.sculptgl_.mesh_)];
-      var blob = new Blob(data, {
-        type: 'text/plain;charset=utf-8'
-      });
+      var blob = Export.exportSTL(this.sculptgl_.mesh_);
       saveAs(blob, 'yourMesh.stl');
     },
     /** Export to Sketchfab */
