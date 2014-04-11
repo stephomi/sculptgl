@@ -2,8 +2,10 @@ define([
   'lib/glMatrix',
   'math3d/Geometry',
   'misc/Tablet',
-  'object/Mesh'
-], function (glmatrix, Geometry, Tablet, Mesh) {
+  'object/Mesh',
+  'states/StateGeometry',
+  'states/StateColor'
+], function (glmatrix, Geometry, Tablet, Mesh, StateGeometry, StateColor) {
 
   'use strict';
 
@@ -55,6 +57,16 @@ define([
   };
 
   Sculpt.prototype = {
+    startSculpt: function (sculptgl) {
+      var mouseX = sculptgl.mouseX_;
+      var mouseY = sculptgl.mouseY_;
+      var multimesh = sculptgl.multimesh_;
+      var mesh = multimesh.getCurrent();
+      var picking = sculptgl.picking_;
+      picking.intersectionMouseMesh(multimesh, mouseX, mouseY);
+      if (picking.multimesh_ !== null)
+        this.states_.pushState(this.tool_ === Sculpt.tool.COLOR ? new StateColor(mesh) : new StateGeometry(mesh));
+    },
     /** Make a brush stroke */
     sculptStroke: function (sculptgl) {
       var mouseX = sculptgl.mouseX_;
@@ -63,14 +75,14 @@ define([
         return this.sculptStrokeRotate(mouseX, mouseY, sculptgl);
       else if (this.tool_ === Sculpt.tool.SCALE)
         return this.sculptStrokeScale(mouseX, mouseY, sculptgl);
-      var ptPlane = sculptgl.ptPlane_,
-        nPlane = sculptgl.nPlane_;
-      var picking = sculptgl.picking_,
-        pickingSym = sculptgl.pickingSym_;
-      var lx = sculptgl.lastMouseX_,
-        ly = sculptgl.lastMouseY_;
-      var dx = mouseX - lx,
-        dy = mouseY - ly;
+      var ptPlane = sculptgl.ptPlane_;
+      var nPlane = sculptgl.nPlane_;
+      var picking = sculptgl.picking_;
+      var pickingSym = sculptgl.pickingSym_;
+      var lx = sculptgl.lastMouseX_;
+      var ly = sculptgl.lastMouseY_;
+      var dx = mouseX - lx;
+      var dy = mouseY - ly;
       var dist = Math.sqrt(dx * dx + dy * dy);
       sculptgl.sumDisplacement_ += dist;
       var sumDisp = sculptgl.sumDisplacement_;
@@ -169,9 +181,9 @@ define([
       var iVertsFront = [];
       var sculptFlag = Mesh.SCULPT_FLAG;
       var nAr = mesh.normalsXYZ_;
-      var eyeX = eyeDir[0],
-        eyeY = eyeDir[1],
-        eyeZ = eyeDir[2];
+      var eyeX = eyeDir[0];
+      var eyeY = eyeDir[1];
+      var eyeZ = eyeDir[2];
       for (var i = 0; i < nbVertsSelected; ++i) {
         var id = iVertsSelected[i];
         if (vertSculptFlags[id] === sculptFlag) {
@@ -235,24 +247,24 @@ define([
       var deformIntensityFlatten = this.clay_ ? intensity : intensity * 0.3;
       if (this.negative_)
         deformIntensityBrush = -deformIntensityBrush;
-      var cx = center[0],
-        cy = center[1],
-        cz = center[2];
-      var ax = aCenter[0],
-        ay = aCenter[1],
-        az = aCenter[2];
-      var anx = aNormal[0],
-        any = aNormal[1],
-        anz = aNormal[2];
+      var cx = center[0];
+      var cy = center[1];
+      var cz = center[2];
+      var ax = aCenter[0];
+      var ay = aCenter[1];
+      var az = aCenter[2];
+      var anx = aNormal[0];
+      var any = aNormal[1];
+      var anz = aNormal[2];
       for (var i = 0; i < nbVerts; ++i) {
         var ind = iVertsInRadius[i] * 3;
-        var vx = vAr[ind],
-          vy = vAr[ind + 1],
-          vz = vAr[ind + 2];
+        var vx = vAr[ind];
+        var vy = vAr[ind + 1];
+        var vz = vAr[ind + 2];
         var distToPlane = (vx - ax) * anx + (vy - ay) * any + (vz - az) * anz;
-        var dx = vx - cx,
-          dy = vy - cy,
-          dz = vz - cz;
+        var dx = vx - cx;
+        var dy = vy - cy;
+        var dz = vz - cz;
         var dist = Math.sqrt(dx * dx + dy * dy + dz * dz) / radius;
         var fallOff = dist * dist;
         fallOff = 3.0 * fallOff * fallOff - 4.0 * fallOff * dist + 1.0;
@@ -272,21 +284,21 @@ define([
       var deformIntensity = intensity * radius * 0.1;
       if (this.negative_)
         deformIntensity = -deformIntensity;
-      var cx = center[0],
-        cy = center[1],
-        cz = center[2];
+      var cx = center[0];
+      var cy = center[1];
+      var cz = center[2];
       for (var i = 0; i < nbVerts; ++i) {
         var ind = iVerts[i] * 3;
-        var dx = vAr[ind] - cx,
-          dy = vAr[ind + 1] - cy,
-          dz = vAr[ind + 2] - cz;
+        var dx = vAr[ind] - cx;
+        var dy = vAr[ind + 1] - cy;
+        var dz = vAr[ind + 2] - cz;
         var dist = Math.sqrt(dx * dx + dy * dy + dz * dz) / radius;
         var fallOff = dist * dist;
         fallOff = 3.0 * fallOff * fallOff - 4.0 * fallOff * dist + 1.0;
         fallOff = deformIntensity * fallOff;
-        var nx = nAr[ind],
-          ny = nAr[ind + 1],
-          nz = nAr[ind + 2];
+        var nx = nAr[ind];
+        var ny = nAr[ind + 1];
+        var nz = nAr[ind + 2];
         fallOff /= Math.sqrt(nx * nx + ny * ny + nz * nz);
         vAr[ind] += nx * fallOff;
         vAr[ind + 1] += ny * fallOff;
@@ -294,9 +306,12 @@ define([
       }
     },
     /** Start a sculpt sculpt stroke */
-    startScale: function (picking, mouseX, mouseY, pickingSym, ptPlane, nPlane, sym) {
-      var vNear = picking.camera_.unproject(mouseX, mouseY, 0.0),
-        vFar = picking.camera_.unproject(mouseX, mouseY, 1.0);
+    startScale: function (sculptgl) {
+      var mouseX = sculptgl.mouseX_;
+      var mouseY = sculptgl.mouseY_;
+      var picking = sculptgl.picking_;
+      var vNear = picking.camera_.unproject(mouseX, mouseY, 0.0);
+      var vFar = picking.camera_.unproject(mouseX, mouseY, 1.0);
       var matInverse = mat4.create();
       mat4.invert(matInverse, this.multimesh_.getMatrix());
       vec3.transformMat4(vNear, vNear, matInverse);
@@ -305,7 +320,10 @@ define([
       if (!picking.multimesh_)
         return;
       picking.pickVerticesInSphere(picking.rLocalSqr_);
-      if (sym) {
+      if (sculptgl.symmetry_) {
+        var pickingSym = sculptgl.pickingSym_;
+        var ptPlane = sculptgl.ptPlane_;
+        var nPlane = sculptgl.nPlane_;
         var vNearSym = [vNear[0], vNear[1], vNear[2]];
         Geometry.mirrorPoint(vNearSym, ptPlane, nPlane);
         var vFarSym = [vFar[0], vFar[1], vFar[2]];
@@ -323,14 +341,14 @@ define([
       var deltaScale = intensity * 0.01;
       var radius = Math.sqrt(radiusSquared);
       var nbVerts = iVerts.length;
-      var cx = center[0],
-        cy = center[1],
-        cz = center[2];
+      var cx = center[0];
+      var cy = center[1];
+      var cz = center[2];
       for (var i = 0; i < nbVerts; ++i) {
         var ind = iVerts[i] * 3;
-        var dx = vAr[ind] - cx,
-          dy = vAr[ind + 1] - cy,
-          dz = vAr[ind + 2] - cz;
+        var dx = vAr[ind] - cx;
+        var dy = vAr[ind + 1] - cy;
+        var dz = vAr[ind + 2] - cz;
         var dist = Math.sqrt(dx * dx + dy * dy + dz * dz) / radius;
         var fallOff = dist * dist;
         fallOff = 3.0 * fallOff * fallOff - 4.0 * fallOff * dist + 1.0;
@@ -341,15 +359,21 @@ define([
       }
     },
     /** Start a rotate sculpt stroke */
-    startRotate: function (picking, mouseX, mouseY, pickingSym, ptPlane, nPlane, sym) {
-      var vNear = picking.camera_.unproject(mouseX, mouseY, 0.0),
-        vFar = picking.camera_.unproject(mouseX, mouseY, 1.0);
+    startRotate: function (sculptgl) {
+      var mouseX = sculptgl.mouseX_;
+      var mouseY = sculptgl.mouseY_;
+      var picking = sculptgl.picking_;
+      var vNear = picking.camera_.unproject(mouseX, mouseY, 0.0);
+      var vFar = picking.camera_.unproject(mouseX, mouseY, 1.0);
       var matInverse = mat4.create();
       mat4.invert(matInverse, this.multimesh_.getMatrix());
       vec3.transformMat4(vNear, vNear, matInverse);
       vec3.transformMat4(vFar, vFar, matInverse);
       this.initRotateData(picking, vNear, vFar, mouseX, mouseY, this.rotateData_);
-      if (sym) {
+      if (sculptgl.symmetry_) {
+        var pickingSym = sculptgl.pickingSym_;
+        var ptPlane = sculptgl.ptPlane_;
+        var nPlane = sculptgl.nPlane_;
         var vNearSym = [vNear[0], vNear[1], vNear[2]];
         Geometry.mirrorPoint(vNearSym, ptPlane, nPlane);
         var vFarSym = [vFar[0], vFar[1], vFar[2]];
@@ -387,14 +411,14 @@ define([
       var vAr = this.multimesh_.getCurrent().verticesXYZ_;
       var radius = Math.sqrt(radiusSquared);
       var nbVerts = iVerts.length;
-      var cx = center[0],
-        cy = center[1],
-        cz = center[2];
+      var cx = center[0];
+      var cy = center[1];
+      var cz = center[2];
       for (var i = 0; i < nbVerts; ++i) {
         var ind = iVerts[i] * 3;
-        var dx = vAr[ind] - cx,
-          dy = vAr[ind + 1] - cy,
-          dz = vAr[ind + 2] - cz;
+        var dx = vAr[ind] - cx;
+        var dy = vAr[ind + 1] - cy;
+        var dz = vAr[ind + 2] - cz;
         var dist = Math.sqrt(dx * dx + dy * dy + dz * dz) / radius;
         var fallOff = dist * dist;
         fallOff = 3.0 * fallOff * fallOff - 4.0 * fallOff * dist + 1.0;
@@ -417,9 +441,9 @@ define([
       for (var i = 0; i < nbVerts; ++i) {
         var ind = iVerts[i] * 3;
         var i3 = i * 3;
-        var dx = (smoothVerts[i3] - vAr[ind]) * intensity,
-          dy = (smoothVerts[i3 + 1] - vAr[ind + 1]) * intensity,
-          dz = (smoothVerts[i3 + 2] - vAr[ind + 2]) * intensity;
+        var dx = (smoothVerts[i3] - vAr[ind]) * intensity;
+        var dy = (smoothVerts[i3 + 1] - vAr[ind + 1]) * intensity;
+        var dz = (smoothVerts[i3 + 2] - vAr[ind + 2]) * intensity;
         vAr[ind] += dx;
         vAr[ind + 1] += dy;
         vAr[ind + 2] += dz;
@@ -435,24 +459,24 @@ define([
       var radius = Math.sqrt(radiusSquared);
       var nbVerts = iVertsInRadius.length;
       var deformIntensity = intensity * 0.3;
-      var cx = center[0],
-        cy = center[1],
-        cz = center[2];
-      var ax = aCenter[0],
-        ay = aCenter[1],
-        az = aCenter[2];
-      var anx = aNormal[0],
-        any = aNormal[1],
-        anz = aNormal[2];
+      var cx = center[0];
+      var cy = center[1];
+      var cz = center[2];
+      var ax = aCenter[0];
+      var ay = aCenter[1];
+      var az = aCenter[2];
+      var anx = aNormal[0];
+      var any = aNormal[1];
+      var anz = aNormal[2];
       for (var i = 0; i < nbVerts; ++i) {
         var ind = iVertsInRadius[i] * 3;
-        var vx = vAr[ind],
-          vy = vAr[ind + 1],
-          vz = vAr[ind + 2];
+        var vx = vAr[ind];
+        var vy = vAr[ind + 1];
+        var vz = vAr[ind + 2];
         var distToPlane = (vx - ax) * anx + (vy - ay) * any + (vz - az) * anz;
-        var dx = vx - cx,
-          dy = vy - cy,
-          dz = vz - cz;
+        var dx = vx - cx;
+        var dy = vy - cy;
+        var dz = vz - cz;
         var dist = Math.sqrt(dx * dx + dy * dy + dz * dz) / radius;
         var fallOff = dist * dist;
         fallOff = 3.0 * fallOff * fallOff - 4.0 * fallOff * dist + 1.0;
@@ -467,18 +491,18 @@ define([
       var vAr = this.multimesh_.getCurrent().verticesXYZ_;
       var radius = Math.sqrt(radiusSquared);
       var nbVerts = iVertsInRadius.length;
-      var cx = center[0],
-        cy = center[1],
-        cz = center[2];
+      var cx = center[0];
+      var cy = center[1];
+      var cz = center[2];
       var deformIntensity = intensity * 0.05;
       for (var i = 0; i < nbVerts; ++i) {
         var ind = iVertsInRadius[i] * 3;
-        var vx = vAr[ind],
-          vy = vAr[ind + 1],
-          vz = vAr[ind + 2];
-        var dx = cx - vx,
-          dy = cy - vy,
-          dz = cz - vz;
+        var vx = vAr[ind];
+        var vy = vAr[ind + 1];
+        var vz = vAr[ind + 2];
+        var dx = cx - vx;
+        var dy = cy - vy;
+        var dz = cz - vz;
         var dist = Math.sqrt(dx * dx + dy * dy + dz * dz) / radius;
         var fallOff = dist * dist;
         fallOff = 3.0 * fallOff * fallOff - 4.0 * fallOff * dist + 1.0;
@@ -496,24 +520,24 @@ define([
       var vAr = this.multimesh_.getCurrent().verticesXYZ_;
       var radius = Math.sqrt(radiusSquared);
       var nbVerts = iVertsInRadius.length;
-      var cx = center[0],
-        cy = center[1],
-        cz = center[2];
-      var anx = aNormal[0],
-        any = aNormal[1],
-        anz = aNormal[2];
+      var cx = center[0];
+      var cy = center[1];
+      var cz = center[2];
+      var anx = aNormal[0];
+      var any = aNormal[1];
+      var anz = aNormal[2];
       var deformIntensity = intensity * 0.05;
       var brushFactor = deformIntensity * radius;
       if (this.negative_)
         brushFactor = -brushFactor;
       for (var i = 0; i < nbVerts; ++i) {
         var ind = iVertsInRadius[i] * 3;
-        var vx = vAr[ind],
-          vy = vAr[ind + 1],
-          vz = vAr[ind + 2];
-        var dx = cx - vx,
-          dy = cy - vy,
-          dz = cz - vz;
+        var vx = vAr[ind];
+        var vy = vAr[ind + 1];
+        var vz = vAr[ind + 2];
+        var dx = cx - vx;
+        var dy = cy - vy;
+        var dz = cz - vz;
         var dist = Math.sqrt(dx * dx + dy * dy + dz * dz) / radius;
         var fallOff = dist * dist;
         fallOff = 3.0 * fallOff * fallOff - 4.0 * fallOff * dist + 1.0;
@@ -526,8 +550,8 @@ define([
     },
     /** Set a few infos that will be needed for the drag function afterwards */
     updateDragDir: function (multimesh, picking, mouseX, mouseY, ptPlane, nPlane) {
-      var vNear = picking.camera_.unproject(mouseX, mouseY, 0.0),
-        vFar = picking.camera_.unproject(mouseX, mouseY, 1.0);
+      var vNear = picking.camera_.unproject(mouseX, mouseY, 0.0);
+      var vFar = picking.camera_.unproject(mouseX, mouseY, 1.0);
       var matInverse = mat4.create();
       mat4.invert(matInverse, multimesh.getMatrix());
       vec3.transformMat4(vNear, vNear, matInverse);
@@ -552,18 +576,18 @@ define([
       var vAr = this.multimesh_.getCurrent().verticesXYZ_;
       var nbVerts = iVerts.length;
       var radius = Math.sqrt(radiusSquared);
-      var cx = center[0],
-        cy = center[1],
-        cz = center[2];
+      var cx = center[0];
+      var cy = center[1];
+      var cz = center[2];
       var dir = sym ? this.dragDirSym_ : this.dragDir_;
-      var dirx = dir[0],
-        diry = dir[1],
-        dirz = dir[2];
+      var dirx = dir[0];
+      var diry = dir[1];
+      var dirz = dir[2];
       for (var i = 0; i < nbVerts; ++i) {
         var ind = iVerts[i] * 3;
-        var dx = vAr[ind] - cx,
-          dy = vAr[ind + 1] - cy,
-          dz = vAr[ind + 2] - cz;
+        var dx = vAr[ind] - cx;
+        var dy = vAr[ind + 1] - cy;
+        var dz = vAr[ind + 2] - cz;
         var dist = Math.sqrt(dx * dx + dy * dy + dz * dz) / radius;
         var fallOff = dist * dist;
         fallOff = 3.0 * fallOff * fallOff - 4.0 * fallOff * dist + 1.0;
@@ -579,19 +603,19 @@ define([
       var cAr = mesh.colorsRGB_;
       var color = this.color_;
       var radius = Math.sqrt(radiusSquared);
-      var cr = color[0] / 255.0,
-        cg = color[1] / 255.0,
-        cb = color[2] / 255.0;
-      var cx = center[0],
-        cy = center[1],
-        cz = center[2];
+      var cr = color[0] / 255.0;
+      var cg = color[1] / 255.0;
+      var cb = color[2] / 255.0;
+      var cx = center[0];
+      var cy = center[1];
+      var cz = center[2];
       var intensity = this.intensity_;
       var nbVerts = iVerts.length;
       for (var i = 0; i < nbVerts; ++i) {
         var ind = iVerts[i] * 3;
-        var dx = vAr[ind] - cx,
-          dy = vAr[ind + 1] - cy,
-          dz = vAr[ind + 2] - cz;
+        var dx = vAr[ind] - cx;
+        var dy = vAr[ind + 1] - cy;
+        var dz = vAr[ind + 2] - cz;
         var dist = Math.sqrt(dx * dx + dy * dy + dz * dz) / radius;
         var fallOff = dist * dist;
         fallOff = 3.0 * fallOff * fallOff - 4.0 * fallOff * dist + 1.0;
@@ -612,16 +636,16 @@ define([
       this.laplacianSmooth(iVerts, smoothVerts);
       for (var i = 0; i < nbVerts; ++i) {
         var ind = iVerts[i] * 3;
-        var vx = vAr[ind],
-          vy = vAr[ind + 1],
-          vz = vAr[ind + 2];
-        var nx = nAr[ind],
-          ny = nAr[ind + 1],
-          nz = nAr[ind + 2];
+        var vx = vAr[ind];
+        var vy = vAr[ind + 1];
+        var vz = vAr[ind + 2];
+        var nx = nAr[ind];
+        var ny = nAr[ind + 1];
+        var nz = nAr[ind + 2];
         var i3 = i * 3;
-        var smx = smoothVerts[i3],
-          smy = smoothVerts[i3 + 1],
-          smz = smoothVerts[i3 + 2];
+        var smx = smoothVerts[i3];
+        var smy = smoothVerts[i3 + 1];
+        var smz = smoothVerts[i3 + 2];
         var dot = nx * (smx - vx) + ny * (smy - vy) + nz * (smz - vz);
         vAr[ind] += (smx - nx * dot - vx) * intensity;
         vAr[ind + 1] += (smy - ny * dot - vy) * intensity;
@@ -641,11 +665,11 @@ define([
         var id = iVerts[i];
         var start = vrrStartCount[id * 2];
         var count = vrrStartCount[id * 2 + 1];
-        var avx = 0.0,
-          avy = 0.0,
-          avz = 0.0;
-        var j = 0,
-          ind = 0;
+        var avx = 0.0;
+        var avy = 0.0;
+        var avz = 0.0;
+        var j = 0;
+        var ind = 0;
         if (vertOnEdge[id] === 1) {
           var nbVertEdge = 0;
           for (j = 0; j < count; ++j) {
@@ -677,9 +701,9 @@ define([
     areaNormal: function (iVerts) {
       var nAr = this.multimesh_.getCurrent().normalsXYZ_;
       var nbVerts = iVerts.length;
-      var anx = 0.0,
-        any = 0.0,
-        anz = 0.0;
+      var anx = 0.0;
+      var any = 0.0;
+      var anz = 0.0;
       for (var i = 0; i < nbVerts; ++i) {
         var ind = iVerts[i] * 3;
         anx += nAr[ind];
@@ -696,9 +720,9 @@ define([
     areaCenter: function (iVerts) {
       var vAr = this.multimesh_.getCurrent().verticesXYZ_;
       var nbVerts = iVerts.length;
-      var ax = 0.0,
-        ay = 0.0,
-        az = 0.0;
+      var ax = 0.0;
+      var ay = 0.0;
+      var az = 0.0;
       for (var i = 0; i < nbVerts; ++i) {
         var ind = iVerts[i] * 3;
         ax += vAr[ind];

@@ -11,10 +11,8 @@ define([
   'object/Mesh',
   'object/Multimesh',
   'object/Shader',
-  'states/States',
-  'states/StateColor',
-  'states/StateGeometry',
-], function ($, Sculpt, Gui, Camera, Picking, Export, Import, Utils, Background, Mesh, Multimesh, Shader, States, StateColor, StateGeometry) {
+  'states/States'
+], function ($, Sculpt, Gui, Camera, Picking, Export, Import, Utils, Background, Mesh, Multimesh, Shader, States) {
 
   'use strict';
 
@@ -367,12 +365,11 @@ define([
         if (this.multimesh_) {
           this.sumDisplacement_ = 0;
           var tool = this.sculpt_.tool_;
-          var mesh = this.multimesh_.getCurrent();
-          this.states_.pushState(tool === Sculpt.tool.COLOR ? new StateColor(mesh) : new StateGeometry(mesh));
+          this.sculpt_.startSculpt(this);
           if (tool === Sculpt.tool.ROTATE)
-            this.sculpt_.startRotate(this.picking_, mouseX, mouseY, this.pickingSym_, this.ptPlane_, this.nPlane_, this.symmetry_);
+            this.sculpt_.startRotate(this);
           else if (tool === Sculpt.tool.SCALE)
-            this.sculpt_.startScale(this.picking_, mouseX, mouseY, this.pickingSym_, this.ptPlane_, this.nPlane_, this.symmetry_);
+            this.sculpt_.startScale(this);
           else if (this.continuous_ && tool !== Sculpt.tool.DRAG) {
             var self = this;
             this.sculptTimer_ = setInterval(function () {
