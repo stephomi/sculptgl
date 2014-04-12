@@ -75,7 +75,7 @@ module.exports = function (grunt) {
   grunt.loadNpmTasks('grunt-contrib-copy');
 
   grunt.registerTask('test', 'jshint');
-  grunt.registerTask('build', ['clean', 'jshint', 'copy', 'requirejs', 'manifest']);
+  grunt.registerTask('build', ['clean', 'jshint', 'copy', 'requirejs']);
 
   grunt.registerTask('default', 'build');
 };
