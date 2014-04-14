@@ -239,40 +239,33 @@ define([
       var aNormal = this.areaNormal(iVertsFront);
       if (!aNormal)
         return;
-      var aCenter = this.areaCenter(iVertsFront);
       var vAr = this.multimesh_.getCurrent().verticesXYZ_;
       var radius = Math.sqrt(radiusSquared);
       var nbVerts = iVertsInRadius.length;
       var deformIntensityBrush = intensity * radius * 0.1;
-      var deformIntensityFlatten = this.clay_ ? intensity : intensity * 0.3;
       if (this.negative_)
         deformIntensityBrush = -deformIntensityBrush;
       var cx = center[0];
       var cy = center[1];
       var cz = center[2];
-      var ax = aCenter[0];
-      var ay = aCenter[1];
-      var az = aCenter[2];
       var anx = aNormal[0];
       var any = aNormal[1];
       var anz = aNormal[2];
       for (var i = 0; i < nbVerts; ++i) {
         var ind = iVertsInRadius[i] * 3;
-        var vx = vAr[ind];
-        var vy = vAr[ind + 1];
-        var vz = vAr[ind + 2];
-        var distToPlane = (vx - ax) * anx + (vy - ay) * any + (vz - az) * anz;
-        var dx = vx - cx;
-        var dy = vy - cy;
-        var dz = vz - cz;
+        var dx = vAr[ind] - cx;
+        var dy = vAr[ind + 1] - cy;
+        var dz = vAr[ind + 2] - cz;
         var dist = Math.sqrt(dx * dx + dy * dy + dz * dz) / radius;
         var fallOff = dist * dist;
         fallOff = 3.0 * fallOff * fallOff - 4.0 * fallOff * dist + 1.0;
-        fallOff *= (distToPlane * deformIntensityFlatten - deformIntensityBrush);
-        vAr[ind] -= anx * fallOff;
-        vAr[ind + 1] -= any * fallOff;
-        vAr[ind + 2] -= anz * fallOff;
+        fallOff *= deformIntensityBrush;
+        vAr[ind] += anx * fallOff;
+        vAr[ind + 1] += any * fallOff;
+        vAr[ind + 2] += anz * fallOff;
       }
+      if (this.clay_)
+        this.flatten(center, iVertsInRadius, iVertsFront, radiusSquared, intensity);
     },
     /** Inflate a group of vertices */
     inflate: function (center, iVerts, radiusSquared, intensity) {
@@ -458,7 +451,6 @@ define([
       var vAr = this.multimesh_.getCurrent().verticesXYZ_;
       var radius = Math.sqrt(radiusSquared);
       var nbVerts = iVertsInRadius.length;
-      var deformIntensity = intensity * 0.3;
       var cx = center[0];
       var cy = center[1];
       var cz = center[2];
@@ -468,19 +460,22 @@ define([
       var anx = aNormal[0];
       var any = aNormal[1];
       var anz = aNormal[2];
+      var comp = this.negative_ ? -1.0 : 1.0;
       for (var i = 0; i < nbVerts; ++i) {
         var ind = iVertsInRadius[i] * 3;
         var vx = vAr[ind];
         var vy = vAr[ind + 1];
         var vz = vAr[ind + 2];
         var distToPlane = (vx - ax) * anx + (vy - ay) * any + (vz - az) * anz;
+        if (distToPlane * comp < 0.0)
+          continue;
         var dx = vx - cx;
         var dy = vy - cy;
         var dz = vz - cz;
         var dist = Math.sqrt(dx * dx + dy * dy + dz * dz) / radius;
         var fallOff = dist * dist;
         fallOff = 3.0 * fallOff * fallOff - 4.0 * fallOff * dist + 1.0;
-        fallOff *= distToPlane * deformIntensity;
+        fallOff *= distToPlane * intensity;
         vAr[ind] -= anx * fallOff;
         vAr[ind + 1] -= any * fallOff;
         vAr[ind + 2] -= anz * fallOff;

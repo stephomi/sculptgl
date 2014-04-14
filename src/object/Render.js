@@ -16,7 +16,7 @@ define([
     this.shader_ = new Shader(gl); //the program shader
     this.shaderWireframe_ = new Shader(gl); //the program shader for the wireframe
 
-    this.flatShading_ = true; //use of drawArrays vs drawElements
+    this.flatShading_ = false; //use of drawArrays vs drawElements
     this.showWireframe_ = true; //show wireframe
 
     this.vertexBuffer_ = null; //vertices buffer
