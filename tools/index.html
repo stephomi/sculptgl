@@ -1,21 +1,26 @@
 <!doctype html>
 <html manifest='manifest.appcache' lang='en'>
 <head>
-  <meta charset='utf-8' />
+  <meta manifest='manifest.appcache' charset='utf-8'/>
   <meta name='description' content='MultiresGL is a small sculpting application powered by JavaScript and webGL.'>
   <meta name='author' content='stéphane GINIER'>
   <title> MultiresGL - A WebGL sculpting app </title>
-  <link rel='stylesheet' href='css/style.css' type='text/css' />
-  <script src='lib/jquery-2.0.3.min.js'></script>
-  <script src='lib/jquery.mousewheel.js'></script>
+  <link rel='stylesheet' href='css/style.css' type='text/css'/>
   <script>
   'use strict';
-  $(document).ready(function ()
-  {
+  window.addEventListener('load', function (e) {
+    // start the app
     var SculptGL = require('Sculptgl');
     var sculptgl = new SculptGL();
     sculptgl.start();
-  });
+    // Check if a new cache is available on page load.
+    window.applicationCache.addEventListener('updateready', function (e) {
+      if (window.applicationCache.status === window.applicationCache.UPDATEREADY) {
+        // restart the page (maybe kind of abrupt)
+        window.location.reload();
+      }
+    }, false);
+  }, false);
   </script>
 </head>
 <!--
@@ -38,6 +43,8 @@ Stéphane GINIER
   <object id='tablet-plugin' type='application/x-wacomtabletplugin'></object>
 
   <!-- 3rd party libraries -->
+  <script src='lib/jquery-2.0.3.min.js'></script>
+  <script src='lib/jquery.mousewheel.js'></script>
   <script src='lib/dat.gui.min.js'></script>
   <script src='lib/FileSaver.js'></script>
   <script src='lib/gl-matrix-min.js'></script>
