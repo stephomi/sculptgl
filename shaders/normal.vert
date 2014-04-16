@@ -1,14 +1,14 @@
-attribute vec3 vertex;
-attribute vec3 normal;
-uniform mat4 mvMat;
-uniform mat4 mvpMat;
-uniform mat3 nMat;
+attribute vec3 aVertex;
+attribute vec3 aNormal;
+uniform mat4 uMV;
+uniform mat4 uMVP;
+uniform mat3 uN;
 varying vec3 vVertex;
 varying vec3 vNormal;
 void main()
 {
-  vec4 vert4 = vec4(vertex, 1.0);
-  vNormal = normalize(normal);
-  vVertex = vec3(mvMat * vert4);
-  gl_Position = mvpMat * vert4;
+  vec4 vert4 = vec4(aVertex, 1.0);
+  vNormal = normalize(aNormal);
+  vVertex = vec3(uMV * vert4);
+  gl_Position = uMVP * vert4;
 }

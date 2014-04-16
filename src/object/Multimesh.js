@@ -1,7 +1,7 @@
 define([
   'lib/glMatrix',
   'object/Mesh',
-  'object/Render',
+  'render/Render',
   'editor/Subdivision',
   'editor/Multiresolution'
 ], function (glm, Mesh, Render, Subdivision, Multiresolution) {

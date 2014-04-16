@@ -4,8 +4,8 @@ define([
   'lib/FileSaver',
   'math3d/Camera',
   'editor/Sculpt',
-  'object/Shader',
-  'object/Render',
+  'render/Shader',
+  'render/Render',
   'states/StateMultiresolution',
   'misc/Export',
   'misc/Tablet'

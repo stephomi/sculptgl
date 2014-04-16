@@ -1,6 +1,6 @@
 precision mediump float;
-uniform vec3 centerPicking;
-uniform float radiusSquared;
+uniform vec3 uCenterPicking;
+uniform float uRadiusSquared;
 varying vec3 vVertex;
 varying vec3 vNormal;
 varying vec3 vColor;
@@ -28,11 +28,11 @@ void main()
   vec3 diffuse = fragColor * 0.5 * max(0.0, dotLN);
   vec3 specular = fragColor * 0.8 * max(0.0, dotRVpow);
   fragColor = ambiant + diffuse + specular;
-  vec3 vecDistance = vVertex - centerPicking;
+  vec3 vecDistance = vVertex - uCenterPicking;
   float dotSquared = dot(vecDistance, vecDistance);
-  if(dotSquared < radiusSquared * 1.06 && dotSquared > radiusSquared * 0.94)
+  if(dotSquared < uRadiusSquared * 1.06 && dotSquared > uRadiusSquared * 0.94)
     fragColor *= 0.5;
-  else if(dotSquared < radiusSquared)
+  else if(dotSquared < uRadiusSquared)
     fragColor *= 1.1;
   gl_FragColor = vec4(fragColor, 1.0);
 }

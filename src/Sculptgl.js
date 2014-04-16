@@ -10,7 +10,7 @@ define([
   'object/Background',
   'object/Mesh',
   'object/Multimesh',
-  'object/Shader',
+  'render/Shader',
   'states/States'
 ], function ($, Sculpt, Gui, Camera, Picking, Export, Import, Utils, Background, Mesh, Multimesh, Shader, States) {
 
