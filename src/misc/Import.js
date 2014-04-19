@@ -222,7 +222,7 @@ define([
   Import.importSTL = function (data, mesh) {
     var isBinary = 84 + (Utils.getUint32(data, 80) * 50) === data.length;
     var vb = isBinary ? Import.importBinarySTL(data) : Import.importAsciiSTL(data);
-    var nbTriangles = vb.length / 3;
+    var nbTriangles = vb.length / 9;
     var mapVertices = {};
     var nbVertices = [0];
     var iAr = new Utils.indexArrayType(nbTriangles * 3);
