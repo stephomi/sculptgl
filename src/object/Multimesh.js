@@ -170,6 +170,15 @@ define([
       }
       this.updateBuffers(true, true);
     },
+    /** Change the resolution */
+    selectResolution: function (sel) {
+      while (this.sel_ > sel) {
+        this.lowerLevel();
+      }
+      while (this.sel_ < sel) {
+        this.higherLevel();
+      }
+    },
     /** Find a select index of a mesh */
     findIndexFromMesh: function (mesh) {
       var meshes = this.meshes_;
@@ -178,15 +187,10 @@ define([
           return i;
       }
     },
-    /** Find a select the mesh */
+    /** Change the resolution */
     selectMesh: function (mesh) {
       var val = this.findIndexFromMesh(mesh);
-      while (this.sel_ > val) {
-        this.lowerLevel();
-      }
-      while (this.sel_ < val) {
-        this.higherLevel();
-      }
+      this.selectResolution(val);
     }
   };
 

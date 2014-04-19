@@ -36,6 +36,9 @@ define([
     this.ctrlRadius_ = null; //radius controller
     this.ctrlIntensity_ = null; //intensity sculpting controller
 
+    //ui multiresolution
+    this.ctrlResolution_ = null; //multiresolution controller
+
     //ui camera
     this.ctrlCameraType_ = null; //camera type controller
     this.ctrlFov_ = null; //vertical field of view controller
@@ -195,8 +198,10 @@ define([
       //multires fold
       var foldMultires = gui.addFolder('Multires');
       foldMultires.add(this, 'subdivide');
-      foldMultires.add(this, 'lower');
-      foldMultires.add(this, 'higher');
+      this.ctrlResolution_ = foldMultires.add({
+        dummy: 1
+      }, 'dummy', 1, 1).step(1).name('resolution');
+      this.ctrlResolution_.onChange(this.onResolutionChanged.bind(this));
       foldMultires.open();
 
       //mesh fold
@@ -250,21 +255,6 @@ define([
       this.ctrlColor_.__li.hidden = true;
       foldMesh.open();
     },
-    /** Update information on mesh */
-    updateMesh: function () {
-      var main = this.sculptgl_;
-      if (!main.mesh_ || !main.multimesh_)
-        return;
-      var mesh = main.multimesh_.getCurrent();
-      this.ctrlShaders_.object = main.multimesh_.render_.shader_;
-      this.ctrlShaders_.updateDisplay();
-      this.updateMeshInfo(mesh.getNbVertices(), mesh.getNbTriangles());
-    },
-    /** Update number of vertices and triangles */
-    updateMeshInfo: function (nbVertices, nbTriangles) {
-      this.ctrlNbVertices_.name('Ver : ' + nbVertices);
-      this.ctrlNbTriangles_.name('Tri : ' + nbTriangles);
-    },
     /** Open file */
     openFile: function () {
       $('#fileopen').trigger('click');
@@ -289,69 +279,82 @@ define([
     },
     /** Save file as OBJ*/
     saveFileAsOBJ: function () {
-      if (!this.sculptgl_.mesh_)
+      var mesh = this.sculptgl_.multimesh_.getCurrent();
+      if (!mesh)
         return;
-      var blob = Export.exportOBJ(this.sculptgl_.mesh_);
+      var blob = Export.exportOBJ(mesh);
       saveAs(blob, 'yourMesh.obj');
     },
     /** Save file as PLY */
     saveFileAsPLY: function () {
-      if (!this.sculptgl_.mesh_)
+      var mesh = this.sculptgl_.multimesh_.getCurrent();
+      if (!mesh)
         return;
-      var blob = Export.exportPLY(this.sculptgl_.mesh_);
+      var blob = Export.exportPLY(mesh);
       saveAs(blob, 'yourMesh.ply');
     },
     /** Save file as STL */
     saveFileAsSTL: function () {
-      if (!this.sculptgl_.mesh_)
+      var mesh = this.sculptgl_.multimesh_.getCurrent();
+      if (!mesh)
         return;
-      var blob = Export.exportSTL(this.sculptgl_.mesh_);
+      var blob = Export.exportSTL(mesh);
       saveAs(blob, 'yourMesh.stl');
     },
     /** Export to Sketchfab */
     exportSketchfab: function () {
-      if (!this.sculptgl_.mesh_)
+      var mesh = this.sculptgl_.multimesh_.getCurrent();
+      if (!mesh)
         return;
       if (this.keySketchfab_ === '') {
         window.alert('Please enter a sketchfab API Key.');
         return;
       }
-      Export.exportSketchfab(this.sculptgl_.mesh_, this.keySketchfab_);
+      Export.exportSketchfab(mesh, this.keySketchfab_);
+    },
+    /** Update information on mesh */
+    updateMesh: function () {
+      var mul = this.sculptgl_.multimesh_;
+      if (!mul)
+        return;
+      this.ctrlShaders_.object = mul.render_.shader_;
+      this.ctrlShaders_.updateDisplay();
+      this.updateMeshInfo(mul.getCurrent());
+      this.updateMeshResolution(mul);
+    },
+    /** Update the mesh resolution slider */
+    updateMeshResolution: function (multimesh) {
+      this.ctrlResolution_.max(multimesh.meshes_.length);
+      this.ctrlResolution_.setValue(multimesh.sel_ + 1);
+    },
+    /** Update number of vertices and triangles */
+    updateMeshInfo: function (mesh) {
+      this.ctrlNbVertices_.name('Ver : ' + mesh.getNbVertices());
+      this.ctrlNbTriangles_.name('Tri : ' + mesh.getNbTriangles());
     },
     /** Subdivide the mesh */
     subdivide: function () {
       var main = this.sculptgl_;
       var mul = main.multimesh_;
-      if (mul.sel_ !== mul.meshes_.length - 1)
+      if (mul.sel_ !== mul.meshes_.length - 1) {
+        window.alert('Select the highest resolution before subdividing.');
         return;
+      }
       main.states_.pushState(new StateMultiresolution(mul, StateMultiresolution.SUBDIVISION));
-      var mesh = mul.addLevel();
-      main.mesh_ = mesh;
-      this.updateMeshInfo(mesh.getNbVertices(), mesh.getNbTriangles());
+      this.updateMeshInfo(mul.addLevel());
+      this.updateMeshResolution(mul);
       main.render();
     },
-    /** Go to lower subdivision level */
-    lower: function () {
+    /** Change resoltuion */
+    onResolutionChanged: function (value) {
+      var uiRes = value - 1;
       var main = this.sculptgl_;
       var mul = main.multimesh_;
-      if (mul.sel === 0)
+      if (mul.sel_ === uiRes)
         return;
-      main.states_.pushState(new StateMultiresolution(mul, StateMultiresolution.LOWER));
-      var mesh = mul.lowerLevel();
-      main.mesh_ = mesh;
-      this.updateMeshInfo(mesh.getNbVertices(), mesh.getNbTriangles());
-      main.render();
-    },
-    /** Go to higher subdivision level */
-    higher: function () {
-      var main = this.sculptgl_;
-      var mul = main.multimesh_;
-      if (mul.sel_ === mul.meshes_.length - 1)
-        return;
-      main.states_.pushState(new StateMultiresolution(mul, StateMultiresolution.HIGHER));
-      var mesh = mul.higherLevel();
-      main.mesh_ = mesh;
-      this.updateMeshInfo(mesh.getNbVertices(), mesh.getNbTriangles());
+      main.states_.pushState(new StateMultiresolution(mul, StateMultiresolution.SELECTION));
+      mul.selectResolution(uiRes);
+      this.updateMeshInfo(mul.getCurrent());
       main.render();
     },
     getFlatShading: function () {

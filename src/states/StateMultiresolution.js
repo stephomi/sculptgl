@@ -8,9 +8,8 @@ define([], function () {
     this.type_ = type;
   }
 
-  StateMultiresolution.SUBDIVISION = 0;
-  StateMultiresolution.LOWER = 1;
-  StateMultiresolution.HIGHER = 2;
+  StateMultiresolution.SUBDIVISION = 0; //subdivision of the mesh
+  StateMultiresolution.SELECTION = 1; //change of resolution
 
   StateMultiresolution.prototype = {
     /** On undo */
@@ -27,12 +26,7 @@ define([], function () {
     },
     /** Push the redo state */
     createRedo: function () {
-      var type = StateMultiresolution.SUBDIVISION;
-      if (this.type_ === StateMultiresolution.LOWER)
-        type = StateMultiresolution.HIGHER;
-      else if (this.type_ === StateMultiresolution.HIGHER)
-        type = StateMultiresolution.LOWER;
-      return new StateMultiresolution(this.multimesh_, type);
+      return new StateMultiresolution(this.multimesh_, this.type_);
     }
   };
 

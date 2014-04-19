@@ -43,7 +43,6 @@ define([
     this.sculpt_ = new Sculpt(this.states_); //sculpting management
     this.background_ = null; //the background
     this.multimesh_ = null; //the multiresolution mesh
-    this.mesh_ = null; //the mesh
 
     //datas
     this.textures_ = {}; //textures
@@ -471,12 +470,13 @@ define([
       var self = this;
       reader.onload = function (evt) {
         self.startMeshLoad();
+        var mesh = self.multimesh_.getCurrent();
         if (fileType === 'obj')
-          Import.importOBJ(evt.target.result, self.mesh_);
+          Import.importOBJ(evt.target.result, mesh);
         else if (fileType === 'stl')
-          Import.importSTL(evt.target.result, self.mesh_);
+          Import.importSTL(evt.target.result, mesh);
         else if (fileType === 'ply')
-          Import.importPLY(evt.target.result, self.mesh_);
+          Import.importPLY(evt.target.result, mesh);
         self.endMeshLoad();
         $('#fileopen').replaceWith($('#fileopen').clone(true));
       };
@@ -512,14 +512,13 @@ define([
     /** Open file */
     resetSphere: function () {
       this.startMeshLoad();
-      Import.importOBJ(this.sphere_, this.mesh_);
+      Import.importOBJ(this.sphere_, this.multimesh_.getCurrent());
       this.endMeshLoad();
     },
     /** Initialization before loading the mesh */
     startMeshLoad: function () {
-      this.mesh_ = new Mesh(this.gl_);
       this.multimesh_ = new Multimesh(this.gl_);
-      this.multimesh_.meshes_.push(this.mesh_);
+      this.multimesh_.meshes_.push(new Mesh(this.gl_));
       this.states_.reset();
       this.states_.multimesh_ = this.multimesh_;
       this.sculpt_.multimesh_ = this.multimesh_;
