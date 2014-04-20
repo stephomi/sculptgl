@@ -86,6 +86,7 @@ define([], function () {
     return sign * (1 + mantissa * Math.pow(2, -23)) * Math.pow(2, exponent);
   };
 
+  /** Compute ACMR and ATVR (vertex post transform ratio) */
   Utils.outputsACMRandATVR = function (mesh) {
     var iAr = mesh.indicesABC_;
     var sizeCache = 32;
@@ -121,6 +122,18 @@ define([], function () {
 
     console.log(cacheMiss / nbTriangles);
     console.log(cacheMiss / mesh.getNbVertices());
+  };
+
+  /** Array buffer to string utf-8 */
+  Utils.ab2str = function (buf) {
+    var str = '';
+    var ab = new Uint8Array(buf);
+    var chunkSize = 65535;
+    for (var off = 0, abLen = ab.length; off < abLen; off += chunkSize) {
+      var subab = ab.subarray(off, chunkSize < abLen - off ? chunkSize + off : abLen);
+      str += String.fromCharCode.apply(null, subab);
+    }
+    return str;
   };
 
   // Not sure I should put theses functions here...

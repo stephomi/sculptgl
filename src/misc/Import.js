@@ -57,7 +57,8 @@ define([
   };
 
   /** Import PLY file */
-  Import.importPLY = function (data, mesh) {
+  Import.importPLY = function (buffer, mesh) {
+    var data = Utils.ab2str(buffer);
     var vAr, cAr, iAr;
     var lines = data.split('\n');
     var split = [];
@@ -106,7 +107,7 @@ define([
         iAr = new Utils.indexArrayType(nbFaces * 4);
         var offsetTri = 0;
         if (isBinary)
-          offsetTri = Import.importBinaryPLY(data, offsetData + i, offsetVertex, vAr, iAr, cAr, colorIndex);
+          offsetTri = Import.importBinaryPLY(buffer, offsetData + i, offsetVertex, vAr, iAr, cAr, colorIndex);
         else
           offsetTri = Import.importAsciiPLY(lines, i, vAr, iAr, cAr, colorIndex);
         iAr = iAr.subarray(0, offsetTri);
@@ -120,10 +121,10 @@ define([
   };
 
   /** Import binary PLY file */
-  Import.importBinaryPLY = function (data, offData, offVert, vAr, iAr, cAr, colorIndex) {
+  Import.importBinaryPLY = function (buffer, offData, offVert, vAr, iAr, cAr, colorIndex) {
+    var data = new Uint8Array(buffer);
     var nbVertices = vAr.length / 3;
     var vb = new Uint8Array(nbVertices * 12);
-
     var i = 0;
     var inc = 0;
     var idv = 0;
@@ -131,13 +132,13 @@ define([
     var inv255 = 1.0 / 255.0;
     for (i = 0; i < nbVertices; ++i) {
       for (inc = 0; inc < 12; ++inc) {
-        vb[idv++] = data.charCodeAt(offData++);
+        vb[idv++] = data[offData++];
       }
       if (cAr) {
         offData += (colorIndex - 3) * 4; // if offset normal
-        cAr[idc++] = data.charCodeAt(offData++) * inv255;
-        cAr[idc++] = data.charCodeAt(offData++) * inv255;
-        cAr[idc++] = data.charCodeAt(offData++) * inv255;
+        cAr[idc++] = data[offData++] * inv255;
+        cAr[idc++] = data[offData++] * inv255;
+        cAr[idc++] = data[offData++] * inv255;
       }
       offData += offVert;
     }
@@ -147,26 +148,26 @@ define([
     var ib = new Uint8Array(nbFaces * 16);
     var idt = 0;
     for (i = 0; i < nbFaces; ++i) {
-      var pol = data.charCodeAt(offData++);
+      var pol = data[offData++];
       if (pol === 3) {
         for (inc = 0; inc < 12; ++inc) {
-          ib[idt++] = data.charCodeAt(offData++);
+          ib[idt++] = data[offData++];
         }
       } else if (pol === 4) {
-        ib[idt++] = data.charCodeAt(offData - 12);
-        ib[idt++] = data.charCodeAt(offData - 11);
-        ib[idt++] = data.charCodeAt(offData - 10);
-        ib[idt++] = data.charCodeAt(offData - 9);
+        ib[idt++] = data[offData - 12];
+        ib[idt++] = data[offData - 11];
+        ib[idt++] = data[offData - 10];
+        ib[idt++] = data[offData - 9];
 
-        ib[idt++] = data.charCodeAt(offData - 4);
-        ib[idt++] = data.charCodeAt(offData - 3);
-        ib[idt++] = data.charCodeAt(offData - 2);
-        ib[idt++] = data.charCodeAt(offData - 1);
+        ib[idt++] = data[offData - 4];
+        ib[idt++] = data[offData - 3];
+        ib[idt++] = data[offData - 2];
+        ib[idt++] = data[offData - 1];
 
-        ib[idt++] = data.charCodeAt(offData++);
-        ib[idt++] = data.charCodeAt(offData++);
-        ib[idt++] = data.charCodeAt(offData++);
-        ib[idt++] = data.charCodeAt(offData++);
+        ib[idt++] = data[offData++];
+        ib[idt++] = data[offData++];
+        ib[idt++] = data[offData++];
+        ib[idt++] = data[offData++];
       }
     }
     iAr.set(new Utils.indexArrayType(ib.buffer));
@@ -219,10 +220,11 @@ define([
   };
 
   /** Import STL file */
-  Import.importSTL = function (data, mesh) {
-    var isBinary = 84 + (Utils.getUint32(data, 80) * 50) === data.length;
-    var vb = isBinary ? Import.importBinarySTL(data) : Import.importAsciiSTL(data);
-    var nbTriangles = vb.length / 9;
+  Import.importSTL = function (buffer, mesh) {
+    var nbTriangles = new Uint32Array(buffer, 80, 1)[0] || 0;
+    var isBinary = 84 + (nbTriangles * 50) === buffer.byteLength;
+    var vb = isBinary ? Import.importBinarySTL(buffer, nbTriangles) : Import.importAsciiSTL(Utils.ab2str(buffer));
+    nbTriangles = vb.length / 9;
     var mapVertices = {};
     var nbVertices = [0];
     var iAr = new Utils.indexArrayType(nbTriangles * 3);
@@ -282,15 +284,15 @@ define([
   };
 
   /** Import binary STL file */
-  Import.importBinarySTL = function (data) {
-    var nbTriangles = Utils.getUint32(data, 80);
+  Import.importBinarySTL = function (buffer, nbTriangles) {
+    var data = new Uint8Array(buffer);
     var i = 0;
     var vb = new Uint8Array(nbTriangles * 36);
     var offset = 96;
     var j = 0;
     for (i = 0; i < nbTriangles; i++) {
       for (var inc = 0; inc < 36; ++inc) {
-        vb[j++] = data.charCodeAt(offset++);
+        vb[j++] = data[offset++];
       }
       offset += 14;
     }

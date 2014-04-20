@@ -191,14 +191,10 @@ define([
       var self = this;
       var sphereXhr = new XMLHttpRequest();
       sphereXhr.open('GET', 'ressources/sphere.obj', true);
-      sphereXhr.responseType = 'arraybuffer';
+      sphereXhr.responseType = 'text';
       sphereXhr.onload = function () {
-        var reader = new FileReader();
-        reader.onload = function (evt) {
-          self.sphere_ = evt.target.result;
-          self.resetSphere();
-        };
-        reader.readAsBinaryString(new Blob([this.response]));
+        self.sphere_ = this.response;
+        self.resetSphere();
       };
       sphereXhr.send(null);
     },
@@ -483,9 +479,9 @@ define([
       if (fileType === 'obj')
         reader.readAsText(file);
       else if (fileType === 'stl')
-        reader.readAsBinaryString(file);
+        reader.readAsArrayBuffer(file);
       else if (fileType === 'ply')
-        reader.readAsBinaryString(file);
+        reader.readAsArrayBuffer(file);
     },
     /** Load background */
     loadBackground: function (event) {
