@@ -2,8 +2,9 @@ define([
   'lib/glMatrix',
   'math3d/Geometry',
   'object/Mesh',
-  'misc/Tablet'
-], function (glm, Geometry, Mesh, Tablet) {
+  'misc/Tablet',
+  'misc/Utils'
+], function (glm, Geometry, Mesh, Tablet, Utils) {
 
   'use strict';
 
@@ -25,8 +26,8 @@ define([
   Picking.prototype = {
     /** Intersection between a ray the mouse position */
     intersectionMouseMesh: function (multimesh, mouseX, mouseY, ptPlane, nPlane) {
-      var vNear = this.camera_.unproject(mouseX, mouseY, 0.0),
-        vFar = this.camera_.unproject(mouseX, mouseY, 1.0);
+      var vNear = this.camera_.unproject(mouseX, mouseY, 0.0);
+      var vFar = this.camera_.unproject(mouseX, mouseY, 1.0);
       var matInverse = mat4.create();
       mat4.invert(matInverse, multimesh.getMatrix());
       vec3.transformMat4(vNear, vNear, matInverse);
@@ -59,14 +60,14 @@ define([
         rayInv[0] = 1 / ray[0];
         rayInv[1] = 1 / ray[1];
         rayInv[2] = 1 / ray[2];
-        var iTrisCandidates = mesh.octree_.intersectRay(vNear, rayInv);
+        var iTrisCandidates = mesh.octree_.intersectRay(vNear, rayInv, mesh.getNbTriangles());
         var distance = Infinity;
         var nbTrisCandidates = iTrisCandidates.length;
         for (var i = 0; i < nbTrisCandidates; ++i) {
           var indTri = iTrisCandidates[i] * 3;
-          var ind1 = iAr[indTri] * 3,
-            ind2 = iAr[indTri + 1] * 3,
-            ind3 = iAr[indTri + 2] * 3;
+          var ind1 = iAr[indTri] * 3;
+          var ind2 = iAr[indTri + 1] * 3;
+          var ind3 = iAr[indTri + 2] * 3;
           v1[0] = vAr[ind1];
           v1[1] = vAr[ind1 + 1];
           v1[2] = vAr[ind1 + 2];
@@ -96,39 +97,41 @@ define([
     })(),
     /** Find all the vertices inside the sphere */
     pickVerticesInSphere: function (rWorldSqr) {
-      this.pickedVertices_ = [];
       var mesh = this.multimesh_.getCurrent();
       var vAr = mesh.verticesXYZ_;
       var vertSculptFlags = mesh.vertSculptFlags_;
       var leavesHit = mesh.leavesUpdate_;
-      var iTrisInCells = mesh.octree_.intersectSphere(this.interPoint_, rWorldSqr, leavesHit);
+      var iTrisInCells = mesh.octree_.intersectSphere(this.interPoint_, rWorldSqr, leavesHit, mesh.getNbTriangles());
       var iVerts = mesh.getVerticesFromTriangles(iTrisInCells);
       var nbVerts = iVerts.length;
       var sculptFlag = ++Mesh.SCULPT_FLAG;
-      var pickedVertices = this.pickedVertices_;
+      var pickedVertices = new Uint32Array(Utils.getMemory(4 * nbVerts + 12));
+      var acc = 0;
       var inter = this.interPoint_;
-      var itx = inter[0],
-        ity = inter[1],
-        itz = inter[2];
-      var ind = 0,
-        j = 0;
+      var itx = inter[0];
+      var ity = inter[1];
+      var itz = inter[2];
+      var j = 0;
       for (var i = 0; i < nbVerts; ++i) {
-        ind = iVerts[i];
+        var ind = iVerts[i];
         j = ind * 3;
-        var dx = itx - vAr[j],
-          dy = ity - vAr[j + 1],
-          dz = itz - vAr[j + 2];
+        var dx = itx - vAr[j];
+        var dy = ity - vAr[j + 1];
+        var dz = itz - vAr[j + 2];
         if ((dx * dx + dy * dy + dz * dz) < rWorldSqr) {
           vertSculptFlags[ind] = sculptFlag;
-          pickedVertices.push(iVerts[i]);
+          pickedVertices[acc++] = iVerts[i];
         }
       }
-      if (this.pickedVertices_.length === 0 && this.pickedTriangle_ !== -1) {
+      if (pickedVertices.length === 0 && this.pickedTriangle_ !== -1) {
         //no vertices inside the brush radius (big triangle or small radius)
         var iAr = mesh.indicesABC_;
         j = this.pickedTriangle_ * 3;
-        this.pickedVertices_.push(iAr[j], iAr[j + 1], iAr[j + 2]);
+        pickedVertices[acc++] = iAr[j];
+        pickedVertices[acc++] = iAr[j + 1];
+        pickedVertices[acc++] = iAr[j + 2];
       }
+      this.pickedVertices_ = new Uint32Array(pickedVertices.subarray(0, acc));
     },
     /** Compute the selection radius in world space */
     computeRadiusWorldSq: function (mouseX, mouseY) {

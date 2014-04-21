@@ -55,11 +55,11 @@ define([
       var nbVerts = idVertUndoState.length;
 
       var cArRedoState = redoState.cArState_;
-      var idVertRedoState = redoState.idVertState_;
+      var idVertRedoState = redoState.idVertState_ = new Uint32Array(nbVerts);
 
       var i = 0;
       for (i = 0; i < nbVerts; ++i)
-        idVertRedoState.push(idVertUndoState[i]);
+        idVertRedoState[i] = idVertUndoState[i];
 
       //fill states arrays
       var nbState = idVertRedoState.length;

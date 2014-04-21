@@ -151,5 +151,50 @@ define([], function () {
     return str;
   };
 
+  var pool = new ArrayBuffer(100000);
+  // return an array before which is at least nbBytes long
+  Utils.getMemory = function (nbBytes) {
+    if (pool.byteLength >= nbBytes)
+      return pool;
+    pool = new ArrayBuffer(nbBytes);
+    return pool;
+  };
+
+  // var vector = function (ArrayConstructor, initSize) {
+  //   this.constructor_ = ArrayConstructor;
+  //   this.data_ = new ArrayConstructor(initSize);
+  //   this.length = 0;
+  // };
+  // vector.prototype = {
+  //   push: function (element) {
+  //     if (this.length === this.data_.length) {
+  //       var tmp = this.data_;
+  //       this.data_ = new this.constructor_(1 + this.length * 2);
+  //       this.data_.set(tmp);
+  //     }
+  //     this.data_[this.length++] = element;
+  //   },
+  //   pop: function () {
+  //     --this.length;
+  //     if (this.length < this.data_.length * 4) {
+  //       this.data_.subarray(0, 1 + this.length * 2);
+  //     }
+  //   },
+  //   append: function (array) {
+  //     var offset = this.length;
+  //     this.length += array.length;
+  //     if (this.length >= this.data_.length) {
+  //       var tmp = this.data_;
+  //       this.data_ = new this.constructor_(1 + this.length * 2);
+  //       this.data_.set(tmp);
+  //     }
+  //     this.data_.set(array, offset);
+  //   },
+  //   getShrinked: function () {
+  //     return this.data_.subarray(0, this.length);
+  //   }
+  // };
+  // Utils.vector = vector;
+
   return Utils;
 });

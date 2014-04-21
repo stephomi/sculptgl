@@ -31,10 +31,8 @@ define([
     // flag for general purposes
     this.vertTagFlags_ = null; //tag flags (<= Mesh.TAG_FLAG) (Uint32Array)
     this.triTagFlags_ = null; //triangles tag (<= Mesh.TAG_FLAG) (Uint32Array)
-
     // flag for editing
     this.vertSculptFlags_ = null; //sculpt flags (<= Mesh.SCULPT_FLAG) (Uint32Array)
-
     // flag for history
     this.vertStateFlags_ = null; //state flags (<= Mesh.STATE_FLAG) (Uint32Array)
 
@@ -101,11 +99,12 @@ define([
     /** Return all the triangles linked to a group of vertices */
     getTrianglesFromVertices: function (iVerts) {
       var tagFlag = ++Mesh.TAG_FLAG;
-      var iTris = [];
       var nbVerts = iVerts.length;
       var vrtStartCount = this.vrtStartCount_;
       var vertRingTri = this.vertRingTri_;
       var triTagFlags = this.triTagFlags_;
+      var acc = 0;
+      var iTris = new Uint32Array(Utils.getMemory(4 * this.getNbTriangles()));
       for (var i = 0; i < nbVerts; ++i) {
         var idVert = iVerts[i] * 2;
         var start = vrtStartCount[idVert];
@@ -113,39 +112,40 @@ define([
         for (var j = 0; j < count; ++j) {
           var iTri = vertRingTri[start + j];
           if (triTagFlags[iTri] !== tagFlag) {
-            iTris.push(iTri);
             triTagFlags[iTri] = tagFlag;
+            iTris[acc++] = iTri;
           }
         }
       }
-      return iTris;
+      return new Uint32Array(iTris.subarray(0, acc));
     },
     /** Return all the triangles linked to a group of vertices */
     getVerticesFromTriangles: function (iTris) {
       var tagFlag = ++Mesh.TAG_FLAG;
-      var iVerts = [];
       var nbTris = iTris.length;
       var vertTagFlags = this.vertTagFlags_;
       var iAr = this.indicesABC_;
+      var acc = 0;
+      var verts = new Uint32Array(Utils.getMemory(4 * iTris.length * 3));
       for (var i = 0; i < nbTris; ++i) {
         var ind = iTris[i] * 3;
         var iVer1 = iAr[ind];
         var iVer2 = iAr[ind + 1];
         var iVer3 = iAr[ind + 2];
         if (vertTagFlags[iVer1] !== tagFlag) {
-          iVerts.push(iVer1);
           vertTagFlags[iVer1] = tagFlag;
+          verts[acc++] = iVer1;
         }
         if (vertTagFlags[iVer2] !== tagFlag) {
-          iVerts.push(iVer2);
           vertTagFlags[iVer2] = tagFlag;
+          verts[acc++] = iVer2;
         }
         if (vertTagFlags[iVer3] !== tagFlag) {
-          iVerts.push(iVer3);
           vertTagFlags[iVer3] = tagFlag;
+          verts[acc++] = iVer3;
         }
       }
-      return iVerts;
+      return new Uint32Array(verts.subarray(0, acc));
     },
     /** Get more triangles (n-ring) */
     expandsTriangles: function (iTris, nRing) {
@@ -155,9 +155,10 @@ define([
       var vertRingTri = this.vertRingTri_;
       var triTagFlags = this.triTagFlags_;
       var iAr = this.indicesABC_;
-      var i = 0,
-        id = 0,
-        j = 0;
+      var acc = nbTris;
+      var iTrisExpanded = new Uint32Array(Utils.getMemory(4 * iTris.length * 3));
+      iTrisExpanded.set(iTris);
+      var i = 0;
       for (i = 0; i < nbTris; ++i)
         triTagFlags[iTris[i]] = tagFlag;
       var iBegin = 0;
@@ -172,11 +173,13 @@ define([
           var start = vrtStartCount[idv1];
           var count = vrtStartCount[idv1 + 1];
 
+          var j = 0;
+          var id = 0;
           for (j = 0; j < count; ++j) {
             id = vertRingTri[start + j];
             if (triTagFlags[id] !== tagFlag) {
-              iTris.push(id);
               triTagFlags[id] = tagFlag;
+              iTrisExpanded[acc++] = id;
             }
           }
 
@@ -185,8 +188,8 @@ define([
           for (j = 0; j < count; ++j) {
             id = vertRingTri[start + j];
             if (triTagFlags[id] !== tagFlag) {
-              iTris.push(id);
               triTagFlags[id] = tagFlag;
+              iTrisExpanded[acc++] = id;
             }
           }
 
@@ -195,14 +198,15 @@ define([
           for (j = 0; j < count; ++j) {
             id = vertRingTri[start + j];
             if (triTagFlags[id] !== tagFlag) {
-              iTris.push(id);
               triTagFlags[id] = tagFlag;
+              iTrisExpanded[acc++] = id;
             }
           }
         }
         iBegin = nbTris;
         nbTris = iTris.length;
       }
+      return new Uint32Array(iTrisExpanded.subarray(0, acc));
     },
     /** Get more vertices (n-ring) */
     expandsVertices: function (iVerts, nRing) {
@@ -211,6 +215,9 @@ define([
       var vrrStartCount = this.vrrStartCount_;
       var vertRingVert = this.vertRingVert_;
       var vertTagFlags = this.vertTagFlags_;
+      var acc = nbVerts;
+      var iVertsExpanded = new Uint32Array(Utils.getMemory(4 * this.getNbVertices()));
+      iVertsExpanded.set(iVerts);
       var i = 0;
       for (i = 0; i < nbVerts; ++i)
         vertTagFlags[iVerts[i]] = tagFlag;
@@ -224,30 +231,31 @@ define([
           for (var j = 0; j < count; ++j) {
             var id = vertRingVert[start + j];
             if (vertTagFlags[id] !== tagFlag) {
-              iVerts.push(id);
               vertTagFlags[id] = tagFlag;
+              iVertsExpanded[acc++] = id;
             }
           }
         }
         iBegin = nbVerts;
         nbVerts = iVerts.length;
       }
+      return new Uint32Array(iVertsExpanded.subarray(0, acc));
     },
     /** Compute Aabb */
     computeAabb: function () {
       var nbVertices = this.getNbVertices();
       var vAr = this.verticesXYZ_;
-      var xmin = Infinity,
-        ymin = Infinity,
-        zmin = Infinity;
-      var xmax = -Infinity,
-        ymax = -Infinity,
-        zmax = -Infinity;
+      var xmin = Infinity;
+      var ymin = Infinity;
+      var zmin = Infinity;
+      var xmax = -Infinity;
+      var ymax = -Infinity;
+      var zmax = -Infinity;
       for (var i = 0; i < nbVertices; ++i) {
         var j = i * 3;
-        var vx = vAr[j],
-          vy = vAr[j + 1],
-          vz = vAr[j + 2];
+        var vx = vAr[j];
+        var vy = vAr[j + 1];
+        var vz = vAr[j + 2];
         if (vx < xmin) xmin = vx;
         if (vx > xmax) xmax = vx;
         if (vy < ymin) ymin = vy;
@@ -397,9 +405,9 @@ define([
         var vrrCount = 0;
         for (var j = 0; j < vrtCount; ++j) {
           var ind = vertRingTri[vrtStart + j] * 3;
-          var iVer1 = iAr[ind],
-            iVer2 = iAr[ind + 1],
-            iVer3 = iAr[ind + 2];
+          var iVer1 = iAr[ind];
+          var iVer2 = iAr[ind + 1];
+          var iVer3 = iAr[ind + 2];
           if (iVer1 !== i && vertTagFlags[iVer1] !== tagFlag) {
             vertRingVert[vrrStart + (vrrCount++)] = iVer1;
             vertTagFlags[iVer1] = tagFlag;
@@ -489,9 +497,9 @@ define([
         var ind = full ? i : iVerts[i];
         var start = vrtStartCount[ind * 2];
         var count = vrtStartCount[ind * 2 + 1];
-        var nx = 0.0,
-          ny = 0.0,
-          nz = 0.0;
+        var nx = 0.0;
+        var ny = 0.0;
+        var nz = 0.0;
         for (var j = 0; j < count; ++j) {
           var id = vertRingTri[start + j] * 3;
           nx += triNormals[id];
@@ -564,8 +572,9 @@ define([
       var triBoxes = this.triBoxes_;
       var triPosInLeaf = this.triPosInLeaf_;
       var triLeaf = this.triLeaf_;
-      var trisToMove = [];
       var nbTris = iTris.length;
+      var acc = 0;
+      var trisToMove = new Uint32Array(Utils.getMemory(4 * nbTris));
       //recompute position inside the octree
       for (var i = 0; i < nbTris; ++i) {
         var idTri = iTris[i];
@@ -586,7 +595,7 @@ define([
         else if (vz > split[5]) hasMoved = true;
 
         if (hasMoved === true) {
-          trisToMove.push(iTris[i]);
+          trisToMove[acc++] = iTris[i];
           var trisInLeaf = leaf.iTris_;
           if (trisInLeaf.length > 0) { // remove tris from octree cell
             var iTriLast = trisInLeaf[trisInLeaf.length - 1];
@@ -611,7 +620,7 @@ define([
           if (bzmax > loose[5]) loose[5] = bzmax;
         }
       }
-      return trisToMove;
+      return new Uint32Array(trisToMove.subarray(0, acc));
     },
     updateOctreeAdd: function (trisToMove) {
       var triCenters = this.triCentersXYZ_;

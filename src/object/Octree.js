@@ -1,4 +1,6 @@
-define([], function () {
+define([
+  'misc/Utils'
+], function (Utils) {
 
   'use strict';
 
@@ -183,8 +185,15 @@ define([], function () {
       aabb[4] = ymax;
       aabb[5] = zmax;
     },
-    /** Return triangles in cells hit by a ray */
-    intersectRay: function (vNear, rayInv) {
+    /** Return triangles intersected by a ray */
+    intersectRay: function (vNear, rayInv, hint) {
+      var collectTris = new Uint32Array(Utils.getMemory(hint * 4));
+      var acc = [0];
+      this.collectIntersectRay(vNear, rayInv, collectTris, acc);
+      return new Uint32Array(collectTris.subarray(0, acc[0]));
+    },
+    /** Collect triangles in cells hit by a ray */
+    collectIntersectRay: function (vNear, rayInv, collectTris, acc) {
       var loose = this.aabbLoose_;
       var irx = rayInv[0];
       var iry = rayInv[1];
@@ -201,20 +210,26 @@ define([], function () {
       var tmin = Math.max(Math.max(Math.min(t1, t2), Math.min(t3, t4)), Math.min(t5, t6));
       var tmax = Math.min(Math.min(Math.max(t1, t2), Math.max(t3, t4)), Math.max(t5, t6));
       if (tmax < 0 || tmin >= tmax) // no intersection
-        return [];
+        return;
       if (this.children_.length === 8) {
-        var iTriangles = [];
         var children = this.children_;
         for (var i = 0; i < 8; ++i) {
-          var iTris = children[i].intersectRay(vNear, rayInv);
-          iTriangles.push.apply(iTriangles, iTris);
+          children[i].collectIntersectRay(vNear, rayInv, collectTris, acc);
         }
-        return iTriangles;
-      } else
-        return this.iTris_;
+      } else {
+        collectTris.set(this.iTris_, acc[0]);
+        acc[0] += this.iTris_.length;
+      }
     },
     /** Return triangles inside a sphere */
-    intersectSphere: function (vert, radiusSquared, leavesHit) {
+    intersectSphere: function (vert, radiusSquared, leavesHit, hint) {
+      var collectTris = new Uint32Array(Utils.getMemory(hint * 4));
+      var acc = [0];
+      this.collectIntersectSphere(vert, radiusSquared, leavesHit, collectTris, acc);
+      return new Uint32Array(collectTris.subarray(0, acc[0]));
+    },
+    /** Collect triangles inside a sphere */
+    collectIntersectSphere: function (vert, radiusSquared, leavesHit, collectTris, acc) {
       var split = this.aabbLoose_;
       var vx = vert[0];
       var vy = vert[1];
@@ -235,18 +250,16 @@ define([], function () {
       else dz = 0.0;
 
       if ((dx * dx + dy * dy + dz * dz) > radiusSquared) // no intersection
-        return [];
+        return;
       if (this.children_.length === 8) {
-        var iTriangles = [];
         var children = this.children_;
         for (var i = 0; i < 8; ++i) {
-          var iTris = children[i].intersectSphere(vert, radiusSquared, leavesHit);
-          iTriangles.push.apply(iTriangles, iTris);
+          children[i].collectIntersectSphere(vert, radiusSquared, leavesHit, collectTris, acc);
         }
-        return iTriangles;
       } else {
         leavesHit.push(this);
-        return this.iTris_;
+        collectTris.set(this.iTris_, acc[0]);
+        acc[0] += this.iTris_.length;
       }
     },
     /** Add triangle in the octree, subdivide the cell if necessary */

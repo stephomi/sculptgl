@@ -2,10 +2,11 @@ define([
   'lib/glMatrix',
   'math3d/Geometry',
   'misc/Tablet',
+  'misc/Utils',
   'object/Mesh',
   'states/StateGeometry',
   'states/StateColor'
-], function (glmatrix, Geometry, Tablet, Mesh, StateGeometry, StateColor) {
+], function (glmatrix, Geometry, Tablet, Utils, Mesh, StateGeometry, StateColor) {
 
   'use strict';
 
@@ -177,8 +178,11 @@ define([
       this.states_.pushVertices(iVertsSelected, this.tool_ === Sculpt.tool.COLOR);
 
       var nbVertsSelected = iVertsSelected.length;
-      var iVertsInRadius = [];
-      var iVertsFront = [];
+      var pool = Utils.getMemory(4 * nbVertsSelected * 2);
+      var iVertsInRadius = new Uint32Array(pool);
+      var iVertsFront = new Uint32Array(pool, 4 * nbVertsSelected);
+      var accRadius = 0;
+      var accFront = 0;
       var sculptFlag = Mesh.SCULPT_FLAG;
       var nAr = mesh.normalsXYZ_;
       var eyeX = eyeDir[0];
@@ -187,12 +191,14 @@ define([
       for (var i = 0; i < nbVertsSelected; ++i) {
         var id = iVertsSelected[i];
         if (vertSculptFlags[id] === sculptFlag) {
-          iVertsInRadius.push(id);
+          iVertsInRadius[accRadius++] = id;
           var j = id * 3;
           if ((nAr[j] * eyeX + nAr[j + 1] * eyeY + nAr[j + 2] * eyeZ) <= 0.0)
-            iVertsFront.push(id);
+            iVertsFront[accFront++] = id;
         }
       }
+      iVertsInRadius = new Uint32Array(iVertsInRadius.subarray(0, accRadius));
+      iVertsFront = new Uint32Array(iVertsFront.subarray(0, accFront));
       //no sculpting if we are only picking back-facing vertices
       if (iVertsFront.length !== 0) {
         if (this.culling_)
