@@ -85,12 +85,12 @@ define([], function () {
       var xmax = split[3];
       var ymax = split[4];
       var zmax = split[5];
-      var dX = (xmax - xmin) * 0.5,
-        dY = (ymax - ymin) * 0.5,
-        dZ = (zmax - zmin) * 0.5;
-      var xcen = (xmax + xmin) * 0.5,
-        ycen = (ymax + ymin) * 0.5,
-        zcen = (zmax + zmin) * 0.5;
+      var dX = (xmax - xmin) * 0.5;
+      var dY = (ymax - ymin) * 0.5;
+      var dZ = (zmax - zmin) * 0.5;
+      var xcen = (xmax + xmin) * 0.5;
+      var ycen = (ymax + ymin) * 0.5;
+      var zcen = (zmax + zmin) * 0.5;
 
       var iTris0 = [];
       var iTris1 = [];
@@ -186,18 +186,18 @@ define([], function () {
     /** Return triangles in cells hit by a ray */
     intersectRay: function (vNear, rayInv) {
       var loose = this.aabbLoose_;
-      var irx = rayInv[0],
-        iry = rayInv[1],
-        irz = rayInv[2];
-      var vx = vNear[0],
-        vy = vNear[1],
-        vz = vNear[2];
-      var t1 = (loose[0] - vx) * irx,
-        t3 = (loose[1] - vy) * iry,
-        t5 = (loose[2] - vz) * irz,
-        t2 = (loose[3] - vx) * irx,
-        t4 = (loose[4] - vy) * iry,
-        t6 = (loose[5] - vz) * irz;
+      var irx = rayInv[0];
+      var iry = rayInv[1];
+      var irz = rayInv[2];
+      var vx = vNear[0];
+      var vy = vNear[1];
+      var vz = vNear[2];
+      var t1 = (loose[0] - vx) * irx;
+      var t3 = (loose[1] - vy) * iry;
+      var t5 = (loose[2] - vz) * irz;
+      var t2 = (loose[3] - vx) * irx;
+      var t4 = (loose[4] - vy) * iry;
+      var t6 = (loose[5] - vz) * irz;
       var tmin = Math.max(Math.max(Math.min(t1, t2), Math.min(t3, t4)), Math.min(t5, t6));
       var tmax = Math.min(Math.min(Math.max(t1, t2), Math.max(t3, t4)), Math.max(t5, t6));
       if (tmax < 0 || tmin >= tmax) // no intersection
@@ -216,12 +216,12 @@ define([], function () {
     /** Return triangles inside a sphere */
     intersectSphere: function (vert, radiusSquared, leavesHit) {
       var split = this.aabbLoose_;
-      var vx = vert[0],
-        vy = vert[1],
-        vz = vert[2];
-      var dx = 0.0,
-        dy = 0.0,
-        dz = 0.0;
+      var vx = vert[0];
+      var vy = vert[1];
+      var vz = vert[2];
+      var dx = 0.0;
+      var dy = 0.0;
+      var dz = 0.0;
       if (split[0] > vx) dx = split[0] - vx;
       else if (split[3] < vx) dx = split[3] - vx;
       else dx = 0.0;
@@ -251,9 +251,9 @@ define([], function () {
     },
     /** Add triangle in the octree, subdivide the cell if necessary */
     addTriangle: function (triId, aabb, center) {
-      var cx = center[0],
-        cy = center[1],
-        cz = center[2];
+      var cx = center[0];
+      var cy = center[1];
+      var cz = center[2];
       var split = this.aabbSplit_;
       if (cx <= split[0]) return;
       if (cy <= split[1]) return;

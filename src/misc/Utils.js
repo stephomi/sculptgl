@@ -2,6 +2,21 @@ define([], function () {
 
   'use strict';
 
+  // Not sure I should put theses functions here...
+  /** endsWith function */
+  if (typeof String.prototype.endsWith !== 'function') {
+    String.prototype.endsWith = function (str) {
+      return this.slice(-str.length) === str;
+    };
+  }
+
+  /** startsWith function */
+  if (typeof String.prototype.startsWith !== 'function') {
+    String.prototype.startsWith = function (str) {
+      return this.slice(0, str.length) === str;
+    };
+  }
+
   var Utils = {};
 
   Utils.elementIndexType = 0; //element index type (ushort or uint)
@@ -135,21 +150,6 @@ define([], function () {
     }
     return str;
   };
-
-  // Not sure I should put theses functions here...
-  /** endsWith function */
-  if (typeof String.prototype.endsWith !== 'function') {
-    String.prototype.endsWith = function (str) {
-      return this.slice(-str.length) === str;
-    };
-  }
-
-  /** startsWith function */
-  if (typeof String.prototype.startsWith !== 'function') {
-    String.prototype.startsWith = function (str) {
-      return this.slice(0, str.length) === str;
-    };
-  }
 
   return Utils;
 });

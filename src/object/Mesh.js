@@ -509,12 +509,12 @@ define([
     computeOctree: function (abRoot, factor) {
       if (abRoot === undefined)
         abRoot = this.computeAabb();
-      var xmin = abRoot[0],
-        ymin = abRoot[1],
-        zmin = abRoot[2];
-      var xmax = abRoot[3],
-        ymax = abRoot[4],
-        zmax = abRoot[5];
+      var xmin = abRoot[0];
+      var ymin = abRoot[1];
+      var zmin = abRoot[2];
+      var xmax = abRoot[3];
+      var ymax = abRoot[4];
+      var zmax = abRoot[5];
       var dx = xmax - xmin;
       var dy = ymax - ymin;
       var dz = zmax - zmin;
@@ -574,9 +574,9 @@ define([
         var leaf = triLeaf[idTri];
         var split = leaf.aabbSplit_;
 
-        var vx = triCenters[idCen],
-          vy = triCenters[idCen + 1],
-          vz = triCenters[idCen + 2];
+        var vx = triCenters[idCen];
+        var vy = triCenters[idCen + 1];
+        var vz = triCenters[idCen + 2];
         var hasMoved = false;
         if (vx <= split[0]) hasMoved = true;
         else if (vy <= split[1]) hasMoved = true;
@@ -622,12 +622,12 @@ define([
 
       var octree = this.octree_;
       var rootLoose = octree.aabbLoose_;
-      var xmin = rootLoose[0],
-        ymin = rootLoose[1],
-        zmin = rootLoose[2];
-      var xmax = rootLoose[3],
-        ymax = rootLoose[4],
-        zmax = rootLoose[5];
+      var xmin = rootLoose[0];
+      var ymin = rootLoose[1];
+      var zmin = rootLoose[2];
+      var xmax = rootLoose[3];
+      var ymax = rootLoose[4];
+      var zmax = rootLoose[5];
       for (var i = 0; i < nbTrisToMove; ++i) { //add triangle to the octree
         var idTri = trisToMove[i];
         var idBox = idTri * 6;
