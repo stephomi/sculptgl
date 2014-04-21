@@ -365,7 +365,7 @@ define([
             this.sculpt_.startRotate(this);
           else if (tool === Sculpt.tool.SCALE)
             this.sculpt_.startScale(this);
-          else if (this.continuous_ && tool !== Sculpt.tool.DRAG) {
+          else if (this.continuous_ && tool !== Sculpt.tool.DRAG && this.picking_.multimesh_) {
             var self = this;
             this.sculptTimer_ = setInterval(function () {
               self.sculpt_.sculptStroke(self);
