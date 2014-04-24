@@ -5,7 +5,7 @@ define([
   'use strict';
 
   function GuiBackground(guiParent, ctrlGui) {
-    this.sculptgl_ = ctrlGui.sculptgl_; //main application
+    this.scene_ = ctrlGui.sculptgl_.scene_; //main application
     this.init(guiParent);
   }
 
@@ -20,10 +20,10 @@ define([
     },
     /** Reset background */
     resetBackground: function () {
-      var bg = this.sculptgl_.background_;
+      var bg = this.scene_.background_;
       if (bg) {
-        bg.gl_.deleteTexture(bg.backgroundLoc_);
-        this.sculptgl_.background_ = null;
+        bg.release();
+        this.scene_.background_ = null;
       }
     },
     /** Immort background */

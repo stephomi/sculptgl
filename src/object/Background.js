@@ -1,4 +1,8 @@
-define([], function () {
+define([
+  'render/Buffer',
+  'render/Attribute',
+  'render/ShaderConfigs'
+], function (Buffer, Attribute, ShaderConfigs) {
 
   'use strict';
 
@@ -19,22 +23,37 @@ define([], function () {
   }
 
   Background.prototype = {
+    /** Initialize Vertex Buffer Object (VBO) */
+    init: function (shaders) {
+      this.initBuffer();
+      this.initShaders(shaders);
+    },
+    /** Free gl memory */
+    release: function () {
+      this.gl_.deleteTexture(this.backgroundLoc_);
+      this.vertexBuffer_.release();
+      this.texBuffer_.release();
+    },
+    /** Return the configuration of the shader */
+    getConfig: function () {
+      return ShaderConfigs[ShaderConfigs.mode.BACKGROUND];
+    },
     /** Initialize the shaders on the mesh */
     initShaders: function (shaders) {
       var gl = this.gl_;
-      this.loadShaders(shaders.backgroundVertex, shaders.backgroundFragment);
+      var config = this.getConfig();
+      this.loadShaders(shaders[config.vertex], shaders[config.fragment]);
 
-      this.shaderProgram_ = gl.createProgram();
-      var shaderProgram = this.shaderProgram_;
-
+      var shaderProgram = this.shaderProgram_ = gl.createProgram();
       gl.attachShader(shaderProgram, this.vertexShader_);
       gl.attachShader(shaderProgram, this.fragmentShader_);
       gl.linkProgram(shaderProgram);
       gl.useProgram(shaderProgram);
 
-      this.vertexAttrib_ = gl.getAttribLocation(this.shaderProgram_, 'vertex');
-      this.texAttrib_ = gl.getAttribLocation(this.shaderProgram_, 'texCoord');
-      this.backgroundTexUnif_ = gl.getUniformLocation(shaderProgram, 'backgroundTex');
+      this.vertexAttrib_ = new Attribute(gl, shaderProgram, config.attributes[0]);
+      this.texAttrib_ = new Attribute(gl, shaderProgram, config.attributes[1]);
+
+      this.backgroundTexUnif_ = gl.getUniformLocation(shaderProgram, config.uniforms[0]);
 
       gl.detachShader(shaderProgram, this.fragmentShader_);
       gl.deleteShader(this.fragmentShader_);
@@ -56,21 +75,12 @@ define([], function () {
       var gl = this.gl_;
 
       var vertCoords = [-1.0, -1.0, -1.0, 1.0, 1.0, -1.0, -1.0, 1.0, 1.0, 1.0, 1.0, -1.0];
-
-      this.vertexBuffer_ = gl.createBuffer();
-      gl.bindBuffer(gl.ARRAY_BUFFER, this.vertexBuffer_);
-      gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(vertCoords), gl.DYNAMIC_DRAW);
+      this.vertexBuffer_ = new Buffer(gl, gl.ARRAY_BUFFER, gl.STATIC_DRAW);
+      this.vertexBuffer_.update(new Float32Array(vertCoords));
 
       var texCoords = [0.0, 1.0, 0.0, 0.0, 1.0, 1.0, 0.0, 0.0, 1.0, 0.0, 1.0, 1.0];
-
-      this.texBuffer_ = gl.createBuffer();
-      gl.bindBuffer(gl.ARRAY_BUFFER, this.texBuffer_);
-      gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(texCoords), gl.DYNAMIC_DRAW);
-    },
-    /** Initialize Vertex Buffer Object (VBO) */
-    init: function (shaders) {
-      this.initBuffer();
-      this.initShaders(shaders);
+      this.texBuffer_ = new Buffer(gl, gl.ARRAY_BUFFER, gl.STATIC_DRAW);
+      this.texBuffer_.update(new Float32Array(texCoords));
     },
     /** Load background texture */
     loadBackgroundTexture: function (tex) {
@@ -90,18 +100,12 @@ define([], function () {
       var gl = this.gl_;
       gl.useProgram(this.shaderProgram_);
 
-      gl.enableVertexAttribArray(this.vertexAttrib_);
-      gl.bindBuffer(gl.ARRAY_BUFFER, this.vertexBuffer_);
-      gl.vertexAttribPointer(this.vertexAttrib_, 2, gl.FLOAT, false, 0, 0);
-
-      gl.enableVertexAttribArray(this.texAttrib_);
-      gl.bindBuffer(gl.ARRAY_BUFFER, this.texBuffer_);
-      gl.vertexAttribPointer(this.texAttrib_, 2, gl.FLOAT, false, 0, 0);
+      this.vertexAttrib_.bindToBuffer(this.vertexBuffer_);
+      this.texAttrib_.bindToBuffer(this.texBuffer_);
 
       gl.activeTexture(gl.TEXTURE0);
       gl.bindTexture(gl.TEXTURE_2D, this.backgroundLoc_);
       gl.uniform1i(this.backgroundTexUnif_, 0);
-      gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this.indexBuffer_);
 
       gl.depthMask(false);
       gl.drawArrays(gl.TRIANGLES, 0, 6);

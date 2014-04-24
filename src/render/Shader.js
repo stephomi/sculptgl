@@ -1,7 +1,9 @@
 define([
   'lib/glMatrix',
+  'render/Attribute',
+  'render/ShaderConfigs',
   'misc/Utils'
-], function (glm, Utils) {
+], function (glm, Attribute, ShaderConfigs, Utils) {
 
   'use strict';
 
@@ -21,53 +23,16 @@ define([
     this.uniforms_ = {}; //uniforms
   }
 
-  //the rendering mode
-  Shader.mode = {
-    PHONG: 0,
-    TRANSPARENCY: 1,
-    WIREFRAME: 2,
-    NORMAL: 3,
-    MATERIAL: 4
-  };
-
-  var ShaderConfig = {};
-  ShaderConfig[Shader.mode.PHONG] = {
-    vertex: 'phongVertex',
-    fragment: 'phongFragment',
-    attributes: ['aVertex', 'aNormal', 'aColor'],
-    uniforms: ['uMV', 'uMVP', 'uN', 'uCenterPicking', 'uRadiusSquared']
-  };
-  ShaderConfig[Shader.mode.WIREFRAME] = {
-    vertex: 'wireframeVertex',
-    fragment: 'wireframeFragment',
-    attributes: ['aVertex'],
-    uniforms: ['uMVP']
-  };
-  ShaderConfig[Shader.mode.TRANSPARENCY] = {
-    vertex: 'transparencyVertex',
-    fragment: 'transparencyFragment',
-    attributes: ['aVertex', 'aNormal', 'aColor'],
-    uniforms: ['uMV', 'uMVP', 'uN', 'uCenterPicking', 'uRadiusSquared']
-  };
-  ShaderConfig[Shader.mode.NORMAL] = {
-    vertex: 'normalVertex',
-    fragment: 'normalFragment',
-    attributes: ['aVertex', 'aNormal'],
-    uniforms: ['uMV', 'uMVP', 'uN', 'uCenterPicking', 'uRadiusSquared']
-  };
-  ShaderConfig[Shader.mode.MATERIAL] = {
-    vertex: 'reflectionVertex',
-    fragment: 'reflectionFragment',
-    attributes: ['aVertex', 'aNormal', 'aColor'],
-    uniforms: ['uMV', 'uMVP', 'uN', 'uCenterPicking', 'uRadiusSquared', 'uTexture0']
-  };
+  Shader.mode = ShaderConfigs.mode;
 
   Shader.prototype = {
+    /** Return the real type of the shader */
     getType: function () {
       return Math.min(this.type_, Shader.mode.MATERIAL);
     },
+    /** Return the configuration of the shader */
     getConfig: function () {
-      return ShaderConfig[this.getType()];
+      return ShaderConfigs[this.getType()];
     },
     /** Initialize the shaders on the mesh */
     init: function (shaders) {
@@ -110,8 +75,8 @@ define([
       var aConfig = this.getConfig().attributes;
       var attributes = this.attributes_ = {};
       for (var i = 0, l = aConfig.length; i < l; ++i) {
-        var name = aConfig[i];
-        attributes[name] = gl.getAttribLocation(program, name);
+        var config = aConfig[i];
+        attributes[config.name] = new Attribute(gl, program, config);
       }
     },
     /** Initialize uniforms */
@@ -139,7 +104,7 @@ define([
         gl.disable(gl.BLEND);
         gl.depthMask(true);
       } else if (type === Shader.mode.WIREFRAME) {
-        gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, render.wireframeBuffer_);
+        render.wireframeBuffer_.bind();
         gl.enable(gl.BLEND);
         gl.drawElements(gl.LINES, render.multimesh_.getCurrent().getNbEdges() * 2, Utils.elementIndexType, 0);
         gl.disable(gl.BLEND);
@@ -156,7 +121,7 @@ define([
       if (render.flatShading_ === true)
         gl.drawArrays(gl.TRIANGLES, 0, lengthIndexArray);
       else {
-        gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, render.indexBuffer_);
+        render.indexBuffer_.bind();
         gl.drawElements(gl.TRIANGLES, lengthIndexArray, Utils.elementIndexType, 0);
       }
       gl.bindBuffer(gl.ARRAY_BUFFER, null);
@@ -164,27 +129,19 @@ define([
     },
     /** Bind attributes */
     bindAttributes: function (render) {
-      var gl = this.gl_;
       var att = this.attributes_;
 
       var aVertex = att.aVertex;
-      if (aVertex !== undefined) {
-        gl.enableVertexAttribArray(aVertex);
-        gl.bindBuffer(gl.ARRAY_BUFFER, render.vertexBuffer_);
-        gl.vertexAttribPointer(aVertex, 3, gl.FLOAT, false, 0, 0);
-      }
+      if (aVertex !== undefined)
+        aVertex.bindToBuffer(render.vertexBuffer_);
+
       var aNormal = att.aNormal;
-      if (aNormal !== undefined) {
-        gl.enableVertexAttribArray(aNormal);
-        gl.bindBuffer(gl.ARRAY_BUFFER, render.normalBuffer_);
-        gl.vertexAttribPointer(aNormal, 3, gl.FLOAT, false, 0, 0);
-      }
+      if (aNormal !== undefined)
+        aNormal.bindToBuffer(render.normalBuffer_);
+
       var aColor = att.aColor;
-      if (aColor !== undefined) {
-        gl.enableVertexAttribArray(aColor);
-        gl.bindBuffer(gl.ARRAY_BUFFER, render.colorBuffer_);
-        gl.vertexAttribPointer(aColor, 3, gl.FLOAT, false, 0, 0);
-      }
+      if (aColor !== undefined)
+        aColor.bindToBuffer(render.colorBuffer_);
     },
     /** Updates uniforms */
     updateUniforms: function (render, camera, picking) {

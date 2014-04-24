@@ -1,6 +1,7 @@
 define([
-  'render/Shader'
-], function (Shader) {
+  'render/Shader',
+  'render/Buffer'
+], function (Shader, Buffer) {
 
   'use strict';
 
@@ -20,9 +21,30 @@ define([
     this.indexBuffer_ = null; //indexes buffer
     this.wireframeBuffer_ = null; //wireframe buffer
     this.reflectionLoc_ = null; //texture reflection
+
+    this.vSize_ = 0;
+    this.iSize_ = 0;
   }
 
   Render.prototype = {
+    /** Initialize Vertex Buffer Object (VBO) */
+    initBuffers: function () {
+      var gl = this.gl_;
+      this.vertexBuffer_ = new Buffer(gl, gl.ARRAY_BUFFER, gl.DYNAMIC_DRAW);
+      this.normalBuffer_ = new Buffer(gl, gl.ARRAY_BUFFER, gl.DYNAMIC_DRAW);
+      this.colorBuffer_ = new Buffer(gl, gl.ARRAY_BUFFER, gl.DYNAMIC_DRAW);
+      this.indexBuffer_ = new Buffer(gl, gl.ELEMENT_ARRAY_BUFFER, gl.STATIC_DRAW);
+      this.wireframeBuffer_ = new Buffer(gl, gl.ELEMENT_ARRAY_BUFFER, gl.STATIC_DRAW);
+    },
+    /** Free gl memory */
+    release: function () {
+      this.gl_.deleteTexture(this.reflectionLoc_);
+      this.vertexBuffer_.release();
+      this.normalBuffer_.release();
+      this.colorBuffer_.release();
+      this.indexBuffer_.release();
+      this.wireframeBuffer_.release();
+    },
     /** Creates the wireframe shader */
     initShaderWireframe: function (shaders) {
       this.shaderWireframe_.type_ = Shader.mode.WIREFRAME;
@@ -34,15 +56,6 @@ define([
         this.reflectionLoc_ = textures[shaderType];
       this.shader_.type_ = shaderType;
       this.shader_.init(shaders);
-    },
-    /** Initialize Vertex Buffer Object (VBO) */
-    initBuffers: function () {
-      var gl = this.gl_;
-      this.vertexBuffer_ = gl.createBuffer();
-      this.normalBuffer_ = gl.createBuffer();
-      this.colorBuffer_ = gl.createBuffer();
-      this.indexBuffer_ = gl.createBuffer();
-      this.wireframeBuffer_ = gl.createBuffer();
     },
     /** Render the mesh */
     render: function (camera, picking) {
@@ -59,49 +72,27 @@ define([
     },
     /** Updates DrawArrays buffers */
     updateDrawArrays: function (updateColors) {
-      var gl = this.gl_;
       var mesh = this.multimesh_.getCurrent();
-
-      gl.bindBuffer(gl.ARRAY_BUFFER, this.vertexBuffer_);
-      gl.bufferData(gl.ARRAY_BUFFER, mesh.cacheDrawArraysV_, gl.DYNAMIC_DRAW);
-
-      gl.bindBuffer(gl.ARRAY_BUFFER, this.normalBuffer_);
-      gl.bufferData(gl.ARRAY_BUFFER, mesh.cacheDrawArraysN_, gl.DYNAMIC_DRAW);
-
-      if (updateColors) {
-        gl.bindBuffer(gl.ARRAY_BUFFER, this.colorBuffer_);
-        gl.bufferData(gl.ARRAY_BUFFER, mesh.cacheDrawArraysC_, gl.DYNAMIC_DRAW);
-      }
+      this.vertexBuffer_.update(mesh.cacheDrawArraysV_);
+      this.normalBuffer_.update(mesh.cacheDrawArraysN_);
+      if (updateColors)
+        this.colorBuffer_.update(mesh.cacheDrawArraysC_);
     },
     /** Updates DrawElements buffers */
     updateDrawElements: function (updateColors, updateIndex) {
-      var gl = this.gl_;
       var mesh = this.multimesh_.getCurrent();
-
-      gl.bindBuffer(gl.ARRAY_BUFFER, this.vertexBuffer_);
-      gl.bufferData(gl.ARRAY_BUFFER, mesh.verticesXYZ_, gl.DYNAMIC_DRAW);
-
-      gl.bindBuffer(gl.ARRAY_BUFFER, this.normalBuffer_);
-      gl.bufferData(gl.ARRAY_BUFFER, mesh.normalsXYZ_, gl.DYNAMIC_DRAW);
-
-      if (updateColors) {
-        gl.bindBuffer(gl.ARRAY_BUFFER, this.colorBuffer_);
-        gl.bufferData(gl.ARRAY_BUFFER, mesh.colorsRGB_, gl.DYNAMIC_DRAW);
-      }
-
-      if (updateIndex) {
-        gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this.indexBuffer_);
-        gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, mesh.indicesABC_, gl.STATIC_DRAW);
-      }
+      this.vertexBuffer_.update(mesh.verticesXYZ_);
+      this.normalBuffer_.update(mesh.normalsXYZ_);
+      if (updateColors)
+        this.colorBuffer_.update(mesh.colorsRGB_);
+      if (updateIndex)
+        this.indexBuffer_.update(mesh.indicesABC_);
     },
     /** Updates wireframe buffer */
     updateLinesBuffer: function () {
-      var gl = this.gl_;
       var mesh = this.multimesh_.getCurrent();
       var lineBuffer = this.flatShading_ ? mesh.cacheDrawArraysWireframe_ : mesh.cacheDrawElementsWireframe_;
-
-      gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this.wireframeBuffer_);
-      gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, lineBuffer, gl.STATIC_DRAW);
+      this.wireframeBuffer_.update(lineBuffer);
     }
   };
 
