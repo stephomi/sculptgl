@@ -4,8 +4,9 @@ define([
 
   'use strict';
 
-  function StateGeometry(mesh) {
-    this.mesh_ = mesh; //the mesh
+  function StateGeometry(multimesh) {
+    this.multimesh_ = multimesh; // the multimesh
+    this.mesh_ = multimesh.getCurrent(); //the mesh
     this.vArState_ = []; //copies of vertices coordinates
     this.idVertState_ = []; // ids of vertices
   }
@@ -14,7 +15,7 @@ define([
     /** On undo */
     undo: function () {
       this.pullState();
-      this.mesh_.updateGeometry();
+      this.multimesh_.updateResolution();
     },
     /** On redo */
     redo: function () {
@@ -22,7 +23,7 @@ define([
     },
     /** Push the redo state */
     createRedo: function () {
-      var redo = new StateGeometry(this.mesh_);
+      var redo = new StateGeometry(this.multimesh_);
       this.pushRedoVertices(redo);
       return redo;
     },

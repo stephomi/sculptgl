@@ -4,8 +4,9 @@ define([
 
   'use strict';
 
-  function StateColor(mesh) {
-    this.mesh_ = mesh; //the mesh
+  function StateColor(multimesh) {
+    this.multimesh_ = multimesh; // the multimesh
+    this.mesh_ = multimesh.getCurrent(); //the mesh
     this.idVertState_ = []; // ids of vertices
     this.cArState_ = []; //copies of color vertices
   }
@@ -21,7 +22,7 @@ define([
     },
     /** Push the redo state */
     createRedo: function () {
-      var redo = new StateColor(this.mesh_);
+      var redo = new StateColor(this.multimesh_);
       this.pushRedoVertices(redo);
       return redo;
     },

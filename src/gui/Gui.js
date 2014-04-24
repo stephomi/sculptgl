@@ -1,65 +1,26 @@
 define([
-  'lib/jQuery',
   'lib/Dat',
-  'lib/FileSaver',
-  'math3d/Camera',
-  'editor/Sculpt',
-  'render/Shader',
-  'render/Render',
-  'states/StateMultiresolution',
-  'misc/Export',
-  'misc/Tablet'
-], function ($, Dat, saveAs, Camera, Sculpt, Shader, Render, StateMultiresolution, Export, Tablet) {
+  'gui/GuiBackground',
+  'gui/GuiCamera',
+  'gui/GuiFiles',
+  'gui/GuiStates',
+  'gui/GuiTablet',
+  'gui/GuiMultiresolution',
+  'gui/GuiRendering',
+  'gui/GuiSculpting'
+], function (Dat, GuiBackground, GuiCamera, GuiFiles, GuiStates, GuiTablet, GuiMultiresolution, GuiRendering, GuiSculpting) {
 
   'use strict';
 
   function Gui(sculptgl) {
     this.sculptgl_ = sculptgl; //main application
 
-    //ui shading
-    this.ctrlColor_ = null; //color controller
-    this.ctrlFlatShading_ = null; //flat shading controller
-    this.ctrlShowWireframe_ = null; //wireframe controller
-    this.ctrlShaders_ = null; //shaders controller
-
-    //ui info
-    this.ctrlNbVertices_ = null; //display number of vertices controller
-    this.ctrlNbTriangles_ = null; //display number of triangles controller
-
-    //ui sculpting
-    this.ctrlSculpt_ = null; //sculpt controller
-    this.ctrlClay_ = null; //clay sculpting controller
-    this.ctrlNegative_ = null; //negative sculpting controller
-    this.ctrlContinuous_ = null; //continuous sculpting controller
-    this.ctrlSymmetry_ = null; //symmetry controller
-    this.ctrlSculptCulling_ = null; //sculpt culling controller
-    this.ctrlRadius_ = null; //radius controller
-    this.ctrlIntensity_ = null; //intensity sculpting controller
-
-    //ui multiresolution
-    this.ctrlResolution_ = null; //multiresolution controller
-
-    //ui camera
-    this.ctrlCameraType_ = null; //camera type controller
-    this.ctrlFov_ = null; //vertical field of view controller
-    this.resetCamera_ = this.resetCamera; //reset camera position and rotation
-
-    //files functions
-    this.open_ = this.openFile; //open file button (trigger hidden html input...)
-    this.saveOBJ_ = this.saveFileAsOBJ; //save mesh as OBJ
-    this.savePLY_ = this.saveFileAsPLY; //save mesh as PLY
-    this.saveSTL_ = this.saveFileAsSTL; //save mesh as STL
-
-    //online exporters
-    this.keySketchfab_ = ''; //sketchfab api key
-    this.exportSketchfab_ = this.exportSketchfab; //upload file on sketchfab
-
-    //background functions
-    this.resetBg_ = this.resetBackground; //reset background
-    this.importBg_ = this.importBackground; //import background image
-
-    //misc
-    this.dummyFunc_ = function () {}; //empty function... stupid trick to get a simple button in dat.gui
+    this.ctrlTablet_ = null; //tablet controller
+    this.ctrlFiles_ = null; //files controller
+    this.ctrlCamera_ = null; //camera controller
+    this.ctrlBackground_ = null; //background controller
+    this.ctrlStates_ = null; //history controller
+    this.ctrlMultiresolution_ = null; //multiresolution controller
   }
 
   Gui.prototype = {
@@ -89,286 +50,45 @@ define([
     },
     /** Initialize the general gui (on the left) */
     initGeneralGui: function (gui) {
-      var main = this.sculptgl_;
-      var self = this;
-
-      //Pen tablet ui stuffs
-      var foldPenTablet = gui.addFolder('Wacom tablet');
-      foldPenTablet.add(Tablet, 'useOnRadius').name('Pressure radius');
-      foldPenTablet.add(Tablet, 'useOnIntensity').name('Pressure intensity');
-
-      //file fold
-      var foldFiles = gui.addFolder('Files (import/export)');
-      foldFiles.add(main, 'resetSphere_').name('Reset sphere');
-      foldFiles.add(this, 'open_').name('Import (obj, ply, stl)');
-      foldFiles.add(this, 'saveOBJ_').name('Export (obj)');
-      foldFiles.add(this, 'savePLY_').name('Export (ply)');
-      foldFiles.add(this, 'saveSTL_').name('Export (stl)');
-
-      //Sketchfab fold
-      var foldSketchfab = gui.addFolder('Go to Sketchfab !');
-      foldSketchfab.add(this, 'keySketchfab_').name('API key');
-      foldSketchfab.add(this, 'exportSketchfab_').name('Upload');
-
-      //Camera fold
-      var cameraFold = gui.addFolder('Camera');
-      cameraFold.add(this, 'resetCamera_').name('Reset');
-      var optionsCameraMode = {
-        'Spherical': Camera.mode.SPHERICAL,
-        'Plane': Camera.mode.PLANE
-      };
-      var ctrlCameraMode = cameraFold.add(main.camera_, 'mode_', optionsCameraMode).name('Mode');
-      ctrlCameraMode.onChange(function (value) {
-        main.camera_.mode_ = parseInt(value, 10);
-      });
-      var optionsCameraType = {
-        'Perspective': Camera.projType.PERSPECTIVE,
-        'Orthographic': Camera.projType.ORTHOGRAPHIC
-      };
-      this.ctrlCameraType_ = cameraFold.add(main.camera_, 'type_', optionsCameraType).name('Type');
-      this.ctrlCameraType_.onChange(function (value) {
-        main.camera_.type_ = parseInt(value, 10);
-        self.ctrlFov_.__li.hidden = main.camera_.type_ === Camera.projType.ORTHOGRAPHIC;
-        main.camera_.updateProjection();
-        main.render();
-      });
-      this.ctrlFov_ = cameraFold.add(main.camera_, 'fov_', 10, 150).name('Fov');
-      this.ctrlFov_.onChange(function () {
-        main.camera_.updateProjection();
-        main.render();
-      });
-      var ctrlPivot = cameraFold.add(main.camera_, 'usePivot_').name('Picking pivot');
-      ctrlPivot.onChange(function () {
-        main.camera_.toggleUsePivot();
-        main.render();
-      });
-      cameraFold.open();
-
-      //background fold
-      var backgroundFold = gui.addFolder('background');
-      backgroundFold.add(this, 'resetBg_').name('Reset');
-      backgroundFold.add(this, 'importBg_').name('Import (jpg, png...)');
-      backgroundFold.open();
-
-      //history fold
-      var foldHistory = gui.addFolder('History');
-      foldHistory.add(main, 'undo_').name('Undo (Ctrl+Z)');
-      foldHistory.add(main, 'redo_').name('Redo (Ctrl+Y)');
-      foldHistory.open();
+      this.ctrlTablet_ = new GuiTablet(gui);
+      this.ctrlFiles_ = new GuiFiles(gui, this);
+      this.ctrlStates_ = new GuiStates(gui, this);
+      this.ctrlCamera_ = new GuiCamera(gui, this);
+      this.ctrlBackground_ = new GuiBackground(gui, this);
     },
     /** Initialize the mesh editing gui (on the right) */
     initEditingGui: function (gui) {
-      var main = this.sculptgl_;
-      var self = this;
-
-      //sculpt fold
-      var foldSculpt = gui.addFolder('Sculpt');
-      var optionsSculpt = {
-        'Brush (1)': Sculpt.tool.BRUSH,
-        'Inflate (2)': Sculpt.tool.INFLATE,
-        'Rotate (3)': Sculpt.tool.ROTATE,
-        'Smooth (4)': Sculpt.tool.SMOOTH,
-        'Flatten (5)': Sculpt.tool.FLATTEN,
-        'Pinch (6)': Sculpt.tool.PINCH,
-        'Crease (7)': Sculpt.tool.CREASE,
-        'Drag (8)': Sculpt.tool.DRAG,
-        'Paint (9)': Sculpt.tool.COLOR,
-        'Scale (0)': Sculpt.tool.SCALE
-      };
-      this.ctrlSculpt_ = foldSculpt.add(main.sculpt_, 'tool_', optionsSculpt).name('Tool');
-      this.ctrlSculpt_.onChange(function (value) {
-        main.sculpt_.tool_ = parseInt(value, 10);
-        var tool = main.sculpt_.tool_;
-        var st = Sculpt.tool;
-        self.ctrlClay_.__li.hidden = tool !== st.BRUSH;
-        self.ctrlNegative_.__li.hidden = tool !== st.BRUSH && tool !== st.INFLATE && tool !== st.FLATTEN && tool !== st.CREASE;
-        self.ctrlContinuous_.__li.hidden = tool === st.ROTATE || tool === st.DRAG || tool === st.SCALE;
-        self.ctrlIntensity_.__li.hidden = self.ctrlContinuous_.__li.hidden;
-        self.ctrlColor_.__li.hidden = tool !== st.COLOR;
-      });
-      this.ctrlClay_ = foldSculpt.add(main.sculpt_, 'clay_').name('Clay');
-      this.ctrlNegative_ = foldSculpt.add(main.sculpt_, 'negative_').name('Negative (N)');
-      this.ctrlContinuous_ = foldSculpt.add(main, 'continuous_').name('Continuous');
-      this.ctrlSymmetry_ = foldSculpt.add(main, 'symmetry_').name('Symmetry');
-      this.ctrlSculptCulling_ = foldSculpt.add(main.sculpt_, 'culling_').name('Sculpt culling');
-      this.ctrlRadius_ = foldSculpt.add(main.picking_, 'rDisplay_', 5, 200).name('Radius');
-      this.ctrlIntensity_ = foldSculpt.add(main.sculpt_, 'intensity_', 0, 1).name('Intensity');
-      foldSculpt.open();
-
-      //multires fold
-      var foldMultires = gui.addFolder('Multires');
-      foldMultires.add(this, 'subdivide');
-      this.ctrlResolution_ = foldMultires.add({
-        dummy: 1
-      }, 'dummy', 1, 1).step(1).name('resolution');
-      this.ctrlResolution_.onChange(this.onResolutionChanged.bind(this));
-      foldMultires.open();
-
-      //mesh fold
-      var foldMesh = gui.addFolder('Mesh');
-      this.ctrlNbVertices_ = foldMesh.add(this, 'dummyFunc_').name('Ver : 0');
-      this.ctrlNbTriangles_ = foldMesh.add(this, 'dummyFunc_').name('Tri : 0');
-      var optionsShaders = {
-        'Phong': Shader.mode.PHONG,
-        'Transparency': Shader.mode.TRANSPARENCY,
-        'Normal shader': Shader.mode.NORMAL,
-        'Clay': Shader.mode.MATERIAL,
-        'Chavant': Shader.mode.MATERIAL + 1,
-        'Skin': Shader.mode.MATERIAL + 2,
-        'Drink': Shader.mode.MATERIAL + 3,
-        'Red velvet': Shader.mode.MATERIAL + 4,
-        'Orange': Shader.mode.MATERIAL + 5,
-        'Bronze': Shader.mode.MATERIAL + 6
-      };
-      this.ctrlShaders_ = foldMesh.add(new Shader(), 'type_', optionsShaders).name('Shader');
-      this.ctrlShaders_.onChange(function (value) {
-        if (main.multimesh_) {
-          main.multimesh_.updateShaders(parseInt(value, 10), main.textures_, main.shaders_);
-          main.render();
-        }
-      });
-      this.ctrlFlatShading_ = foldMesh.add(new Render(), 'flatShading_').name('flat (slower)');
-      this.ctrlFlatShading_.onChange(function (value) {
-        if (main.multimesh_) {
-          main.multimesh_.setFlatShading(value);
-          main.render();
-        }
-      });
-      this.ctrlShowWireframe_ = foldMesh.add(new Render(), 'showWireframe_').name('wireframe');
-      this.ctrlShowWireframe_.onChange(function (value) {
-        if (main.multimesh_) {
-          main.multimesh_.setWireframe(value);
-          main.render();
-        }
-      });
-
-      this.ctrlColor_ = foldMesh.addColor(main.sculpt_, 'color_').name('Color');
-      this.ctrlColor_.onChange(function (value) {
-        if (value.length === 3) { // rgb [255, 255, 255]
-          main.sculpt_.color_ = [value[0], value[1], value[2]];
-        } else if (value.length === 7) { // hex (24 bits style) "#ffaabb"
-          var intVal = parseInt(value.slice(1), 16);
-          main.sculpt_.color_ = [(intVal >> 16), (intVal >> 8 & 0xff), (intVal & 0xff)];
-        } else // fuck it
-          main.sculpt_.color_ = [168, 66, 66];
-      });
-      this.ctrlColor_.__li.hidden = true;
-      foldMesh.open();
-    },
-    /** Open file */
-    openFile: function () {
-      $('#fileopen').trigger('click');
-    },
-    /** Reset background */
-    resetBackground: function () {
-      var bg = this.sculptgl_.background_;
-      if (bg) {
-        var gl = bg.gl_;
-        gl.deleteTexture(bg.backgroundLoc_);
-        this.sculptgl_.background_ = null;
-      }
-    },
-    /** Immort background */
-    resetCamera: function () {
-      this.sculptgl_.camera_.reset();
-      this.sculptgl_.render();
-    },
-    /** Immort background */
-    importBackground: function () {
-      $('#backgroundopen').trigger('click');
-    },
-    /** Save file as OBJ*/
-    saveFileAsOBJ: function () {
-      var mesh = this.sculptgl_.multimesh_.getCurrent();
-      if (!mesh)
-        return;
-      var blob = Export.exportOBJ(mesh);
-      saveAs(blob, 'yourMesh.obj');
-    },
-    /** Save file as PLY */
-    saveFileAsPLY: function () {
-      var mesh = this.sculptgl_.multimesh_.getCurrent();
-      if (!mesh)
-        return;
-      var blob = Export.exportPLY(mesh);
-      saveAs(blob, 'yourMesh.ply');
-    },
-    /** Save file as STL */
-    saveFileAsSTL: function () {
-      var mesh = this.sculptgl_.multimesh_.getCurrent();
-      if (!mesh)
-        return;
-      var blob = Export.exportSTL(mesh);
-      saveAs(blob, 'yourMesh.stl');
-    },
-    /** Export to Sketchfab */
-    exportSketchfab: function () {
-      var mesh = this.sculptgl_.multimesh_.getCurrent();
-      if (!mesh)
-        return;
-      if (this.keySketchfab_ === '') {
-        window.alert('Please enter a sketchfab API Key.');
-        return;
-      }
-      Export.exportSketchfab(mesh, this.keySketchfab_);
+      this.ctrlSculpting_ = new GuiSculpting(gui, this);
+      this.ctrlMultiresolution_ = new GuiMultiresolution(gui, this);
+      this.ctrlRendering_ = new GuiRendering(gui, this);
     },
     /** Update information on mesh */
     updateMesh: function () {
       var mul = this.sculptgl_.multimesh_;
       if (!mul)
         return;
-      this.ctrlShaders_.object = mul.render_.shader_;
-      this.ctrlShaders_.updateDisplay();
+      this.ctrlRendering_.updateMesh(mul);
       this.updateMeshInfo(mul.getCurrent());
-      this.updateMeshResolution(mul);
-    },
-    /** Update the mesh resolution slider */
-    updateMeshResolution: function (multimesh) {
-      this.ctrlResolution_.max(multimesh.meshes_.length);
-      this.ctrlResolution_.setValue(multimesh.sel_ + 1);
+      this.ctrlMultiresolution_.updateMeshResolution(mul);
     },
     /** Update number of vertices and triangles */
     updateMeshInfo: function (mesh) {
-      this.ctrlNbVertices_.name('Ver : ' + mesh.getNbVertices());
-      this.ctrlNbTriangles_.name('Tri : ' + mesh.getNbTriangles());
+      this.ctrlRendering_.ctrlNbVertices_.name('Ver : ' + mesh.getNbVertices());
+      this.ctrlRendering_.ctrlNbTriangles_.name('Tri : ' + mesh.getNbTriangles());
     },
-    /** Subdivide the mesh */
-    subdivide: function () {
-      var main = this.sculptgl_;
-      var mul = main.multimesh_;
-      if (mul.sel_ !== mul.meshes_.length - 1) {
-        window.alert('Select the highest resolution before subdividing.');
-        return;
-      }
-      main.states_.pushState(new StateMultiresolution(mul, StateMultiresolution.SUBDIVISION));
-      this.updateMeshInfo(mul.addLevel());
-      this.updateMeshResolution(mul);
-      main.render();
-    },
-    /** Change resoltuion */
-    onResolutionChanged: function (value) {
-      var uiRes = value - 1;
-      var main = this.sculptgl_;
-      var mul = main.multimesh_;
-      if (mul.sel_ === uiRes)
-        return;
-      main.states_.pushState(new StateMultiresolution(mul, StateMultiresolution.SELECTION));
-      mul.selectResolution(uiRes);
-      this.updateMeshInfo(mul.getCurrent());
-      main.render();
-    },
+    /** Return true if flat shading is enabled */
     getFlatShading: function () {
-      return this.ctrlFlatShading_.getValue();
+      return this.ctrlRendering_.getFlatShading();
     },
+    /** Return true if wireframe is displayed */
     getWireframe: function () {
-      return this.ctrlShowWireframe_.getValue();
+      return this.ctrlRendering_.getWireframe();
     },
+    /** Return the value of the shader */
     getShader: function () {
-      return this.ctrlShaders_.getValue();
+      return this.ctrlRendering_.getShader();
     },
-    setSculptTool: function (value) {
-      this.ctrlSculpt_.setValue(value);
-    },
+    /** Set negative sculpting */
     setNegative: function (value) {
       this.ctrlNegative_.setValue(value);
     }

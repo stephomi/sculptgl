@@ -105,7 +105,7 @@ define([
       var iVerts = mesh.getVerticesFromTriangles(iTrisInCells);
       var nbVerts = iVerts.length;
       var sculptFlag = ++Mesh.SCULPT_FLAG;
-      var pickedVertices = new Uint32Array(Utils.getMemory(4 * nbVerts + 12));
+      var pickedVertices = new Uint32Array(Utils.getMemory(4 * nbVerts + 12), 0, nbVerts + 3);
       var acc = 0;
       var inter = this.interPoint_;
       var itx = inter[0];
@@ -120,13 +120,16 @@ define([
         var dz = itz - vAr[j + 2];
         if ((dx * dx + dy * dy + dz * dz) < rWorldSqr) {
           vertSculptFlags[ind] = sculptFlag;
-          pickedVertices[acc++] = iVerts[i];
+          pickedVertices[acc++] = ind;
         }
       }
       if (pickedVertices.length === 0 && this.pickedTriangle_ !== -1) {
         //no vertices inside the brush radius (big triangle or small radius)
         var iAr = mesh.indicesABC_;
         j = this.pickedTriangle_ * 3;
+        vertSculptFlags[iAr[j]] = sculptFlag;
+        vertSculptFlags[iAr[j] + 1] = sculptFlag;
+        vertSculptFlags[iAr[j] + 2] = sculptFlag;
         pickedVertices[acc++] = iAr[j];
         pickedVertices[acc++] = iAr[j + 1];
         pickedVertices[acc++] = iAr[j + 2];

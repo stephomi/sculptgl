@@ -112,11 +112,11 @@ define([
       var j = i * 3;
       var start = vrrStartCount[i * 2];
       var count = vrrStartCount[i * 2 + 1];
-      var avx = 0.0,
-        avy = 0.0,
-        avz = 0.0;
-      var beta = 0.0,
-        betaComp = 0.0;
+      var avx = 0.0;
+      var avy = 0.0;
+      var avz = 0.0;
+      var beta = 0.0;
+      var betaComp = 0.0;
       var k = 0;
       var id = 0;
       if (vertOnEdgeOld[i]) { //edge vertex

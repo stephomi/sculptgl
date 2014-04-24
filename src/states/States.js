@@ -73,7 +73,6 @@ define([
     },
     /** Reset */
     reset: function () {
-      this.multimesh_ = null;
       this.undos_ = [];
       this.redos_ = [];
       this.curUndoIndex_ = 0;

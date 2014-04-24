@@ -187,7 +187,7 @@ define([
     },
     /** Return triangles intersected by a ray */
     intersectRay: function (vNear, rayInv, hint) {
-      var collectTris = new Uint32Array(Utils.getMemory(hint * 4));
+      var collectTris = new Uint32Array(Utils.getMemory(hint * 4), 0, hint);
       var acc = [0];
       this.collectIntersectRay(vNear, rayInv, collectTris, acc);
       return new Uint32Array(collectTris.subarray(0, acc[0]));
@@ -223,7 +223,7 @@ define([
     },
     /** Return triangles inside a sphere */
     intersectSphere: function (vert, radiusSquared, leavesHit, hint) {
-      var collectTris = new Uint32Array(Utils.getMemory(hint * 4));
+      var collectTris = new Uint32Array(Utils.getMemory(hint * 4), 0, hint);
       var acc = [0];
       this.collectIntersectSphere(vert, radiusSquared, leavesHit, collectTris, acc);
       return new Uint32Array(collectTris.subarray(0, acc[0]));

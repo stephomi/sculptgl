@@ -104,7 +104,7 @@ define([
       var vertRingTri = this.vertRingTri_;
       var triTagFlags = this.triTagFlags_;
       var acc = 0;
-      var iTris = new Uint32Array(Utils.getMemory(4 * this.getNbTriangles()));
+      var iTris = new Uint32Array(Utils.getMemory(4 * this.getNbTriangles()), 0, this.getNbTriangles());
       for (var i = 0; i < nbVerts; ++i) {
         var idVert = iVerts[i] * 2;
         var start = vrtStartCount[idVert];
@@ -126,7 +126,7 @@ define([
       var vertTagFlags = this.vertTagFlags_;
       var iAr = this.indicesABC_;
       var acc = 0;
-      var verts = new Uint32Array(Utils.getMemory(4 * iTris.length * 3));
+      var verts = new Uint32Array(Utils.getMemory(4 * iTris.length * 3), 0, iTris.length * 3);
       for (var i = 0; i < nbTris; ++i) {
         var ind = iTris[i] * 3;
         var iVer1 = iAr[ind];
@@ -156,7 +156,7 @@ define([
       var triTagFlags = this.triTagFlags_;
       var iAr = this.indicesABC_;
       var acc = nbTris;
-      var iTrisExpanded = new Uint32Array(Utils.getMemory(4 * iTris.length * 3));
+      var iTrisExpanded = new Uint32Array(Utils.getMemory(4 * iTris.length * 3), 0, iTris.length * 3);
       iTrisExpanded.set(iTris);
       var i = 0;
       for (i = 0; i < nbTris; ++i)
@@ -216,7 +216,7 @@ define([
       var vertRingVert = this.vertRingVert_;
       var vertTagFlags = this.vertTagFlags_;
       var acc = nbVerts;
-      var iVertsExpanded = new Uint32Array(Utils.getMemory(4 * this.getNbVertices()));
+      var iVertsExpanded = new Uint32Array(Utils.getMemory(4 * this.getNbVertices()), 0, this.getNbVertices());
       iVertsExpanded.set(iVerts);
       var i = 0;
       for (i = 0; i < nbVerts; ++i)
@@ -574,7 +574,7 @@ define([
       var triLeaf = this.triLeaf_;
       var nbTris = iTris.length;
       var acc = 0;
-      var trisToMove = new Uint32Array(Utils.getMemory(4 * nbTris));
+      var trisToMove = new Uint32Array(Utils.getMemory(4 * nbTris), 0, nbTris);
       //recompute position inside the octree
       for (var i = 0; i < nbTris; ++i) {
         var idTri = iTris[i];

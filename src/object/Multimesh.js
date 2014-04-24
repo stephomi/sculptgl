@@ -158,18 +158,6 @@ define([
     checkLeavesUpdate: function () {
       this.getCurrent().checkLeavesUpdate();
     },
-    /** Update stuffs after undo/redo */
-    updateHistory: function () {
-      // the history doesn't save the flatShading arrays...
-      if (this.render_.flatShading_ === true) {
-        this.getCurrent().updateCacheDrawArrays();
-        if (this.render_.showWireframe_ === true) {
-          this.getCurrent().updateCacheWireframe(true);
-          this.render_.updateLinesBuffer();
-        }
-      }
-      this.updateBuffers(true, true);
-    },
     /** Change the resolution */
     selectResolution: function (sel) {
       while (this.sel_ > sel) {

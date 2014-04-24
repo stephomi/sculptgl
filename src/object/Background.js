@@ -102,7 +102,10 @@ define([], function () {
       gl.bindTexture(gl.TEXTURE_2D, this.backgroundLoc_);
       gl.uniform1i(this.backgroundTexUnif_, 0);
       gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this.indexBuffer_);
+
+      gl.depthMask(false);
       gl.drawArrays(gl.TRIANGLES, 0, 6);
+      gl.depthMask(true);
     }
   };
 
