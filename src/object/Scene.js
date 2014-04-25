@@ -28,10 +28,11 @@ define([
     //datas
     this.textures_ = {}; //textures
     this.shaders_ = {}; //shaders
-    this.sphere_ = ''; //sphere
+    this.initMeshPath_ = 'ressources/sphere.ply'; //sphere
+    this.initMesh_ = ''; //sphere
 
     //functions
-    this.resetScene_ = this.resetScene; //reset scene
+    this.loadScene_ = this.loadScene; //reset scene
 
     this.init();
   }
@@ -96,6 +97,17 @@ define([
       };
       reader.readAsDataURL(file);
     },
+    /** Return the file type */
+    getFileType: function (name) {
+      var lower = name.toLowerCase();
+      if (lower.endsWith('.obj'))
+        return 'obj';
+      if (lower.endsWith('.stl'))
+        return 'stl';
+      if (lower.endsWith('.ply'))
+        return 'ply';
+      return;
+    },
     /** Load file */
     loadFile: function (event) {
       event.stopPropagation();
@@ -103,38 +115,32 @@ define([
       if (event.target.files.length === 0)
         return;
       var file = event.target.files[0];
-      var name = file.name.toLowerCase();
-      var fileType = '';
-      fileType = name.endsWith('.obj') ? 'obj' : fileType;
-      fileType = name.endsWith('.stl') ? 'stl' : fileType;
-      fileType = name.endsWith('.ply') ? 'ply' : fileType;
-      if (fileType === '')
+      var fileType = this.getFileType(file.name);
+      if (!fileType)
         return;
       var reader = new FileReader();
       var self = this;
       reader.onload = function (evt) {
-        self.startMeshLoad();
-        var mesh = self.sculptgl_.multimesh_.getCurrent();
-        if (fileType === 'obj')
-          Import.importOBJ(evt.target.result, mesh);
-        else if (fileType === 'stl')
-          Import.importSTL(evt.target.result, mesh);
-        else if (fileType === 'ply')
-          Import.importPLY(evt.target.result, mesh);
-        self.endMeshLoad();
+        self.loadScene(evt.target.result, fileType);
         $('#fileopen').replaceWith($('#fileopen').clone(true));
       };
       if (fileType === 'obj')
         reader.readAsText(file);
-      else if (fileType === 'stl')
-        reader.readAsArrayBuffer(file);
-      else if (fileType === 'ply')
+      else
         reader.readAsArrayBuffer(file);
     },
-    /** Open file */
-    resetScene: function () {
+    /** Load a file */
+    loadScene: function (fileData, fileType) {
       this.startMeshLoad();
-      Import.importOBJ(this.sphere_, this.sculptgl_.multimesh_.getCurrent());
+      var mesh = this.sculptgl_.multimesh_.getCurrent();
+      var data = fileData || this.initMesh_;
+      var type = fileType || this.getFileType(this.initMeshPath_);
+      if (type === 'obj')
+        Import.importOBJ(data, mesh);
+      else if (type === 'stl')
+        Import.importSTL(data, mesh);
+      else if (type === 'ply')
+        Import.importPLY(data, mesh);
       this.endMeshLoad();
     },
     /** Initialization before loading the mesh */
@@ -157,7 +163,7 @@ define([
       multimesh.initRender(this.textures_, this.shaders_, gui.getShader(), gui.getFlatShading(), gui.getWireframe());
       gui.updateMesh();
       // uncomment this line to create new scene
-      //this.multimeshes_.length = 0;
+      this.multimeshes_.length = 0;
       this.multimeshes_.push(multimesh);
       this.render();
     },
@@ -215,11 +221,14 @@ define([
     loadSphere: function () {
       var self = this;
       var sphereXhr = new XMLHttpRequest();
-      sphereXhr.open('GET', 'ressources/sphere.obj', true);
-      sphereXhr.responseType = 'text';
+      sphereXhr.open('GET', this.initMeshPath_, true);
+      var fileType = this.getFileType(this.initMeshPath_);
+      if (!fileType)
+        return;
+      sphereXhr.responseType = fileType === 'obj' ? 'text' : 'arraybuffer';
       sphereXhr.onload = function () {
-        self.sphere_ = this.response;
-        self.resetScene();
+        self.initMesh_ = this.response;
+        self.loadScene();
       };
       sphereXhr.send(null);
     }

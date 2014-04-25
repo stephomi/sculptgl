@@ -52,7 +52,9 @@ module.exports = function (grunt) {
         '**/*.css',
         '**/*.vert',
         '**/*.frag',
-        '**/*.obj'
+        '**/*.obj',
+        '**/*.ply',
+        '**/*.stl'
       ],
       dest: 'build/manifest.appcache'
     }
