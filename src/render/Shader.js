@@ -1,9 +1,8 @@
 define([
   'lib/glMatrix',
   'render/Attribute',
-  'render/ShaderConfigs',
-  'misc/Utils'
-], function (glm, Attribute, ShaderConfigs, Utils) {
+  'render/ShaderConfigs'
+], function (glm, Attribute, ShaderConfigs) {
 
   'use strict';
 
@@ -106,7 +105,7 @@ define([
       } else if (type === Shader.mode.WIREFRAME) {
         render.wireframeBuffer_.bind();
         gl.enable(gl.BLEND);
-        gl.drawElements(gl.LINES, render.multimesh_.getCurrent().getNbEdges() * 2, Utils.elementIndexType, 0);
+        gl.drawElements(gl.LINES, render.multimesh_.getCurrent().getNbEdges() * 2, gl.UNSIGNED_INT, 0);
         gl.disable(gl.BLEND);
       } else {
         this.drawBuffer(render);
@@ -118,11 +117,11 @@ define([
     drawBuffer: function (render) {
       var lengthIndexArray = render.multimesh_.getCurrent().getNbTriangles() * 3;
       var gl = this.gl_;
-      if (render.flatShading_ === true)
+      if (render.isUsingDrawArrays())
         gl.drawArrays(gl.TRIANGLES, 0, lengthIndexArray);
       else {
         render.indexBuffer_.bind();
-        gl.drawElements(gl.TRIANGLES, lengthIndexArray, Utils.elementIndexType, 0);
+        gl.drawElements(gl.TRIANGLES, lengthIndexArray, gl.UNSIGNED_INT, 0);
       }
       gl.bindBuffer(gl.ARRAY_BUFFER, null);
       gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, null);

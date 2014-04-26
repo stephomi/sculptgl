@@ -21,12 +21,31 @@ define([
     this.indexBuffer_ = null; //indexes buffer
     this.wireframeBuffer_ = null; //wireframe buffer
     this.reflectionLoc_ = null; //texture reflection
-
-    this.vSize_ = 0;
-    this.iSize_ = 0;
   }
 
+  Render.ONLY_DRAW_ARRAYS = false;
+
   Render.prototype = {
+    /** Return true if the render is using drawArrays instead of drawElements */
+    isUsingDrawArrays: function () {
+      return Render.ONLY_DRAW_ARRAYS ? true : this.getFlatShading();
+    },
+    /** Set show wireframe */
+    setShowWireframe: function (showWireframe) {
+      this.showWireframe_ = showWireframe;
+    },
+    /** Return show wireframe */
+    getShowWireframe: function () {
+      return Render.ONLY_DRAW_ARRAYS ? false : this.showWireframe_;
+    },
+    /** Set flat shading */
+    setFlatShading: function (flatShading) {
+      this.flatShading_ = flatShading;
+    },
+    /** Return flat shading */
+    getFlatShading: function () {
+      return this.flatShading_;
+    },
     /** Initialize Vertex Buffer Object (VBO) */
     initBuffers: function () {
       var gl = this.gl_;
@@ -60,12 +79,12 @@ define([
     /** Render the mesh */
     render: function (camera, picking) {
       this.shader_.draw(this, camera, picking);
-      if (this.showWireframe_ === true)
+      if (this.getShowWireframe())
         this.shaderWireframe_.draw(this, camera, picking);
     },
     /** Update buffers */
     updateBuffers: function (updateColors, updateIndex) {
-      if (this.flatShading_ === true)
+      if (this.isUsingDrawArrays())
         this.updateDrawArrays(updateColors);
       else
         this.updateDrawElements(updateColors, updateIndex);
@@ -91,7 +110,7 @@ define([
     /** Updates wireframe buffer */
     updateLinesBuffer: function () {
       var mesh = this.multimesh_.getCurrent();
-      var lineBuffer = this.flatShading_ ? mesh.cacheDrawArraysWireframe_ : mesh.cacheDrawElementsWireframe_;
+      var lineBuffer = this.isUsingDrawArrays() ? mesh.cacheDrawArraysWireframe_ : mesh.cacheDrawElementsWireframe_;
       this.wireframeBuffer_.update(lineBuffer);
     }
   };

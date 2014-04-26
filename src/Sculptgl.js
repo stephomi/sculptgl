@@ -2,10 +2,10 @@ define([
   'lib/jQuery',
   'editor/Sculpt',
   'gui/Gui',
-  'misc/Utils',
   'object/Scene',
-  'states/States'
-], function ($, Sculpt, Gui, Utils, Scene, States) {
+  'states/States',
+  'render/Render'
+], function ($, Sculpt, Gui, Scene, States, Render) {
 
   'use strict';
 
@@ -64,12 +64,8 @@ define([
       }
       var gl = this.gl_;
       if (gl) {
-        if (gl.getExtension('OES_element_index_uint')) {
-          Utils.elementIndexType = gl.UNSIGNED_INT;
-          Utils.indexArrayType = Uint32Array;
-        } else {
-          Utils.elementIndexType = gl.UNSIGNED_SHORT;
-          Utils.indexArrayType = Uint16Array;
+        if (!gl.getExtension('OES_element_index_uint')) {
+          Render.ONLY_DRAW_ARRAYS = true;
         }
         gl.viewportWidth = $(window).width();
         gl.viewportHeight = $(window).height();

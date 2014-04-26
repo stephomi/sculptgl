@@ -63,10 +63,12 @@ define([
       this.ctrlShowWireframe_ = foldMesh.add(new Render(), 'showWireframe_').name('wireframe');
       this.ctrlShowWireframe_.onChange(function (value) {
         if (main.multimesh_) {
-          main.multimesh_.setWireframe(value);
+          main.multimesh_.setShowWireframe(value);
           main.scene_.render();
         }
       });
+      if (Render.ONLY_DRAW_ARRAYS)
+        this.ctrlShowWireframe_.__li.hidden = true;
 
       foldMesh.open();
     },

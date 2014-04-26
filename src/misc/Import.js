@@ -53,7 +53,7 @@ define([
       }
     }
     mesh.verticesXYZ_ = new Float32Array(vAr);
-    mesh.indicesABC_ = new Utils.indexArrayType(iAr);
+    mesh.indicesABC_ = new Uint32Array(iAr);
   };
 
   /** Import PLY file */
@@ -104,7 +104,7 @@ define([
         ++i;
         vAr = new Float32Array(nbVertices * 3);
         cAr = colorIndex !== -1 ? new Float32Array(nbVertices * 3) : null;
-        iAr = new Utils.indexArrayType(nbFaces * 4);
+        iAr = new Uint32Array(nbFaces * 4);
         var offsetTri = 0;
         if (isBinary)
           offsetTri = Import.importBinaryPLY(buffer, offsetData + i, offsetVertex, vAr, iAr, cAr, colorIndex);
@@ -170,7 +170,7 @@ define([
         ib[idt++] = data[offData++];
       }
     }
-    iAr.set(new Utils.indexArrayType(ib.buffer));
+    iAr.set(new Uint32Array(ib.buffer));
     return idt / 4;
   };
 
@@ -227,7 +227,7 @@ define([
     nbTriangles = vb.length / 9;
     var mapVertices = {};
     var nbVertices = [0];
-    var iAr = new Utils.indexArrayType(nbTriangles * 3);
+    var iAr = new Uint32Array(nbTriangles * 3);
     for (var i = 0; i < nbTriangles; ++i) {
       var idt = i * 3;
       var idv = i * 9;

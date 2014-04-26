@@ -19,9 +19,6 @@ define([], function () {
 
   var Utils = {};
 
-  Utils.elementIndexType = 0; //element index type (ushort or uint)
-  Utils.indexArrayType = Uint16Array; //typed array for index element (uint16Array or uint32Array)
-
   Utils.littleEndian = (function () {
     var buffer = new ArrayBuffer(2);
     new DataView(buffer).setInt16(0, 256, true);

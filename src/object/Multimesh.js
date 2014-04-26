@@ -76,9 +76,10 @@ define([
     /** Update the mesh after a change in resolution */
     updateResolution: function () {
       this.updateMesh();
-      if (this.render_.showWireframe_ === true) {
-        this.getCurrent().updateCacheWireframe(this.render_.flatShading_);
-        this.render_.updateLinesBuffer();
+      var render = this.render_;
+      if (render.getShowWireframe()) {
+        this.getCurrent().updateCacheWireframe(render.isUsingDrawArrays());
+        render.updateLinesBuffer();
       }
       this.updateBuffers(true, true);
     },
@@ -102,17 +103,18 @@ define([
     },
     /** Initialize rendering */
     initRender: function (textures, shaders, shaderType, flatShading, showWireframe) {
-      this.render_.initBuffers();
-      this.render_.initShaderWireframe(shaders);
+      var render = this.render_;
+      render.initBuffers();
+      render.initShaderWireframe(shaders);
 
-      this.render_.flatShading_ = flatShading;
-      if (flatShading === true)
-        this.getCurrent().updateCacheDrawArrays();
+      render.setFlatShading(flatShading);
+      if (render.isUsingDrawArrays())
+        this.getCurrent().updateCacheDrawArrays(render.getFlatShading());
 
-      this.render_.showWireframe_ = showWireframe;
-      if (showWireframe === true) {
-        this.getCurrent().updateCacheWireframe(flatShading);
-        this.render_.updateLinesBuffer();
+      render.setShowWireframe(showWireframe);
+      if (render.getShowWireframe()) {
+        this.getCurrent().updateCacheWireframe(render.isUsingDrawArrays());
+        render.updateLinesBuffer();
       }
 
       this.updateShaders(shaderType, textures, shaders);
@@ -124,21 +126,23 @@ define([
     },
     /** Set flat shading rendering */
     setFlatShading: function (value) {
-      this.render_.flatShading_ = value;
-      if (value === true)
-        this.getCurrent().updateCacheDrawArrays();
-      if (this.render_.showWireframe_ === true) {
-        this.getCurrent().updateCacheWireframe(value);
-        this.render_.updateLinesBuffer();
+      var render = this.render_;
+      render.setFlatShading(value);
+      if (render.isUsingDrawArrays())
+        this.getCurrent().updateCacheDrawArrays(render.getFlatShading());
+      if (render.getShowWireframe()) {
+        this.getCurrent().updateCacheWireframe(render.isUsingDrawArrays());
+        render.updateLinesBuffer();
       }
       this.updateBuffers(true, true);
     },
-    /** Set wireframe */
-    setWireframe: function (value) {
-      this.render_.showWireframe_ = value;
-      if (value === true)
-        this.getCurrent().updateCacheWireframe(this.render_.flatShading_);
-      this.render_.updateLinesBuffer();
+    /** Set wireframe display */
+    setShowWireframe: function (value) {
+      var render = this.render_;
+      render.setShowWireframe(value);
+      if (render.getShowWireframe())
+        this.getCurrent().updateCacheWireframe(render.isUsingDrawArrays());
+      render.updateLinesBuffer();
     },
     /** Update the rendering buffers */
     updateBuffers: function (updateColors, updateIndex) {
@@ -147,8 +151,9 @@ define([
     updateMesh: function (iTris, iVerts) {
       var mesh = this.getCurrent();
       mesh.updateGeometry(iTris, iVerts);
-      if (this.render_.flatShading_ === true)
-        mesh.updateCacheDrawArrays(iTris, iVerts);
+      var render = this.render_;
+      if (render.isUsingDrawArrays())
+        mesh.updateCacheDrawArrays(render.getFlatShading(), iTris);
     },
     /** Render the mesh */
     render: function (camera, picking) {

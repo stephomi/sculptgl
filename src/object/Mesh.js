@@ -687,8 +687,9 @@ define([
       this.leavesUpdate_.length = 0;
     },
     /** Updates the arrays that are going to be used for webgl */
-    updateCacheDrawArrays: function (iTris) {
+    updateCacheDrawArrays: function (flat, iTris) {
       var vAr = this.verticesXYZ_;
+      var nAr = this.normalsXYZ_;
       var cAr = this.colorsRGB_;
       var iAr = this.indicesABC_;
       var triNormals = this.triNormalsXYZ_;
@@ -739,25 +740,37 @@ define([
         cdc[vId + 7] = cAr[id3 + 1];
         cdc[vId + 8] = cAr[id3 + 2];
 
-        cdn[vId] = cdn[vId + 3] = cdn[vId + 6] = triNormals[j];
-        cdn[vId + 1] = cdn[vId + 4] = cdn[vId + 7] = triNormals[j + 1];
-        cdn[vId + 2] = cdn[vId + 5] = cdn[vId + 8] = triNormals[j + 2];
+        if (flat) {
+          cdn[vId] = cdn[vId + 3] = cdn[vId + 6] = triNormals[j];
+          cdn[vId + 1] = cdn[vId + 4] = cdn[vId + 7] = triNormals[j + 1];
+          cdn[vId + 2] = cdn[vId + 5] = cdn[vId + 8] = triNormals[j + 2];
+        } else {
+          cdn[vId] = nAr[id1];
+          cdn[vId + 1] = nAr[id1 + 1];
+          cdn[vId + 2] = nAr[id1 + 2];
+          cdn[vId + 3] = nAr[id2];
+          cdn[vId + 4] = nAr[id2 + 1];
+          cdn[vId + 5] = nAr[id2 + 2];
+          cdn[vId + 6] = nAr[id3];
+          cdn[vId + 7] = nAr[id3 + 1];
+          cdn[vId + 8] = nAr[id3 + 2];
+        }
       }
     },
     /** Updates the arrays that are going to be used for webgl */
-    updateCacheWireframe: function (flatShading) {
+    updateCacheWireframe: function (isUsingDrawArray) {
       var nbEdges = this.getNbEdges();
       var cdw;
-      if (flatShading) {
+      if (isUsingDrawArray) {
         if (this.cacheDrawArraysWireframe_ && this.cacheDrawArraysWireframe_.length === nbEdges * 2) {
           return;
         }
-        cdw = this.cacheDrawArraysWireframe_ = new Utils.indexArrayType(nbEdges * 2);
+        cdw = this.cacheDrawArraysWireframe_ = new Uint32Array(nbEdges * 2);
       } else {
         if (this.cacheDrawElementsWireframe_ && this.cacheDrawElementsWireframe_.length === nbEdges * 2) {
           return;
         }
-        cdw = this.cacheDrawElementsWireframe_ = new Utils.indexArrayType(nbEdges * 2);
+        cdw = this.cacheDrawElementsWireframe_ = new Uint32Array(nbEdges * 2);
       }
 
       var iAr = this.indicesABC_;
@@ -770,9 +783,9 @@ define([
       for (var i = 0; i < nbTriangles; ++i) {
         var id = i * 3;
 
-        var iv1 = flatShading ? id : iAr[id];
-        var iv2 = flatShading ? id + 1 : iAr[id + 1];
-        var iv3 = flatShading ? id + 2 : iAr[id + 2];
+        var iv1 = isUsingDrawArray ? id : iAr[id];
+        var iv2 = isUsingDrawArray ? id + 1 : iAr[id + 1];
+        var iv3 = isUsingDrawArray ? id + 2 : iAr[id + 2];
 
         var ide1 = teAr[id];
         var ide2 = teAr[id + 1];
