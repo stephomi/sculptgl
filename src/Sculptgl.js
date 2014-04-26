@@ -24,7 +24,7 @@ define([
     this.states_ = new States(); //for undo-redo
     this.sculpt_ = new Sculpt(this.states_); //sculpting management
     this.scene_ = null;
-    this.multimesh_ = null; //the multiresolution mesh
+    this.mesh_ = null; //the multiresolution mesh
 
     //ui stuffs
     this.gui_ = new Gui(this); //gui
@@ -109,15 +109,15 @@ define([
       var mouseY = this.mouseY_ = event.pageY;
       var button = this.mouseButton_ = event.which;
       if (button === 1 && !event.altKey) {
-        if (this.multimesh_) {
+        if (this.mesh_) {
           this.sumDisplacement_ = 0;
           this.sculpt_.start(this);
         }
       }
-      if (button === 3 || (button === 1 && this.scene_.picking_.multimesh_ === null) || (event.altKey && button !== 0)) {
+      if (button === 3 || (button === 1 && this.scene_.picking_.mesh_ === null) || (event.altKey && button !== 0)) {
         this.mouseButton_ = 3;
         if (this.scene_.camera_.usePivot_)
-          this.scene_.picking_.intersectionMouseMesh(this.multimesh_, mouseX, mouseY);
+          this.scene_.picking_.intersectionMouseMesh(this.mesh_, mouseX, mouseY);
         this.scene_.camera_.start(mouseX, mouseY, this.scene_.picking_);
       }
     },
@@ -129,8 +129,8 @@ define([
       var mouseY = this.mouseY_ = event.pageY;
       var button = this.mouseButton_;
       var camera = this.scene_.camera_;
-      if (this.multimesh_ && (button !== 1 || this.sculpt_.allowPicking()))
-        this.scene_.picking_.intersectionMouseMesh(this.multimesh_, mouseX, mouseY);
+      if (this.mesh_ && (button !== 1 || this.sculpt_.allowPicking()))
+        this.scene_.picking_.intersectionMouseMesh(this.mesh_, mouseX, mouseY);
       if (button === 1 && !event.altKey)
         this.sculpt_.update(this);
       else if (button === 2 || (event.altKey && event.shiftKey && button !== 0))

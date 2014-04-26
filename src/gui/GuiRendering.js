@@ -48,22 +48,22 @@ define([
       };
       this.ctrlShaders_ = foldMesh.add(new Shader(), 'type_', optionsShaders).name('Shader');
       this.ctrlShaders_.onChange(function (value) {
-        if (main.multimesh_) {
-          main.multimesh_.updateShaders(parseInt(value, 10), main.scene_.textures_, main.scene_.shaders_);
+        if (main.mesh_) {
+          main.mesh_.updateShaders(parseInt(value, 10), main.scene_.textures_, main.scene_.shaders_);
           main.scene_.render();
         }
       });
       this.ctrlFlatShading_ = foldMesh.add(new Render(), 'flatShading_').name('flat (slower)');
       this.ctrlFlatShading_.onChange(function (value) {
-        if (main.multimesh_) {
-          main.multimesh_.setFlatShading(value);
+        if (main.mesh_) {
+          main.mesh_.setFlatShading(value);
           main.scene_.render();
         }
       });
       this.ctrlShowWireframe_ = foldMesh.add(new Render(), 'showWireframe_').name('wireframe');
       this.ctrlShowWireframe_.onChange(function (value) {
-        if (main.multimesh_) {
-          main.multimesh_.setShowWireframe(value);
+        if (main.mesh_) {
+          main.mesh_.setShowWireframe(value);
           main.scene_.render();
         }
       });

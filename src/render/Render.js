@@ -6,7 +6,7 @@ define([
   'use strict';
 
   function Render(gl, mesh) {
-    this.multimesh_ = mesh; //webgl context
+    this.mesh_ = mesh; //webgl context
     this.gl_ = gl; //webgl context
 
     this.shader_ = new Shader(gl); //the program shader for the mesh
@@ -91,26 +91,26 @@ define([
     },
     /** Updates DrawArrays buffers */
     updateDrawArrays: function (updateColors) {
-      var mesh = this.multimesh_.getCurrent();
-      this.vertexBuffer_.update(mesh.cacheDrawArraysV_);
-      this.normalBuffer_.update(mesh.cacheDrawArraysN_);
+      var mesh = this.mesh_;
+      this.vertexBuffer_.update(mesh.getCacheDrawArraysV());
+      this.normalBuffer_.update(mesh.getCacheDrawArraysN());
       if (updateColors)
-        this.colorBuffer_.update(mesh.cacheDrawArraysC_);
+        this.colorBuffer_.update(mesh.getCacheDrawArraysC());
     },
     /** Updates DrawElements buffers */
     updateDrawElements: function (updateColors, updateIndex) {
-      var mesh = this.multimesh_.getCurrent();
-      this.vertexBuffer_.update(mesh.verticesXYZ_);
-      this.normalBuffer_.update(mesh.normalsXYZ_);
+      var mesh = this.mesh_;
+      this.vertexBuffer_.update(mesh.getVertices());
+      this.normalBuffer_.update(mesh.getNormals());
       if (updateColors)
-        this.colorBuffer_.update(mesh.colorsRGB_);
+        this.colorBuffer_.update(mesh.getColors());
       if (updateIndex)
-        this.indexBuffer_.update(mesh.indicesABC_);
+        this.indexBuffer_.update(mesh.getIndices());
     },
     /** Updates wireframe buffer */
     updateLinesBuffer: function () {
-      var mesh = this.multimesh_.getCurrent();
-      var lineBuffer = this.isUsingDrawArrays() ? mesh.cacheDrawArraysWireframe_ : mesh.cacheDrawElementsWireframe_;
+      var mesh = this.mesh_;
+      var lineBuffer = this.isUsingDrawArrays() ? mesh.getCacheDrawArraysWireframe() : mesh.getCacheDrawElementsWireframe();
       this.wireframeBuffer_.update(lineBuffer);
     }
   };

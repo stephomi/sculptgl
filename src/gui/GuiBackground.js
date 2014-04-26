@@ -24,6 +24,7 @@ define([
       if (bg) {
         bg.release();
         this.scene_.background_ = null;
+        this.scene_.render();
       }
     },
     /** Immort background */

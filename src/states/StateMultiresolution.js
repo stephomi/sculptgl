@@ -8,8 +8,8 @@ define([], function () {
     this.vArState_ = null; //copies of vertices coordinates
     this.cArState_ = null; //copies of vertices coordinates
     if (type === StateMultiresolution.SUBDIVISION && !ignoreData) {
-      this.vArState_ = new Float32Array(this.mesh_.verticesXYZ_);
-      this.cArState_ = new Float32Array(this.mesh_.colorsRGB_);
+      this.vArState_ = new Float32Array(this.mesh_.getVertices());
+      this.cArState_ = new Float32Array(this.mesh_.getColors());
     }
     this.type_ = type;
   }
@@ -21,8 +21,8 @@ define([], function () {
     /** On undo */
     undo: function () {
       if (this.type_ === StateMultiresolution.SUBDIVISION) {
-        this.mesh_.verticesXYZ_ = new Float32Array(this.vArState_);
-        this.mesh_.colorsRGB_ = new Float32Array(this.cArState_);
+        this.mesh_.setVertices(new Float32Array(this.vArState_));
+        this.mesh_.setColors(new Float32Array(this.cArState_));
         this.multimesh_.popMesh();
       } else {
         this.multimesh_.selectMesh(this.mesh_);

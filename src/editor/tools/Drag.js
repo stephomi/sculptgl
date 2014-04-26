@@ -12,7 +12,7 @@ define([
 
   function Drag(states) {
     this.states_ = states; //for undo-redo
-    this.multimesh_ = null; //the current edited mesh
+    this.mesh_ = null; //the current edited mesh
 
     //drag stuffs
     this.dragDir_ = [0.0, 0.0, 0.0]; //direction of deformation
@@ -23,12 +23,12 @@ define([
     /** Start sculpting operation */
     start: function (sculptgl) {
       var picking = sculptgl.scene_.picking_;
-      var multimesh = sculptgl.multimesh_;
-      picking.intersectionMouseMesh(multimesh, sculptgl.mouseX_, sculptgl.mouseY_);
-      if (picking.multimesh_ === null)
+      var mesh = sculptgl.mesh_;
+      picking.intersectionMouseMesh(mesh, sculptgl.mouseX_, sculptgl.mouseY_);
+      if (picking.mesh_ === null)
         return;
-      this.states_.pushState(new StateGeometry(multimesh));
-      this.multimesh_ = multimesh;
+      this.states_.pushState(new StateGeometry(mesh));
+      this.mesh_ = mesh;
       this.update(sculptgl);
     },
     /** Update sculpting operation */
@@ -52,12 +52,12 @@ define([
       dy /= dist;
       mouseX = lx;
       mouseY = ly;
-      var multimesh = this.multimesh_;
+      var mesh = this.mesh_;
       var sym = sculptgl.sculpt_.symmetry_;
       minSpacing = 0.0;
-      if (picking.multimesh_ === null)
+      if (picking.mesh_ === null)
         return;
-      picking.multimesh_ = pickingSym.multimesh_ = multimesh;
+      picking.mesh_ = pickingSym.mesh_ = mesh;
       vec3.copy(pickingSym.interPoint_, picking.interPoint_);
       Geometry.mirrorPoint(pickingSym.interPoint_, ptPlane, nPlane);
       if (sumDisp > minSpacing || sumDisp === 0.0) {
@@ -75,13 +75,13 @@ define([
           mouseX += dx * step;
           mouseY += dy * step;
         }
-        this.multimesh_.updateBuffers();
+        this.mesh_.updateBuffers();
       }
       sculptgl.sumDisplacement_ = sumDisp;
     },
     /** On stroke */
     stroke: function (picking, sym) {
-      var mesh = this.multimesh_.getCurrent();
+      var mesh = this.mesh_;
       var iVertsInRadius = picking.pickedVertices_;
 
       //undo-redo
@@ -92,11 +92,11 @@ define([
 
       this.drag(mesh, iVertsInRadius, picking.interPoint_, picking.rLocalSqr_, sym);
 
-      this.multimesh_.updateMesh(mesh.getTrianglesFromVertices(iVertsInRadius), iVertsInRadius);
+      this.mesh_.updateMesh(mesh.getTrianglesFromVertices(iVertsInRadius), iVertsInRadius);
     },
     /** Drag deformation */
     drag: function (mesh, iVerts, center, radiusSquared, sym) {
-      var vAr = this.multimesh_.getCurrent().verticesXYZ_;
+      var vAr = mesh.getVertices();
       var nbVerts = iVerts.length;
       var radius = Math.sqrt(radiusSquared);
       var cx = center[0];
@@ -121,11 +121,11 @@ define([
     },
     /** Set a few infos that will be needed for the drag function afterwards */
     updateDragDir: function (picking, mouseX, mouseY, ptPlane, nPlane) {
-      var multimesh = this.multimesh_;
+      var mesh = this.mesh_;
       var vNear = picking.camera_.unproject(mouseX, mouseY, 0.0);
       var vFar = picking.camera_.unproject(mouseX, mouseY, 1.0);
       var matInverse = mat4.create();
-      mat4.invert(matInverse, multimesh.getMatrix());
+      mat4.invert(matInverse, mesh.getMatrix());
       vec3.transformMat4(vNear, vNear, matInverse);
       vec3.transformMat4(vFar, vFar, matInverse);
       var dir = this.dragDir_;
@@ -137,7 +137,7 @@ define([
       var center = picking.interPoint_;
       picking.interPoint_ = Geometry.vertexOnLine(center, vNear, vFar);
       vec3.sub(dir, picking.interPoint_, center);
-      picking.multimesh_ = multimesh;
+      picking.mesh_ = mesh;
       picking.computeRadiusWorldSq(mouseX, mouseY);
       var eyeDir = picking.eyeDir_;
       vec3.sub(eyeDir, vFar, vNear);

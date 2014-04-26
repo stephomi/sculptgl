@@ -8,14 +8,14 @@ define([
 
   /** Go to one level above (down to up) */
   Multiresolution.higherSynthesis = function (meshDown, meshUp) {
-    Subdivision.partialSubdivision(meshDown, meshUp.verticesXYZ_, meshUp.colorsRGB_);
+    Subdivision.partialSubdivision(meshDown, meshUp.getVertices(), meshUp.getColors());
     Multiresolution.applyDetails(meshUp);
   };
 
   /** Go to one level below (up to down) */
   Multiresolution.lowerAnalysis = function (meshUp, meshDown) {
-    meshDown.verticesXYZ_.set(meshUp.verticesXYZ_.subarray(0, meshDown.getNbVertices() * 3));
-    meshDown.colorsRGB_.set(meshUp.colorsRGB_.subarray(0, meshDown.getNbVertices() * 3));
+    meshDown.getVertices().set(meshUp.getVertices().subarray(0, meshDown.getNbVertices() * 3));
+    meshDown.getColors().set(meshUp.getColors().subarray(0, meshDown.getNbVertices() * 3));
     var subdVerts = new Float32Array(meshUp.getNbVertices() * 3);
     var subdColors = new Float32Array(meshUp.getNbVertices() * 3);
     Subdivision.partialSubdivision(meshDown, subdVerts, subdColors);
@@ -24,16 +24,16 @@ define([
 
   /** Apply back the detail vectors */
   Multiresolution.applyDetails = function (meshUp) {
-    var vrrStartCountUp = meshUp.vrrStartCount_;
-    var vertRingVertUp = meshUp.vertRingVert_;
-    var vArUp = meshUp.verticesXYZ_;
-    var nArUp = meshUp.normalsXYZ_;
-    var cArUp = meshUp.colorsRGB_;
+    var vrrStartCountUp = meshUp.getVertRingVertStartCount();
+    var vertRingVertUp = meshUp.getVertRingVert();
+    var vArUp = meshUp.getVertices();
+    var nArUp = meshUp.getNormals();
+    var cArUp = meshUp.getColors();
     var nbVertsUp = meshUp.getNbVertices();
 
     var vArOut = new Float32Array(vArUp.length);
-    var dAr = meshUp.detailsXYZ_;
-    var dColorAr = meshUp.detailsRGB_;
+    var dAr = meshUp.getDetailsVertices();
+    var dColorAr = meshUp.getDetailsColors();
 
     for (var i = 0; i < nbVertsUp; ++i) {
       var j = i * 3;
@@ -89,20 +89,22 @@ define([
       cArUp[j + 1] += dColorAr[j + 1];
       cArUp[j + 2] += dColorAr[j + 2];
     }
-    meshUp.verticesXYZ_ = vArOut;
+    meshUp.setVertices(vArOut);
   };
 
   /** Compute the detail vectors */
   Multiresolution.computeDetails = function (meshUp, downSubd, subdColors) {
-    var vrrStartCountUp = meshUp.vrrStartCount_;
-    var vertRingVertUp = meshUp.vertRingVert_;
-    var vArUp = meshUp.verticesXYZ_;
-    var nArUp = meshUp.normalsXYZ_;
-    var cArUp = meshUp.colorsRGB_;
+    var vrrStartCountUp = meshUp.getVertRingVertStartCount();
+    var vertRingVertUp = meshUp.getVertRingVert();
+    var vArUp = meshUp.getVertices();
+    var nArUp = meshUp.getNormals();
+    var cArUp = meshUp.getColors();
     var nbVertices = meshUp.getNbVertices();
 
-    var dAr = meshUp.detailsXYZ_ = new Float32Array(downSubd.length);
-    var dColorAr = meshUp.detailsRGB_ = new Float32Array(downSubd.length);
+    var dAr = new Float32Array(downSubd.length);
+    meshUp.setDetailsVertices(dAr);
+    var dColorAr = new Float32Array(downSubd.length);
+    meshUp.setDetailsColors(dColorAr);
 
     for (var i = 0; i < nbVertices; ++i) {
       var j = i * 3;

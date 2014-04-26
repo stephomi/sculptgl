@@ -105,7 +105,7 @@ define([
       } else if (type === Shader.mode.WIREFRAME) {
         render.wireframeBuffer_.bind();
         gl.enable(gl.BLEND);
-        gl.drawElements(gl.LINES, render.multimesh_.getCurrent().getNbEdges() * 2, gl.UNSIGNED_INT, 0);
+        gl.drawElements(gl.LINES, render.mesh_.getNbEdges() * 2, gl.UNSIGNED_INT, 0);
         gl.disable(gl.BLEND);
       } else {
         this.drawBuffer(render);
@@ -115,7 +115,7 @@ define([
     },
     /** Draw buffer */
     drawBuffer: function (render) {
-      var lengthIndexArray = render.multimesh_.getCurrent().getNbTriangles() * 3;
+      var lengthIndexArray = render.mesh_.getNbTriangles() * 3;
       var gl = this.gl_;
       if (render.isUsingDrawArrays())
         gl.drawArrays(gl.TRIANGLES, 0, lengthIndexArray);
@@ -146,7 +146,7 @@ define([
     updateUniforms: function (render, camera, picking) {
       var gl = this.gl_;
       var uniforms = this.uniforms_;
-      var mMatrix = render.multimesh_.getMatrix();
+      var mMatrix = render.mesh_.getMatrix();
       var mvMatrix;
 
       var unif = uniforms.uMV;

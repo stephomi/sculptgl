@@ -23,7 +23,7 @@ define([
 
     //renderable stuffs
     this.background_ = null; //the background
-    this.multimeshes_ = []; //the meshes
+    this.meshes_ = []; //the meshes
 
     //datas
     this.textures_ = {}; //textures
@@ -72,7 +72,7 @@ define([
       this.camera_.updateView();
       if (this.background_)
         this.background_.render();
-      for (var i = 0, meshes = this.multimeshes_, nb = meshes.length; i < nb; ++i)
+      for (var i = 0, meshes = this.meshes_, nb = meshes.length; i < nb; ++i)
         meshes[i].render(this.camera_, this.picking_);
     },
     /** Load background */
@@ -132,7 +132,7 @@ define([
     /** Load a file */
     loadScene: function (fileData, fileType) {
       this.startMeshLoad();
-      var mesh = this.sculptgl_.multimesh_.getCurrent();
+      var mesh = this.sculptgl_.mesh_.getCurrent();
       var data = fileData || this.initMesh_;
       var type = fileType || this.getFileType(this.initMeshPath_);
       if (type === 'obj')
@@ -145,10 +145,10 @@ define([
     },
     /** Initialization before loading the mesh */
     startMeshLoad: function () {
-      this.sculptgl_.multimesh_ = new Multimesh(this.gl_);
-      this.sculptgl_.multimesh_.meshes_.push(new Mesh(this.gl_));
+      this.sculptgl_.mesh_ = new Multimesh(this.gl_);
+      this.sculptgl_.mesh_.meshes_.push(new Mesh(this.gl_));
       this.sculptgl_.states_.reset();
-      this.sculptgl_.sculpt_.multimesh_ = this.sculptgl_.multimesh_;
+      this.sculptgl_.sculpt_.mesh_ = this.sculptgl_.mesh_;
       //reset flags (not necessary...)
       Mesh.TAG_FLAG = 1;
       Mesh.SCULPT_FLAG = 1;
@@ -157,14 +157,14 @@ define([
     /** The loading is finished, set stuffs ... and update camera */
     endMeshLoad: function () {
       var gui = this.sculptgl_.gui_;
-      var multimesh = this.sculptgl_.multimesh_;
-      multimesh.init();
+      var mesh = this.sculptgl_.mesh_;
+      mesh.init();
       this.camera_.reset();
-      multimesh.initRender(this.textures_, this.shaders_, gui.getShader(), gui.getFlatShading(), gui.getWireframe());
+      mesh.initRender(this.textures_, this.shaders_, gui.getShader(), gui.getFlatShading(), gui.getWireframe());
       gui.updateMesh();
       // uncomment this line to create new scene
-      this.multimeshes_.length = 0;
-      this.multimeshes_.push(multimesh);
+      this.meshes_.length = 0;
+      this.meshes_.push(mesh);
       this.render();
     },
     /** Load textures (preload) */

@@ -26,7 +26,7 @@ define([
     /** Subdivide the mesh */
     subdivide: function () {
       var main = this.sculptgl_;
-      var mul = main.multimesh_;
+      var mul = main.mesh_;
       if (mul.sel_ !== mul.meshes_.length - 1) {
         window.alert('Select the highest resolution before subdividing.');
         return;
@@ -40,12 +40,12 @@ define([
     onResolutionChanged: function (value) {
       var uiRes = value - 1;
       var main = this.sculptgl_;
-      var mul = main.multimesh_;
-      if (mul.sel_ === uiRes)
+      var multimesh = main.mesh_;
+      if (multimesh.sel_ === uiRes)
         return;
-      main.states_.pushState(new StateMultiresolution(mul, StateMultiresolution.SELECTION));
-      mul.selectResolution(uiRes);
-      this.ctrlGui_.updateMeshInfo(mul.getCurrent());
+      main.states_.pushState(new StateMultiresolution(multimesh, StateMultiresolution.SELECTION));
+      multimesh.selectResolution(uiRes);
+      this.ctrlGui_.updateMeshInfo(multimesh);
       main.scene_.render();
     },
     /** Update the mesh resolution slider */

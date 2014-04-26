@@ -70,8 +70,8 @@ define([
       event.stopPropagation();
       event.preventDefault();
       var tool = this.getCurrent();
-      if (tool.multimesh_)
-        tool.multimesh_.checkLeavesUpdate();
+      if (tool.mesh_)
+        tool.mesh_.checkLeavesUpdate();
       if (this.sculptTimer_ !== -1) {
         clearInterval(this.sculptTimer_);
         this.sculptTimer_ = -1;
@@ -100,7 +100,7 @@ define([
     /** Start sculpting */
     start: function (sculptgl) {
       this.getCurrent().start(sculptgl);
-      if (this.continuous_ && this.getCurrent().multimesh_ && this.allowContinous()) {
+      if (this.continuous_ && this.getCurrent().mesh_ && this.allowContinous()) {
         var self = this;
         this.sculptTimer_ = setInterval(function () {
           self.getCurrent().update(sculptgl);

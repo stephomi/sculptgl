@@ -36,7 +36,7 @@ define([
     },
     /** Save file as OBJ*/
     saveFileAsOBJ: function () {
-      var mesh = this.sculptgl_.multimesh_.getCurrent();
+      var mesh = this.sculptgl_.mesh_;
       if (!mesh)
         return;
       var blob = Export.exportOBJ(mesh);
@@ -44,7 +44,7 @@ define([
     },
     /** Save file as PLY */
     saveFileAsPLY: function () {
-      var mesh = this.sculptgl_.multimesh_.getCurrent();
+      var mesh = this.sculptgl_.mesh_;
       if (!mesh)
         return;
       var blob = Export.exportPLY(mesh);
@@ -52,7 +52,7 @@ define([
     },
     /** Save file as STL */
     saveFileAsSTL: function () {
-      var mesh = this.sculptgl_.multimesh_.getCurrent();
+      var mesh = this.sculptgl_.mesh_;
       if (!mesh)
         return;
       var blob = Export.exportSTL(mesh);
@@ -60,7 +60,7 @@ define([
     },
     /** Export to Sketchfab */
     exportSketchfab: function () {
-      var mesh = this.sculptgl_.multimesh_.getCurrent();
+      var mesh = this.sculptgl_.mesh_;
       if (!mesh)
         return;
       if (this.keySketchfab_ === '') {

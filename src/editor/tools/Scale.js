@@ -12,7 +12,7 @@ define([
 
   function Crease(states) {
     this.states_ = states; //for undo-redo
-    this.multimesh_ = null; //the current edited mesh
+    this.mesh_ = null; //the current edited mesh
     this.intensity_ = 0.75; //deformation intensity
     this.culling_ = false; //if we backface cull the vertices
   }
@@ -21,12 +21,12 @@ define([
     /** Start sculpting operation */
     start: function (sculptgl) {
       var picking = sculptgl.scene_.picking_;
-      var multimesh = sculptgl.multimesh_;
-      picking.intersectionMouseMesh(multimesh, sculptgl.mouseX_, sculptgl.mouseY_);
-      if (picking.multimesh_ === null)
+      var mesh = sculptgl.mesh_;
+      picking.intersectionMouseMesh(mesh, sculptgl.mouseX_, sculptgl.mouseY_);
+      if (picking.mesh_ === null)
         return;
-      this.states_.pushState(new StateGeometry(multimesh));
-      this.multimesh_ = multimesh;
+      this.states_.pushState(new StateGeometry(mesh));
+      this.mesh_ = mesh;
       this.startScale(sculptgl);
     },
     /** Update sculpting operation */
@@ -44,11 +44,11 @@ define([
         pickingSym.pickVerticesInSphere(pickingSym.rLocalSqr_);
         this.stroke(pickingSym, delta);
       }
-      this.multimesh_.updateBuffers();
+      this.mesh_.updateBuffers();
     },
     /** On stroke */
     stroke: function (picking, delta) {
-      var mesh = this.multimesh_.getCurrent();
+      var mesh = this.mesh_;
       var iVertsInRadius = picking.pickedVertices_;
 
       //undo-redo
@@ -59,11 +59,11 @@ define([
 
       this.scale(mesh, iVertsInRadius, picking.interPoint_, picking.rLocalSqr_, delta);
 
-      this.multimesh_.updateMesh(mesh.getTrianglesFromVertices(iVertsInRadius), iVertsInRadius);
+      this.mesh_.updateMesh(mesh.getTrianglesFromVertices(iVertsInRadius), iVertsInRadius);
     },
     /** Scale the vertices around the mouse point intersection */
     scale: function (mesh, iVerts, center, radiusSquared, intensity) {
-      var vAr = mesh.verticesXYZ_;
+      var vAr = mesh.getVertices();
       var deltaScale = intensity * 0.01;
       var radius = Math.sqrt(radiusSquared);
       var nbVerts = iVerts.length;
@@ -92,7 +92,7 @@ define([
       var vNear = picking.camera_.unproject(mouseX, mouseY, 0.0);
       var vFar = picking.camera_.unproject(mouseX, mouseY, 1.0);
       var matInverse = mat4.create();
-      mat4.invert(matInverse, this.multimesh_.getMatrix());
+      mat4.invert(matInverse, this.mesh_.getMatrix());
       vec3.transformMat4(vNear, vNear, matInverse);
       vec3.transformMat4(vFar, vFar, matInverse);
       picking.pickVerticesInSphere(picking.rLocalSqr_);
@@ -105,8 +105,8 @@ define([
         var vFarSym = [vFar[0], vFar[1], vFar[2]];
         Geometry.mirrorPoint(vFarSym, ptPlane, nPlane);
         // symmetrical picking
-        pickingSym.intersectionRayMesh(this.multimesh_, vNearSym, vFarSym, mouseX, mouseY, 1.0);
-        if (!pickingSym.multimesh_)
+        pickingSym.intersectionRayMesh(this.mesh_, vNearSym, vFarSym, mouseX, mouseY, 1.0);
+        if (!pickingSym.mesh_)
           return;
         pickingSym.rLocalSqr_ = picking.rLocalSqr_;
         pickingSym.pickVerticesInSphere(pickingSym.rLocalSqr_);

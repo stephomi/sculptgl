@@ -52,8 +52,8 @@ define([
         }
       }
     }
-    mesh.verticesXYZ_ = new Float32Array(vAr);
-    mesh.indicesABC_ = new Uint32Array(iAr);
+    mesh.setVertices(new Float32Array(vAr));
+    mesh.setIndices(new Uint32Array(iAr));
   };
 
   /** Import PLY file */
@@ -115,9 +115,9 @@ define([
       }
       ++i;
     }
-    mesh.verticesXYZ_ = vAr;
-    mesh.indicesABC_ = iAr;
-    mesh.colorsRGB_ = cAr;
+    mesh.setVertices(vAr);
+    mesh.setIndices(iAr);
+    mesh.setColors(cAr);
   };
 
   /** Import binary PLY file */
@@ -235,8 +235,8 @@ define([
       iAr[idt + 1] = Import.detectNewVertex(mapVertices, vb, idv + 3, nbVertices);
       iAr[idt + 2] = Import.detectNewVertex(mapVertices, vb, idv + 6, nbVertices);
     }
-    mesh.verticesXYZ_ = vb.subarray(0, nbVertices[0] * 3);
-    mesh.indicesABC_ = iAr;
+    mesh.setVertices(vb.subarray(0, nbVertices[0] * 3));
+    mesh.setIndices(iAr);
   };
 
   /** Check if the vertex already exists */

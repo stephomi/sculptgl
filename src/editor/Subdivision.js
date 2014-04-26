@@ -15,9 +15,9 @@ define([], function () {
   var MidEdgeComputer = function (mesh, vArOut, cArOut) {
     this.vArOut_ = vArOut;
     this.cArOut_ = cArOut;
-    this.vAr_ = mesh.verticesXYZ_;
-    this.cAr_ = mesh.colorsRGB_;
-    this.eAr_ = mesh.edges_;
+    this.vAr_ = mesh.getVertices();
+    this.cAr_ = mesh.getColors();
+    this.eAr_ = mesh.getEdges();
     this.nbVertices_ = mesh.getNbVertices();
     this.tagEdges_ = new Int32Array(mesh.getNbEdges());
     this.init();
@@ -77,8 +77,8 @@ define([], function () {
   /** Apply a complete loop subdivision (by updating the topology) */
   Subdivision.fullSubdivision = function (baseMesh, newMesh) {
     Subdivision.allocateArrays(baseMesh, newMesh);
-    Subdivision.applyEvenSmooth(baseMesh, newMesh.verticesXYZ_, newMesh.colorsRGB_);
-    Subdivision.applyOddSmooth(baseMesh, newMesh.verticesXYZ_, newMesh.colorsRGB_, newMesh.indicesABC_);
+    Subdivision.applyEvenSmooth(baseMesh, newMesh.getVertices(), newMesh.getColors());
+    Subdivision.applyOddSmooth(baseMesh, newMesh.getVertices(), newMesh.getColors(), newMesh.getIndices());
     newMesh.initTopology();
   };
 
@@ -90,8 +90,8 @@ define([], function () {
 
   /** Allocate the arrays for the new mesh */
   Subdivision.allocateArrays = function (baseMesh, newMesh) {
-    newMesh.verticesXYZ_ = new Float32Array((baseMesh.getNbVertices() + baseMesh.getNbEdges()) * 3);
-    newMesh.indicesABC_ = new Uint32Array(baseMesh.getNbTriangles() * 4 * 3);
+    newMesh.setVertices(new Float32Array((baseMesh.getNbVertices() + baseMesh.getNbEdges()) * 3));
+    newMesh.setIndices(new Uint32Array(baseMesh.getNbTriangles() * 4 * 3));
     // not necessary because the edges will be computed later
     // newMesh.edges_ = new Uint8Array(baseMesh.getNbEdges() * 2 + baseMesh.getNbTriangles() * 3);
     newMesh.allocateArrays();
@@ -99,11 +99,11 @@ define([], function () {
 
   /** Even vertices smoothing */
   Subdivision.applyEvenSmooth = function (baseMesh, even, colorOut) {
-    colorOut.set(baseMesh.colorsRGB_);
-    var vArOld = baseMesh.verticesXYZ_;
-    var vertOnEdgeOld = baseMesh.vertOnEdge_;
-    var vrrStartCount = baseMesh.vrrStartCount_;
-    var vertRingVert = baseMesh.vertRingVert_;
+    colorOut.set(baseMesh.getColors());
+    var vArOld = baseMesh.getVertices();
+    var vertOnEdgeOld = baseMesh.getVerticesOnEdge();
+    var vrrStartCount = baseMesh.getVertRingVertStartCount();
+    var vertRingVert = baseMesh.getVertRingVert();
     var nbVerts = baseMesh.getNbVertices();
 
     for (var i = 0; i < nbVerts; ++i) {

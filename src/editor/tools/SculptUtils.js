@@ -9,7 +9,7 @@ define([
   var SculptUtils = {};
 
   /** Make a brush stroke */
-  SculptUtils.sculptStroke = function (sculptgl, multimesh, callbackStroke, updateColor) {
+  SculptUtils.sculptStroke = function (sculptgl, mesh, callbackStroke, updateColor) {
     var mouseX = sculptgl.mouseX_;
     var mouseY = sculptgl.mouseY_;
     var ptPlane = sculptgl.sculpt_.ptPlane_;
@@ -40,14 +40,14 @@ define([
     else if (sumDisp > minSpacing || sumDisp === 0.0) {
       sumDisp = 0.0;
       for (var i = 0; i <= dist; i += step) {
-        picking.intersectionMouseMesh(multimesh, mouseX, mouseY);
-        if (!picking.multimesh_)
+        picking.intersectionMouseMesh(mesh, mouseX, mouseY);
+        if (!picking.mesh_)
           break;
         picking.pickVerticesInSphere(picking.rLocalSqr_);
         callbackStroke(picking);
         if (sym) {
-          pickingSym.intersectionMouseMesh(multimesh, mouseX, mouseY, ptPlane, nPlane);
-          if (!pickingSym.multimesh_)
+          pickingSym.intersectionMouseMesh(mesh, mouseX, mouseY, ptPlane, nPlane);
+          if (!pickingSym.mesh_)
             break;
           pickingSym.rLocalSqr_ = picking.rLocalSqr_;
           pickingSym.pickVerticesInSphere(pickingSym.rLocalSqr_);
@@ -56,7 +56,7 @@ define([
         mouseX += dx * step;
         mouseY += dy * step;
       }
-      sculptgl.multimesh_.updateBuffers(updateColor);
+      sculptgl.mesh_.updateBuffers(updateColor);
     }
     sculptgl.sumDisplacement_ = sumDisp;
   };
@@ -66,7 +66,7 @@ define([
     var nbVertsSelected = iVertsInRadius.length;
     var iVertsFront = new Uint32Array(Utils.getMemory(4 * nbVertsSelected), 0, nbVertsSelected);
     var acc = 0;
-    var nAr = mesh.normalsXYZ_;
+    var nAr = mesh.getNormals();
     var eyeX = eyeDir[0];
     var eyeY = eyeDir[1];
     var eyeZ = eyeDir[2];
@@ -81,7 +81,7 @@ define([
 
   /** Compute average normal of a group of vertices with culling */
   SculptUtils.areaNormal = function (mesh, iVerts) {
-    var nAr = mesh.normalsXYZ_;
+    var nAr = mesh.getNormals();
     var nbVerts = iVerts.length;
     var anx = 0.0;
     var any = 0.0;
@@ -101,7 +101,7 @@ define([
 
   /** Compute average center of a group of vertices (with culling) */
   SculptUtils.areaCenter = function (mesh, iVerts) {
-    var vAr = mesh.verticesXYZ_;
+    var vAr = mesh.getVertices();
     var nbVerts = iVerts.length;
     var ax = 0.0;
     var ay = 0.0;

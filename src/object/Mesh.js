@@ -56,15 +56,97 @@ define([
   Mesh.STATE_FLAG = 1; //flag value for sculpt (always >= tags values)
 
   Mesh.prototype = {
-    /** Return the number of triangles */
+    /** Getters */
+    setVertices: function (vAr) {
+      this.verticesXYZ_ = vAr;
+    },
+    setIndices: function (iAr) {
+      this.indicesABC_ = iAr;
+    },
+    setNormals: function (nAr) {
+      this.normalsXYZ_ = nAr;
+    },
+    setColors: function (cAr) {
+      this.colorsRGB_ = cAr;
+    },
+    setDetailsVertices: function (dAr) {
+      this.detailsXYZ_ = dAr;
+    },
+    setDetailsColors: function (dcAr) {
+      this.detailsRGB_ = dcAr;
+    },
+    getIndices: function () {
+      return this.indicesABC_;
+    },
+    getVertices: function () {
+      return this.verticesXYZ_;
+    },
+    getColors: function () {
+      return this.colorsRGB_;
+    },
+    getNormals: function () {
+      return this.normalsXYZ_;
+    },
+    getTriNormals: function () {
+      return this.triNormalsXYZ_;
+    },
+    getEdges: function () {
+      return this.edges_;
+    },
+    getCacheDrawElementsWireframe: function () {
+      return this.cacheDrawElementsWireframe_;
+    },
+    getCacheDrawArraysWireframe: function () {
+      return this.cacheDrawArraysWireframe_;
+    },
+    getCacheDrawArraysV: function () {
+      return this.cacheDrawArraysV_;
+    },
+    getCacheDrawArraysN: function () {
+      return this.cacheDrawArraysN_;
+    },
+    getCacheDrawArraysC: function () {
+      return this.cacheDrawArraysC_;
+    },
+    getDetailsVertices: function () {
+      return this.detailsXYZ_;
+    },
+    getDetailsColors: function () {
+      return this.detailsRGB_;
+    },
+    getOctree: function () {
+      return this.octree_;
+    },
+    getVerticesSculptFlags: function () {
+      return this.vertSculptFlags_;
+    },
+    getVerticesStateFlags: function () {
+      return this.vertStateFlags_;
+    },
+    getVertRingVertStartCount: function () {
+      return this.vrrStartCount_;
+    },
+    getVertRingVert: function () {
+      return this.vertRingVert_;
+    },
+    getVerticesOnEdge: function () {
+      return this.vertOnEdge_;
+    },
+    getVertRingTriStartCount: function () {
+      return this.vrtStartCount_;
+    },
+    getVertRingTri: function () {
+      return this.vertRingTri_;
+    },
+    getLeavesUpdate: function () {
+      return this.leavesUpdate_;
+    },
     getNbTriangles: function () {
       return this.indicesABC_.length / 3;
     },
-    /** Return the number of vertices */
     getNbVertices: function () {
       return this.verticesXYZ_.length / 3;
     },
-    /** Return the number of edges */
     getNbEdges: function () {
       return this.edges_.length;
     },

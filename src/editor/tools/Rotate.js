@@ -14,7 +14,7 @@ define([
 
   function Rotate(states) {
     this.states_ = states; //for undo-redo
-    this.multimesh_ = null; //the current edited mesh
+    this.mesh_ = null; //the current edited mesh
     this.culling_ = false; //if we backface cull the vertices
 
     //rotate stuffs
@@ -32,12 +32,12 @@ define([
     /** Start sculpting operation */
     start: function (sculptgl) {
       var picking = sculptgl.scene_.picking_;
-      var multimesh = sculptgl.multimesh_;
-      picking.intersectionMouseMesh(multimesh, sculptgl.mouseX_, sculptgl.mouseY_);
-      if (picking.multimesh_ === null)
+      var mesh = sculptgl.mesh_;
+      picking.intersectionMouseMesh(mesh, sculptgl.mouseX_, sculptgl.mouseY_);
+      if (picking.mesh_ === null)
         return;
-      this.states_.pushState(new StateGeometry(multimesh));
-      this.multimesh_ = multimesh;
+      this.states_.pushState(new StateGeometry(mesh));
+      this.mesh_ = mesh;
       this.startRotate(sculptgl);
     },
     /** Update sculpting operation */
@@ -58,11 +58,11 @@ define([
         pickingSym.pickVerticesInSphere(sculptgl.scene_.pickingSym_.rLocalSqr_);
         this.stroke(pickingSym, lx, ly, mx, my, this.rotateDataSym_);
       }
-      this.multimesh_.updateBuffers();
+      this.mesh_.updateBuffers();
     },
     /** On stroke */
     stroke: function (picking, mx, my, lx, ly, rotateData) {
-      var mesh = this.multimesh_.getCurrent();
+      var mesh = this.mesh_;
       var iVertsInRadius = picking.pickedVertices_;
 
       //undo-redo
@@ -73,7 +73,7 @@ define([
 
       this.rotate(mesh, iVertsInRadius, picking.interPoint_, picking.rLocalSqr_, mx, my, lx, ly, rotateData);
 
-      this.multimesh_.updateMesh(mesh.getTrianglesFromVertices(iVertsInRadius), iVertsInRadius);
+      this.mesh_.updateMesh(mesh.getTrianglesFromVertices(iVertsInRadius), iVertsInRadius);
     },
     /** Rotate the vertices around the mouse point intersection */
     rotate: function (mesh, iVerts, center, radiusSquared, mouseX, mouseY, lastMouseX, lastMouseY, rotateData) {
@@ -87,7 +87,7 @@ define([
       var vecOldMouse = [lastMouseX - mouseCenter[0], lastMouseY - mouseCenter[1]];
       vec2.normalize(vecOldMouse, vecOldMouse);
       var angle = Geometry.signedAngle2d(vecMouse, vecOldMouse);
-      var vAr = this.multimesh_.getCurrent().verticesXYZ_;
+      var vAr = mesh.getVertices();
       var radius = Math.sqrt(radiusSquared);
       var nbVerts = iVerts.length;
       var cx = center[0];
@@ -119,7 +119,7 @@ define([
       var vNear = picking.camera_.unproject(mouseX, mouseY, 0.0);
       var vFar = picking.camera_.unproject(mouseX, mouseY, 1.0);
       var matInverse = mat4.create();
-      mat4.invert(matInverse, this.multimesh_.getMatrix());
+      mat4.invert(matInverse, this.mesh_.getMatrix());
       vec3.transformMat4(vNear, vNear, matInverse);
       vec3.transformMat4(vFar, vFar, matInverse);
       this.initRotateData(picking, vNear, vFar, mouseX, mouseY, this.rotateData_);
@@ -132,8 +132,8 @@ define([
         var vFarSym = [vFar[0], vFar[1], vFar[2]];
         Geometry.mirrorPoint(vFarSym, ptPlane, nPlane);
         // symmetrical picking
-        pickingSym.intersectionRayMesh(this.multimesh_, vNearSym, vFarSym, mouseX, mouseY, 1.0);
-        if (!pickingSym.multimesh_)
+        pickingSym.intersectionRayMesh(this.mesh_, vNearSym, vFarSym, mouseX, mouseY, 1.0);
+        if (!pickingSym.mesh_)
           return;
         this.initRotateData(pickingSym, vNearSym, vFarSym, mouseX, mouseY, this.rotateDataSym_);
         pickingSym.rLocalSqr_ = picking.rLocalSqr_;

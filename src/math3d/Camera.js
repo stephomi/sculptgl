@@ -52,10 +52,10 @@ define([
     /** Start camera (store mouse coordinates) */
     start: function (mouseX, mouseY, picking) {
       this.lastNormalizedMouseXY_ = Geometry.normalizedMouse(mouseX, mouseY, this.width_, this.height_);
-      if (this.usePivot_ && picking.multimesh_) {
+      if (this.usePivot_ && picking.mesh_) {
         this.stepCount_ = 10;
         //target center
-        vec3.transformMat4(this.stepCenter_, picking.interPoint_, picking.multimesh_.getMatrix());
+        vec3.transformMat4(this.stepCenter_, picking.interPoint_, picking.mesh_.getMatrix());
         //target zoom
         var targetZoom = vec3.dist(this.stepCenter_, this.computePosition());
         if (this.type_ === Camera.projType.PERSPECTIVE)

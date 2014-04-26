@@ -4,9 +4,8 @@ define([
 
   'use strict';
 
-  function StateColor(multimesh) {
-    this.multimesh_ = multimesh; // the multimesh
-    this.mesh_ = multimesh.getCurrent(); //the mesh
+  function StateColor(mesh) {
+    this.mesh_ = mesh; //the mesh
     this.idVertState_ = []; // ids of vertices
     this.cArState_ = []; //copies of color vertices
   }
@@ -15,7 +14,7 @@ define([
     /** On undo */
     undo: function () {
       this.pullState();
-      this.multimesh_.updateResolution();
+      this.mesh_.updateResolution();
     },
     /** On redo */
     redo: function () {
@@ -23,7 +22,7 @@ define([
     },
     /** Push the redo state */
     createRedo: function () {
-      var redo = new StateColor(this.multimesh_);
+      var redo = new StateColor(this.mesh_);
       this.pushRedoVertices(redo);
       return redo;
     },
@@ -33,8 +32,8 @@ define([
       var cArState = this.cArState_;
 
       var mesh = this.mesh_;
-      var cAr = mesh.colorsRGB_;
-      var vertStateFlags = mesh.vertStateFlags_;
+      var cAr = mesh.getColors();
+      var vertStateFlags = mesh.getVerticesStateFlags();
 
       var stateFlag = Mesh.STATE_FLAG;
       var nbVerts = iVerts.length;
@@ -51,7 +50,7 @@ define([
     /** Push redo vertices */
     pushRedoVertices: function (redoState) {
       var mesh = redoState.mesh_;
-      var cAr = mesh.colorsRGB_;
+      var cAr = mesh.getColors();
 
       var idVertUndoState = this.idVertState_;
       var nbVerts = idVertUndoState.length;
@@ -81,7 +80,7 @@ define([
       var nbVerts = idVertState.length;
 
       var mesh = this.mesh_;
-      var cAr = mesh.colorsRGB_;
+      var cAr = mesh.getColors();
 
       for (var i = 0; i < nbVerts; ++i) {
         var id = idVertState[i] * 3;

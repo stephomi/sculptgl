@@ -22,8 +22,8 @@ define([
 
   /** Export OBJ file */
   Export.exportOBJ = function (mesh) {
-    var vAr = mesh.verticesXYZ_;
-    var iAr = mesh.indicesABC_;
+    var vAr = mesh.getVertices();
+    var iAr = mesh.getIndices();
     var data = 's 0\n';
     var nbVertices = mesh.getNbVertices();
     var nbTriangles = mesh.getNbTriangles();
@@ -47,10 +47,10 @@ define([
 
   /** Export Ascii STL file */
   Export.exportAsciiSTL = function (mesh) {
-    var vAr = mesh.verticesXYZ_;
-    var iAr = mesh.indicesABC_;
-    var triNormals = normalizeArray(new Float32Array(mesh.triNormalsXYZ_));
-    normalizeArray(mesh.triNormalsXYZ_, triNormals);
+    var vAr = mesh.getVertices();
+    var iAr = mesh.getIndices();
+    var triNormals = normalizeArray(new Float32Array(mesh.getTriNormals()));
+    normalizeArray(mesh.getTriNormals(), triNormals);
     var data = 'solid mesh\n';
     var nbTriangles = mesh.getNbTriangles();
     for (var i = 0; i < nbTriangles; ++i) {
@@ -72,9 +72,9 @@ define([
 
   /** Export binary STL file */
   Export.exportBinarySTL = function (mesh) {
-    var vAr = mesh.verticesXYZ_;
-    var iAr = mesh.indicesABC_;
-    var triNormals = normalizeArray(new Float32Array(mesh.triNormalsXYZ_));
+    var vAr = mesh.getVertices();
+    var iAr = mesh.getIndices();
+    var triNormals = normalizeArray(new Float32Array(mesh.getTriNormals()));
     var nbTriangles = mesh.getNbTriangles();
 
     var data = new Uint8Array(84 + nbTriangles * 50);
@@ -115,9 +115,9 @@ define([
 
   /** Export Ascii PLY file */
   Export.exportAsciiPLY = function (mesh) {
-    var vAr = mesh.verticesXYZ_;
-    var cAr = mesh.colorsRGB_;
-    var iAr = mesh.indicesABC_;
+    var vAr = mesh.getVertices();
+    var cAr = mesh.getColors();
+    var iAr = mesh.getIndices();
     var data = 'ply\nformat ascii 1.0\ncomment created by SculptGL\n';
     var nbVertices = mesh.getNbVertices();
     var nbTriangles = mesh.getNbTriangles();
@@ -146,9 +146,9 @@ define([
 
   /** Export binary PLY file */
   Export.exportBinaryPLY = function (mesh) {
-    var vAr = mesh.verticesXYZ_;
-    var cAr = mesh.colorsRGB_;
-    var iAr = mesh.indicesABC_;
+    var vAr = mesh.getVertices();
+    var cAr = mesh.getColors();
+    var iAr = mesh.getIndices();
     var nbVertices = mesh.getNbVertices();
     var nbTriangles = mesh.getNbTriangles();
     var endian = Utils.littleEndian ? 'little' : 'big';

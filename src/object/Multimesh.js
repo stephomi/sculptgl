@@ -26,6 +26,7 @@ define([
   Multimesh.SCALE = 100.0;
 
   Multimesh.prototype = {
+    // // getters
     /** Return the current mesh */
     getCurrent: function () {
       return this.meshes_[this.sel_];
@@ -69,7 +70,7 @@ define([
       this.updateMesh();
       var render = this.render_;
       if (render.getShowWireframe()) {
-        this.getCurrent().updateCacheWireframe(render.isUsingDrawArrays());
+        this.updateCacheWireframe(render.isUsingDrawArrays());
         render.updateLinesBuffer();
       }
       this.updateBuffers(true, true);
@@ -100,11 +101,11 @@ define([
 
       render.setFlatShading(flatShading);
       if (render.isUsingDrawArrays())
-        this.getCurrent().updateCacheDrawArrays(render.getFlatShading());
+        this.updateCacheDrawArrays(render.getFlatShading());
 
       render.setShowWireframe(showWireframe);
       if (render.getShowWireframe()) {
-        this.getCurrent().updateCacheWireframe(render.isUsingDrawArrays());
+        this.updateCacheWireframe(render.isUsingDrawArrays());
         render.updateLinesBuffer();
       }
 
@@ -120,9 +121,9 @@ define([
       var render = this.render_;
       render.setFlatShading(value);
       if (render.isUsingDrawArrays())
-        this.getCurrent().updateCacheDrawArrays(render.getFlatShading());
+        this.updateCacheDrawArrays(render.getFlatShading());
       if (render.getShowWireframe()) {
-        this.getCurrent().updateCacheWireframe(render.isUsingDrawArrays());
+        this.updateCacheWireframe(render.isUsingDrawArrays());
         render.updateLinesBuffer();
       }
       this.updateBuffers(true, true);
@@ -132,7 +133,7 @@ define([
       var render = this.render_;
       render.setShowWireframe(value);
       if (render.getShowWireframe())
-        this.getCurrent().updateCacheWireframe(render.isUsingDrawArrays());
+        this.updateCacheWireframe(render.isUsingDrawArrays());
       render.updateLinesBuffer();
     },
     /** Update the rendering buffers */
@@ -140,19 +141,14 @@ define([
       this.render_.updateBuffers(updateColors, updateIndex);
     },
     updateMesh: function (iTris, iVerts) {
-      var mesh = this.getCurrent();
-      mesh.updateGeometry(iTris, iVerts);
+      this.updateGeometry(iTris, iVerts);
       var render = this.render_;
       if (render.isUsingDrawArrays())
-        mesh.updateCacheDrawArrays(render.getFlatShading(), iTris);
+        this.updateCacheDrawArrays(render.getFlatShading(), iTris);
     },
     /** Render the mesh */
     render: function (camera, picking) {
       this.render_.render(camera, picking);
-    },
-    /** Analyse the cells in the octree that needs an update */
-    checkLeavesUpdate: function () {
-      this.getCurrent().checkLeavesUpdate();
     },
     /** Change the resolution */
     selectResolution: function (sel) {
@@ -189,6 +185,21 @@ define([
       this.updateResolution();
     }
   };
+
+  var createFunc = function (meshProto) {
+    return function () {
+      var mesh = this.getCurrent();
+      return meshProto.apply(mesh, arguments);
+    };
+  };
+
+  var MultiProto = Multimesh.prototype;
+  var MeshProto = Mesh.prototype;
+  var protos = Object.keys(Mesh.prototype);
+  for (var i = 0, l = protos.length; i < l; ++i) {
+    var proto = protos[i];
+    MultiProto[proto] = MultiProto[proto] || createFunc(MeshProto[proto]);
+  }
 
   return Multimesh;
 });

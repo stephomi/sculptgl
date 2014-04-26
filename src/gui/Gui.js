@@ -64,12 +64,12 @@ define([
     },
     /** Update information on mesh */
     updateMesh: function () {
-      var mul = this.sculptgl_.multimesh_;
-      if (!mul)
+      var mesh = this.sculptgl_.mesh_;
+      if (!mesh)
         return;
-      this.ctrlRendering_.updateMesh(mul);
-      this.updateMeshInfo(mul.getCurrent());
-      this.ctrlMultiresolution_.updateMeshResolution(mul);
+      this.ctrlRendering_.updateMesh(mesh);
+      this.updateMeshInfo(mesh);
+      this.ctrlMultiresolution_.updateMeshResolution(mesh);
     },
     /** Update number of vertices and triangles */
     updateMeshInfo: function (mesh) {
