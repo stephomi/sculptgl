@@ -44,17 +44,8 @@ define([
         return this.getCurrent();
       var baseMesh = this.getCurrent();
       var newMesh = new Mesh(this.gl_);
-      this.meshes_.push(newMesh);
-      this.sel_++;
-
-      console.time('subdiv');
       Subdivision.fullSubdivision(baseMesh, newMesh);
-      console.timeEnd('subdiv');
-
-      console.time('update mesh');
-      this.updateResolution();
-      console.timeEnd('update mesh');
-
+      this.pushMesh(newMesh);
       return newMesh;
     },
     /** Go to one level below in mesh resolution */
@@ -184,6 +175,18 @@ define([
     selectMesh: function (mesh) {
       var val = this.findIndexFromMesh(mesh);
       this.selectResolution(val);
+    },
+    /** Push a mesh */
+    pushMesh: function (mesh) {
+      this.meshes_.push(mesh);
+      this.sel_ = this.meshes_.length - 1;
+      this.updateResolution();
+    },
+    /** Pop the last mesh */
+    popMesh: function () {
+      this.meshes_.pop();
+      this.sel_ = this.meshes_.length - 1;
+      this.updateResolution();
     }
   };
 

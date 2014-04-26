@@ -15,10 +15,11 @@ define([
     /** On undo */
     undo: function () {
       this.pullState();
+      this.multimesh_.updateResolution();
     },
     /** On redo */
     redo: function () {
-      this.pullState();
+      this.undo();
     },
     /** Push the redo state */
     createRedo: function () {
