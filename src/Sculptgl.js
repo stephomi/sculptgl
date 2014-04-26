@@ -57,12 +57,10 @@ define([
         antialias: true,
         stencil: true
       };
-      try {
-        this.gl_ = $('#canvas')[0].getContext('webgl', attributes) || $('#canvas')[0].getContext('experimental-webgl', attributes);
-      } catch (e) {
-        window.alert('Could not initialise WebGL.');
+      var gl = this.gl_ = $('#canvas')[0].getContext('webgl', attributes) || $('#canvas')[0].getContext('experimental-webgl', attributes);
+      if (!gl) {
+        window.alert('Could not initialise WebGL. You should try Chrome or Firefox.');
       }
-      var gl = this.gl_;
       if (gl) {
         if (!gl.getExtension('OES_element_index_uint')) {
           Render.ONLY_DRAW_ARRAYS = true;
