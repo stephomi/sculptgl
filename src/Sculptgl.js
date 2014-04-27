@@ -128,11 +128,16 @@ define([
       var mouseX = this.mouseX_ = event.pageX;
       var mouseY = this.mouseY_ = event.pageY;
       var button = this.mouseButton_;
-      var camera = this.scene_.camera_;
-      if (this.mesh_ && (button !== 1 || this.sculpt_.allowPicking()))
-        this.scene_.picking_.intersectionMouseMesh(this.mesh_, mouseX, mouseY);
+      var scene = this.scene_;
+      var sculpt = this.sculpt_;
+      var camera = scene.camera_;
+      if (this.mesh_ && (button !== 1 || sculpt.allowPicking())) {
+        scene.picking_.intersectionMouseMesh(this.mesh_, mouseX, mouseY);
+        if (this.sculpt_.getSymmetry())
+          scene.pickingSym_.intersectionMouseMesh(this.mesh_, mouseX, mouseY, true);
+      }
       if (button === 1 && !event.altKey)
-        this.sculpt_.update(this);
+        sculpt.update(this);
       else if (button === 2 || (event.altKey && event.shiftKey && button !== 0))
         camera.translate((mouseX - this.lastMouseX_) / 3000, (mouseY - this.lastMouseY_) / 3000);
       else if (event.altKey && event.ctrlKey && button !== 0)
@@ -141,7 +146,7 @@ define([
         camera.rotate(mouseX, mouseY);
       this.lastMouseX_ = mouseX;
       this.lastMouseY_ = mouseY;
-      this.scene_.render();
+      scene.render();
     }
   };
 

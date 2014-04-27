@@ -17,48 +17,79 @@ define([
     this.pickedVertices_ = []; //vertices selected
     this.interPoint_ = [0.0, 0.0, 0.0]; //intersection point
     this.rDisplay_ = 50.0; //radius of the selection area (screen space)
-    this.rLocalSqr_ = 0.0; //radius of the selection area (local/object space)
-    this.rWorldSqr_ = 0.0; //radius of the selection area (world space)
+    this.rLocal2_ = 0.0; //radius of the selection area (local/object space)
+    this.rWorld2_ = 0.0; //radius of the selection area (world space)
     this.camera_ = camera; //the camera
     this.eyeDir_ = [0.0, 0.0, 0.0]; //eye direction
   }
 
   Picking.prototype = {
+    setLocalRadius2: function (radius) {
+      this.rLocal2_ = radius;
+    },
+    setIntersectionPoint: function (inter) {
+      this.interPoint_ = inter;
+    },
+    getScreenRadius: function () {
+      return this.rDisplay_;
+    },
+    getEyeDirection: function () {
+      return this.eyeDir_;
+    },
+    getLocalRadius2: function () {
+      return this.rLocal2_;
+    },
+    getWorldRadius2: function () {
+      return this.rWorld2_;
+    },
+    getIntersectionPoint: function () {
+      return this.interPoint_;
+    },
+    getPickedVertices: function () {
+      return this.pickedVertices_;
+    },
     /** Intersection between a ray the mouse position */
-    intersectionMouseMesh: function (mesh, mouseX, mouseY, ptPlane, nPlane) {
+    intersectionMouseMesh: function (mesh, mouseX, mouseY, useSymmetry) {
       var vNear = this.camera_.unproject(mouseX, mouseY, 0.0);
       var vFar = this.camera_.unproject(mouseX, mouseY, 1.0);
       var matInverse = mat4.create();
       mat4.invert(matInverse, mesh.getMatrix());
       vec3.transformMat4(vNear, vNear, matInverse);
       vec3.transformMat4(vFar, vFar, matInverse);
-      if (ptPlane) {
-        Geometry.mirrorPoint(vNear, ptPlane, nPlane);
-        Geometry.mirrorPoint(vFar, ptPlane, nPlane);
-      }
-      this.intersectionRayMesh(mesh, vNear, vFar, mouseX, mouseY);
-      var eyeDir = this.eyeDir_;
-      vec3.sub(eyeDir, vFar, vNear);
-      vec3.normalize(eyeDir, eyeDir);
+      this.intersectionRayMesh(mesh, vNear, vFar, mouseX, mouseY, useSymmetry);
     },
     /** Intersection between a ray and a mesh */
     intersectionRayMesh: (function () {
       var v1 = [0.0, 0.0, 0.0];
       var v2 = [0.0, 0.0, 0.0];
       var v3 = [0.0, 0.0, 0.0];
-      var ray = [0.0, 0.0, 0.0];
       var rayInv = [0.0, 0.0, 0.0];
       var vertInter = [0.0, 0.0, 0.0];
-      return function (mesh, vNear, vFar, mouseX, mouseY) {
+      var vNear = [0.0, 0.0, 0.0];
+      var vFar = [0.0, 0.0, 0.0];
+      return function (mesh, vNearOrig, vFarOrig, mouseX, mouseY, useSymmetry) {
+        //resest picking
         this.mesh_ = null;
         this.pickedTriangle_ = -1;
+        //resest picking
+        vec3.copy(vNear, vNearOrig);
+        vec3.copy(vFar, vFarOrig);
+        //apply symmetry
+        if (useSymmetry) {
+          var ptPlane = mesh.getCenter();
+          var nPlane = mesh.getSymmetryNormal();
+          Geometry.mirrorPoint(vNear, ptPlane, nPlane);
+          Geometry.mirrorPoint(vFar, ptPlane, nPlane);
+        }
         var vAr = mesh.getVertices();
         var iAr = mesh.getIndices();
-        vec3.sub(ray, vFar, vNear);
-        vec3.normalize(ray, ray);
-        rayInv[0] = 1 / ray[0];
-        rayInv[1] = 1 / ray[1];
-        rayInv[2] = 1 / ray[2];
+        //compute eye direction
+        var eyeDir = this.getEyeDirection();
+        vec3.sub(eyeDir, vFar, vNear);
+        vec3.normalize(eyeDir, eyeDir);
+        rayInv[0] = 1 / eyeDir[0];
+        rayInv[1] = 1 / eyeDir[1];
+        rayInv[2] = 1 / eyeDir[2];
         var iTrisCandidates = mesh.intersectRay(vNear, rayInv, mesh.getNbTriangles());
         var distance = Infinity;
         var nbTrisCandidates = iTrisCandidates.length;
@@ -76,7 +107,7 @@ define([
           v3[0] = vAr[ind3];
           v3[1] = vAr[ind3 + 1];
           v3[2] = vAr[ind3 + 2];
-          if (Geometry.intersectionRayTriangle(vNear, ray, v1, v2, v3, vertInter)) {
+          if (Geometry.intersectionRayTriangle(vNear, eyeDir, v1, v2, v3, vertInter)) {
             var testDistance = vec3.sqrDist(vNear, vertInter); {
               if (testDistance < distance) {
                 distance = testDistance;
@@ -88,25 +119,25 @@ define([
         }
         if (this.pickedTriangle_ !== -1) {
           this.mesh_ = mesh;
-          this.computeRadiusWorldSq(mouseX, mouseY);
+          this.computeRadiusWorld2(mouseX, mouseY);
         } else {
-          this.rLocalSqr_ = 0.0;
+          this.rLocal2_ = 0.0;
         }
       };
     })(),
     /** Find all the vertices inside the sphere */
-    pickVerticesInSphere: function (rWorldSqr) {
+    pickVerticesInSphere: function (rLocal2) {
       var mesh = this.mesh_;
       var vAr = mesh.getVertices();
       var vertSculptFlags = mesh.getVerticesSculptFlags();
       var leavesHit = mesh.getLeavesUpdate();
-      var iTrisInCells = mesh.intersectSphere(this.interPoint_, rWorldSqr, leavesHit, mesh.getNbTriangles());
+      var inter = this.getIntersectionPoint();
+      var iTrisInCells = mesh.intersectSphere(inter, rLocal2, leavesHit, mesh.getNbTriangles());
       var iVerts = mesh.getVerticesFromTriangles(iTrisInCells);
       var nbVerts = iVerts.length;
       var sculptFlag = ++Utils.SCULPT_FLAG;
       var pickedVertices = new Uint32Array(Utils.getMemory(4 * nbVerts + 12), 0, nbVerts + 3);
       var acc = 0;
-      var inter = this.interPoint_;
       var itx = inter[0];
       var ity = inter[1];
       var itz = inter[2];
@@ -117,7 +148,7 @@ define([
         var dx = itx - vAr[j];
         var dy = ity - vAr[j + 1];
         var dz = itz - vAr[j + 2];
-        if ((dx * dx + dy * dy + dz * dz) < rWorldSqr) {
+        if ((dx * dx + dy * dy + dz * dz) < rLocal2) {
           vertSculptFlags[ind] = sculptFlag;
           pickedVertices[acc++] = ind;
         }
@@ -134,17 +165,19 @@ define([
         pickedVertices[acc++] = iAr[j + 2];
       }
       this.pickedVertices_ = new Uint32Array(pickedVertices.subarray(0, acc));
+      return this.pickedVertices_;
     },
     /** Compute the selection radius in world space */
-    computeRadiusWorldSq: function (mouseX, mouseY) {
+    computeRadiusWorld2: function (mouseX, mouseY) {
+      var mesh = this.mesh_;
       var interPointTransformed = [0.0, 0.0, 0.0];
-      vec3.transformMat4(interPointTransformed, this.interPoint_, this.mesh_.getMatrix());
+      vec3.transformMat4(interPointTransformed, this.getIntersectionPoint(), mesh.getMatrix());
       var z = this.camera_.project(interPointTransformed)[2];
       var vCircle = this.camera_.unproject(mouseX + (this.rDisplay_ * Tablet.getPressureRadius()), mouseY, z);
-      this.rWorldSqr_ = vec3.sqrDist(interPointTransformed, vCircle);
-      vec3.scale(interPointTransformed, interPointTransformed, 1 / this.mesh_.getScale());
-      vec3.scale(vCircle, vCircle, 1 / this.mesh_.getScale());
-      this.rLocalSqr_ = vec3.sqrDist(interPointTransformed, vCircle);
+      this.rWorld2_ = vec3.sqrDist(interPointTransformed, vCircle);
+      vec3.scale(interPointTransformed, interPointTransformed, 1 / mesh.getScale());
+      vec3.scale(vCircle, vCircle, 1 / mesh.getScale());
+      this.rLocal2_ = vec3.sqrDist(interPointTransformed, vCircle);
     }
   };
 

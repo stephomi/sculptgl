@@ -92,11 +92,11 @@ define([
       }
     },
     /** Draw */
-    draw: function (render, camera, picking) {
+    draw: function (render, sculptgl) {
       var gl = this.gl_;
       gl.useProgram(this.program_);
       this.bindAttributes(render);
-      this.updateUniforms(render, camera, picking);
+      this.updateUniforms(render, sculptgl);
       var type = this.getType();
       if (type === Shader.mode.TRANSPARENCY) {
         gl.depthMask(false);
@@ -145,10 +145,15 @@ define([
         aColor.bindToBuffer(render.colorBuffer_);
     },
     /** Updates uniforms */
-    updateUniforms: function (render, camera, picking) {
+    updateUniforms: function (render, sculptgl) {
       var gl = this.gl_;
+      var scene = sculptgl.scene_;
+      var camera = scene.getCamera();
+      var picking = scene.getPicking();
+      var pickingSym = scene.getSymmetryPicking();
+      var mesh = render.mesh_;
       var uniforms = this.uniforms_;
-      var mMatrix = render.mesh_.getMatrix();
+      var mMatrix = mesh.getMatrix();
       var mvMatrix;
 
       var unif = uniforms.uMV;
@@ -169,11 +174,32 @@ define([
       unif = uniforms.uCenterPicking;
       if (unif) {
         mvMatrix = mvMatrix ? mvMatrix : mat4.mul(mat4.create(), camera.view_, mMatrix);
-        gl.uniform3fv(unif, vec3.transformMat4([0.0, 0.0, 0.0], picking.interPoint_, mvMatrix));
+        gl.uniform3fv(unif, vec3.transformMat4([0.0, 0.0, 0.0], picking.getIntersectionPoint(), mvMatrix));
+      }
+      unif = uniforms.uCenterPickingSym;
+      if (unif) {
+        mvMatrix = mvMatrix ? mvMatrix : mat4.mul(mat4.create(), camera.view_, mMatrix);
+        gl.uniform3fv(unif, vec3.transformMat4([0.0, 0.0, 0.0], pickingSym.getIntersectionPoint(), mvMatrix));
+      }
+      unif = uniforms.ptPlane;
+      if (unif) {
+        mvMatrix = mvMatrix ? mvMatrix : mat4.mul(mat4.create(), camera.view_, mMatrix);
+        gl.uniform3fv(unif, vec3.transformMat4([0.0, 0.0, 0.0], mesh.getCenter(), mvMatrix));
+      }
+      unif = uniforms.nPlane;
+      if (unif) {
+        mvMatrix = mvMatrix ? mvMatrix : mat4.mul(mat4.create(), camera.view_, mMatrix);
+        var nMat = mat3.normalFromMat4(mat3.create(), mvMatrix);
+        gl.uniform3fv(unif, vec3.transformMat3([0.0, 0.0, 0.0], mesh.getSymmetryNormal(), nMat));
+      }
+      unif = uniforms.uScale;
+      if (unif) {
+        gl.uniform1f(unif, mesh.getScale());
       }
       unif = uniforms.uRadiusSquared;
       if (unif) {
-        gl.uniform1f(unif, picking.rWorldSqr_);
+        var r2 = picking.getWorldRadius2();
+        gl.uniform1f(unif, sculptgl.sculpt_.getSymmetry() ? -r2 : r2);
       }
       unif = uniforms.uTexture0;
       if (unif) {

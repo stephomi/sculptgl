@@ -18,27 +18,26 @@ define([
   Brush.prototype = {
     /** On stroke */
     stroke: function (picking) {
-      var mesh = this.mesh_;
-      var iVertsInRadius = picking.pickedVertices_;
+      var iVertsInRadius = picking.getPickedVertices();
       var intensity = this.intensity_ * Tablet.getPressureIntensity();
 
       //undo-redo
       this.states_.pushVertices(iVertsInRadius);
 
-      var iVertsFront = this.getFrontVertices(iVertsInRadius, picking.eyeDir_);
+      var iVertsFront = this.getFrontVertices(iVertsInRadius, picking.getEyeDirection());
       if (this.culling_)
         iVertsInRadius = iVertsFront;
 
       var aNormal = this.areaNormal(iVertsFront);
       if (aNormal === null)
         return;
-      this.brush(iVertsInRadius, aNormal, picking.interPoint_, picking.rLocalSqr_, intensity);
+      this.brush(iVertsInRadius, aNormal, picking.getIntersectionPoint(), picking.getLocalRadius2(), intensity);
       if (this.clay_) {
         var aCenter = this.areaCenter(iVertsFront);
-        Flatten.prototype.flatten.call(this, iVertsInRadius, aNormal, aCenter, picking.interPoint_, picking.rLocalSqr_, intensity);
+        Flatten.prototype.flatten.call(this, iVertsInRadius, aNormal, aCenter, picking.getIntersectionPoint(), picking.getLocalRadius2(), intensity);
       }
 
-      this.mesh_.updateMesh(mesh.getTrianglesFromVertices(iVertsInRadius), iVertsInRadius);
+      this.mesh_.updateMesh(this.mesh_.getTrianglesFromVertices(iVertsInRadius), iVertsInRadius);
     },
     /** Brush stroke, move vertices along a direction computed by their averaging normals */
     brush: function (iVertsInRadius, aNormal, center, radiusSquared, intensity) {

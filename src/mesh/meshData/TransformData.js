@@ -11,9 +11,11 @@ define([
   function TransformData(mesh) {
     this.mesh_ = mesh; //the mesh
 
-    this.center_ = [0.0, 0.0, 0.0]; //center of the mesh
+    this.center_ = [0.0, 0.0, 0.0]; //center of the mesh (local space, before transformation)
     this.matTransform_ = mat4.create(); //transformation matrix of the mesh
     this.scale_ = -1.0; //the scale is already applied in the matrix transform
+
+    this.symmetryNormal_ = [1.0, 0.0, 0.0]; //symmetry normal
   }
 
   TransformData.prototype = {
@@ -26,7 +28,10 @@ define([
     getScale: function () {
       return this.scale_;
     },
-    /** Initialize the mesh, octree, topology, geometry, bbox, transformation */
+    getSymmetryNormal: function () {
+      return this.symmetryNormal_;
+    },
+    /** Scale and center the mesh */
     scaleAndCenter: function () {
       var box = this.mesh_.getBound();
       this.center_ = [(box[0] + box[3]) * 0.5, (box[1] + box[4]) * 0.5, (box[2] + box[5]) * 0.5];

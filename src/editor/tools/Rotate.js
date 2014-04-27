@@ -26,44 +26,64 @@ define([
   }
 
   Rotate.prototype = {
-    /** Start sculpting operation */
+    /** Start a rotate sculpt stroke */
     startSculpt: function (sculptgl) {
-      this.startRotate(sculptgl);
+      var mouseX = sculptgl.mouseX_;
+      var mouseY = sculptgl.mouseY_;
+      var picking = sculptgl.scene_.picking_;
+      var vNear = picking.camera_.unproject(mouseX, mouseY, 0.0);
+      var vFar = picking.camera_.unproject(mouseX, mouseY, 1.0);
+      var matInverse = mat4.create();
+      mat4.invert(matInverse, this.mesh_.getMatrix());
+      vec3.transformMat4(vNear, vNear, matInverse);
+      vec3.transformMat4(vFar, vFar, matInverse);
+      this.initRotateData(picking, mouseX, mouseY, this.rotateData_);
+      if (sculptgl.sculpt_.getSymmetry()) {
+        var pickingSym = sculptgl.scene_.pickingSym_;
+        pickingSym.intersectionRayMesh(this.mesh_, vNear, vFar, mouseX, mouseY, true);
+        if (!pickingSym.mesh_)
+          return;
+        this.initRotateData(pickingSym, mouseX, mouseY, this.rotateDataSym_);
+        pickingSym.setLocalRadius2(picking.getLocalRadius2());
+      }
     },
-    /** Update sculpting operation */
-    update: function (sculptgl) {
-      this.sculptStrokeRotate(sculptgl);
+    /** Set a few infos that will be needed for the rotate function afterwards */
+    initRotateData: function (picking, mouseX, mouseY, rotateData) {
+      picking.pickVerticesInSphere(picking.getLocalRadius2());
+      vec3.negate(rotateData.normal, picking.getEyeDirection());
+      rotateData.center[0] = mouseX;
+      rotateData.center[1] = mouseY;
     },
     /** Make a brush rotate stroke */
-    sculptStrokeRotate: function (sculptgl) {
+    sculptStroke: function (sculptgl) {
       var mx = sculptgl.mouseX_;
       var my = sculptgl.mouseY_;
       var lx = sculptgl.lastMouseX_;
       var ly = sculptgl.lastMouseY_;
       var picking = sculptgl.scene_.picking_;
-      picking.pickVerticesInSphere(sculptgl.scene_.picking_.rLocalSqr_);
+      var rLocal2 = picking.getLocalRadius2();
+      picking.pickVerticesInSphere(rLocal2);
       this.stroke(picking, mx, my, lx, ly, this.rotateData_);
-      if (sculptgl.sculpt_.symmetry_) {
+      if (sculptgl.sculpt_.getSymmetry()) {
         var pickingSym = sculptgl.scene_.pickingSym_;
-        pickingSym.pickVerticesInSphere(sculptgl.scene_.pickingSym_.rLocalSqr_);
+        pickingSym.pickVerticesInSphere(rLocal2);
         this.stroke(pickingSym, lx, ly, mx, my, this.rotateDataSym_);
       }
       this.mesh_.updateBuffers();
     },
     /** On stroke */
     stroke: function (picking, mx, my, lx, ly, rotateData) {
-      var mesh = this.mesh_;
-      var iVertsInRadius = picking.pickedVertices_;
+      var iVertsInRadius = picking.getPickedVertices();
 
       //undo-redo
       this.states_.pushVertices(iVertsInRadius);
 
       if (this.culling_)
-        iVertsInRadius = this.getFrontVertices(iVertsInRadius, picking.eyeDir_);
+        iVertsInRadius = this.getFrontVertices(iVertsInRadius, picking.getEyeDirection());
 
-      this.rotate(iVertsInRadius, picking.interPoint_, picking.rLocalSqr_, mx, my, lx, ly, rotateData);
+      this.rotate(iVertsInRadius, picking.getIntersectionPoint(), picking.getLocalRadius2(), mx, my, lx, ly, rotateData);
 
-      this.mesh_.updateMesh(mesh.getTrianglesFromVertices(iVertsInRadius), iVertsInRadius);
+      this.mesh_.updateMesh(this.mesh_.getTrianglesFromVertices(iVertsInRadius), iVertsInRadius);
     },
     /** Rotate the vertices around the mouse point intersection */
     rotate: function (iVerts, center, radiusSquared, mouseX, mouseY, lastMouseX, lastMouseY, rotateData) {
@@ -101,42 +121,6 @@ define([
         vAr[ind + 1] = coord[1];
         vAr[ind + 2] = coord[2];
       }
-    },
-    /** Start a rotate sculpt stroke */
-    startRotate: function (sculptgl) {
-      var mouseX = sculptgl.mouseX_;
-      var mouseY = sculptgl.mouseY_;
-      var picking = sculptgl.scene_.picking_;
-      var vNear = picking.camera_.unproject(mouseX, mouseY, 0.0);
-      var vFar = picking.camera_.unproject(mouseX, mouseY, 1.0);
-      var matInverse = mat4.create();
-      mat4.invert(matInverse, this.mesh_.getMatrix());
-      vec3.transformMat4(vNear, vNear, matInverse);
-      vec3.transformMat4(vFar, vFar, matInverse);
-      this.initRotateData(picking, vNear, vFar, mouseX, mouseY, this.rotateData_);
-      if (sculptgl.sculpt_.symmetry_) {
-        var pickingSym = sculptgl.scene_.pickingSym_;
-        var ptPlane = sculptgl.sculpt_.ptPlane_;
-        var nPlane = sculptgl.sculpt_.nPlane_;
-        var vNearSym = [vNear[0], vNear[1], vNear[2]];
-        Geometry.mirrorPoint(vNearSym, ptPlane, nPlane);
-        var vFarSym = [vFar[0], vFar[1], vFar[2]];
-        Geometry.mirrorPoint(vFarSym, ptPlane, nPlane);
-        // symmetrical picking
-        pickingSym.intersectionRayMesh(this.mesh_, vNearSym, vFarSym, mouseX, mouseY, 1.0);
-        if (!pickingSym.mesh_)
-          return;
-        this.initRotateData(pickingSym, vNearSym, vFarSym, mouseX, mouseY, this.rotateDataSym_);
-        pickingSym.rLocalSqr_ = picking.rLocalSqr_;
-      }
-    },
-    /** Set a few infos that will be needed for the rotate function afterwards */
-    initRotateData: function (picking, vNear, vFar, mouseX, mouseY, rotateData) {
-      picking.pickVerticesInSphere(picking.rLocalSqr_);
-      var ray = [0.0, 0.0, 0.0];
-      vec3.sub(ray, vNear, vFar);
-      rotateData.normal = vec3.normalize(ray, ray);
-      rotateData.center = [mouseX, mouseY];
     }
   };
 

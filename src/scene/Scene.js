@@ -37,6 +37,15 @@ define([
   }
 
   Scene.prototype = {
+    getCamera: function () {
+      return this.camera_;
+    },
+    getPicking: function () {
+      return this.picking_;
+    },
+    getSymmetryPicking: function () {
+      return this.pickingSym_;
+    },
     init: function () {
       this.loadShaders();
       this.loadTextures();
@@ -72,7 +81,7 @@ define([
       if (this.background_)
         this.background_.render();
       for (var i = 0, meshes = this.meshes_, nb = meshes.length; i < nb; ++i)
-        meshes[i].render(this.camera_, this.picking_);
+        meshes[i].render(this.sculptgl_);
     },
     /** Load background */
     loadBackground: function (event) {

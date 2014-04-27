@@ -17,41 +17,56 @@ define([
   }
 
   Scale.prototype = {
-    /** Start sculpting operation */
+    /** Start a sculpt sculpt stroke */
     startSculpt: function (sculptgl) {
-      this.startScale(sculptgl);
-    },
-    /** Update sculpting operation */
-    update: function (sculptgl) {
-      this.sculptStrokeScale(sculptgl);
+      var mesh = this.mesh_;
+      var mouseX = sculptgl.mouseX_;
+      var mouseY = sculptgl.mouseY_;
+      var picking = sculptgl.scene_.picking_;
+      var vNear = picking.camera_.unproject(mouseX, mouseY, 0.0);
+      var vFar = picking.camera_.unproject(mouseX, mouseY, 1.0);
+      var matInverse = mat4.create();
+      mat4.invert(matInverse, mesh.getMatrix());
+      vec3.transformMat4(vNear, vNear, matInverse);
+      vec3.transformMat4(vFar, vFar, matInverse);
+      var rLocal2 = picking.getLocalRadius2();
+      picking.pickVerticesInSphere(rLocal2);
+      if (sculptgl.sculpt_.getSymmetry()) {
+        var pickingSym = sculptgl.scene_.pickingSym_;
+        pickingSym.intersectionRayMesh(mesh, vNear, vFar, mouseX, mouseY, true);
+        if (!pickingSym.mesh_)
+          return;
+        pickingSym.setLocalRadius2(rLocal2);
+        pickingSym.pickVerticesInSphere(rLocal2);
+      }
     },
     /** Make a brush scale stroke */
-    sculptStrokeScale: function (sculptgl) {
+    sculptStroke: function (sculptgl) {
       var delta = sculptgl.mouseX_ - sculptgl.lastMouseX_;
       var picking = sculptgl.scene_.picking_;
-      picking.pickVerticesInSphere(picking.rLocalSqr_);
+      var rLocal2 = picking.getLocalRadius2();
+      picking.pickVerticesInSphere(rLocal2);
       this.stroke(picking, delta);
-      if (sculptgl.sculpt_.symmetry_) {
+      if (sculptgl.sculpt_.getSymmetry()) {
         var pickingSym = sculptgl.scene_.pickingSym_;
-        pickingSym.pickVerticesInSphere(pickingSym.rLocalSqr_);
+        pickingSym.pickVerticesInSphere(rLocal2);
         this.stroke(pickingSym, delta);
       }
       this.mesh_.updateBuffers();
     },
     /** On stroke */
     stroke: function (picking, delta) {
-      var mesh = this.mesh_;
-      var iVertsInRadius = picking.pickedVertices_;
+      var iVertsInRadius = picking.getPickedVertices();
 
       //undo-redo
       this.states_.pushVertices(iVertsInRadius);
 
       if (this.culling_)
-        iVertsInRadius = this.getFrontVertices(iVertsInRadius, picking.eyeDir_);
+        iVertsInRadius = this.getFrontVertices(iVertsInRadius, picking.getEyeDirection());
 
-      this.scale(iVertsInRadius, picking.interPoint_, picking.rLocalSqr_, delta);
+      this.scale(iVertsInRadius, picking.getIntersectionPoint(), picking.getLocalRadius2(), delta);
 
-      this.mesh_.updateMesh(mesh.getTrianglesFromVertices(iVertsInRadius), iVertsInRadius);
+      this.mesh_.updateMesh(this.mesh_.getTrianglesFromVertices(iVertsInRadius), iVertsInRadius);
     },
     /** Scale the vertices around the mouse point intersection */
     scale: function (iVerts, center, radiusSquared, intensity) {
@@ -74,34 +89,6 @@ define([
         vAr[ind] += dx * fallOff;
         vAr[ind + 1] += dy * fallOff;
         vAr[ind + 2] += dz * fallOff;
-      }
-    },
-    /** Start a sculpt sculpt stroke */
-    startScale: function (sculptgl) {
-      var mouseX = sculptgl.mouseX_;
-      var mouseY = sculptgl.mouseY_;
-      var picking = sculptgl.scene_.picking_;
-      var vNear = picking.camera_.unproject(mouseX, mouseY, 0.0);
-      var vFar = picking.camera_.unproject(mouseX, mouseY, 1.0);
-      var matInverse = mat4.create();
-      mat4.invert(matInverse, this.mesh_.getMatrix());
-      vec3.transformMat4(vNear, vNear, matInverse);
-      vec3.transformMat4(vFar, vFar, matInverse);
-      picking.pickVerticesInSphere(picking.rLocalSqr_);
-      if (sculptgl.sculpt_.symmetry_) {
-        var pickingSym = sculptgl.scene_.pickingSym_;
-        var ptPlane = sculptgl.sculpt_.ptPlane_;
-        var nPlane = sculptgl.sculpt_.nPlane_;
-        var vNearSym = [vNear[0], vNear[1], vNear[2]];
-        Geometry.mirrorPoint(vNearSym, ptPlane, nPlane);
-        var vFarSym = [vFar[0], vFar[1], vFar[2]];
-        Geometry.mirrorPoint(vFarSym, ptPlane, nPlane);
-        // symmetrical picking
-        pickingSym.intersectionRayMesh(this.mesh_, vNearSym, vFarSym, mouseX, mouseY, 1.0);
-        if (!pickingSym.mesh_)
-          return;
-        pickingSym.rLocalSqr_ = picking.rLocalSqr_;
-        pickingSym.pickVerticesInSphere(pickingSym.rLocalSqr_);
       }
     }
   };

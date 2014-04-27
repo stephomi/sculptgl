@@ -16,14 +16,13 @@ define([
   Flatten.prototype = {
     /** On stroke */
     stroke: function (picking) {
-      var mesh = this.mesh_;
-      var iVertsInRadius = picking.pickedVertices_;
+      var iVertsInRadius = picking.getPickedVertices();
       var intensity = this.intensity_ * Tablet.getPressureIntensity();
 
       //undo-redo
       this.states_.pushVertices(iVertsInRadius);
 
-      var iVertsFront = this.getFrontVertices(iVertsInRadius, picking.eyeDir_);
+      var iVertsFront = this.getFrontVertices(iVertsInRadius, picking.getEyeDirection());
       if (this.culling_)
         iVertsInRadius = iVertsFront;
 
@@ -31,9 +30,9 @@ define([
       if (aNormal === null)
         return;
       var aCenter = this.areaCenter(iVertsFront);
-      this.flatten(iVertsInRadius, aNormal, aCenter, picking.interPoint_, picking.rLocalSqr_, intensity);
+      this.flatten(iVertsInRadius, aNormal, aCenter, picking.getIntersectionPoint(), picking.getLocalRadius2(), intensity);
 
-      this.mesh_.updateMesh(mesh.getTrianglesFromVertices(iVertsInRadius), iVertsInRadius);
+      this.mesh_.updateMesh(this.mesh_.getTrianglesFromVertices(iVertsInRadius), iVertsInRadius);
     },
     /** Flatten, projection of the sculpting vertex onto a plane defined by the barycenter and normals of all the sculpting vertices */
     flatten: function (iVertsInRadius, aNormal, aCenter, center, radiusSquared, intensity) {

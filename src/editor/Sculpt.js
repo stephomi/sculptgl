@@ -22,8 +22,6 @@ define([
 
     //symmetry stuffs
     this.symmetry_ = true; //if symmetric sculpting is enabled  
-    this.ptPlane_ = [0, 0, 0]; //point origin of the plane symmetry
-    this.nPlane_ = [1, 0, 0]; //normal of plane symmetry
 
     //continous stuffs
     this.continuous_ = false; //continuous sculpting
@@ -47,6 +45,9 @@ define([
   };
 
   Sculpt.prototype = {
+    getSymmetry: function () {
+      return this.symmetry_;
+    },
     /** Initialize tools */
     init: function () {
       var states = this.states_;

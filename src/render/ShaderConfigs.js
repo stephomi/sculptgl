@@ -67,7 +67,7 @@ define([], function () {
     vertex: 'reflectionVertex',
     fragment: 'reflectionFragment',
     attributes: [vertexConfig, normalConfig, colorConfig],
-    uniforms: ['uMV', 'uMVP', 'uN', 'uCenterPicking', 'uRadiusSquared', 'uTexture0']
+    uniforms: ['uMV', 'uMVP', 'uN', 'uCenterPicking', 'uCenterPickingSym', 'ptPlane', 'nPlane', 'uScale', 'uRadiusSquared', 'uTexture0']
   };
   ShaderConfig[ShaderConfig.mode.BACKGROUND] = {
     vertex: 'backgroundVertex',

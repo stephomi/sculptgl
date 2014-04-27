@@ -74,10 +74,10 @@ define([
       this.shaderWireframe_.init();
     },
     /** Render the mesh */
-    render: function (camera, picking) {
-      this.shader_.draw(this, camera, picking);
+    render: function (sculptgl) {
+      this.shader_.draw(this, sculptgl);
       if (this.getShowWireframe())
-        this.shaderWireframe_.draw(this, camera, picking);
+        this.shaderWireframe_.draw(this, sculptgl);
     },
     /** Update the shaders on the mesh, load the texture(s) first if the shaders need it */
     updateShaders: function (shaderType) {

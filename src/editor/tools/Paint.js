@@ -24,19 +24,18 @@ define([
     },
     /** On stroke */
     stroke: function (picking) {
-      var mesh = this.mesh_;
-      var iVertsInRadius = picking.pickedVertices_;
+      var iVertsInRadius = picking.getPickedVertices();
       var intensity = this.intensity_ * Tablet.getPressureIntensity();
 
       //undo-redo
       this.states_.pushVertices(iVertsInRadius);
 
       if (this.culling_)
-        iVertsInRadius = this.getFrontVertices(iVertsInRadius, picking.eyeDir_);
+        iVertsInRadius = this.getFrontVertices(iVertsInRadius, picking.getEyeDirection());
 
-      this.paint(iVertsInRadius, picking.interPoint_, picking.rLocalSqr_, intensity);
+      this.paint(iVertsInRadius, picking.getIntersectionPoint(), picking.getLocalRadius2(), intensity);
 
-      this.mesh_.updateMesh(mesh.getTrianglesFromVertices(iVertsInRadius), iVertsInRadius);
+      this.mesh_.updateMesh(this.mesh_.getTrianglesFromVertices(iVertsInRadius), iVertsInRadius);
     },
     /** Paint color vertices */
     paint: function (iVerts, center, radiusSquared, intensity) {

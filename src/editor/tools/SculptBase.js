@@ -38,8 +38,6 @@ define([
       var mesh = this.mesh_;
       var mouseX = sculptgl.mouseX_;
       var mouseY = sculptgl.mouseY_;
-      var ptPlane = sculptgl.sculpt_.ptPlane_;
-      var nPlane = sculptgl.sculpt_.nPlane_;
       var picking = sculptgl.scene_.picking_;
       var pickingSym = sculptgl.scene_.pickingSym_;
       var lx = sculptgl.lastMouseX_;
@@ -49,7 +47,7 @@ define([
       var dist = Math.sqrt(dx * dx + dy * dy);
       sculptgl.sumDisplacement_ += dist;
       var sumDisp = sculptgl.sumDisplacement_;
-      var minSpacing = 0.15 * picking.rDisplay_;
+      var minSpacing = 0.15 * picking.getScreenRadius();
       var step = dist / Math.floor(dist / minSpacing);
       dx /= dist;
       dy /= dist;
@@ -60,7 +58,7 @@ define([
         sumDisp = 0.0;
         dist = 0.0;
       }
-      var sym = sculptgl.sculpt_.symmetry_;
+      var sym = sculptgl.sculpt_.getSymmetry();
       if (sumDisp > minSpacing * 100.0)
         sumDisp = 0.0;
       else if (sumDisp > minSpacing || sumDisp === 0.0) {
@@ -69,14 +67,14 @@ define([
           picking.intersectionMouseMesh(mesh, mouseX, mouseY);
           if (!picking.mesh_)
             break;
-          picking.pickVerticesInSphere(picking.rLocalSqr_);
+          picking.pickVerticesInSphere(picking.getLocalRadius2());
           this.stroke(picking);
           if (sym) {
-            pickingSym.intersectionMouseMesh(mesh, mouseX, mouseY, ptPlane, nPlane);
+            pickingSym.intersectionMouseMesh(mesh, mouseX, mouseY, true);
             if (!pickingSym.mesh_)
               break;
-            pickingSym.rLocalSqr_ = picking.rLocalSqr_;
-            pickingSym.pickVerticesInSphere(pickingSym.rLocalSqr_);
+            pickingSym.setLocalRadius2(picking.getLocalRadius2());
+            pickingSym.pickVerticesInSphere(pickingSym.getLocalRadius2());
             this.stroke(pickingSym, true);
           }
           mouseX += dx * step;

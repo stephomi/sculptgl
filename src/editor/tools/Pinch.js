@@ -16,19 +16,18 @@ define([
   Pinch.prototype = {
     /** On stroke */
     stroke: function (picking) {
-      var mesh = this.mesh_;
-      var iVertsInRadius = picking.pickedVertices_;
+      var iVertsInRadius = picking.getPickedVertices();
       var intensity = this.intensity_ * Tablet.getPressureIntensity();
 
       //undo-redo
       this.states_.pushVertices(iVertsInRadius);
 
       if (this.culling_)
-        iVertsInRadius = SculptBase.getFrontVertices(iVertsInRadius, picking.eyeDir_);
+        iVertsInRadius = SculptBase.getFrontVertices(iVertsInRadius, picking.getEyeDirection());
 
-      this.pinch(iVertsInRadius, picking.interPoint_, picking.rLocalSqr_, intensity);
+      this.pinch(iVertsInRadius, picking.getIntersectionPoint(), picking.getLocalRadius2(), intensity);
 
-      this.mesh_.updateMesh(mesh.getTrianglesFromVertices(iVertsInRadius), iVertsInRadius);
+      this.mesh_.updateMesh(this.mesh_.getTrianglesFromVertices(iVertsInRadius), iVertsInRadius);
     },
     /** Pinch, vertices gather around intersection point */
     pinch: function (iVertsInRadius, center, radiusSquared, intensity) {
