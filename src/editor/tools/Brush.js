@@ -1,15 +1,14 @@
 define([
+  'misc/Utils',
   'misc/Tablet',
-  'editor/tools/SculptUtils',
-  'editor/tools/Flatten',
-  'states/StateGeometry'
-], function (Tablet, SculptUtils, Flatten, StateGeometry) {
+  'editor/tools/SculptBase',
+  'editor/tools/Flatten'
+], function (Utils, Tablet, SculptBase, Flatten) {
 
   'use strict';
 
   function Brush(states) {
-    this.states_ = states; //for undo-redo
-    this.mesh_ = null; //the current edited mesh
+    SculptBase.call(this, states);
     this.intensity_ = 0.75; //deformation intensity
     this.negative_ = false; //opposition deformation
     this.clay_ = true; //clay sculpting (modifier for brush tool)
@@ -17,21 +16,6 @@ define([
   }
 
   Brush.prototype = {
-    /** Start sculpting operation */
-    start: function (sculptgl) {
-      var picking = sculptgl.scene_.picking_;
-      var mesh = sculptgl.mesh_;
-      picking.intersectionMouseMesh(mesh, sculptgl.mouseX_, sculptgl.mouseY_);
-      if (picking.mesh_ === null)
-        return;
-      this.states_.pushState(new StateGeometry(mesh));
-      this.mesh_ = mesh;
-      this.update(sculptgl);
-    },
-    /** Update sculpting operation */
-    update: function (sculptgl) {
-      SculptUtils.sculptStroke(sculptgl, this.mesh_, this.stroke.bind(this));
-    },
     /** On stroke */
     stroke: function (picking) {
       var mesh = this.mesh_;
@@ -41,24 +25,24 @@ define([
       //undo-redo
       this.states_.pushVertices(iVertsInRadius);
 
-      var iVertsFront = SculptUtils.getFrontVertices(mesh, iVertsInRadius, picking.eyeDir_);
+      var iVertsFront = this.getFrontVertices(iVertsInRadius, picking.eyeDir_);
       if (this.culling_)
         iVertsInRadius = iVertsFront;
 
-      var aNormal = SculptUtils.areaNormal(mesh, iVertsFront);
+      var aNormal = this.areaNormal(iVertsFront);
       if (aNormal === null)
         return;
-      this.brush(mesh, iVertsInRadius, aNormal, picking.interPoint_, picking.rLocalSqr_, intensity);
+      this.brush(iVertsInRadius, aNormal, picking.interPoint_, picking.rLocalSqr_, intensity);
       if (this.clay_) {
-        var aCenter = SculptUtils.areaCenter(mesh, iVertsFront);
-        Flatten.prototype.flatten.bind(this)(mesh, iVertsInRadius, aNormal, aCenter, picking.interPoint_, picking.rLocalSqr_, intensity);
+        var aCenter = this.areaCenter(iVertsFront);
+        Flatten.prototype.flatten.call(this, iVertsInRadius, aNormal, aCenter, picking.interPoint_, picking.rLocalSqr_, intensity);
       }
 
       this.mesh_.updateMesh(mesh.getTrianglesFromVertices(iVertsInRadius), iVertsInRadius);
     },
     /** Brush stroke, move vertices along a direction computed by their averaging normals */
-    brush: function (mesh, iVertsInRadius, aNormal, center, radiusSquared, intensity) {
-      var vAr = mesh.getVertices();
+    brush: function (iVertsInRadius, aNormal, center, radiusSquared, intensity) {
+      var vAr = this.mesh_.getVertices();
       var radius = Math.sqrt(radiusSquared);
       var nbVerts = iVertsInRadius.length;
       var deformIntensityBrush = intensity * radius * 0.1;
@@ -85,6 +69,8 @@ define([
       }
     }
   };
+
+  Utils.makeProxy(SculptBase, Brush);
 
   return Brush;
 });

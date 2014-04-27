@@ -1,14 +1,13 @@
 define([
+  'misc/Utils',
   'misc/Tablet',
-  'editor/tools/SculptUtils',
-  'states/StateColor'
-], function (Tablet, SculptUtils, StateColor) {
+  'editor/tools/SculptBase'
+], function (Utils, Tablet, SculptBase) {
 
   'use strict';
 
   function Paint(states) {
-    this.states_ = states; //for undo-redo
-    this.mesh_ = null; //the current edited mesh
+    SculptBase.call(this, states);
     this.intensity_ = 0.75; //deformation intensity
     this.culling_ = false; //if we backface cull the vertices
     this.color_ = [168.0, 66.0, 66.0]; //color painting
@@ -17,18 +16,11 @@ define([
   Paint.prototype = {
     /** Start sculpting operation */
     start: function (sculptgl) {
-      var picking = sculptgl.scene_.picking_;
-      var mesh = sculptgl.mesh_;
-      picking.intersectionMouseMesh(mesh, sculptgl.mouseX_, sculptgl.mouseY_);
-      if (picking.mesh_ === null)
-        return;
-      this.states_.pushState(new StateColor(mesh));
-      this.mesh_ = mesh;
-      this.update(sculptgl);
+      SculptBase.prototype.start.call(this, sculptgl, true);
     },
     /** Update sculpting operation */
     update: function (sculptgl) {
-      SculptUtils.sculptStroke(sculptgl, this.mesh_, this.stroke.bind(this), true);
+      this.sculptStroke(sculptgl, true);
     },
     /** On stroke */
     stroke: function (picking) {
@@ -40,14 +32,15 @@ define([
       this.states_.pushVertices(iVertsInRadius);
 
       if (this.culling_)
-        iVertsInRadius = SculptUtils.getFrontVertices(mesh, iVertsInRadius, picking.eyeDir_);
+        iVertsInRadius = this.getFrontVertices(iVertsInRadius, picking.eyeDir_);
 
-      this.paint(mesh, iVertsInRadius, picking.interPoint_, picking.rLocalSqr_, intensity);
+      this.paint(iVertsInRadius, picking.interPoint_, picking.rLocalSqr_, intensity);
 
       this.mesh_.updateMesh(mesh.getTrianglesFromVertices(iVertsInRadius), iVertsInRadius);
     },
     /** Paint color vertices */
-    paint: function (mesh, iVerts, center, radiusSquared, intensity) {
+    paint: function (iVerts, center, radiusSquared, intensity) {
+      var mesh = this.mesh_;
       var vAr = mesh.getVertices();
       var cAr = mesh.getColors();
       var color = this.color_;
@@ -75,6 +68,8 @@ define([
       }
     }
   };
+
+  Utils.makeProxy(SculptBase, Paint);
 
   return Paint;
 });

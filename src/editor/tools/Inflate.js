@@ -1,35 +1,19 @@
 define([
+  'misc/Utils',
   'misc/Tablet',
-  'editor/tools/SculptUtils',
-  'states/StateGeometry'
-], function (Tablet, SculptUtils, StateGeometry) {
+  'editor/tools/SculptBase'
+], function (Utils, Tablet, SculptBase) {
 
   'use strict';
 
   function Inflate(states) {
-    this.states_ = states; //for undo-redo
-    this.mesh_ = null; //the current edited mesh
+    SculptBase.call(this, states);
     this.intensity_ = 0.3; //deformation intensity
     this.negative_ = false; //opposition deformation
     this.culling_ = false; //if we backface cull the vertices
   }
 
   Inflate.prototype = {
-    /** Start sculpting operation */
-    start: function (sculptgl) {
-      var picking = sculptgl.scene_.picking_;
-      var mesh = sculptgl.mesh_;
-      picking.intersectionMouseMesh(mesh, sculptgl.mouseX_, sculptgl.mouseY_);
-      if (picking.mesh_ === null)
-        return;
-      this.states_.pushState(new StateGeometry(mesh));
-      this.mesh_ = mesh;
-      this.update(sculptgl);
-    },
-    /** Update sculpting operation */
-    update: function (sculptgl) {
-      SculptUtils.sculptStroke(sculptgl, this.mesh_, this.stroke.bind(this));
-    },
     /** On stroke */
     stroke: function (picking) {
       var mesh = this.mesh_;
@@ -40,14 +24,15 @@ define([
       this.states_.pushVertices(iVertsInRadius);
 
       if (this.culling_)
-        iVertsInRadius = SculptUtils.getFrontVertices(mesh, iVertsInRadius, picking.eyeDir_);
+        iVertsInRadius = this.getFrontVertices(iVertsInRadius, picking.eyeDir_);
 
-      this.inflate(mesh, iVertsInRadius, picking.interPoint_, picking.rLocalSqr_, intensity);
+      this.inflate(iVertsInRadius, picking.interPoint_, picking.rLocalSqr_, intensity);
 
       this.mesh_.updateMesh(mesh.getTrianglesFromVertices(iVertsInRadius), iVertsInRadius);
     },
     /** Inflate a group of vertices */
-    inflate: function (mesh, iVerts, center, radiusSquared, intensity) {
+    inflate: function (iVerts, center, radiusSquared, intensity) {
+      var mesh = this.mesh_;
       var vAr = mesh.getVertices();
       var nAr = mesh.getNormals();
       var nbVerts = iVerts.length;
@@ -77,6 +62,8 @@ define([
       }
     }
   };
+
+  Utils.makeProxy(SculptBase, Inflate);
 
   return Inflate;
 });

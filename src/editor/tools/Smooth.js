@@ -1,34 +1,19 @@
 define([
+  'misc/Utils',
   'misc/Tablet',
-  'editor/tools/SculptUtils',
-  'states/StateGeometry'
-], function (Tablet, SculptUtils, StateGeometry) {
+  'editor/tools/SculptBase'
+], function (Utils, Tablet, SculptBase) {
 
   'use strict';
 
-  function Pinch(states) {
-    this.states_ = states; //for undo-redo
-    this.mesh_ = null; //the current edited mesh
+  function Smooth(states) {
+    SculptBase.call(this, states);
     this.intensity_ = 0.75; //deformation intensity
     this.culling_ = false; //if we backface cull the vertices
+    this.tangent_ = false; //tangent smoothing
   }
 
-  Pinch.prototype = {
-    /** Start sculpting operation */
-    start: function (sculptgl) {
-      var picking = sculptgl.scene_.picking_;
-      var mesh = sculptgl.mesh_;
-      picking.intersectionMouseMesh(mesh, sculptgl.mouseX_, sculptgl.mouseY_);
-      if (picking.mesh_ === null)
-        return;
-      this.states_.pushState(new StateGeometry(mesh));
-      this.mesh_ = mesh;
-      this.update(sculptgl);
-    },
-    /** Update sculpting operation */
-    update: function (sculptgl) {
-      SculptUtils.sculptStroke(sculptgl, this.mesh_, this.stroke.bind(this));
-    },
+  Smooth.prototype = {
     /** On stroke */
     stroke: function (picking) {
       var mesh = this.mesh_;
@@ -39,31 +24,88 @@ define([
       this.states_.pushVertices(iVertsInRadius);
 
       if (this.culling_)
-        iVertsInRadius = SculptUtils.getFrontVertices(mesh, iVertsInRadius, picking.eyeDir_);
+        iVertsInRadius = this.getFrontVertices(iVertsInRadius, picking.eyeDir_);
 
-      this.smooth(mesh, iVertsInRadius, intensity);
+      if (this.tangent_)
+        this.smoothTangent(iVertsInRadius, intensity);
+      else
+        this.smooth(iVertsInRadius, intensity);
 
       this.mesh_.updateMesh(mesh.getTrianglesFromVertices(iVertsInRadius), iVertsInRadius);
     },
     /** Smooth a group of vertices. New position is given by simple averaging */
-    smooth: function (mesh, iVerts, intensity) {
+    smooth: function (iVerts, intensity) {
+      var mesh = this.mesh_;
       var vAr = mesh.getVertices();
       var nbVerts = iVerts.length;
       var smoothVerts = new Float32Array(nbVerts * 3);
-      this.laplacianSmooth(mesh, iVerts, smoothVerts);
+      this.laplacianSmooth(iVerts, smoothVerts);
       for (var i = 0; i < nbVerts; ++i) {
         var ind = iVerts[i] * 3;
         var i3 = i * 3;
-        var dx = (smoothVerts[i3] - vAr[ind]) * intensity;
-        var dy = (smoothVerts[i3 + 1] - vAr[ind + 1]) * intensity;
-        var dz = (smoothVerts[i3 + 2] - vAr[ind + 2]) * intensity;
-        vAr[ind] += dx;
-        vAr[ind + 1] += dy;
-        vAr[ind + 2] += dz;
+        vAr[ind] += (smoothVerts[i3] - vAr[ind]) * intensity;
+        vAr[ind + 1] += (smoothVerts[i3 + 1] - vAr[ind + 1]) * intensity;
+        vAr[ind + 2] += (smoothVerts[i3 + 2] - vAr[ind + 2]) * intensity;
+      }
+    },
+    /** Smooth a group of vertices. Reproject the position on each vertex normals plane */
+    smoothTangent: function (iVerts, intensity) {
+      var mesh = this.mesh_;
+      var vAr = mesh.getVertices();
+      var nAr = mesh.getNormals();
+      var nbVerts = iVerts.length;
+      var smoothVerts = new Float32Array(nbVerts * 3);
+      this.laplacianSmooth(iVerts, smoothVerts);
+      for (var i = 0; i < nbVerts; ++i) {
+        var ind = iVerts[i] * 3;
+        var vx = vAr[ind];
+        var vy = vAr[ind + 1];
+        var vz = vAr[ind + 2];
+        var nx = nAr[ind];
+        var ny = nAr[ind + 1];
+        var nz = nAr[ind + 2];
+        var len = 1.0 / Math.sqrt(nx * nx + ny * ny + nz * nz);
+        nx *= len;
+        ny *= len;
+        nz *= len;
+        var i3 = i * 3;
+        var smx = smoothVerts[i3];
+        var smy = smoothVerts[i3 + 1];
+        var smz = smoothVerts[i3 + 2];
+        var dot = nx * (smx - vx) + ny * (smy - vy) + nz * (smz - vz);
+        vAr[ind] += (smx - nx * dot - vx) * intensity;
+        vAr[ind + 1] += (smy - ny * dot - vy) * intensity;
+        vAr[ind + 2] += (smz - nz * dot - vz) * intensity;
+      }
+    },
+    /** Smooth a group of vertices along their normals */
+    smoothAlongNormals: function (iVerts, intensity) {
+      var mesh = this.mesh_;
+      var vAr = mesh.getVertices();
+      var nAr = mesh.getNormals();
+      var nbVerts = iVerts.length;
+      var smoothVerts = new Float32Array(nbVerts * 3);
+      this.laplacianSmooth(iVerts, smoothVerts);
+      for (var i = 0; i < nbVerts; ++i) {
+        var ind = iVerts[i] * 3;
+        var vx = vAr[ind];
+        var vy = vAr[ind + 1];
+        var vz = vAr[ind + 2];
+        var nx = nAr[ind];
+        var ny = nAr[ind + 1];
+        var nz = nAr[ind + 2];
+        var i3 = i * 3;
+        var len = 1.0 / ((nx * nx + ny * ny + nz * nz));
+        var dot = nx * (smoothVerts[i3] - vx) + ny * (smoothVerts[i3 + 1] - vy) + nz * (smoothVerts[i3 + 2] - vz);
+        dot *= len * intensity;
+        vAr[ind] += nx * dot;
+        vAr[ind + 1] += ny * dot;
+        vAr[ind + 2] += nz * dot;
       }
     },
     /** Laplacian smooth. Special rule for vertex on the edge of the mesh. */
-    laplacianSmooth: function (mesh, iVerts, smoothVerts) {
+    laplacianSmooth: function (iVerts, smoothVerts) {
+      var mesh = this.mesh_;
       var vrrStartCount = mesh.getVerticesRingVertStartCount();
       var vertRingVert = mesh.getVerticesRingVert();
       var vertOnEdge = mesh.getVerticesOnEdge();
@@ -106,25 +148,9 @@ define([
         smoothVerts[i3 + 2] = avz / count;
       }
     }
-    // /** Smooth a group of vertices. New position is given by simple averaging */
-    // smoothFlat: function (mesh, iVerts, intensity) {
-    //   var vAr = mesh.getVertices();
-    //   var nbVerts = iVerts.length;
-    //   var smoothVerts = new Float32Array(nbVerts * 3);
-    //   this.laplacianSmooth(iVerts, smoothVerts);
-    //   for (var i = 0; i < nbVerts; ++i) {
-    //     var ind = iVerts[i] * 3;
-    //     var i3 = i * 3;
-    //     var dx = (smoothVerts[i3] - vAr[ind]) * intensity;
-    //     var dy = (smoothVerts[i3 + 1] - vAr[ind + 1]) * intensity;
-    //     var dz = (smoothVerts[i3 + 2] - vAr[ind + 2]) * intensity;
-    //     vAr[ind] += dx;
-    //     vAr[ind + 1] += dy;
-    //     vAr[ind + 2] += dz;
-    //   }
-    // },
-
   };
 
-  return Pinch;
+  Utils.makeProxy(SculptBase, Smooth);
+
+  return Smooth;
 });

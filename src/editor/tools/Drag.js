@@ -1,9 +1,9 @@
 define([
   'lib/glMatrix',
+  'misc/Utils',
   'math3d/Geometry',
-  'editor/tools/SculptUtils',
-  'states/StateGeometry'
-], function (glmatrix, Geometry, SculptUtils, StateGeometry) {
+  'editor/tools/SculptBase'
+], function (glmatrix, Utils, Geometry, SculptBase) {
 
   'use strict';
 
@@ -11,28 +11,15 @@ define([
   var mat4 = glmatrix.mat4;
 
   function Drag(states) {
-    this.states_ = states; //for undo-redo
-    this.mesh_ = null; //the current edited mesh
-
-    //drag stuffs
+    SculptBase.call(this, states);
     this.dragDir_ = [0.0, 0.0, 0.0]; //direction of deformation
     this.dragDirSym_ = [0.0, 0.0, 0.0]; //direction of deformation
   }
 
   Drag.prototype = {
-    /** Start sculpting operation */
-    start: function (sculptgl) {
-      var picking = sculptgl.scene_.picking_;
-      var mesh = sculptgl.mesh_;
-      picking.intersectionMouseMesh(mesh, sculptgl.mouseX_, sculptgl.mouseY_);
-      if (picking.mesh_ === null)
-        return;
-      this.states_.pushState(new StateGeometry(mesh));
-      this.mesh_ = mesh;
-      this.update(sculptgl);
-    },
     /** Update sculpting operation */
-    update: function (sculptgl) {
+    sculptStroke: function (sculptgl) {
+      var mesh = this.mesh_;
       var mouseX = sculptgl.mouseX_;
       var mouseY = sculptgl.mouseY_;
       var ptPlane = sculptgl.sculpt_.ptPlane_;
@@ -52,7 +39,6 @@ define([
       dy /= dist;
       mouseX = lx;
       mouseY = ly;
-      var mesh = this.mesh_;
       var sym = sculptgl.sculpt_.symmetry_;
       minSpacing = 0.0;
       if (picking.mesh_ === null)
@@ -88,15 +74,15 @@ define([
       this.states_.pushVertices(iVertsInRadius);
 
       if (this.culling_)
-        iVertsInRadius = SculptUtils.getFrontVertices(mesh, iVertsInRadius, picking.eyeDir_);
+        iVertsInRadius = this.getFrontVertices(iVertsInRadius, picking.eyeDir_);
 
-      this.drag(mesh, iVertsInRadius, picking.interPoint_, picking.rLocalSqr_, sym);
+      this.drag(iVertsInRadius, picking.interPoint_, picking.rLocalSqr_, sym);
 
       this.mesh_.updateMesh(mesh.getTrianglesFromVertices(iVertsInRadius), iVertsInRadius);
     },
     /** Drag deformation */
-    drag: function (mesh, iVerts, center, radiusSquared, sym) {
-      var vAr = mesh.getVertices();
+    drag: function (iVerts, center, radiusSquared, sym) {
+      var vAr = this.mesh_.getVertices();
       var nbVerts = iVerts.length;
       var radius = Math.sqrt(radiusSquared);
       var cx = center[0];
@@ -144,6 +130,8 @@ define([
       vec3.normalize(eyeDir, eyeDir);
     }
   };
+
+  Utils.makeProxy(SculptBase, Drag);
 
   return Drag;
 });

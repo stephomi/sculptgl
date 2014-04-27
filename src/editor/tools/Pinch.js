@@ -1,35 +1,19 @@
 define([
+  'misc/Utils',
   'misc/Tablet',
-  'editor/tools/SculptUtils',
-  'states/StateGeometry'
-], function (Tablet, SculptUtils, StateGeometry) {
+  'editor/tools/SculptBase'
+], function (Utils, Tablet, SculptBase) {
 
   'use strict';
 
   function Pinch(states) {
-    this.states_ = states; //for undo-redo
-    this.mesh_ = null; //the current edited mesh
+    SculptBase.call(this, states);
     this.intensity_ = 0.75; //deformation intensity
     this.negative_ = false; //opposition deformation
     this.culling_ = false; //if we backface cull the vertices
   }
 
   Pinch.prototype = {
-    /** Start sculpting operation */
-    start: function (sculptgl) {
-      var picking = sculptgl.scene_.picking_;
-      var mesh = sculptgl.mesh_;
-      picking.intersectionMouseMesh(mesh, sculptgl.mouseX_, sculptgl.mouseY_);
-      if (picking.mesh_ === null)
-        return;
-      this.states_.pushState(new StateGeometry(mesh));
-      this.mesh_ = mesh;
-      this.update(sculptgl);
-    },
-    /** Update sculpting operation */
-    update: function (sculptgl) {
-      SculptUtils.sculptStroke(sculptgl, this.mesh_, this.stroke.bind(this));
-    },
     /** On stroke */
     stroke: function (picking) {
       var mesh = this.mesh_;
@@ -40,15 +24,15 @@ define([
       this.states_.pushVertices(iVertsInRadius);
 
       if (this.culling_)
-        iVertsInRadius = SculptUtils.getFrontVertices(mesh, iVertsInRadius, picking.eyeDir_);
+        iVertsInRadius = SculptBase.getFrontVertices(iVertsInRadius, picking.eyeDir_);
 
-      this.pinch(mesh, iVertsInRadius, picking.interPoint_, picking.rLocalSqr_, intensity);
+      this.pinch(iVertsInRadius, picking.interPoint_, picking.rLocalSqr_, intensity);
 
       this.mesh_.updateMesh(mesh.getTrianglesFromVertices(iVertsInRadius), iVertsInRadius);
     },
     /** Pinch, vertices gather around intersection point */
-    pinch: function (mesh, iVertsInRadius, center, radiusSquared, intensity) {
-      var vAr = mesh.getVertices();
+    pinch: function (iVertsInRadius, center, radiusSquared, intensity) {
+      var vAr = this.mesh_.getVertices();
       var radius = Math.sqrt(radiusSquared);
       var nbVerts = iVertsInRadius.length;
       var cx = center[0];
@@ -73,6 +57,8 @@ define([
       }
     }
   };
+
+  Utils.makeProxy(SculptBase, Pinch);
 
   return Pinch;
 });

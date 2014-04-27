@@ -1,35 +1,19 @@
 define([
+  'misc/Utils',
   'misc/Tablet',
-  'editor/tools/SculptUtils',
-  'states/StateGeometry'
-], function (Tablet, SculptUtils, StateGeometry) {
+  'editor/tools/SculptBase'
+], function (Utils, Tablet, SculptBase) {
 
   'use strict';
 
   function Crease(states) {
-    this.states_ = states; //for undo-redo
-    this.mesh_ = null; //the current edited mesh
+    SculptBase.call(this, states);
     this.intensity_ = 0.75; //deformation intensity
     this.negative_ = false; //opposition deformation
     this.culling_ = false; //if we backface cull the vertices
   }
 
   Crease.prototype = {
-    /** Start sculpting operation */
-    start: function (sculptgl) {
-      var picking = sculptgl.scene_.picking_;
-      var mesh = sculptgl.mesh_;
-      picking.intersectionMouseMesh(mesh, sculptgl.mouseX_, sculptgl.mouseY_);
-      if (picking.mesh_ === null)
-        return;
-      this.states_.pushState(new StateGeometry(mesh));
-      this.mesh_ = mesh;
-      this.update(sculptgl);
-    },
-    /** Update sculpting operation */
-    update: function (sculptgl) {
-      SculptUtils.sculptStroke(sculptgl, this.mesh_, this.stroke.bind(this));
-    },
     /** On stroke */
     stroke: function (picking) {
       var mesh = this.mesh_;
@@ -39,20 +23,20 @@ define([
       //undo-redo
       this.states_.pushVertices(iVertsInRadius);
 
-      var iVertsFront = SculptUtils.getFrontVertices(mesh, iVertsInRadius, picking.eyeDir_);
+      var iVertsFront = this.getFrontVertices(iVertsInRadius, picking.eyeDir_);
       if (this.culling_)
         iVertsInRadius = iVertsFront;
 
-      var aNormal = SculptUtils.areaNormal(mesh, iVertsFront);
+      var aNormal = this.areaNormal(iVertsFront);
       if (aNormal === null)
         return;
-      this.crease(mesh, iVertsInRadius, aNormal, picking.interPoint_, picking.rLocalSqr_, intensity);
+      this.crease(iVertsInRadius, aNormal, picking.interPoint_, picking.rLocalSqr_, intensity);
 
       this.mesh_.updateMesh(mesh.getTrianglesFromVertices(iVertsInRadius), iVertsInRadius);
     },
     /** Pinch+brush-like sculpt */
-    crease: function (mesh, iVertsInRadius, aNormal, center, radiusSquared, intensity) {
-      var vAr = mesh.getVertices();
+    crease: function (iVertsInRadius, aNormal, center, radiusSquared, intensity) {
+      var vAr = this.mesh_.getVertices();
       var radius = Math.sqrt(radiusSquared);
       var nbVerts = iVertsInRadius.length;
       var cx = center[0];
@@ -84,6 +68,8 @@ define([
       }
     }
   };
+
+  Utils.makeProxy(SculptBase, Crease);
 
   return Crease;
 });

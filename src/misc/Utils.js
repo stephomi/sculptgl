@@ -24,13 +24,14 @@ define([], function () {
   Utils.SCULPT_FLAG = 1; //flag value for sculpt (always >= tags values)
   Utils.STATE_FLAG = 1; //flag value for states (always >= tags values)
 
-  Utils.makeProxy = function (source, proxy, createFunc) {
+  Utils.makeProxy = function (source, proxy, wrapFunc) {
     var sourceProto = source.prototype;
     var proxyProto = proxy.prototype;
     var protos = Object.keys(sourceProto);
     for (var i = 0, l = protos.length; i < l; ++i) {
       var proto = protos[i];
-      proxyProto[proto] = proxyProto[proto] || createFunc(sourceProto[proto]);
+      if (!proxyProto[proto])
+        proxyProto[proto] = wrapFunc ? wrapFunc(sourceProto[proto]) : sourceProto[proto];
     }
   };
 

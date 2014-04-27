@@ -1,9 +1,9 @@
 define([
   'lib/glMatrix',
+  'misc/Utils',
   'math3d/Geometry',
-  'editor/tools/SculptUtils',
-  'states/StateGeometry'
-], function (glmatrix, Geometry, SculptUtils, StateGeometry) {
+  'editor/tools/SculptBase'
+], function (glmatrix, Utils, Geometry, SculptBase) {
 
   'use strict';
 
@@ -13,11 +13,8 @@ define([
   var quat = glmatrix.quat;
 
   function Rotate(states) {
-    this.states_ = states; //for undo-redo
-    this.mesh_ = null; //the current edited mesh
+    SculptBase.call(this, states);
     this.culling_ = false; //if we backface cull the vertices
-
-    //rotate stuffs
     this.rotateData_ = {
       normal: [0.0, 0.0, 0.0], //normal of rotation plane
       center: [0.0, 0.0] //2D center of rotation 
@@ -30,14 +27,7 @@ define([
 
   Rotate.prototype = {
     /** Start sculpting operation */
-    start: function (sculptgl) {
-      var picking = sculptgl.scene_.picking_;
-      var mesh = sculptgl.mesh_;
-      picking.intersectionMouseMesh(mesh, sculptgl.mouseX_, sculptgl.mouseY_);
-      if (picking.mesh_ === null)
-        return;
-      this.states_.pushState(new StateGeometry(mesh));
-      this.mesh_ = mesh;
+    startSculpt: function (sculptgl) {
       this.startRotate(sculptgl);
     },
     /** Update sculpting operation */
@@ -69,14 +59,15 @@ define([
       this.states_.pushVertices(iVertsInRadius);
 
       if (this.culling_)
-        iVertsInRadius = SculptUtils.getFrontVertices(mesh, iVertsInRadius, picking.eyeDir_);
+        iVertsInRadius = this.getFrontVertices(iVertsInRadius, picking.eyeDir_);
 
-      this.rotate(mesh, iVertsInRadius, picking.interPoint_, picking.rLocalSqr_, mx, my, lx, ly, rotateData);
+      this.rotate(iVertsInRadius, picking.interPoint_, picking.rLocalSqr_, mx, my, lx, ly, rotateData);
 
       this.mesh_.updateMesh(mesh.getTrianglesFromVertices(iVertsInRadius), iVertsInRadius);
     },
     /** Rotate the vertices around the mouse point intersection */
-    rotate: function (mesh, iVerts, center, radiusSquared, mouseX, mouseY, lastMouseX, lastMouseY, rotateData) {
+    rotate: function (iVerts, center, radiusSquared, mouseX, mouseY, lastMouseX, lastMouseY, rotateData) {
+      var mesh = this.mesh_;
       var mouseCenter = rotateData.center;
       var vecMouse = [mouseX - mouseCenter[0], mouseY - mouseCenter[1]];
       if (vec2.len(vecMouse) < 30)
@@ -148,6 +139,8 @@ define([
       rotateData.center = [mouseX, mouseY];
     }
   };
+
+  Utils.makeProxy(SculptBase, Rotate);
 
   return Rotate;
 });

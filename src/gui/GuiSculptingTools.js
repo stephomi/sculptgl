@@ -105,6 +105,7 @@ define([
     init: function (tool, fold) {
       this.ctrls_.push(fold.add(tool, 'intensity_', 0, 1).name('Intensity'));
       this.ctrls_.push(fold.add(tool, 'culling_').name('Sculpt culling'));
+      this.ctrls_.push(fold.add(tool, 'tangent_').name('No shrink'));
     }
   };
 

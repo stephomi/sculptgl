@@ -1,32 +1,24 @@
 define([
   'lib/glMatrix',
+  'misc/Utils',
   'math3d/Geometry',
-  'editor/tools/SculptUtils',
-  'states/StateGeometry'
-], function (glmatrix, Geometry, SculptUtils, StateGeometry) {
+  'editor/tools/SculptBase'
+], function (glmatrix, Utils, Geometry, SculptBase) {
 
   'use strict';
 
   var vec3 = glmatrix.vec3;
   var mat4 = glmatrix.mat4;
 
-  function Crease(states) {
-    this.states_ = states; //for undo-redo
-    this.mesh_ = null; //the current edited mesh
+  function Scale(states) {
+    SculptBase.call(this, states);
     this.intensity_ = 0.75; //deformation intensity
     this.culling_ = false; //if we backface cull the vertices
   }
 
-  Crease.prototype = {
+  Scale.prototype = {
     /** Start sculpting operation */
-    start: function (sculptgl) {
-      var picking = sculptgl.scene_.picking_;
-      var mesh = sculptgl.mesh_;
-      picking.intersectionMouseMesh(mesh, sculptgl.mouseX_, sculptgl.mouseY_);
-      if (picking.mesh_ === null)
-        return;
-      this.states_.pushState(new StateGeometry(mesh));
-      this.mesh_ = mesh;
+    startSculpt: function (sculptgl) {
       this.startScale(sculptgl);
     },
     /** Update sculpting operation */
@@ -55,15 +47,15 @@ define([
       this.states_.pushVertices(iVertsInRadius);
 
       if (this.culling_)
-        iVertsInRadius = SculptUtils.getFrontVertices(mesh, iVertsInRadius, picking.eyeDir_);
+        iVertsInRadius = this.getFrontVertices(iVertsInRadius, picking.eyeDir_);
 
-      this.scale(mesh, iVertsInRadius, picking.interPoint_, picking.rLocalSqr_, delta);
+      this.scale(iVertsInRadius, picking.interPoint_, picking.rLocalSqr_, delta);
 
       this.mesh_.updateMesh(mesh.getTrianglesFromVertices(iVertsInRadius), iVertsInRadius);
     },
     /** Scale the vertices around the mouse point intersection */
-    scale: function (mesh, iVerts, center, radiusSquared, intensity) {
-      var vAr = mesh.getVertices();
+    scale: function (iVerts, center, radiusSquared, intensity) {
+      var vAr = this.mesh_.getVertices();
       var deltaScale = intensity * 0.01;
       var radius = Math.sqrt(radiusSquared);
       var nbVerts = iVerts.length;
@@ -114,5 +106,7 @@ define([
     }
   };
 
-  return Crease;
+  Utils.makeProxy(SculptBase, Scale);
+
+  return Scale;
 });

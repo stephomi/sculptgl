@@ -1,35 +1,19 @@
 define([
+  'misc/Utils',
   'misc/Tablet',
-  'editor/tools/SculptUtils',
-  'states/StateGeometry'
-], function (Tablet, SculptUtils, StateGeometry) {
+  'editor/tools/SculptBase'
+], function (Utils, Tablet, SculptBase) {
 
   'use strict';
 
   function Flatten(states) {
-    this.states_ = states; //for undo-redo
-    this.mesh_ = null; //the current edited mesh
+    SculptBase.call(this, states);
     this.intensity_ = 0.75; //deformation intensity
     this.negative_ = false; //opposition deformation
     this.culling_ = false; //if we backface cull the vertices
   }
 
   Flatten.prototype = {
-    /** Start sculpting operation */
-    start: function (sculptgl) {
-      var picking = sculptgl.scene_.picking_;
-      var mesh = sculptgl.mesh_;
-      picking.intersectionMouseMesh(mesh, sculptgl.mouseX_, sculptgl.mouseY_);
-      if (picking.mesh_ === null)
-        return;
-      this.states_.pushState(new StateGeometry(mesh));
-      this.mesh_ = mesh;
-      this.update(sculptgl);
-    },
-    /** Update sculpting operation */
-    update: function (sculptgl) {
-      SculptUtils.sculptStroke(sculptgl, this.mesh_, this.stroke.bind(this));
-    },
     /** On stroke */
     stroke: function (picking) {
       var mesh = this.mesh_;
@@ -39,21 +23,21 @@ define([
       //undo-redo
       this.states_.pushVertices(iVertsInRadius);
 
-      var iVertsFront = SculptUtils.getFrontVertices(mesh, iVertsInRadius, picking.eyeDir_);
+      var iVertsFront = this.getFrontVertices(iVertsInRadius, picking.eyeDir_);
       if (this.culling_)
         iVertsInRadius = iVertsFront;
 
-      var aNormal = SculptUtils.areaNormal(mesh, iVertsFront);
+      var aNormal = this.areaNormal(iVertsFront);
       if (aNormal === null)
         return;
-      var aCenter = SculptUtils.areaCenter(mesh, iVertsFront);
-      this.flatten(mesh, iVertsInRadius, aNormal, aCenter, picking.interPoint_, picking.rLocalSqr_, intensity);
+      var aCenter = this.areaCenter(iVertsFront);
+      this.flatten(iVertsInRadius, aNormal, aCenter, picking.interPoint_, picking.rLocalSqr_, intensity);
 
       this.mesh_.updateMesh(mesh.getTrianglesFromVertices(iVertsInRadius), iVertsInRadius);
     },
     /** Flatten, projection of the sculpting vertex onto a plane defined by the barycenter and normals of all the sculpting vertices */
-    flatten: function (mesh, iVertsInRadius, aNormal, aCenter, center, radiusSquared, intensity) {
-      var vAr = mesh.getVertices();
+    flatten: function (iVertsInRadius, aNormal, aCenter, center, radiusSquared, intensity) {
+      var vAr = this.mesh_.getVertices();
       var radius = Math.sqrt(radiusSquared);
       var nbVerts = iVertsInRadius.length;
       var cx = center[0];
@@ -87,6 +71,8 @@ define([
       }
     },
   };
+
+  Utils.makeProxy(SculptBase, Flatten);
 
   return Flatten;
 });
