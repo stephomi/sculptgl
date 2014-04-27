@@ -24,8 +24,8 @@ define([
 
   /** Apply back the detail vectors */
   Multiresolution.applyDetails = function (meshUp) {
-    var vrrStartCountUp = meshUp.getVertRingVertStartCount();
-    var vertRingVertUp = meshUp.getVertRingVert();
+    var vrrStartCountUp = meshUp.getVerticesRingVertStartCount();
+    var vertRingVertUp = meshUp.getVerticesRingVert();
     var vArUp = meshUp.getVertices();
     var nArUp = meshUp.getNormals();
     var cArUp = meshUp.getColors();
@@ -94,8 +94,8 @@ define([
 
   /** Compute the detail vectors */
   Multiresolution.computeDetails = function (meshUp, downSubd, subdColors) {
-    var vrrStartCountUp = meshUp.getVertRingVertStartCount();
-    var vertRingVertUp = meshUp.getVertRingVert();
+    var vrrStartCountUp = meshUp.getVerticesRingVertStartCount();
+    var vertRingVertUp = meshUp.getVerticesRingVert();
     var vArUp = meshUp.getVertices();
     var nArUp = meshUp.getNormals();
     var cArUp = meshUp.getColors();

@@ -46,21 +46,28 @@ define([
         'Orange': Shader.mode.MATERIAL + 5,
         'Bronze': Shader.mode.MATERIAL + 6
       };
-      this.ctrlShaders_ = foldMesh.add(new Shader(), 'type_', optionsShaders).name('Shader');
+      var dummyShader = {
+        type_: Shader.mode.MATERIAL
+      };
+      this.ctrlShaders_ = foldMesh.add(dummyShader, 'type_', optionsShaders).name('Shader');
       this.ctrlShaders_.onChange(function (value) {
         if (main.mesh_) {
           main.mesh_.updateShaders(parseInt(value, 10), main.scene_.textures_, main.scene_.shaders_);
           main.scene_.render();
         }
       });
-      this.ctrlFlatShading_ = foldMesh.add(new Render(), 'flatShading_').name('flat (slower)');
+      var dummyRender = {
+        flatShading_: true,
+        showWireframe_: true
+      };
+      this.ctrlFlatShading_ = foldMesh.add(dummyRender, 'flatShading_').name('flat (slower)');
       this.ctrlFlatShading_.onChange(function (value) {
         if (main.mesh_) {
           main.mesh_.setFlatShading(value);
           main.scene_.render();
         }
       });
-      this.ctrlShowWireframe_ = foldMesh.add(new Render(), 'showWireframe_').name('wireframe');
+      this.ctrlShowWireframe_ = foldMesh.add(dummyRender, 'showWireframe_').name('wireframe');
       this.ctrlShowWireframe_.onChange(function (value) {
         if (main.mesh_) {
           main.mesh_.setShowWireframe(value);
@@ -73,9 +80,14 @@ define([
       foldMesh.open();
     },
     /** Update information on mesh */
-    updateMesh: function (mul) {
-      this.ctrlShaders_.object = mul.render_.shader_;
+    updateMesh: function (mesh) {
+      var render = mesh.getRender();
+      this.ctrlShaders_.object = render.shader_;
       this.ctrlShaders_.updateDisplay();
+      this.ctrlFlatShading_.object = render;
+      this.ctrlFlatShading_.updateDisplay();
+      this.ctrlShowWireframe_.object = render;
+      this.ctrlShowWireframe_.updateDisplay();
     },
     /** Return true if flat shading is enabled */
     getFlatShading: function () {

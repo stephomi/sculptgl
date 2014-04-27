@@ -64,8 +64,8 @@ define([
     },
     /** Laplacian smooth. Special rule for vertex on the edge of the mesh. */
     laplacianSmooth: function (mesh, iVerts, smoothVerts) {
-      var vrrStartCount = mesh.getVertRingVertStartCount();
-      var vertRingVert = mesh.getVertRingVert();
+      var vrrStartCount = mesh.getVerticesRingVertStartCount();
+      var vertRingVert = mesh.getVerticesRingVert();
       var vertOnEdge = mesh.getVerticesOnEdge();
       var vAr = mesh.getVertices();
       var nbVerts = iVerts.length;

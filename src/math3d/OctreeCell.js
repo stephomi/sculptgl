@@ -1,10 +1,8 @@
-define([
-  'misc/Utils'
-], function (Utils) {
+define([], function () {
 
   'use strict';
 
-  function Octree(parent, depth) {
+  function OctreeCell(parent, depth) {
     this.parent_ = parent !== undefined ? parent : null; //parent
     this.depth_ = depth !== undefined ? depth : 0; //depth of current node
     this.children_ = []; //children
@@ -15,10 +13,10 @@ define([
     this.iTris_ = []; //triangles (if cell is a leaf)
   }
 
-  Octree.maxDepth_ = 8; //maximum depth
-  Octree.maxTriangles_ = 100; //maximum triangles per cell
+  OctreeCell.maxDepth_ = 8; //maximum depth
+  OctreeCell.maxTriangles_ = 100; //maximum triangles per cell
 
-  Octree.prototype = {
+  OctreeCell.prototype = {
     /** Subdivide octree, aabbSplit must be already set, and aabbLoose will be expanded if it's a leaf  */
     build: function (mesh, iTris) {
       var i = 0;
@@ -28,7 +26,7 @@ define([
         aabbLoose[i] = aabbSplit[i];
       this.iTris_ = iTris;
       var nbTriangles = iTris.length;
-      if (nbTriangles > Octree.maxTriangles_ && this.depth_ < Octree.maxDepth_)
+      if (nbTriangles > OctreeCell.maxTriangles_ && this.depth_ < OctreeCell.maxDepth_)
         this.constructCells(mesh);
       else if (nbTriangles > 0) {
         var bxmin = Infinity;
@@ -37,9 +35,9 @@ define([
         var bxmax = -Infinity;
         var bymax = -Infinity;
         var bzmax = -Infinity;
-        var triBoxes = mesh.triBoxes_;
-        var triPosInLeaf = mesh.triPosInLeaf_;
-        var triLeaf = mesh.triLeaf_;
+        var triBoxes = mesh.getTriBoxes();
+        var triPosInLeaf = mesh.getTriPosInLeaf();
+        var triLeaf = mesh.getTriLeaf();
         for (i = 0; i < nbTriangles; ++i) {
           var id = iTris[i];
           triLeaf[id] = this;
@@ -102,7 +100,7 @@ define([
       var iTris5 = [];
       var iTris6 = [];
       var iTris7 = [];
-      var triCenters = mesh.triCentersXYZ_;
+      var triCenters = mesh.getTriCenters();
       var iTris = this.iTris_;
       var nbTriangles = iTris.length;
       for (var i = 0; i < nbTriangles; ++i) {
@@ -140,35 +138,35 @@ define([
       }
       var nextDepth = this.depth_ + 1;
 
-      var child0 = new Octree(this, nextDepth);
+      var child0 = new OctreeCell(this, nextDepth);
       child0.setAabbSplit(xmin, ymin, zmin, xcen, ycen, zcen);
       child0.build(mesh, iTris0);
 
-      var child1 = new Octree(this, nextDepth);
+      var child1 = new OctreeCell(this, nextDepth);
       child1.setAabbSplit(xmin + dX, ymin, zmin, xcen + dX, ycen, zcen);
       child1.build(mesh, iTris1);
 
-      var child2 = new Octree(this, nextDepth);
+      var child2 = new OctreeCell(this, nextDepth);
       child2.setAabbSplit(xcen, ycen - dY, zcen, xmax, ymax - dY, zmax);
       child2.build(mesh, iTris2);
 
-      var child3 = new Octree(this, nextDepth);
+      var child3 = new OctreeCell(this, nextDepth);
       child3.setAabbSplit(xmin, ymin, zmin + dZ, xcen, ycen, zcen + dZ);
       child3.build(mesh, iTris3);
 
-      var child4 = new Octree(this, nextDepth);
+      var child4 = new OctreeCell(this, nextDepth);
       child4.setAabbSplit(xmin, ymin + dY, zmin, xcen, ycen + dY, zcen);
       child4.build(mesh, iTris4);
 
-      var child5 = new Octree(this, nextDepth);
+      var child5 = new OctreeCell(this, nextDepth);
       child5.setAabbSplit(xcen, ycen, zcen - dZ, xmax, ymax, zmax - dZ);
       child5.build(mesh, iTris5);
 
-      var child6 = new Octree(this, nextDepth);
+      var child6 = new OctreeCell(this, nextDepth);
       child6.setAabbSplit(xcen, ycen, zcen, xmax, ymax, zmax);
       child6.build(mesh, iTris6);
 
-      var child7 = new Octree(this, nextDepth);
+      var child7 = new OctreeCell(this, nextDepth);
       child7.setAabbSplit(xcen - dX, ycen, zcen, xmax - dX, ymax, zmax);
       child7.build(mesh, iTris7);
 
@@ -184,13 +182,6 @@ define([
       aabb[3] = xmax;
       aabb[4] = ymax;
       aabb[5] = zmax;
-    },
-    /** Return triangles intersected by a ray */
-    intersectRay: function (vNear, rayInv, hint) {
-      var collectTris = new Uint32Array(Utils.getMemory(hint * 4), 0, hint);
-      var acc = [0];
-      this.collectIntersectRay(vNear, rayInv, collectTris, acc);
-      return new Uint32Array(collectTris.subarray(0, acc[0]));
     },
     /** Collect triangles in cells hit by a ray */
     collectIntersectRay: function (vNear, rayInv, collectTris, acc) {
@@ -220,13 +211,6 @@ define([
         collectTris.set(this.iTris_, acc[0]);
         acc[0] += this.iTris_.length;
       }
-    },
-    /** Return triangles inside a sphere */
-    intersectSphere: function (vert, radiusSquared, leavesHit, hint) {
-      var collectTris = new Uint32Array(Utils.getMemory(hint * 4), 0, hint);
-      var acc = [0];
-      this.collectIntersectSphere(vert, radiusSquared, leavesHit, collectTris, acc);
-      return new Uint32Array(collectTris.subarray(0, acc[0]));
     },
     /** Collect triangles inside a sphere */
     collectIntersectSphere: function (vert, radiusSquared, leavesHit, collectTris, acc) {
@@ -317,5 +301,5 @@ define([
     }
   };
 
-  return Octree;
+  return OctreeCell;
 });

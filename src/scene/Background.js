@@ -1,8 +1,9 @@
 define([
   'render/Buffer',
   'render/Attribute',
+  'render/Shader',
   'render/ShaderConfigs'
-], function (Buffer, Attribute, ShaderConfigs) {
+], function (Buffer, Attribute, Shader, ShaderConfigs) {
 
   'use strict';
 
@@ -24,9 +25,9 @@ define([
 
   Background.prototype = {
     /** Initialize Vertex Buffer Object (VBO) */
-    init: function (shaders) {
+    init: function () {
       this.initBuffer();
-      this.initShaders(shaders);
+      this.initShaders();
     },
     /** Free gl memory */
     release: function () {
@@ -39,10 +40,10 @@ define([
       return ShaderConfigs[ShaderConfigs.mode.BACKGROUND];
     },
     /** Initialize the shaders on the mesh */
-    initShaders: function (shaders) {
+    initShaders: function () {
       var gl = this.gl_;
       var config = this.getConfig();
-      this.loadShaders(shaders[config.vertex], shaders[config.fragment]);
+      this.loadShaders(Shader.strings[config.vertex], Shader.strings[config.fragment]);
 
       var shaderProgram = this.shaderProgram_ = gl.createProgram();
       gl.attachShader(shaderProgram, this.vertexShader_);

@@ -1,7 +1,7 @@
 define([
   'lib/glMatrix',
   'math3d/Geometry',
-  'object/Mesh',
+  'mesh/Mesh',
   'misc/Tablet',
   'misc/Utils'
 ], function (glm, Geometry, Mesh, Tablet, Utils) {
@@ -59,7 +59,7 @@ define([
         rayInv[0] = 1 / ray[0];
         rayInv[1] = 1 / ray[1];
         rayInv[2] = 1 / ray[2];
-        var iTrisCandidates = mesh.getOctree().intersectRay(vNear, rayInv, mesh.getNbTriangles());
+        var iTrisCandidates = mesh.intersectRay(vNear, rayInv, mesh.getNbTriangles());
         var distance = Infinity;
         var nbTrisCandidates = iTrisCandidates.length;
         for (var i = 0; i < nbTrisCandidates; ++i) {
@@ -100,10 +100,10 @@ define([
       var vAr = mesh.getVertices();
       var vertSculptFlags = mesh.getVerticesSculptFlags();
       var leavesHit = mesh.getLeavesUpdate();
-      var iTrisInCells = mesh.getOctree().intersectSphere(this.interPoint_, rWorldSqr, leavesHit, mesh.getNbTriangles());
+      var iTrisInCells = mesh.intersectSphere(this.interPoint_, rWorldSqr, leavesHit, mesh.getNbTriangles());
       var iVerts = mesh.getVerticesFromTriangles(iTrisInCells);
       var nbVerts = iVerts.length;
-      var sculptFlag = ++Mesh.SCULPT_FLAG;
+      var sculptFlag = ++Utils.SCULPT_FLAG;
       var pickedVertices = new Uint32Array(Utils.getMemory(4 * nbVerts + 12), 0, nbVerts + 3);
       var acc = 0;
       var inter = this.interPoint_;

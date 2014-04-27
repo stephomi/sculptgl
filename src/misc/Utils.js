@@ -19,6 +19,21 @@ define([], function () {
 
   var Utils = {};
 
+  Utils.SCALE = 100.0; //scale factor
+  Utils.TAG_FLAG = 1; //flag value for comparison (always >= tags values)
+  Utils.SCULPT_FLAG = 1; //flag value for sculpt (always >= tags values)
+  Utils.STATE_FLAG = 1; //flag value for states (always >= tags values)
+
+  Utils.makeProxy = function (source, proxy, createFunc) {
+    var sourceProto = source.prototype;
+    var proxyProto = proxy.prototype;
+    var protos = Object.keys(sourceProto);
+    for (var i = 0, l = protos.length; i < l; ++i) {
+      var proto = protos[i];
+      proxyProto[proto] = proxyProto[proto] || createFunc(sourceProto[proto]);
+    }
+  };
+
   Utils.littleEndian = (function () {
     var buffer = new ArrayBuffer(2);
     new DataView(buffer).setInt16(0, 256, true);

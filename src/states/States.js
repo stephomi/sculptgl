@@ -1,6 +1,6 @@
 define([
-  'object/Mesh'
-], function (Mesh) {
+  'misc/Utils'
+], function (Utils) {
 
   'use strict';
 
@@ -16,7 +16,7 @@ define([
   States.prototype = {
     /** Start push state */
     pushState: function (state) {
-      ++Mesh.STATE_FLAG;
+      ++Utils.STATE_FLAG;
       var undos = this.undos_;
       if (this.firstState_) undos.length = 0;
       else if (undos.length > States.STACK_LENGTH) {

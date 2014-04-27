@@ -1,8 +1,8 @@
 define([
   'lib/glMatrix',
-  'math3d/Geometry',
-  'object/Multimesh'
-], function (glm, Geometry, Multimesh) {
+  'misc/Utils',
+  'math3d/Geometry'
+], function (glm, Utils, Geometry) {
 
   'use strict';
 
@@ -153,7 +153,7 @@ define([
     reset: function () {
       this.transX_ = 0.0;
       this.transY_ = 0.0;
-      this.speed_ = Multimesh.SCALE * 0.9;
+      this.speed_ = Utils.SCALE * 0.9;
       this.rot_ = quat.create();
       this.center_ = [0.0, 0.0, 0.0];
       this.zoom_ = 0.0;

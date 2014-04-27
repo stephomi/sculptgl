@@ -1,6 +1,6 @@
 define([
-  'object/Mesh'
-], function (Mesh) {
+  'misc/Utils'
+], function (Utils) {
 
   'use strict';
 
@@ -35,7 +35,7 @@ define([
       var cAr = mesh.getColors();
       var vertStateFlags = mesh.getVerticesStateFlags();
 
-      var stateFlag = Mesh.STATE_FLAG;
+      var stateFlag = Utils.STATE_FLAG;
       var nbVerts = iVerts.length;
       for (var i = 0; i < nbVerts; ++i) {
         var id = iVerts[i];

@@ -2,7 +2,7 @@ define([
   'lib/jQuery',
   'editor/Sculpt',
   'gui/Gui',
-  'object/Scene',
+  'scene/Scene',
   'states/States',
   'render/Render'
 ], function ($, Sculpt, Gui, Scene, States, Render) {

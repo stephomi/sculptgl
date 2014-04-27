@@ -23,6 +23,8 @@ define([
   }
 
   Shader.mode = ShaderConfigs.mode;
+  Shader.strings = {};
+  Shader.textures = {};
 
   Shader.prototype = {
     /** Return the real type of the shader */
@@ -34,10 +36,10 @@ define([
       return ShaderConfigs[this.getType()];
     },
     /** Initialize the shaders on the mesh */
-    init: function (shaders) {
+    init: function () {
       var gl = this.gl_;
 
-      this.loadShaders(shaders);
+      this.loadShaders();
 
       if (this.program_) gl.deleteProgram(this.program_);
       this.program_ = gl.createProgram();
@@ -57,14 +59,14 @@ define([
       gl.deleteShader(this.vertexShader_);
     },
     /** Load vertex and fragment shaders */
-    loadShaders: function (shaders) {
+    loadShaders: function () {
       var gl = this.gl_;
       var config = this.getConfig();
       this.vertexShader_ = gl.createShader(gl.VERTEX_SHADER);
-      gl.shaderSource(this.vertexShader_, shaders[config.vertex]);
+      gl.shaderSource(this.vertexShader_, Shader.strings[config.vertex]);
       gl.compileShader(this.vertexShader_);
       this.fragmentShader_ = gl.createShader(gl.FRAGMENT_SHADER);
-      gl.shaderSource(this.fragmentShader_, shaders[config.fragment]);
+      gl.shaderSource(this.fragmentShader_, Shader.strings[config.fragment]);
       gl.compileShader(this.fragmentShader_);
     },
     /** Initialize attributes */

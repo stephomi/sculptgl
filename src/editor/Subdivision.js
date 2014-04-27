@@ -79,7 +79,6 @@ define([], function () {
     Subdivision.allocateArrays(baseMesh, newMesh);
     Subdivision.applyEvenSmooth(baseMesh, newMesh.getVertices(), newMesh.getColors());
     Subdivision.applyOddSmooth(baseMesh, newMesh.getVertices(), newMesh.getColors(), newMesh.getIndices());
-    newMesh.initTopology();
   };
 
   /** Apply loop subdivision without topology computation */
@@ -102,8 +101,8 @@ define([], function () {
     colorOut.set(baseMesh.getColors());
     var vArOld = baseMesh.getVertices();
     var vertOnEdgeOld = baseMesh.getVerticesOnEdge();
-    var vrrStartCount = baseMesh.getVertRingVertStartCount();
-    var vertRingVert = baseMesh.getVertRingVert();
+    var vrrStartCount = baseMesh.getVerticesRingVertStartCount();
+    var vertRingVert = baseMesh.getVerticesRingVert();
     var nbVerts = baseMesh.getNbVertices();
 
     for (var i = 0; i < nbVerts; ++i) {
@@ -156,8 +155,8 @@ define([], function () {
 
   /** Odd vertices smoothing */
   Subdivision.applyOddSmooth = function (mesh, odds, colorOut, iArOut) {
-    var iAr = mesh.indicesABC_;
-    var teAr = mesh.triEdges_;
+    var iAr = mesh.getIndices();
+    var teAr = mesh.getTriEdges();
     var midComputer = new MidEdgeComputer(mesh, odds, colorOut);
     for (var i = 0, l = mesh.getNbTriangles(); i < l; ++i) {
       var id = i * 3;

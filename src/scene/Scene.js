@@ -1,14 +1,15 @@
 define([
   'lib/jQuery',
-  'object/Background',
+  'misc/Utils',
   'misc/Export',
   'misc/Import',
+  'scene/Background',
   'math3d/Camera',
-  'object/Mesh',
-  'object/Multimesh',
+  'mesh/Mesh',
+  'mesh/Multimesh',
   'render/Shader',
   'math3d/Picking'
-], function ($, Background, Export, Import, Camera, Mesh, Multimesh, Shader, Picking) {
+], function ($, Utils, Export, Import, Background, Camera, Mesh, Multimesh, Shader, Picking) {
 
   'use strict';
 
@@ -26,8 +27,6 @@ define([
     this.meshes_ = []; //the meshes
 
     //datas
-    this.textures_ = {}; //textures
-    this.shaders_ = {}; //shaders
     this.initMeshPath_ = 'ressources/sphere.ply'; //sphere
     this.initMesh_ = ''; //sphere
 
@@ -84,7 +83,7 @@ define([
         return;
       if (!this.background_) {
         this.background_ = new Background(this.gl_);
-        this.background_.init(this.shaders_);
+        this.background_.init();
       }
       var reader = new FileReader();
       var self = this;
@@ -132,7 +131,7 @@ define([
     /** Load a file */
     loadScene: function (fileData, fileType) {
       this.startMeshLoad();
-      var mesh = this.sculptgl_.mesh_.getCurrent();
+      var mesh = this.sculptgl_.mesh_;
       var data = fileData || this.initMesh_;
       var type = fileType || this.getFileType(this.initMeshPath_);
       if (type === 'obj')
@@ -145,26 +144,24 @@ define([
     },
     /** Initialization before loading the mesh */
     startMeshLoad: function () {
-      this.sculptgl_.mesh_ = new Multimesh(this.gl_);
-      this.sculptgl_.mesh_.meshes_.push(new Mesh(this.gl_));
+      this.sculptgl_.mesh_ = new Multimesh(new Mesh(this.gl_));
       this.sculptgl_.states_.reset();
-      this.sculptgl_.sculpt_.mesh_ = this.sculptgl_.mesh_;
       //reset flags (not necessary...)
-      Mesh.TAG_FLAG = 1;
-      Mesh.SCULPT_FLAG = 1;
-      Mesh.STATE_FLAG = 1;
+      Utils.TAG_FLAG = 1;
+      Utils.SCULPT_FLAG = 1;
+      Utils.STATE_FLAG = 1;
     },
     /** The loading is finished, set stuffs ... and update camera */
     endMeshLoad: function () {
       var gui = this.sculptgl_.gui_;
       var mesh = this.sculptgl_.mesh_;
       mesh.init();
-      this.camera_.reset();
-      mesh.initRender(this.textures_, this.shaders_, gui.getShader(), gui.getFlatShading(), gui.getWireframe());
+      mesh.initRender();
       gui.updateMesh();
       // uncomment this line to create new scene
       this.meshes_.length = 0;
       this.meshes_.push(mesh);
+      this.camera_.reset();
       this.render();
     },
     /** Load textures (preload) */
@@ -182,7 +179,7 @@ define([
           gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_NEAREST);
           gl.generateMipmap(gl.TEXTURE_2D);
           gl.bindTexture(gl.TEXTURE_2D, null);
-          self.textures_[mode] = idTex;
+          Shader.textures[mode] = idTex;
           if (mode === Shader.mode.MATERIAL)
             self.loadSphere();
         };
@@ -203,7 +200,7 @@ define([
         shaderXhr.send(null);
         return shaderXhr.responseText;
       };
-      var shaders = this.shaders_;
+      var shaders = Shader.strings;
       shaders.phongVertex = xhrShader('shaders/phong.vert');
       shaders.phongFragment = xhrShader('shaders/phong.frag');
       shaders.transparencyVertex = xhrShader('shaders/transparency.vert');
