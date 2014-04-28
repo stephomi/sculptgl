@@ -23,8 +23,8 @@ define([
     //core of the app
     this.states_ = new States(); //for undo-redo
     this.sculpt_ = new Sculpt(this.states_); //sculpting management
-    this.scene_ = null;
-    this.mesh_ = null; //the multiresolution mesh
+    this.scene_ = null; //the scene
+    this.mesh_ = null; //the selected mesh
 
     //ui stuffs
     this.gui_ = new Gui(this); //gui

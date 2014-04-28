@@ -31,7 +31,7 @@ define([
     this.initMesh_ = ''; //sphere
 
     //functions
-    this.loadScene_ = this.loadScene; //reset scene
+    this.resetScene_ = this.resetScene; //reset scene
 
     this.init();
   }
@@ -47,7 +47,6 @@ define([
       return this.pickingSym_;
     },
     init: function () {
-      this.loadShaders();
       this.loadTextures();
       this.onWindowResize();
       this.initEvents();
@@ -168,7 +167,7 @@ define([
       mesh.initRender();
       gui.updateMesh();
       // uncomment this line to create new scene
-      this.meshes_.length = 0;
+      // this.meshes_.length = 0;
       this.meshes_.push(mesh);
       this.camera_.reset();
       this.render();
@@ -189,39 +188,17 @@ define([
           gl.generateMipmap(gl.TEXTURE_2D);
           gl.bindTexture(gl.TEXTURE_2D, null);
           Shader.textures[mode] = idTex;
-          if (mode === Shader.mode.MATERIAL)
+          if (mode === Shader.mode.MATCAP)
             self.loadSphere();
         };
       };
-      loadTex('ressources/clay.jpg', Shader.mode.MATERIAL);
-      loadTex('ressources/chavant.jpg', Shader.mode.MATERIAL + 1);
-      loadTex('ressources/skin.jpg', Shader.mode.MATERIAL + 2);
-      loadTex('ressources/drink.jpg', Shader.mode.MATERIAL + 3);
-      loadTex('ressources/redvelvet.jpg', Shader.mode.MATERIAL + 4);
-      loadTex('ressources/orange.jpg', Shader.mode.MATERIAL + 5);
-      loadTex('ressources/bronze.jpg', Shader.mode.MATERIAL + 6);
-    },
-    /** Load shaders as a string */
-    loadShaders: function () {
-      var xhrShader = function (path) {
-        var shaderXhr = new XMLHttpRequest();
-        shaderXhr.open('GET', path, false);
-        shaderXhr.send(null);
-        return shaderXhr.responseText;
-      };
-      var shaders = Shader.strings;
-      shaders.phongVertex = xhrShader('shaders/phong.vert');
-      shaders.phongFragment = xhrShader('shaders/phong.frag');
-      shaders.transparencyVertex = xhrShader('shaders/transparency.vert');
-      shaders.transparencyFragment = xhrShader('shaders/transparency.frag');
-      shaders.wireframeVertex = xhrShader('shaders/wireframe.vert');
-      shaders.wireframeFragment = xhrShader('shaders/wireframe.frag');
-      shaders.normalVertex = xhrShader('shaders/normal.vert');
-      shaders.normalFragment = xhrShader('shaders/normal.frag');
-      shaders.reflectionVertex = xhrShader('shaders/reflection.vert');
-      shaders.reflectionFragment = xhrShader('shaders/reflection.frag');
-      shaders.backgroundVertex = xhrShader('shaders/background.vert');
-      shaders.backgroundFragment = xhrShader('shaders/background.frag');
+      loadTex('ressources/clay.jpg', Shader.mode.MATCAP);
+      loadTex('ressources/chavant.jpg', Shader.mode.MATCAP + 1);
+      loadTex('ressources/skin.jpg', Shader.mode.MATCAP + 2);
+      loadTex('ressources/drink.jpg', Shader.mode.MATCAP + 3);
+      loadTex('ressources/redvelvet.jpg', Shader.mode.MATCAP + 4);
+      loadTex('ressources/orange.jpg', Shader.mode.MATCAP + 5);
+      loadTex('ressources/bronze.jpg', Shader.mode.MATCAP + 6);
     },
     /** Load the sphere */
     loadSphere: function () {
@@ -237,6 +214,11 @@ define([
         self.loadScene();
       };
       sphereXhr.send(null);
+    },
+    /** Reset the scene */
+    resetScene: function () {
+      this.meshes_.length = 0;
+      this.loadScene();
     }
   };
 

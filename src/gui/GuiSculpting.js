@@ -39,6 +39,9 @@ define([
         self.onChangeTool(parseInt(value, 10));
       });
       this.ctrlSymmetry_ = foldSculpt.add(this.sculpt_, 'symmetry_').name('Symmetry');
+      this.ctrlSymmetry_.onChange(function () {
+        main.scene_.render();
+      });
       this.ctrlContinuous_ = foldSculpt.add(this.sculpt_, 'continuous_').name('Continuous');
       this.ctrlRadius_ = foldSculpt.add(main.scene_.picking_, 'rDisplay_', 5, 200).name('Radius');
       foldSculpt.open();

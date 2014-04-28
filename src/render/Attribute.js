@@ -2,11 +2,11 @@ define([], function () {
 
   'use strict';
 
-  var Attribute = function (gl, program, config) {
+  var Attribute = function (gl, program, name, size, type) {
     this.gl_ = gl; //webgl context
-    this.location_ = gl.getAttribLocation(program, config.name); //the location
-    this.size_ = config.size; //numbe of components
-    this.type_ = config.type; //type of the components
+    this.location_ = gl.getAttribLocation(program, name); //the location
+    this.size_ = size; //numbe of components
+    this.type_ = type; //type of the components
   };
 
   Attribute.prototype = {

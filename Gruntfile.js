@@ -24,7 +24,7 @@ module.exports = function (grunt) {
     main: {
       files: [{
         expand: true,
-        src: ['css/*', 'shaders/*', 'lib/*', 'ressources/*'],
+        src: ['css/*', 'lib/*', 'ressources/*'],
         dest: 'build/',
         filter: 'isFile'
       }, {

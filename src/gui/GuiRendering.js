@@ -38,16 +38,16 @@ define([
         'Phong': Shader.mode.PHONG,
         'Transparency': Shader.mode.TRANSPARENCY,
         'Normal shader': Shader.mode.NORMAL,
-        'Clay': Shader.mode.MATERIAL,
-        'Chavant': Shader.mode.MATERIAL + 1,
-        'Skin': Shader.mode.MATERIAL + 2,
-        'Drink': Shader.mode.MATERIAL + 3,
-        'Red velvet': Shader.mode.MATERIAL + 4,
-        'Orange': Shader.mode.MATERIAL + 5,
-        'Bronze': Shader.mode.MATERIAL + 6
+        'Clay': Shader.mode.MATCAP,
+        'Chavant': Shader.mode.MATCAP + 1,
+        'Skin': Shader.mode.MATCAP + 2,
+        'Drink': Shader.mode.MATCAP + 3,
+        'Red velvet': Shader.mode.MATCAP + 4,
+        'Orange': Shader.mode.MATCAP + 5,
+        'Bronze': Shader.mode.MATCAP + 6
       };
       var dummyShader = {
-        type_: Shader.mode.MATERIAL
+        type_: Shader.mode.MATCAP
       };
       this.ctrlShaders_ = foldMesh.add(dummyShader, 'type_', optionsShaders).name('Shader');
       this.ctrlShaders_.onChange(function (value) {

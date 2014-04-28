@@ -81,7 +81,7 @@ define([
     },
     /** Update the shaders on the mesh, load the texture(s) first if the shaders need it */
     updateShaders: function (shaderType) {
-      if (shaderType >= Shader.mode.MATERIAL)
+      if (shaderType >= Shader.mode.MATCAP)
         this.reflectionLoc_ = Shader.textures[shaderType];
       this.shader_.type_ = shaderType;
       this.shader_.init();

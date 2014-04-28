@@ -1,212 +1,46 @@
 define([
-  'lib/glMatrix',
-  'render/Attribute',
-  'render/ShaderConfigs'
-], function (glm, Attribute, ShaderConfigs) {
+  'render/shaders/ShaderMatcap',
+  'render/shaders/ShaderPhong',
+  'render/shaders/ShaderNormal',
+  'render/shaders/ShaderTransparency',
+  'render/shaders/ShaderWireframe',
+  'render/shaders/ShaderBackground'
+], function (SMatcap, SPhong, SNormal, STransparency, SWireframe, SBackground) {
 
   'use strict';
 
-  var vec3 = glm.vec3;
-  var mat3 = glm.mat3;
-  var mat4 = glm.mat4;
-
   function Shader(gl) {
     this.gl_ = gl; //webgl context
-    this.type_ = Shader.mode.MATERIAL; //type of shader
-
-    this.program_ = null; //program shader
-    this.fragmentShader_ = null; //fragment shader
-    this.vertexShader_ = null; //fragment shader
-
-    this.attributes_ = {}; //attributes
-    this.uniforms_ = {}; //uniforms
+    this.type_ = Shader.mode.MATCAP; //type of shader
+    this.shader_ = null; //the shader
   }
 
-  Shader.mode = ShaderConfigs.mode;
-  Shader.strings = {};
   Shader.textures = {};
+  Shader.mode = {
+    PHONG: 0,
+    TRANSPARENCY: 1,
+    WIREFRAME: 2,
+    NORMAL: 3,
+    BACKGROUND: 4,
+    MATCAP: 5
+  };
+
+  Shader[Shader.mode.PHONG] = SPhong;
+  Shader[Shader.mode.WIREFRAME] = SWireframe;
+  Shader[Shader.mode.TRANSPARENCY] = STransparency;
+  Shader[Shader.mode.NORMAL] = SNormal;
+  Shader[Shader.mode.MATCAP] = SMatcap;
+  Shader[Shader.mode.BACKGROUND] = SBackground;
 
   Shader.prototype = {
-    /** Return the real type of the shader */
-    getType: function () {
-      return Math.min(this.type_, Shader.mode.MATERIAL);
-    },
-    /** Return the configuration of the shader */
-    getConfig: function () {
-      return ShaderConfigs[this.getType()];
-    },
-    /** Initialize the shaders on the mesh */
+    /** Initialize the shader */
     init: function () {
-      var gl = this.gl_;
-
-      this.loadShaders();
-
-      if (this.program_) gl.deleteProgram(this.program_);
-      this.program_ = gl.createProgram();
-      var program = this.program_;
-
-      gl.attachShader(program, this.vertexShader_);
-      gl.attachShader(program, this.fragmentShader_);
-      gl.linkProgram(program);
-      gl.useProgram(program);
-
-      this.initAttributes();
-      this.initUniforms();
-
-      gl.detachShader(program, this.fragmentShader_);
-      gl.deleteShader(this.fragmentShader_);
-      gl.detachShader(program, this.vertexShader_);
-      gl.deleteShader(this.vertexShader_);
-    },
-    /** Load vertex and fragment shaders */
-    loadShaders: function () {
-      var gl = this.gl_;
-      var config = this.getConfig();
-      this.vertexShader_ = gl.createShader(gl.VERTEX_SHADER);
-      gl.shaderSource(this.vertexShader_, Shader.strings[config.vertex]);
-      gl.compileShader(this.vertexShader_);
-      this.fragmentShader_ = gl.createShader(gl.FRAGMENT_SHADER);
-      gl.shaderSource(this.fragmentShader_, Shader.strings[config.fragment]);
-      gl.compileShader(this.fragmentShader_);
-    },
-    /** Initialize attributes */
-    initAttributes: function () {
-      var gl = this.gl_;
-      var program = this.program_;
-      var aConfig = this.getConfig().attributes;
-      var attributes = this.attributes_ = {};
-      for (var i = 0, l = aConfig.length; i < l; ++i) {
-        var config = aConfig[i];
-        attributes[config.name] = new Attribute(gl, program, config);
-      }
-    },
-    /** Initialize uniforms */
-    initUniforms: function () {
-      var gl = this.gl_;
-      var program = this.program_;
-      var uConfig = this.getConfig().uniforms;
-      var uniforms = this.uniforms_ = {};
-      for (var i = 0, l = uConfig.length; i < l; ++i) {
-        var name = uConfig[i];
-        uniforms[name] = gl.getUniformLocation(program, name);
-      }
+      var shader = Shader[Math.min(this.type_, Shader.mode.MATCAP)];
+      this.shader_ = shader.getOrCreate(this.gl_);
     },
     /** Draw */
     draw: function (render, sculptgl) {
-      var gl = this.gl_;
-      gl.useProgram(this.program_);
-      this.bindAttributes(render);
-      this.updateUniforms(render, sculptgl);
-      var type = this.getType();
-      if (type === Shader.mode.TRANSPARENCY) {
-        gl.depthMask(false);
-        gl.enable(gl.BLEND);
-        this.drawBuffer(render);
-        gl.disable(gl.BLEND);
-        gl.depthMask(true);
-      } else if (type === Shader.mode.WIREFRAME) {
-        render.wireframeBuffer_.bind();
-        gl.enable(gl.BLEND);
-        gl.drawElements(gl.LINES, render.mesh_.getNbEdges() * 2, gl.UNSIGNED_INT, 0);
-        gl.disable(gl.BLEND);
-      } else {
-        this.drawBuffer(render);
-      }
-      gl.bindBuffer(gl.ARRAY_BUFFER, null);
-      gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, null);
-    },
-    /** Draw buffer */
-    drawBuffer: function (render) {
-      var lengthIndexArray = render.mesh_.getNbTriangles() * 3;
-      var gl = this.gl_;
-      if (render.isUsingDrawArrays())
-        gl.drawArrays(gl.TRIANGLES, 0, lengthIndexArray);
-      else {
-        render.indexBuffer_.bind();
-        gl.drawElements(gl.TRIANGLES, lengthIndexArray, gl.UNSIGNED_INT, 0);
-      }
-      gl.bindBuffer(gl.ARRAY_BUFFER, null);
-      gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, null);
-    },
-    /** Bind attributes */
-    bindAttributes: function (render) {
-      var att = this.attributes_;
-
-      var aVertex = att.aVertex;
-      if (aVertex !== undefined)
-        aVertex.bindToBuffer(render.vertexBuffer_);
-
-      var aNormal = att.aNormal;
-      if (aNormal !== undefined)
-        aNormal.bindToBuffer(render.normalBuffer_);
-
-      var aColor = att.aColor;
-      if (aColor !== undefined)
-        aColor.bindToBuffer(render.colorBuffer_);
-    },
-    /** Updates uniforms */
-    updateUniforms: function (render, sculptgl) {
-      var gl = this.gl_;
-      var scene = sculptgl.scene_;
-      var camera = scene.getCamera();
-      var picking = scene.getPicking();
-      var pickingSym = scene.getSymmetryPicking();
-      var mesh = render.mesh_;
-      var uniforms = this.uniforms_;
-      var mMatrix = mesh.getMatrix();
-      var mvMatrix;
-
-      var unif = uniforms.uMV;
-      if (unif) {
-        mvMatrix = mat4.mul(mat4.create(), camera.view_, mMatrix);
-        gl.uniformMatrix4fv(unif, false, mvMatrix);
-      }
-      unif = uniforms.uMVP;
-      if (unif) {
-        mvMatrix = mvMatrix ? mvMatrix : mat4.mul(mat4.create(), camera.view_, mMatrix);
-        gl.uniformMatrix4fv(unif, false, mat4.mul(mat4.create(), camera.proj_, mvMatrix));
-      }
-      unif = uniforms.uN;
-      if (unif) {
-        mvMatrix = mvMatrix ? mvMatrix : mat4.mul(mat4.create(), camera.view_, mMatrix);
-        gl.uniformMatrix3fv(unif, false, mat3.normalFromMat4(mat3.create(), mvMatrix));
-      }
-      unif = uniforms.uCenterPicking;
-      if (unif) {
-        mvMatrix = mvMatrix ? mvMatrix : mat4.mul(mat4.create(), camera.view_, mMatrix);
-        gl.uniform3fv(unif, vec3.transformMat4([0.0, 0.0, 0.0], picking.getIntersectionPoint(), mvMatrix));
-      }
-      unif = uniforms.uCenterPickingSym;
-      if (unif) {
-        mvMatrix = mvMatrix ? mvMatrix : mat4.mul(mat4.create(), camera.view_, mMatrix);
-        gl.uniform3fv(unif, vec3.transformMat4([0.0, 0.0, 0.0], pickingSym.getIntersectionPoint(), mvMatrix));
-      }
-      unif = uniforms.ptPlane;
-      if (unif) {
-        mvMatrix = mvMatrix ? mvMatrix : mat4.mul(mat4.create(), camera.view_, mMatrix);
-        gl.uniform3fv(unif, vec3.transformMat4([0.0, 0.0, 0.0], mesh.getCenter(), mvMatrix));
-      }
-      unif = uniforms.nPlane;
-      if (unif) {
-        mvMatrix = mvMatrix ? mvMatrix : mat4.mul(mat4.create(), camera.view_, mMatrix);
-        var nMat = mat3.normalFromMat4(mat3.create(), mvMatrix);
-        gl.uniform3fv(unif, vec3.transformMat3([0.0, 0.0, 0.0], mesh.getSymmetryNormal(), nMat));
-      }
-      unif = uniforms.uScale;
-      if (unif) {
-        gl.uniform1f(unif, mesh.getScale());
-      }
-      unif = uniforms.uRadiusSquared;
-      if (unif) {
-        var r2 = picking.getWorldRadius2();
-        gl.uniform1f(unif, sculptgl.sculpt_.getSymmetry() ? -r2 : r2);
-      }
-      unif = uniforms.uTexture0;
-      if (unif) {
-        gl.activeTexture(gl.TEXTURE0);
-        gl.bindTexture(gl.TEXTURE_2D, render.reflectionLoc_);
-        gl.uniform1i(unif, 0);
-      }
+      this.shader_.draw(render, sculptgl);
     }
   };
 
