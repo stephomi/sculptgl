@@ -13,6 +13,15 @@ define([
 
   'use strict';
 
+  (function () {
+    var vendors = ['moz', 'webkit'];
+    for (var x = 0; x < vendors.length && !window.requestAnimationFrame; ++x) {
+      window.requestAnimationFrame = window[vendors[x] + 'RequestAnimationFrame'];
+    }
+    if (!window.requestAnimationFrame)
+      alert('browser is too old. Probably no webgl there anyway');
+  }());
+
   function Scene(sculptgl, gl) {
     this.sculptgl_ = sculptgl; //sculptgl
     this.gl_ = gl; //webgl context
@@ -72,8 +81,12 @@ define([
       this.camera_.updateProjection();
       this.render();
     },
-    /** Render the scene */
+    /** Request a render */
     render: function () {
+      window.requestAnimationFrame(this.applyRender.bind(this));
+    },
+    /** Render the scene */
+    applyRender: function () {
       var gl = this.gl_;
       gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
       this.camera_.updateView();
