@@ -1,6 +1,4 @@
-define([
-  'lib/jQuery'
-], function ($) {
+define([], function () {
 
   'use strict';
 
@@ -29,7 +27,7 @@ define([
     },
     /** Immort background */
     importBackground: function () {
-      $('#backgroundopen').trigger('click');
+      document.getElementById('backgroundopen').click();
     }
   };
 

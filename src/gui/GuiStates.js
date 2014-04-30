@@ -1,6 +1,4 @@
-define([
-  'lib/jQuery'
-], function ($) {
+define([], function () {
 
   'use strict';
 
@@ -21,7 +19,7 @@ define([
       foldHistory.add(this, 'onRedo').name('Redo (Ctrl+Y)');
       foldHistory.open();
 
-      $(window).keydown(this.onKeyDown.bind(this));
+      window.addEventListener('keydown', this.onKeyDown.bind(this), false);
     },
     /** Key pressed event */
     onKeyDown: function (event) {

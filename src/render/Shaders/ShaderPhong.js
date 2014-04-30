@@ -65,7 +65,7 @@ define([
     '  vec3 diffuse = fragColor * 0.5 * max(0.0, dotLN);',
     '  vec3 specular = fragColor * 0.8 * max(0.0, dotRVpow);',
     '  fragColor = ambiant + diffuse + specular;',
-    '  picking(fragColor);',
+    '  fragColor = picking(fragColor);',
     '  gl_FragColor = vec4(fragColor, 1.0);',
     '}'
   ].join('\n');

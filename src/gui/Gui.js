@@ -37,16 +37,16 @@ define([
       var main = this.sculptgl_;
       guiGeneral.domElement.addEventListener('mouseout', function () {
         main.focusGui_ = false;
-      }, false);
+      }, true);
       guiEditing.domElement.addEventListener('mouseout', function () {
         main.focusGui_ = false;
-      }, false);
+      }, true);
       guiGeneral.domElement.addEventListener('mouseover', function () {
         main.focusGui_ = true;
-      }, false);
+      }, true);
       guiEditing.domElement.addEventListener('mouseover', function () {
         main.focusGui_ = true;
-      }, false);
+      }, true);
     },
     /** Initialize the general gui (on the left) */
     initGeneralGui: function (gui) {

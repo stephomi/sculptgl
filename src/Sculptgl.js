@@ -1,11 +1,10 @@
 define([
-  'lib/jQuery',
   'editor/Sculpt',
   'gui/Gui',
   'scene/Scene',
   'states/States',
   'render/Render'
-], function ($, Sculpt, Gui, Scene, States, Render) {
+], function (Sculpt, Gui, Scene, States, Render) {
 
   'use strict';
 
@@ -41,14 +40,15 @@ define([
     },
     /** Initialize */
     initEvents: function () {
-      var $canvas = $('#canvas');
-      $canvas.mousedown(this.onMouseDown.bind(this));
-      $canvas.mouseup(this.onMouseUp.bind(this));
-      $canvas.mouseout(this.onMouseOut.bind(this));
-      $canvas.mousewheel(this.onMouseWheel.bind(this));
-      $canvas.mousemove(this.onMouseMove.bind(this));
-      $canvas[0].addEventListener('webglcontextlost', this.onContextLost, false);
-      $canvas[0].addEventListener('webglcontextrestored', this.onContextRestored, false);
+      var canvas = document.getElementById('canvas');
+      canvas.addEventListener('mousedown', this.onMouseDown.bind(this), false);
+      canvas.addEventListener('mouseup', this.onMouseUp.bind(this), false);
+      canvas.addEventListener('mouseout', this.onMouseOut.bind(this), false);
+      canvas.addEventListener('mousemove', this.onMouseMove.bind(this), false);
+      canvas.addEventListener('mousewheel', this.onMouseWheel.bind(this), false);
+      canvas.addEventListener('DOMMouseScroll', this.onMouseWheel.bind(this), false);
+      canvas.addEventListener('webglcontextlost', this.onContextLost, false);
+      canvas.addEventListener('webglcontextrestored', this.onContextRestored, false);
     },
     /** Load webgl context */
     initWebGL: function () {
@@ -57,7 +57,8 @@ define([
         antialias: true,
         stencil: true
       };
-      var gl = this.gl_ = $('#canvas')[0].getContext('webgl', attributes) || $('#canvas')[0].getContext('experimental-webgl', attributes);
+      var canvas = document.getElementById('canvas');
+      var gl = this.gl_ = canvas.getContext('webgl', attributes) || canvas.getContext('experimental-webgl', attributes);
       if (!gl) {
         window.alert('Could not initialise WebGL. You should try Chrome or Firefox.');
       }
@@ -65,8 +66,8 @@ define([
         if (!gl.getExtension('OES_element_index_uint')) {
           Render.ONLY_DRAW_ARRAYS = true;
         }
-        gl.viewportWidth = $(window).width();
-        gl.viewportHeight = $(window).height();
+        gl.viewportWidth = window.innerWidth;
+        gl.viewportHeight = window.innerHeight;
         gl.clearColor(0.2, 0.2, 0.2, 1);
         gl.enable(gl.DEPTH_TEST);
         gl.depthFunc(gl.LEQUAL);
@@ -96,9 +97,8 @@ define([
     onMouseWheel: function (event) {
       event.stopPropagation();
       event.preventDefault();
-      var dy = event.deltaY;
-      dy = dy > 1.0 ? 1.0 : dy < -1.0 ? -1.0 : dy;
-      this.scene_.camera_.zoom(dy * 0.02);
+      var delta = Math.max(-1.0, Math.min(1.0, (event.wheelDelta || -event.detail)));
+      this.scene_.camera_.zoom(delta * 0.02);
       this.scene_.render();
     },
     /** Mouse pressed event */

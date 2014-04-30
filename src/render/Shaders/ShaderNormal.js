@@ -41,7 +41,7 @@ define([
     ShaderBase.strings.pickingFunction,
     'void main() {',
     '  vec3 fragColor = vNormal * 0.5 + 0.5;',
-    '  picking(fragColor);',
+    '  fragColor = picking(fragColor);',
     '  gl_FragColor = vec4(fragColor, 1.0);',
     '}'
   ].join('\n');

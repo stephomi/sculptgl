@@ -1,8 +1,7 @@
 define([
-  'lib/jQuery',
   'editor/Sculpt',
   'gui/GuiSculptingTools'
-], function ($, Sculpt, GuiSculptingTools) {
+], function (Sculpt, GuiSculptingTools) {
 
   'use strict';
 
@@ -59,7 +58,7 @@ define([
 
       GuiSculptingTools.show(this.sculpt_.tool_);
 
-      $(window).keydown(this.onKeyDown.bind(this));
+      window.addEventListener('keydown', this.onKeyDown.bind(this), false);
     },
     /** Key pressed event */
     onKeyDown: function (event) {

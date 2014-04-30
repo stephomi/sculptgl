@@ -52,7 +52,7 @@ define([
     '  vec3 nm_y = cross(nm_x, nm_z);',
     '  vec2 texCoord = vec2(0.5 * dot(vNormal, nm_x) + 0.5, - 0.5 * dot(vNormal, nm_y) - 0.5);',
     '  vec3 fragColor = texture2D(uTexture0, texCoord).rgb * vColor;',
-    '  picking(fragColor);',
+    '  fragColor = picking(fragColor);',
     '  gl_FragColor = vec4(fragColor, 1.0);',
     '}'
   ].join('\n');

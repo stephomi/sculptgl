@@ -1,8 +1,7 @@
 define([
-  'lib/jQuery',
   'lib/FileSaver',
   'misc/Export'
-], function ($, saveAs, Export) {
+], function (saveAs, Export) {
 
   'use strict';
 
@@ -32,7 +31,7 @@ define([
     },
     /** Open file */
     openFile: function () {
-      $('#fileopen').trigger('click');
+      document.getElementById('fileopen').click();
     },
     /** Save file as OBJ*/
     saveFileAsOBJ: function () {

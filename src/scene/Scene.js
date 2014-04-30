@@ -1,5 +1,4 @@
 define([
-  'lib/jQuery',
   'misc/Utils',
   'misc/Export',
   'misc/Import',
@@ -9,7 +8,7 @@ define([
   'mesh/Multimesh',
   'render/Shader',
   'math3d/Picking'
-], function ($, Utils, Export, Import, Background, Camera, Mesh, Multimesh, Shader, Picking) {
+], function (Utils, Export, Import, Background, Camera, Mesh, Multimesh, Shader, Picking) {
 
   'use strict';
 
@@ -19,7 +18,7 @@ define([
       window.requestAnimationFrame = window[vendors[x] + 'RequestAnimationFrame'];
     }
     if (!window.requestAnimationFrame)
-      alert('browser is too old. Probably no webgl there anyway');
+      window.alert('browser is too old. Probably no webgl there anyway');
   }());
 
   function Scene(sculptgl, gl) {
@@ -62,23 +61,21 @@ define([
     },
     /** Initialize */
     initEvents: function () {
-      $('#fileopen').change(this.loadFile.bind(this));
-      $('#backgroundopen').change(this.loadBackground.bind(this));
-      $(window).resize(this.onWindowResize.bind(this));
+      document.getElementById('fileopen').addEventListener('change', this.loadFile.bind(this), false);
+      document.getElementById('backgroundopen').addEventListener('change', this.loadBackground.bind(this), false);
+      window.addEventListener('resize', this.onWindowResize.bind(this), false);
     },
     /** Called when the window is resized */
     onWindowResize: function () {
-      var newWidth = $(window).width();
-      var newHeight = $(window).height();
-      this.camera_.width_ = newWidth;
-      this.camera_.height_ = newHeight;
-      $('#canvas').attr('width', newWidth);
-      $('#canvas').attr('height', newHeight);
+      var newWidth = window.innerWidth;
+      var newHeight = window.innerHeight;
+      var canvas = document.getElementById('canvas');
+      var camera = this.camera_;
       var gl = this.gl_;
-      gl.viewportWidth = newWidth;
-      gl.viewportHeight = newHeight;
+      gl.viewportWidth = canvas.width = camera.width_ = newWidth;
+      gl.viewportHeight = canvas.height = camera.height_ = newHeight;
       gl.viewport(0, 0, newWidth, newHeight);
-      this.camera_.updateProjection();
+      camera.updateProjection();
       this.render();
     },
     /** Request a render */
@@ -113,7 +110,7 @@ define([
         bg.src = evt.target.result;
         self.background_.loadBackgroundTexture(bg);
         self.render();
-        $('#backgroundopen').replaceWith($('#backgroundopen').clone(true));
+        document.getElementById('backgroundopen').value = '';
       };
       reader.readAsDataURL(file);
     },
@@ -142,7 +139,7 @@ define([
       var self = this;
       reader.onload = function (evt) {
         self.loadScene(evt.target.result, fileType);
-        $('#fileopen').replaceWith($('#fileopen').clone(true));
+        document.getElementById('fileopen').value = '';
       };
       if (fileType === 'obj')
         reader.readAsText(file);

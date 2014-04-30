@@ -22,7 +22,8 @@ define([
     'uniform float uScale;'
   ].join('\n');
   ShaderBase.strings.pickingFunction = [
-    'void picking(inout vec3 frag) {',
+    // should be 'void picking(inout vec3 frag) but ie11 don't support yet inout
+    'vec3 picking(vec3 frag) {',
     '  vec3 vecDistance = vVertex - uInter;',
     '  float dotSquared = dot(vecDistance, vecDistance);',
     '  if(dotSquared < uRadius2 * 1.06 && dotSquared > uRadius2 * 0.94)',
@@ -36,6 +37,7 @@ define([
     '      frag = min(frag * 1.3, 1.0);',
     '    }',
     '  }',
+    '  return frag;',
     '}'
   ].join('\n');
 

@@ -1,7 +1,6 @@
 define([
-  'lib/jQuery',
   'math3d/Camera',
-], function ($, Camera) {
+], function (Camera) {
 
   'use strict';
 
@@ -56,8 +55,8 @@ define([
 
       cameraFold.open();
 
-      $(window).keydown(this.onKeyDown.bind(this));
-      $(window).keyup(this.onKeyUp.bind(this));
+      window.addEventListener('keydown', this.onKeyDown.bind(this), false);
+      window.addEventListener('keyup', this.onKeyUp.bind(this), false);
     },
     /** Key pressed event */
     onKeyDown: function (event) {

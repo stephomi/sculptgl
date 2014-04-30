@@ -1,5 +1,4 @@
 define([
-  'lib/jQuery',
   'editor/tools/Brush',
   'editor/tools/Inflate',
   'editor/tools/Rotate',
@@ -10,7 +9,7 @@ define([
   'editor/tools/Drag',
   'editor/tools/Paint',
   'editor/tools/Scale'
-], function ($, Brush, Inflate, Rotate, Smooth, Flatten, Pinch, Crease, Drag, Paint, Scale) {
+], function (Brush, Inflate, Rotate, Smooth, Flatten, Pinch, Crease, Drag, Paint, Scale) {
 
   'use strict';
 
@@ -62,9 +61,9 @@ define([
       this.tools_[Sculpt.tool.PAINT] = new Paint(states);
       this.tools_[Sculpt.tool.SCALE] = new Scale(states);
 
-      var $canvas = $('#canvas');
-      $canvas.mouseup(this.onMouseUp.bind(this));
-      $canvas.mouseout(this.onMouseOut.bind(this));
+      var canvas = document.getElementById('canvas');
+      canvas.addEventListener('mouseup', this.onMouseUp.bind(this), false);
+      canvas.addEventListener('mouseout', this.onMouseOut.bind(this), false);
     },
     /** Mouse released event */
     onMouseUp: function (event) {
