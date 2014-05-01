@@ -1,10 +1,11 @@
 define([
+  'misc/Utils',
   'editor/Sculpt',
   'gui/Gui',
   'scene/Scene',
   'states/States',
   'render/Render'
-], function (Sculpt, Gui, Scene, States, Render) {
+], function (Utils, Sculpt, Gui, Scene, States, Render) {
 
   'use strict';
 
@@ -41,10 +42,11 @@ define([
     /** Initialize */
     initEvents: function () {
       var canvas = document.getElementById('canvas');
+      var mouseThrottled = Utils.throttle(this.onMouseMove.bind(this), 16.66);
       canvas.addEventListener('mousedown', this.onMouseDown.bind(this), false);
       canvas.addEventListener('mouseup', this.onMouseUp.bind(this), false);
       canvas.addEventListener('mouseout', this.onMouseOut.bind(this), false);
-      canvas.addEventListener('mousemove', this.onMouseMove.bind(this), false);
+      canvas.addEventListener('mousemove', mouseThrottled, false);
       canvas.addEventListener('mousewheel', this.onMouseWheel.bind(this), false);
       canvas.addEventListener('DOMMouseScroll', this.onMouseWheel.bind(this), false);
       canvas.addEventListener('webglcontextlost', this.onContextLost, false);

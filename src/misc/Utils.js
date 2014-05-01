@@ -164,13 +164,49 @@ define([], function () {
     return str;
   };
 
-  var pool = new ArrayBuffer(100000);
-  // return an array before which is at least nbBytes long
-  Utils.getMemory = function (nbBytes) {
-    if (pool.byteLength >= nbBytes)
+  /** Return a buffer array which is at least nbBytes long */
+  Utils.getMemory = (function () {
+    var pool = new ArrayBuffer(100000);
+    return function (nbBytes) {
+      if (pool.byteLength >= nbBytes)
+        return pool;
+      pool = new ArrayBuffer(nbBytes);
       return pool;
-    pool = new ArrayBuffer(nbBytes);
-    return pool;
+    };
+  })();
+
+  /** Return the current time */
+  Utils.now = Date.now || function () {
+    return new Date().getTime();
+  };
+
+  /** Throttle function */
+  Utils.throttle = function (func, wait) {
+    var context, args, result;
+    var timeout = null;
+    var previous = 0;
+    var later = function () {
+      previous = Utils.now();
+      timeout = null;
+      result = func.apply(context, args);
+      context = args = null;
+    };
+    return function () {
+      var now = Utils.now();
+      var remaining = wait - (now - previous);
+      context = this;
+      args = arguments;
+      if (remaining <= 0 || remaining > wait) {
+        clearTimeout(timeout);
+        timeout = null;
+        previous = now;
+        result = func.apply(context, args);
+        context = args = null;
+      } else if (!timeout) {
+        timeout = setTimeout(later, remaining);
+      }
+      return result;
+    };
   };
 
   // var vector = function (ArrayConstructor, initSize) {
