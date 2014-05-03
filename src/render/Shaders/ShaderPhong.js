@@ -1,13 +1,9 @@
 define([
-  'lib/glMatrix',
   'render/shaders/ShaderBase',
   'render/Attribute'
-], function (glm, ShaderBase, Attribute) {
+], function (ShaderBase, Attribute) {
 
   'use strict';
-
-  var mat3 = glm.mat3;
-  var mat4 = glm.mat4;
 
   var glfloat = 0x1406;
 
@@ -99,15 +95,14 @@ define([
   /** Updates uniforms */
   ShaderPhong.updateUniforms = function (render, sculptgl) {
     var gl = render.gl_;
-    var camera = sculptgl.scene_.getCamera();
     var uniforms = this.uniforms;
-    var mvMatrix = mat4.mul(mat4.create(), camera.view_, render.mesh_.getMatrix());
+    var mesh = render.mesh_;
 
-    gl.uniformMatrix4fv(uniforms.uMV, false, mvMatrix);
-    gl.uniformMatrix4fv(uniforms.uMVP, false, mat4.mul(mat4.create(), camera.proj_, mvMatrix));
-    gl.uniformMatrix3fv(uniforms.uN, false, mat3.normalFromMat4(mat3.create(), mvMatrix));
+    gl.uniformMatrix4fv(uniforms.uMV, false, mesh.getMV());
+    gl.uniformMatrix4fv(uniforms.uMVP, false, mesh.getMVP());
+    gl.uniformMatrix3fv(uniforms.uN, false, mesh.getN());
 
-    ShaderBase.updateUniforms.call(this, render, sculptgl, mvMatrix);
+    ShaderBase.updateUniforms.call(this, render, sculptgl);
   };
 
   return ShaderPhong;

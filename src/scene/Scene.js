@@ -12,15 +12,6 @@ define([
 
   'use strict';
 
-  (function () {
-    var vendors = ['moz', 'webkit'];
-    for (var x = 0; x < vendors.length && !window.requestAnimationFrame; ++x) {
-      window.requestAnimationFrame = window[vendors[x] + 'RequestAnimationFrame'];
-    }
-    if (!window.requestAnimationFrame)
-      window.alert('browser is too old. Probably no webgl there anyway');
-  }());
-
   function Scene(sculptgl, gl) {
     this.sculptgl_ = sculptgl; //sculptgl
     this.gl_ = gl; //webgl context
@@ -89,8 +80,36 @@ define([
       this.camera_.updateView();
       if (this.background_)
         this.background_.render();
+      this.computeMatricesAndSort();
       for (var i = 0, meshes = this.meshes_, nb = meshes.length; i < nb; ++i)
         meshes[i].render(this.sculptgl_);
+    },
+    /** Pre compute matrices and sort meshes */
+    computeMatricesAndSort: function () {
+      var meshes = this.meshes_;
+      var cam = this.camera_;
+      for (var i = 0, nb = meshes.length; i < nb; ++i)
+        meshes[i].computeMatrices(cam);
+      meshes.sort(this.sortFunction.bind(this));
+    },
+    /**
+     * Sort function
+     * render transparent meshes after opaque ones
+     * transparent meshes rendered (back to front)
+     * opaque meshes rendered (front to back)
+     */
+    sortFunction: function (a, b) {
+      var aTr = a.isTransparent();
+      var bTr = b.isTransparent();
+      if (aTr && !bTr)
+        return 1;
+      else if (!aTr && bTr)
+        return -1;
+      else if (aTr && bTr) {
+        return b.getDepth() - a.getDepth();
+      } else {
+        return a.getDepth() - b.getDepth();
+      }
     },
     /** Load background */
     loadBackground: function (event) {

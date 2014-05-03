@@ -78,12 +78,13 @@ define([
     }
   };
   /** Updates uniforms */
-  ShaderBase.updateUniforms = function (render, sculptgl, mvMatrix) {
+  ShaderBase.updateUniforms = function (render, sculptgl) {
     var gl = render.gl_;
     var scene = sculptgl.scene_;
     var picking = scene.getPicking();
     var pickingSym = scene.getSymmetryPicking();
     var mesh = render.mesh_;
+    var mvMatrix = mesh.getMV();
     var useSym = (mesh === sculptgl.mesh_) && sculptgl.sculpt_.getSymmetry();
 
     var uniforms = this.uniforms;

@@ -1,12 +1,9 @@
 define([
-  'lib/glMatrix',
   'render/shaders/ShaderBase',
   'render/Attribute'
-], function (glm, ShaderBase, Attribute) {
+], function (ShaderBase, Attribute) {
 
   'use strict';
-
-  var mat4 = glm.mat4;
 
   var glfloat = 0x1406;
 
@@ -60,10 +57,8 @@ define([
     ShaderWireframe.attributes.aVertex.bindToBuffer(render.vertexBuffer_);
   };
   /** Updates uniforms */
-  ShaderWireframe.updateUniforms = function (render, sculptgl) {
-    var camera = sculptgl.scene_.getCamera();
-    var mvMatrix = mat4.mul(mat4.create(), camera.view_, render.mesh_.getMatrix());
-    render.gl_.uniformMatrix4fv(this.uniforms.uMVP, false, mat4.mul(mat4.create(), camera.proj_, mvMatrix));
+  ShaderWireframe.updateUniforms = function (render /*, sculptgl*/ ) {
+    render.gl_.uniformMatrix4fv(this.uniforms.uMVP, false, render.mesh_.getMVP());
   };
 
   return ShaderWireframe;

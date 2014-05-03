@@ -30,6 +30,9 @@ define([
     isUsingDrawArrays: function () {
       return Render.ONLY_DRAW_ARRAYS ? true : this.getFlatShading();
     },
+    isTransparent: function () {
+      return this.shader_.type_ === Shader.mode.TRANSPARENCY;
+    },
     /** Return flat shading */
     getFlatShading: function () {
       return this.flatShading_;
