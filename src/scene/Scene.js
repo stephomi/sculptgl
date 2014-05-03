@@ -240,7 +240,7 @@ define([
       sphereXhr.responseType = fileType === 'obj' ? 'text' : 'arraybuffer';
       sphereXhr.onload = function () {
         self.initMesh_ = this.response;
-        self.loadScene();
+        self.resetScene();
       };
       sphereXhr.send(null);
     },
@@ -248,6 +248,9 @@ define([
     resetScene: function () {
       this.meshes_.length = 0;
       this.loadScene();
+      var ctrlMulti = this.sculptgl_.gui_.ctrlMultiresolution_;
+      ctrlMulti.subdivide();
+      ctrlMulti.subdivide();
     }
   };
 
