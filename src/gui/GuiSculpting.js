@@ -6,8 +6,10 @@ define([
   'use strict';
 
   function GuiSculpting(guiParent, ctrlGui) {
-    this.sculptgl_ = ctrlGui.sculptgl_;
-    this.sculpt_ = ctrlGui.sculptgl_.sculpt_;
+    this.sculptgl_ = ctrlGui.sculptgl_; // main application
+    this.sculpt_ = ctrlGui.sculptgl_.sculpt_; // sculpting management
+    this.toolOnRelease_ = -1; // tool to apply when the mouse or the key is released
+
     this.ctrlSculpt_ = null; // sculpt controller
     this.ctrlSymmetry_ = null; // symmetry controller
     this.ctrlContinuous_ = null; // continuous controller
@@ -16,7 +18,7 @@ define([
   }
 
   GuiSculpting.prototype = {
-    /** Initialize */
+    /** Initialisculze */
     init: function (guiParent) {
       var self = this;
       var main = this.sculptgl_;
@@ -63,16 +65,30 @@ define([
       GuiSculptingTools.show(this.sculpt_.tool_);
 
       window.addEventListener('keydown', this.onKeyDown.bind(this), false);
+      window.addEventListener('keyup', this.onKeyUp.bind(this), false);
+      var canvas = document.getElementById('canvas');
+      canvas.addEventListener('mouseup', this.onMouseUp.bind(this), false);
+      canvas.addEventListener('mouseout', this.onMouseUp.bind(this), false);
     },
     /** Key pressed event */
     onKeyDown: function (event) {
       if (event.handled === true)
         return;
       event.stopPropagation();
-      event.preventDefault();
+      if (!this.sculptgl_.focusGui_)
+        event.preventDefault();
       var key = event.which;
       var ctrlSculpt = this.ctrlSculpt_;
       event.handled = true;
+      if (this.sculptgl_.mouseButton_ !== 0)
+        return;
+      if (event.shiftKey && !event.altKey && !event.ctrlKey) {
+        if (this.ctrlSculpt_.getValue() === Sculpt.tool.SMOOTH)
+          return;
+        this.toolOnRelease_ = this.ctrlSculpt_.getValue();
+        this.ctrlSculpt_.setValue(Sculpt.tool.SMOOTH);
+        return;
+      }
       switch (key) {
       case 48: // 0
       case 96: // NUMPAD 0
@@ -121,6 +137,20 @@ define([
         break;
       default:
         event.handled = false;
+      }
+    },
+    /** Key released event */
+    onKeyUp: function () {
+      if (this.sculptgl_.mouseButton_ === 0 && this.toolOnRelease_ !== -1) {
+        this.ctrlSculpt_.setValue(this.toolOnRelease_);
+        this.toolOnRelease_ = -1;
+      }
+    },
+    /** Mouse released event */
+    onMouseUp: function () {
+      if (this.toolOnRelease_ !== -1) {
+        this.ctrlSculpt_.setValue(this.toolOnRelease_);
+        this.toolOnRelease_ = -1;
       }
     },
     /** Initialize tool */

@@ -63,7 +63,7 @@ define([
 
       var canvas = document.getElementById('canvas');
       canvas.addEventListener('mouseup', this.onMouseUp.bind(this), false);
-      canvas.addEventListener('mouseout', this.onMouseOut.bind(this), false);
+      canvas.addEventListener('mouseout', this.onMouseUp.bind(this), false);
     },
     /** Mouse released event */
     onMouseUp: function (event) {
@@ -77,21 +77,17 @@ define([
         this.sculptTimer_ = -1;
       }
     },
-    /** Mouse out event */
-    onMouseOut: function (event) {
-      this.onMouseUp(event);
-    },
     /** Return true if the current tool doesn't prevent picking */
     allowPicking: function () {
       var tool = this.tool_;
       var st = Sculpt.tool;
       return tool !== st.ROTATE && tool !== st.DRAG && tool !== st.SCALE;
     },
-    /** Return true if the current tool could work with continous sculpting */
-    allowContinous: function () {
+    /** Return true if the current tool is using continous sculpting */
+    isUsingContinuous: function () {
       var tool = this.tool_;
       var st = Sculpt.tool;
-      return tool !== st.ROTATE && tool !== st.DRAG && tool !== st.SCALE;
+      return this.continuous_ && tool !== st.ROTATE && tool !== st.DRAG && tool !== st.SCALE;
     },
     /** Get current tool */
     getCurrent: function () {
@@ -100,7 +96,7 @@ define([
     /** Start sculpting */
     start: function (sculptgl) {
       this.getCurrent().start(sculptgl);
-      if (this.continuous_ && this.getCurrent().mesh_ && this.allowContinous()) {
+      if (this.getCurrent().mesh_ && this.isUsingContinuous()) {
         var self = this;
         this.sculptTimer_ = setInterval(function () {
           self.getCurrent().update(sculptgl);
@@ -110,7 +106,7 @@ define([
     },
     /** Update sculpting */
     update: function (sculptgl) {
-      if (this.continuous_ && this.allowContinous())
+      if (this.isUsingContinuous())
         return;
       this.getCurrent().update(sculptgl);
     }

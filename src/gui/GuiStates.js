@@ -26,7 +26,8 @@ define([], function () {
       if (event.handled === true)
         return;
       event.stopPropagation();
-      event.preventDefault();
+      if (!this.sculptgl_.focusGui_)
+        event.preventDefault();
       var key = event.which;
       if (event.ctrlKey && key === 90) { // z key
         this.onUndo();

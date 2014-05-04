@@ -5,6 +5,7 @@ define([
   'use strict';
 
   function GuiCamera(guiParent, ctrlGui) {
+    this.sculptgl_ = ctrlGui.sculptgl_; // main application
     this.scene_ = ctrlGui.sculptgl_.scene_; // the scene
     this.cameraTimer_ = -1; // interval id (used for zqsd/wasd/arrow moves)
     this.init(guiParent);
@@ -63,7 +64,7 @@ define([
       if (event.handled === true)
         return;
       event.stopPropagation();
-      if (!this.focusGui_)
+      if (!this.sculptgl_.focusGui_)
         event.preventDefault();
       var key = event.which;
       var scene = this.scene_;

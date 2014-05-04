@@ -45,7 +45,7 @@ define([
       var mouseThrottled = Utils.throttle(this.onMouseMove.bind(this), 16.66);
       canvas.addEventListener('mousedown', this.onMouseDown.bind(this), false);
       canvas.addEventListener('mouseup', this.onMouseUp.bind(this), false);
-      canvas.addEventListener('mouseout', this.onMouseOut.bind(this), false);
+      canvas.addEventListener('mouseout', this.onMouseUp.bind(this), false);
       canvas.addEventListener('mousemove', mouseThrottled, false);
       canvas.addEventListener('mousewheel', this.onMouseWheel.bind(this), false);
       canvas.addEventListener('DOMMouseScroll', this.onMouseWheel.bind(this), false);
@@ -90,10 +90,6 @@ define([
       event.stopPropagation();
       event.preventDefault();
       this.mouseButton_ = 0;
-    },
-    /** Mouse out event */
-    onMouseOut: function (event) {
-      this.onMouseUp(event);
     },
     /** Mouse wheel event */
     onMouseWheel: function (event) {
