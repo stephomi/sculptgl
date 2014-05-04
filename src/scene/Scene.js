@@ -5,7 +5,7 @@ define([
   'scene/Background',
   'math3d/Camera',
   'mesh/Mesh',
-  'mesh/Multimesh',
+  'mesh/multiresolution/Multimesh',
   'render/Shader',
   'math3d/Picking'
 ], function (Utils, Export, Import, Background, Camera, Mesh, Multimesh, Shader, Picking) {
@@ -118,10 +118,8 @@ define([
       var file = event.target.files[0];
       if (!file.type.match('image.*'))
         return;
-      if (!this.background_) {
+      if (!this.background_)
         this.background_ = new Background(this.gl_);
-        this.background_.init();
-      }
       var reader = new FileReader();
       var self = this;
       reader.onload = function (evt) {

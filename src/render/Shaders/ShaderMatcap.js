@@ -75,22 +75,22 @@ define([
   /** Bind attributes */
   ShaderMatcap.bindAttributes = function (render) {
     var attrs = ShaderMatcap.attributes;
-    attrs.aVertex.bindToBuffer(render.vertexBuffer_);
-    attrs.aNormal.bindToBuffer(render.normalBuffer_);
-    attrs.aColor.bindToBuffer(render.colorBuffer_);
+    attrs.aVertex.bindToBuffer(render.getVertexBuffer());
+    attrs.aNormal.bindToBuffer(render.getNormalBuffer());
+    attrs.aColor.bindToBuffer(render.getColorBuffer());
   };
   /** Updates uniforms */
   ShaderMatcap.updateUniforms = function (render, sculptgl) {
     var gl = render.gl_;
     var uniforms = this.uniforms;
-    var mesh = render.mesh_;
+    var mesh = render.getMesh();
 
     gl.uniformMatrix4fv(uniforms.uMV, false, mesh.getMV());
     gl.uniformMatrix4fv(uniforms.uMVP, false, mesh.getMVP());
     gl.uniformMatrix3fv(uniforms.uN, false, mesh.getN());
 
     gl.activeTexture(gl.TEXTURE0);
-    gl.bindTexture(gl.TEXTURE_2D, render.reflectionLoc_);
+    gl.bindTexture(gl.TEXTURE_2D, render.getTexture0());
     gl.uniform1i(uniforms.uTexture0, 0);
 
     ShaderBase.updateUniforms.call(this, render, sculptgl);

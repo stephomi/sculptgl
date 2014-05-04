@@ -4,8 +4,9 @@ define([
   'gui/Gui',
   'scene/Scene',
   'states/States',
-  'render/Render'
-], function (Utils, Sculpt, Gui, Scene, States, Render) {
+  'render/Render',
+  'mesh/multiresolution/Multimesh'
+], function (Utils, Sculpt, Gui, Scene, States, Render, Multimesh) {
 
   'use strict';
 
@@ -90,6 +91,7 @@ define([
       event.stopPropagation();
       event.preventDefault();
       this.mouseButton_ = 0;
+      Multimesh.RENDER_HINT = Multimesh.NONE;
     },
     /** Mouse wheel event */
     onMouseWheel: function (event) {
@@ -97,6 +99,7 @@ define([
       event.preventDefault();
       var delta = Math.max(-1.0, Math.min(1.0, (event.wheelDelta || -event.detail)));
       this.scene_.camera_.zoom(delta * 0.02);
+      Multimesh.RENDER_HINT = Multimesh.CAMERA;
       this.scene_.render();
     },
     /** Mouse pressed event */
@@ -130,18 +133,26 @@ define([
       var sculpt = this.sculpt_;
       var camera = scene.camera_;
       if (this.mesh_ && (button !== 1 || sculpt.allowPicking())) {
+        Multimesh.RENDER_HINT = Multimesh.PICKING;
         scene.picking_.intersectionMouseMesh(this.mesh_, mouseX, mouseY);
         if (this.sculpt_.getSymmetry())
           scene.pickingSym_.intersectionMouseMesh(this.mesh_, mouseX, mouseY, true);
       }
-      if (button === 1 && !event.altKey)
+      if (button === 1 && !event.altKey) {
+        Multimesh.RENDER_HINT = Multimesh.SCULPT;
         sculpt.update(this);
-      else if (button === 2 || (event.altKey && event.shiftKey && button !== 0))
-        camera.translate((mouseX - this.lastMouseX_) / 3000, (mouseY - this.lastMouseY_) / 3000);
-      else if (event.altKey && event.ctrlKey && button !== 0)
-        camera.zoom((mouseY - this.lastMouseY_) / 3000);
-      else if (button === 3 || (event.altKey && !event.shiftKey && !event.ctrlKey && button !== 0))
-        camera.rotate(mouseX, mouseY);
+      } else {
+        if (button === 2 || (event.altKey && event.shiftKey && button !== 0)) {
+          camera.translate((mouseX - this.lastMouseX_) / 3000, (mouseY - this.lastMouseY_) / 3000);
+          Multimesh.RENDER_HINT = Multimesh.CAMERA;
+        } else if (event.altKey && event.ctrlKey && button !== 0) {
+          camera.zoom((mouseY - this.lastMouseY_) / 3000);
+          Multimesh.RENDER_HINT = Multimesh.CAMERA;
+        } else if (button === 3 || (event.altKey && !event.shiftKey && !event.ctrlKey && button !== 0)) {
+          camera.rotate(mouseX, mouseY);
+          Multimesh.RENDER_HINT = Multimesh.CAMERA;
+        }
+      }
       this.lastMouseX_ = mouseX;
       this.lastMouseY_ = mouseY;
       scene.render();

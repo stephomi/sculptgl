@@ -57,8 +57,8 @@ define([
   /** Bind attributes */
   ShaderBackground.bindAttributes = function (bg) {
     var attrs = ShaderBackground.attributes;
-    attrs.aVertex.bindToBuffer(bg.vertexBuffer_);
-    attrs.aTexCoord.bindToBuffer(bg.texCoordBuffer_);
+    attrs.aVertex.bindToBuffer(bg.getVertexBuffer());
+    attrs.aTexCoord.bindToBuffer(bg.getTexCoordBuffer());
   };
   /** Updates uniforms */
   ShaderBackground.updateUniforms = function (bg) {

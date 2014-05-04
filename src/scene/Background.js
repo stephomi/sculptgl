@@ -9,14 +9,23 @@ define([
   function Background(gl) {
     this.gl_ = gl; // webgl context
 
-    this.vertexBuffer_ = null; // vertices buffer
-    this.texCoordBuffer_ = null; // tex coord buffer
+    this.vertexBuffer_ = new Buffer(gl, gl.ARRAY_BUFFER, gl.STATIC_DRAW); // vertices buffer
+    this.texCoordBuffer_ = new Buffer(gl, gl.ARRAY_BUFFER, gl.STATIC_DRAW); // tex coord buffer
     this.backgroundLoc_ = null; // texture background
 
     this.shader_ = null; // the shader
+    this.init();
   }
 
   Background.prototype = {
+    /** Return vertex buffer */
+    getVertexBuffer: function () {
+      return this.vertexBuffer_;
+    },
+    /** Return tex coord buffer */
+    getTexCoordBuffer: function () {
+      return this.texCoordBuffer_;
+    },
     /** Initialize Vertex Buffer Object (VBO) */
     init: function () {
       this.initBuffer();
@@ -24,9 +33,10 @@ define([
     },
     /** Free gl memory */
     release: function () {
-      this.gl_.deleteTexture(this.backgroundLoc_);
-      this.vertexBuffer_.release();
-      this.texCoordBuffer_.release();
+      if (this.backgroundLoc_)
+        this.gl_.deleteTexture(this.backgroundLoc_);
+      this.getVertexBuffer().release();
+      this.getTexCoordBuffer().release();
     },
     /** Return the configuration of the shader */
     getConfig: function () {
@@ -34,15 +44,11 @@ define([
     },
     /** Initialize Vertex Buffer Object (VBO) */
     initBuffer: function () {
-      var gl = this.gl_;
-
       var vertCoords = [-1.0, -1.0, -1.0, 1.0, 1.0, -1.0, -1.0, 1.0, 1.0, 1.0, 1.0, -1.0];
-      this.vertexBuffer_ = new Buffer(gl, gl.ARRAY_BUFFER, gl.STATIC_DRAW);
-      this.vertexBuffer_.update(new Float32Array(vertCoords));
+      this.getVertexBuffer().update(new Float32Array(vertCoords));
 
       var texCoords = [0.0, 1.0, 0.0, 0.0, 1.0, 1.0, 0.0, 0.0, 1.0, 0.0, 1.0, 1.0];
-      this.texCoordBuffer_ = new Buffer(gl, gl.ARRAY_BUFFER, gl.STATIC_DRAW);
-      this.texCoordBuffer_.update(new Float32Array(texCoords));
+      this.getTexCoordBuffer().update(new Float32Array(texCoords));
     },
     /** Load background texture */
     loadBackgroundTexture: function (tex) {

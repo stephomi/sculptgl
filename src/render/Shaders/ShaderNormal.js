@@ -63,14 +63,14 @@ define([
   /** Bind attributes */
   ShaderNormal.bindAttributes = function (render) {
     var attrs = ShaderNormal.attributes;
-    attrs.aVertex.bindToBuffer(render.vertexBuffer_);
-    attrs.aNormal.bindToBuffer(render.normalBuffer_);
+    attrs.aVertex.bindToBuffer(render.getVertexBuffer());
+    attrs.aNormal.bindToBuffer(render.getNormalBuffer());
   };
   /** Updates uniforms */
   ShaderNormal.updateUniforms = function (render, sculptgl) {
     var gl = render.gl_;
     var uniforms = this.uniforms;
-    var mesh = render.mesh_;
+    var mesh = render.getMesh();
 
     gl.uniformMatrix4fv(uniforms.uMV, false, mesh.getMV());
     gl.uniformMatrix4fv(uniforms.uMVP, false, mesh.getMVP());

@@ -44,6 +44,10 @@ define([
   };
 
   Sculpt.prototype = {
+    /** Get current tool */
+    getCurrent: function () {
+      return this.tools_[this.tool_];
+    },
     getSymmetry: function () {
       return this.symmetry_;
     },
@@ -88,10 +92,6 @@ define([
       var tool = this.tool_;
       var st = Sculpt.tool;
       return this.continuous_ && tool !== st.ROTATE && tool !== st.DRAG && tool !== st.SCALE;
-    },
-    /** Get current tool */
-    getCurrent: function () {
-      return this.tools_[this.tool_];
     },
     /** Start sculpting */
     start: function (sculptgl) {

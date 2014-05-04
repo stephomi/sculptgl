@@ -1,50 +1,27 @@
 define([
   'misc/Utils',
-  'mesh/Mesh',
+  'mesh/multiresolution/MeshResolution',
+  'mesh/multiresolution/LowRender',
   'editor/Subdivision',
   'editor/Multiresolution'
-], function (Utils, Mesh, Subdivision, Multiresolution) {
+], function (Utils, MeshResolution, LowRender, Subdivision, Multiresolution) {
 
   'use strict';
 
-  var MeshResolution = function (transformData, render, mesh) {
-    this.meshOrigin_ = mesh || new Mesh();
-    this.meshOrigin_.setTransformData(transformData);
-    this.meshOrigin_.setRender(render);
-    this.detailsXYZ_ = null; // details vectors (Float32Array)
-    this.detailsRGB_ = null; // details vectors (Float32Array)
-  };
-
-  MeshResolution.prototype = {
-    getMeshOrigin: function () {
-      return this.meshOrigin_;
-    },
-    getDetailsVertices: function () {
-      return this.detailsXYZ_;
-    },
-    getDetailsColors: function () {
-      return this.detailsRGB_;
-    },
-    setDetailsVertices: function (dAr) {
-      this.detailsXYZ_ = dAr;
-    },
-    setDetailsColors: function (dcAr) {
-      this.detailsRGB_ = dcAr;
-    }
-  };
-
-  Utils.makeProxy(Mesh, MeshResolution, function (proto) {
-    return function () {
-      return proto.apply(this.getMeshOrigin(), arguments);
-    };
-  });
-
   function Multimesh(mesh) {
+    // every submeshes will share the same render/transformData
     mesh.getRender().mesh_ = this;
     mesh.getTransformData().mesh_ = this;
     this.meshes_ = [new MeshResolution(mesh.getTransformData(), mesh.getRender(), mesh)];
     this.sel_ = 0;
+    this.lowRender_ = new LowRender(mesh.getRender());
   }
+
+  Multimesh.RENDER_HINT = 0;
+  Multimesh.NONE = 0;
+  Multimesh.SCULPT = 1;
+  Multimesh.CAMERA = 2;
+  Multimesh.PICKING = 3;
 
   Multimesh.prototype = {
     /** Return the current mesh */
@@ -60,6 +37,8 @@ define([
       Subdivision.fullSubdivision(baseMesh, newMesh);
       newMesh.initTopology();
       this.pushMesh(newMesh);
+      this.getRender().initRender();
+      this.lowRender_.updateBuffers(this.meshes_[this.getLowMeshRender()]);
       return newMesh;
     },
     /** Go to one level below in mesh resolution */
@@ -116,6 +95,35 @@ define([
       this.meshes_.pop();
       this.sel_ = this.meshes_.length - 1;
       this.updateResolution();
+    },
+    /** Render the lower rendering mesh resolution */
+    getLowMeshRender: function () {
+      var limit = 1500000;
+      var sel = this.sel_;
+      while (sel > 0 && this.meshes_[sel].getNbTriangles() > limit) {
+        --sel;
+      }
+      return sel;
+    },
+    /** Render the at a lower resolution */
+    lowRender: function (sculptgl) {
+      var lowSel = this.getLowMeshRender();
+      if (lowSel === this.sel_)
+        return this.getCurrent().render(sculptgl);
+      var tmpSel = this.sel_;
+      this.sel_ = lowSel;
+      this.lowRender_.render(sculptgl);
+      this.sel_ = tmpSel;
+    },
+    /** Render the mesh */
+    render: function (sculptgl) {
+      if (Multimesh.RENDER_HINT === Multimesh.PICKING || Multimesh.RENDER_HINT === Multimesh.NONE)
+        return this.getCurrent().render(sculptgl);
+      if (this.isUsingDrawArrays())
+        return this.getCurrent().render(sculptgl);
+      if (sculptgl.mesh_ === this && Multimesh.RENDER_HINT !== Multimesh.CAMERA)
+        return this.getCurrent().render(sculptgl);
+      this.lowRender(sculptgl);
     }
   };
 

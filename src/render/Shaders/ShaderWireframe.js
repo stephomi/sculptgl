@@ -39,9 +39,9 @@ define([
     gl.useProgram(this.program);
     this.bindAttributes(render);
     this.updateUniforms(render, sculptgl);
-    render.wireframeBuffer_.bind();
+    render.getWireframeBuffer().bind();
     gl.enable(gl.BLEND);
-    gl.drawElements(gl.LINES, render.mesh_.getNbEdges() * 2, gl.UNSIGNED_INT, 0);
+    gl.drawElements(gl.LINES, render.getMesh().getRenderNbEdges() * 2, gl.UNSIGNED_INT, 0);
     gl.disable(gl.BLEND);
   };
   /** Get or create the shader */
@@ -54,11 +54,11 @@ define([
   };
   /** Bind attributes */
   ShaderWireframe.bindAttributes = function (render) {
-    ShaderWireframe.attributes.aVertex.bindToBuffer(render.vertexBuffer_);
+    ShaderWireframe.attributes.aVertex.bindToBuffer(render.getVertexBuffer());
   };
   /** Updates uniforms */
   ShaderWireframe.updateUniforms = function (render /*, sculptgl*/ ) {
-    render.gl_.uniformMatrix4fv(this.uniforms.uMVP, false, render.mesh_.getMVP());
+    render.gl_.uniformMatrix4fv(this.uniforms.uMVP, false, render.getMesh().getMVP());
   };
 
   return ShaderWireframe;

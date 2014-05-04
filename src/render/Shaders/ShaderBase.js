@@ -83,7 +83,7 @@ define([
     var scene = sculptgl.scene_;
     var picking = scene.getPicking();
     var pickingSym = scene.getSymmetryPicking();
-    var mesh = render.mesh_;
+    var mesh = render.getMesh();
     var mvMatrix = mesh.getMV();
     var useSym = (mesh === sculptgl.mesh_) && sculptgl.sculpt_.getSymmetry();
 
@@ -98,12 +98,12 @@ define([
   };
   /** Draw buffer */
   ShaderBase.drawBuffer = function (render) {
-    var lengthIndexArray = render.mesh_.getNbTriangles() * 3;
+    var lengthIndexArray = render.getMesh().getRenderNbTriangles() * 3;
     var gl = render.gl_;
     if (render.isUsingDrawArrays())
       gl.drawArrays(gl.TRIANGLES, 0, lengthIndexArray);
     else {
-      render.indexBuffer_.bind();
+      render.getIndexBuffer().bind();
       gl.drawElements(gl.TRIANGLES, lengthIndexArray, gl.UNSIGNED_INT, 0);
     }
     gl.bindBuffer(gl.ARRAY_BUFFER, null);

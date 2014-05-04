@@ -14,6 +14,10 @@ define([
   }
 
   SculptBase.prototype = {
+    /** Return the mesh */
+    getMesh: function () {
+      return this.mesh_;
+    },
     /** Start sculpting */
     start: function (sculptgl, colorState) {
       var picking = sculptgl.scene_.picking_;

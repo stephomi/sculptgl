@@ -38,9 +38,17 @@ define([
     getRenderNormals: function (useDrawArrays) {
       return useDrawArrays ? this.getDrawArraysData().normalsXYZ_ : this.getNormals();
     },
-    /** Return the colors used for webgl */
     getRenderColors: function (useDrawArrays) {
       return useDrawArrays ? this.getDrawArraysData().colorsRGB_ : this.getColors();
+    },
+    getRenderIndices: function () {
+      return this.getIndices();
+    },
+    getRenderNbTriangles: function () {
+      return this.getNbTriangles();
+    },
+    getRenderNbEdges: function () {
+      return this.getNbEdges();
     },
     /** Initialize stuffs for the mesh */
     init: function () {

@@ -88,15 +88,15 @@ define([
   /** Bind attributes */
   ShaderPhong.bindAttributes = function (render) {
     var attrs = ShaderPhong.attributes;
-    attrs.aVertex.bindToBuffer(render.vertexBuffer_);
-    attrs.aNormal.bindToBuffer(render.normalBuffer_);
-    attrs.aColor.bindToBuffer(render.colorBuffer_);
+    attrs.aVertex.bindToBuffer(render.getVertexBuffer());
+    attrs.aNormal.bindToBuffer(render.getNormalBuffer());
+    attrs.aColor.bindToBuffer(render.getColorBuffer());
   };
   /** Updates uniforms */
   ShaderPhong.updateUniforms = function (render, sculptgl) {
     var gl = render.gl_;
     var uniforms = this.uniforms;
-    var mesh = render.mesh_;
+    var mesh = render.getMesh();
 
     gl.uniformMatrix4fv(uniforms.uMV, false, mesh.getMV());
     gl.uniformMatrix4fv(uniforms.uMVP, false, mesh.getMVP());
