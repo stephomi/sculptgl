@@ -14,35 +14,35 @@ define([
   var quat = glm.quat;
 
   function Camera() {
-    this.mode_ = Camera.mode.PLANE; //camera mode
-    this.type_ = Camera.projType.PERSPECTIVE; //the projection type
-    this.rot_ = quat.create(); //quaternion
-    this.view_ = mat4.create(); //view matrix
-    this.proj_ = mat4.create(); //projection matrix
-    this.lastNormalizedMouseXY_ = [0.0, 0.0]; //last mouse position ( 0..1 )
-    this.width_ = 0.0; //viewport width
-    this.height_ = 0.0; //viewport height
-    this.zoom_ = 20.0; //zoom value
-    this.transX_ = 0.0; //translation in x
-    this.transY_ = 0.0; //translation in y
-    this.speed_ = 1.0; //solve scale issue
-    this.moveX_ = 0; //free look (strafe), possible values : -1, 0, 1
-    this.moveZ_ = 0; //free look (strafe), possible values : -1, 0, 1
-    this.fov_ = 45.0; //vertical field of view
-    this.center_ = [0.0, 0.0, 0.0]; //center of rotation
-    this.stepCenter_ = [0.0, 0.0, 0.0]; //step vector to translate between pivots
-    this.stepZoom_ = 0.0; //step zoom value
-    this.stepCount_ = 0; //number of translation between pivots
-    this.usePivot_ = false; //if rotation is centered around the picked point
+    this.mode_ = Camera.mode.PLANE; // camera mode
+    this.type_ = Camera.projType.PERSPECTIVE; // the projection type
+    this.rot_ = quat.create(); // quaternion
+    this.view_ = mat4.create(); // view matrix
+    this.proj_ = mat4.create(); // projection matrix
+    this.lastNormalizedMouseXY_ = [0.0, 0.0]; // last mouse position ( 0..1 )
+    this.width_ = 0.0; // viewport width
+    this.height_ = 0.0; // viewport height
+    this.zoom_ = 20.0; // zoom value
+    this.transX_ = 0.0; // translation in x
+    this.transY_ = 0.0; // translation in y
+    this.speed_ = 1.0; // solve scale issue
+    this.moveX_ = 0; // free look (strafe), possible values : -1, 0, 1
+    this.moveZ_ = 0; // free look (strafe), possible values : -1, 0, 1
+    this.fov_ = 45.0; // vertical field of view
+    this.center_ = [0.0, 0.0, 0.0]; // center of rotation
+    this.stepCenter_ = [0.0, 0.0, 0.0]; // step vector to translate between pivots
+    this.stepZoom_ = 0.0; // step zoom value
+    this.stepCount_ = 0; // number of translation between pivots
+    this.usePivot_ = false; // if rotation is centered around the picked point
   }
 
-  //the camera modes
+  // the camera modes
   Camera.mode = {
     SPHERICAL: 0,
     PLANE: 1
   };
 
-  //the projection type
+  // the projection type
   Camera.projType = {
     PERSPECTIVE: 0,
     ORTHOGRAPHIC: 1
@@ -54,9 +54,9 @@ define([
       this.lastNormalizedMouseXY_ = Geometry.normalizedMouse(mouseX, mouseY, this.width_, this.height_);
       if (this.usePivot_ && picking.mesh_) {
         this.stepCount_ = 10;
-        //target center
+        // target center
         vec3.transformMat4(this.stepCenter_, picking.getIntersectionPoint(), picking.mesh_.getMatrix());
-        //target zoom
+        // target zoom
         var targetZoom = vec3.dist(this.stepCenter_, this.computePosition());
         if (this.type_ === Camera.projType.PERSPECTIVE)
           this.stepZoom_ = (targetZoom - this.zoom_) / this.stepCount_;

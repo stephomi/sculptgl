@@ -8,9 +8,9 @@ define([
 
   function Paint(states) {
     SculptBase.call(this, states);
-    this.intensity_ = 0.75; //deformation intensity
-    this.culling_ = false; //if we backface cull the vertices
-    this.color_ = [168.0, 66.0, 66.0]; //color painting
+    this.intensity_ = 0.75; // deformation intensity
+    this.culling_ = false; // if we backface cull the vertices
+    this.color_ = [168.0, 66.0, 66.0]; // color painting
   }
 
   Paint.prototype = {
@@ -27,7 +27,7 @@ define([
       var iVertsInRadius = picking.getPickedVertices();
       var intensity = this.intensity_ * Tablet.getPressureIntensity();
 
-      //undo-redo
+      // undo-redo
       this.states_.pushVertices(iVertsInRadius);
 
       if (this.culling_)
@@ -50,8 +50,7 @@ define([
       var cx = center[0];
       var cy = center[1];
       var cz = center[2];
-      var nbVerts = iVerts.length;
-      for (var i = 0; i < nbVerts; ++i) {
+      for (var i = 0, l = iVerts.length; i < l; ++i) {
         var ind = iVerts[i] * 3;
         var dx = vAr[ind] - cx;
         var dy = vAr[ind + 1] - cy;

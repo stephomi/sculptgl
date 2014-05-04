@@ -3,10 +3,10 @@ define([], function () {
   'use strict';
 
   function StateMultiresolution(multimesh, type, ignoreData) {
-    this.multimesh_ = multimesh; //the multires mesh
-    this.mesh_ = multimesh.getCurrent(); //the sub multimesh
-    this.vArState_ = null; //copies of vertices coordinates
-    this.cArState_ = null; //copies of vertices coordinates
+    this.multimesh_ = multimesh; // the multires mesh
+    this.mesh_ = multimesh.getCurrent(); // the sub multimesh
+    this.vArState_ = null; // copies of vertices coordinates
+    this.cArState_ = null; // copies of vertices coordinates
     if (type === StateMultiresolution.SUBDIVISION && !ignoreData) {
       this.vArState_ = new Float32Array(this.mesh_.getVertices());
       this.cArState_ = new Float32Array(this.mesh_.getColors());
@@ -14,8 +14,8 @@ define([], function () {
     this.type_ = type;
   }
 
-  StateMultiresolution.SUBDIVISION = 0; //subdivision of the mesh
-  StateMultiresolution.SELECTION = 1; //change selection of resolution
+  StateMultiresolution.SUBDIVISION = 0; // subdivision of the mesh
+  StateMultiresolution.SELECTION = 1; // change selection of resolution
 
   StateMultiresolution.prototype = {
     /** On undo */

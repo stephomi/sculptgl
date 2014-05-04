@@ -3,9 +3,9 @@ define([], function () {
   'use strict';
 
   function WireframeData(mesh) {
-    this.mesh_ = mesh; //the mesh
-    this.drawArraysWireframe_ = null; //array for the wireframe (base on drawArrays vertices)
-    this.drawElementsWireframe_ = null; //array for the wireframe (base on drawElements vertices)
+    this.mesh_ = mesh; // the mesh
+    this.drawArraysWireframe_ = null; // array for the wireframe (base on drawArrays vertices)
+    this.drawElementsWireframe_ = null; // array for the wireframe (base on drawElements vertices)
   }
 
   WireframeData.prototype = {

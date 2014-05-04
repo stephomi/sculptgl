@@ -14,14 +14,14 @@ define([
 
   function Rotate(states) {
     SculptBase.call(this, states);
-    this.culling_ = false; //if we backface cull the vertices
+    this.culling_ = false; // if we backface cull the vertices
     this.rotateData_ = {
-      normal: [0.0, 0.0, 0.0], //normal of rotation plane
-      center: [0.0, 0.0] //2D center of rotation 
+      normal: [0.0, 0.0, 0.0], // normal of rotation plane
+      center: [0.0, 0.0] // 2D center of rotation 
     };
     this.rotateDataSym_ = {
-      normal: [0.0, 0.0, 0.0], //normal of rotation plane
-      center: [0.0, 0.0] //2D center of rotation 
+      normal: [0.0, 0.0, 0.0], // normal of rotation plane
+      center: [0.0, 0.0] // 2D center of rotation 
     };
   }
 
@@ -75,7 +75,7 @@ define([
     stroke: function (picking, mx, my, lx, ly, rotateData) {
       var iVertsInRadius = picking.getPickedVertices();
 
-      //undo-redo
+      // undo-redo
       this.states_.pushVertices(iVertsInRadius);
 
       if (this.culling_)
@@ -100,20 +100,23 @@ define([
       var angle = Geometry.signedAngle2d(vecMouse, vecOldMouse);
       var vAr = mesh.getVertices();
       var radius = Math.sqrt(radiusSquared);
-      var nbVerts = iVerts.length;
       var cx = center[0];
       var cy = center[1];
       var cz = center[2];
-      for (var i = 0; i < nbVerts; ++i) {
+      var coord = [0.0, 0.0, 0.0];
+      for (var i = 0, l = iVerts.length; i < l; ++i) {
         var ind = iVerts[i] * 3;
-        var dx = vAr[ind] - cx;
-        var dy = vAr[ind + 1] - cy;
-        var dz = vAr[ind + 2] - cz;
+        var vx = vAr[ind];
+        var vy = vAr[ind + 1];
+        var vz = vAr[ind + 2];
+        var dx = vx - cx;
+        var dy = vy - cy;
+        var dz = vz - cz;
         var dist = Math.sqrt(dx * dx + dy * dy + dz * dz) / radius;
         var fallOff = dist * dist;
         fallOff = 3.0 * fallOff * fallOff - 4.0 * fallOff * dist + 1.0;
-        var coord = [vAr[ind], vAr[ind + 1], vAr[ind + 2]];
         quat.setAxisAngle(rot, nPlane, angle * fallOff);
+        vec3.set(coord, vx, vy, vz);
         vec3.sub(coord, coord, center);
         vec3.transformQuat(coord, coord, rot);
         vec3.add(coord, coord, center);

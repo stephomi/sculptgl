@@ -3,11 +3,11 @@ define([], function () {
   'use strict';
 
   var Buffer = function (gl, type, hint) {
-    this.gl_ = gl; //webgl context
-    this.buffer_ = gl.createBuffer(); //the buffer
-    this.type_ = type; //the type (vert data vs index)
+    this.gl_ = gl; // webgl context
+    this.buffer_ = gl.createBuffer(); // the buffer
+    this.type_ = type; // the type (vert data vs index)
     this.hint_ = hint; //the buffer update hint
-    this.size_ = 0; //the size of the buffer
+    this.size_ = 0; // the size of the buffer
   };
 
   Buffer.prototype = {

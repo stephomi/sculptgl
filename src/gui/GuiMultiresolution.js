@@ -6,15 +6,15 @@ define([
 
   function GuiMultiresolution(guiParent, ctrlGui) {
     this.ctrlGui_ = ctrlGui;
-    this.sculptgl_ = ctrlGui.sculptgl_; //main application
-    this.ctrlResolution_ = null; //multiresolution controller
+    this.sculptgl_ = ctrlGui.sculptgl_; // main application
+    this.ctrlResolution_ = null; // multiresolution controller
     this.init(guiParent);
   }
 
   GuiMultiresolution.prototype = {
     /** Initialize */
     init: function (guiParent) {
-      //multires fold
+      // multires fold
       var foldMultires = guiParent.addFolder('Multires');
       foldMultires.add(this, 'subdivide');
       this.ctrlResolution_ = foldMultires.add({

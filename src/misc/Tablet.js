@@ -4,8 +4,8 @@ define([], function () {
 
   var Tablet = {
     plugin: document.querySelector('object[type=\'application/x-wacomtabletplugin\']'),
-    useOnRadius: true, //the pen pressure acts on the tool's radius
-    useOnIntensity: false //the pen pressure acts on the tool's intensity
+    useOnRadius: true, // the pen pressure acts on the tool's radius
+    useOnIntensity: false // the pen pressure acts on the tool's intensity
   };
 
   /** Returns the pressure of pen: [0, 1] **/

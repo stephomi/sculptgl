@@ -5,8 +5,8 @@ define([
   'use strict';
 
   function StateGeometry(mesh) {
-    this.mesh_ = mesh; //the mesh
-    this.vArState_ = []; //copies of vertices coordinates
+    this.mesh_ = mesh; // the mesh
+    this.vArState_ = []; // copies of vertices coordinates
     this.idVertState_ = []; // ids of vertices
   }
 
@@ -62,7 +62,7 @@ define([
       for (i = 0; i < nbVerts; ++i)
         idVertRedoState[i] = idVertUndoState[i];
 
-      //fill states arrays
+      // fill states arrays
       var nbState = idVertRedoState.length;
       vArRedoState.length = nbState * 3;
       for (i = 0; i < nbState; ++i) {

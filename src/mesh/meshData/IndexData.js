@@ -5,15 +5,15 @@ define([
   'use strict';
 
   function IndexData(mesh) {
-    this.mesh_ = mesh; //the mesh
+    this.mesh_ = mesh; // the mesh
 
-    this.triEdges_ = null; //triangles to edges (Uint32Array)
-    this.triNormalsXYZ_ = null; //triangle normals (Float32Array)
-    this.triBoxes_ = null; //triangle bbox (Float32Array)
-    this.triCentersXYZ_ = null; //triangle center (Float32Array)
-    this.indicesABC_ = null; //triangles (Uint16Array or Uint32Array)
+    this.triEdges_ = null; // triangles to edges (Uint32Array)
+    this.triNormalsXYZ_ = null; // triangle normals (Float32Array)
+    this.triBoxes_ = null; // triangle bbox (Float32Array)
+    this.triCentersXYZ_ = null; // triangle center (Float32Array)
+    this.indicesABC_ = null; // triangles (Uint16Array or Uint32Array)
 
-    this.triTagFlags_ = null; //triangles tag (<= Utils.TAG_FLAG) (Uint32Array)
+    this.triTagFlags_ = null; // triangles tag (<= Utils.TAG_FLAG) (Uint32Array)
   }
 
   IndexData.prototype = {

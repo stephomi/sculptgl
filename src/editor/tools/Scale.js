@@ -12,8 +12,8 @@ define([
 
   function Scale(states) {
     SculptBase.call(this, states);
-    this.intensity_ = 0.75; //deformation intensity
-    this.culling_ = false; //if we backface cull the vertices
+    this.intensity_ = 0.75; // deformation intensity
+    this.culling_ = false; // if we backface cull the vertices
   }
 
   Scale.prototype = {
@@ -58,7 +58,7 @@ define([
     stroke: function (picking, delta) {
       var iVertsInRadius = picking.getPickedVertices();
 
-      //undo-redo
+      // undo-redo
       this.states_.pushVertices(iVertsInRadius);
 
       if (this.culling_)
@@ -73,22 +73,24 @@ define([
       var vAr = this.mesh_.getVertices();
       var deltaScale = intensity * 0.01;
       var radius = Math.sqrt(radiusSquared);
-      var nbVerts = iVerts.length;
       var cx = center[0];
       var cy = center[1];
       var cz = center[2];
-      for (var i = 0; i < nbVerts; ++i) {
+      for (var i = 0, l = iVerts.length; i < l; ++i) {
         var ind = iVerts[i] * 3;
-        var dx = vAr[ind] - cx;
-        var dy = vAr[ind + 1] - cy;
-        var dz = vAr[ind + 2] - cz;
+        var vx = vAr[ind];
+        var vy = vAr[ind + 1];
+        var vz = vAr[ind + 2];
+        var dx = vx - cx;
+        var dy = vy - cy;
+        var dz = vz - cz;
         var dist = Math.sqrt(dx * dx + dy * dy + dz * dz) / radius;
         var fallOff = dist * dist;
         fallOff = 3.0 * fallOff * fallOff - 4.0 * fallOff * dist + 1.0;
         fallOff *= deltaScale;
-        vAr[ind] += dx * fallOff;
-        vAr[ind + 1] += dy * fallOff;
-        vAr[ind + 2] += dz * fallOff;
+        vAr[ind] = vx + dx * fallOff;
+        vAr[ind + 1] = vy + dy * fallOff;
+        vAr[ind + 2] = vz + dz * fallOff;
       }
     }
   };

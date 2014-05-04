@@ -5,8 +5,8 @@ define([
   'use strict';
 
   function GuiCamera(guiParent, ctrlGui) {
-    this.scene_ = ctrlGui.sculptgl_.scene_; //the scene
-    this.cameraTimer_ = -1; //interval id (used for zqsd/wasd/arrow moves)
+    this.scene_ = ctrlGui.sculptgl_.scene_; // the scene
+    this.cameraTimer_ = -1; // interval id (used for zqsd/wasd/arrow moves)
     this.init(guiParent);
   }
 
@@ -16,23 +16,23 @@ define([
       var scene = this.scene_;
       var camera = scene.camera_;
 
-      //Camera fold
+      // Camera fold
       var cameraFold = guiParent.addFolder('Camera');
-      //reset camera
+      // reset camera
       cameraFold.add(this, 'resetCamera').name('Reset');
-      //camera mode
+      // camera mode
       var ctrlCameraMode = cameraFold.add(camera, 'mode_', {
         'Spherical': Camera.mode.SPHERICAL,
         'Plane': Camera.mode.PLANE
       }).name('Mode');
-      //camera type
+      // camera type
       var ctrlCameraType = cameraFold.add(camera, 'type_', {
         'Perspective': Camera.projType.PERSPECTIVE,
         'Orthographic': Camera.projType.ORTHOGRAPHIC
       }).name('Type');
-      //camera fov
+      // camera fov
       var ctrlFov = cameraFold.add(camera, 'fov_', 10, 150).name('Fov');
-      //camera pivo
+      // camera pivo
       var ctrlPivot = cameraFold.add(camera, 'usePivot_').name('Picking pivot');
 
       ctrlCameraMode.onChange(function (value) {
@@ -120,15 +120,15 @@ define([
       case 83: // S
         camera.moveZ_ = 0;
         break;
-      case 70: //F
+      case 70: // F
         camera.resetViewFront();
         scene.render();
         break;
-      case 84: //T
+      case 84: // T
         camera.resetViewTop();
         scene.render();
         break;
-      case 76: //L
+      case 76: // L
         camera.resetViewLeft();
         scene.render();
         break;

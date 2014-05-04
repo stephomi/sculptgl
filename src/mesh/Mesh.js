@@ -9,8 +9,8 @@ define([
 
   function Mesh(gl) {
     this.meshData_ = new MeshData(this); // the vertex data
-    this.octree_ = new Octree(this); //octree
-    this.render_ = gl ? new Render(gl, this) : null; //octree
+    this.octree_ = new Octree(this); // octree
+    this.render_ = gl ? new Render(gl, this) : null; // octree
   }
 
   Mesh.prototype = {

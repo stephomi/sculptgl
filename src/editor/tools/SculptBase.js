@@ -9,8 +9,8 @@ define([
   'use strict';
 
   function SculptBase(states) {
-    this.states_ = states; //for undo-redo
-    this.mesh_ = null; //the current edited mesh
+    this.states_ = states; // for undo-redo
+    this.mesh_ = null; // the current edited mesh
   }
 
   SculptBase.prototype = {
@@ -104,11 +104,10 @@ define([
     /** Compute average normal of a group of vertices with culling */
     areaNormal: function (iVerts) {
       var nAr = this.mesh_.getNormals();
-      var nbVerts = iVerts.length;
       var anx = 0.0;
       var any = 0.0;
       var anz = 0.0;
-      for (var i = 0; i < nbVerts; ++i) {
+      for (var i = 0, l = iVerts.length; i < l; ++i) {
         var ind = iVerts[i] * 3;
         anx += nAr[ind];
         any += nAr[ind + 1];
@@ -134,6 +133,47 @@ define([
         az += vAr[ind + 2];
       }
       return [ax / nbVerts, ay / nbVerts, az / nbVerts];
+    },
+    /** Updates the vertices original coords that are sculpted for the first time in this stroke */
+    updateProxy: function (iVerts) {
+      var mesh = this.mesh_;
+      var vAr = mesh.getVertices();
+      var vProxy = mesh.getVerticesProxy();
+      var vertStateFlags = mesh.getVerticesStateFlags();
+      var stateFlag = Utils.STATE_FLAG;
+      for (var i = 0, l = iVerts.length; i < l; ++i) {
+        var id = iVerts[i];
+        if (vertStateFlags[id] !== stateFlag) {
+          var ind = id * 3;
+          vProxy[ind] = vAr[ind];
+          vProxy[ind + 1] = vAr[ind + 1];
+          vProxy[ind + 2] = vAr[ind + 2];
+        }
+      }
+    },
+    /** Project a vertex on the proxy if it is too far away */
+    projectOnProxy: function (iVerts, proxyMax) {
+      var mesh = this.mesh_;
+      var vAr = mesh.getVertices();
+      var vProxy = mesh.getVerticesProxy();
+      var proxyMax2 = proxyMax * proxyMax;
+      for (var i = 0, l = iVerts.length; i < l; ++i) {
+        var ind = iVerts[i] * 3;
+        var vx = vAr[ind];
+        var vy = vAr[ind + 1];
+        var vz = vAr[ind + 2];
+        var dx = vx - vProxy[ind];
+        var dy = vy - vProxy[ind + 1];
+        var dz = vz - vProxy[ind + 2];
+        var dist = dx * dx + dy * dy + dz * dz;
+        // went to far... reproject on the proxy mesh
+        if (dist > proxyMax2) {
+          dist = (proxyMax / Math.sqrt(dist)) - 1.0;
+          vAr[ind] = vx + dx * dist;
+          vAr[ind + 1] = vy + dy * dist;
+          vAr[ind + 2] = vz + dz * dist;
+        }
+      }
     }
   };
 

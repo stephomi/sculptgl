@@ -5,23 +5,25 @@ define([
   'use strict';
 
   function VertexData(mesh) {
-    this.mesh_ = mesh; //the mesh
+    this.mesh_ = mesh; // the mesh
 
-    this.verticesXYZ_ = null; //vertices (Float32Array)
-    this.colorsRGB_ = null; //color vertices (Float32Array)
-    this.normalsXYZ_ = null; //normals (Float32Array)
+    this.verticesXYZ_ = null; // vertices (Float32Array)
+    this.colorsRGB_ = null; // color vertices (Float32Array)
+    this.normalsXYZ_ = null; // normals (Float32Array)
 
-    this.vertOnEdge_ = null; //vertices on edge (Uint8Array) (1 => on edge)
-    this.vrtStartCount_ = null; //array of neighborhood triangles (start/count) (Uint32Array)
-    this.vertRingTri_ = null; //array of neighborhood triangles (Uint32Array)
-    this.vrrStartCount_ = null; //array of neighborhood vertices (start/count) (Uint32Array)
-    this.vertRingVert_ = null; //array neighborhood vertices (Uint32Array)
+    this.vertOnEdge_ = null; // vertices on edge (Uint8Array) (1 => on edge)
+    this.vrtStartCount_ = null; // array of neighborhood triangles (start/count) (Uint32Array)
+    this.vertRingTri_ = null; // array of neighborhood triangles (Uint32Array)
+    this.vrrStartCount_ = null; // array of neighborhood vertices (start/count) (Uint32Array)
+    this.vertRingVert_ = null; // array neighborhood vertices (Uint32Array)
 
-    this.vertTagFlags_ = null; //tag flags (<= Utils.TAG_FLAG) (Uint32Array)
+    this.vertTagFlags_ = null; // tag flags (<= Utils.TAG_FLAG) (Uint32Array)
     // flag for editing
-    this.vertSculptFlags_ = null; //sculpt flags (<= Utils.SCULPT_FLAG) (Uint32Array)
+    this.vertSculptFlags_ = null; // sculpt flags (<= Utils.SCULPT_FLAG) (Uint32Array)
     // flag for history
-    this.vertStateFlags_ = null; //state flags (<= Utils.STATE_FLAG) (Uint32Array)
+    this.vertStateFlags_ = null; // state flags (<= Utils.STATE_FLAG) (Uint32Array)
+
+    this.vertProxy_ = null; // vertex proxy (Float32Array)
   }
 
   VertexData.prototype = {
@@ -67,6 +69,9 @@ define([
     getVerticesOnEdge: function () {
       return this.vertOnEdge_;
     },
+    getVerticesProxy: function () {
+      return this.vertProxy_;
+    },
     getNbVertices: function () {
       return this.verticesXYZ_.length / 3;
     },
@@ -86,6 +91,8 @@ define([
       this.vertTagFlags_ = new Uint32Array(nbVertices);
       this.vertSculptFlags_ = new Uint32Array(nbVertices);
       this.vertStateFlags_ = new Uint32Array(nbVertices);
+
+      this.vertProxy_ = new Float32Array(nbVertices * 3);
     },
     /** Init color array */
     initColors: function () {

@@ -7,13 +7,13 @@ define([
   'use strict';
 
   function Background(gl) {
-    this.gl_ = gl; //webgl context
+    this.gl_ = gl; // webgl context
 
-    this.vertexBuffer_ = null; //vertices buffer
-    this.texCoordBuffer_ = null; //tex coord buffer
-    this.backgroundLoc_ = null; //texture background
+    this.vertexBuffer_ = null; // vertices buffer
+    this.texCoordBuffer_ = null; // tex coord buffer
+    this.backgroundLoc_ = null; // texture background
 
-    this.shader_ = null; //the shader
+    this.shader_ = null; // the shader
   }
 
   Background.prototype = {

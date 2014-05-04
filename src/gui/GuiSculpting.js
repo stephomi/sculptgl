@@ -8,6 +8,10 @@ define([
   function GuiSculpting(guiParent, ctrlGui) {
     this.sculptgl_ = ctrlGui.sculptgl_;
     this.sculpt_ = ctrlGui.sculptgl_.sculpt_;
+    this.ctrlSculpt_ = null; // sculpt controller
+    this.ctrlSymmetry_ = null; // symmetry controller
+    this.ctrlContinuous_ = null; // continuous controller
+    this.ctrlRadius_ = null; // radius controller
     this.init(guiParent);
   }
 
@@ -16,7 +20,7 @@ define([
     init: function (guiParent) {
       var self = this;
       var main = this.sculptgl_;
-      //sculpt fold
+      // sculpt fold
       var foldSculpt = guiParent.addFolder('Sculpt');
       var optionsSculpt = {
         'Brush (1)': Sculpt.tool.BRUSH,
@@ -111,7 +115,9 @@ define([
         ctrlSculpt.setValue(Sculpt.tool.PAINT);
         break;
       case 78: // N
-        // gui.setNegative(!this.sculpt_.negative_);
+        var cur = GuiSculptingTools[ctrlSculpt.getValue()];
+        if (cur.toggleNegative)
+          cur.toggleNegative();
         break;
       default:
         event.handled = false;

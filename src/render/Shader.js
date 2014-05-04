@@ -10,9 +10,9 @@ define([
   'use strict';
 
   function Shader(gl) {
-    this.gl_ = gl; //webgl context
-    this.type_ = Shader.mode.MATCAP; //type of shader
-    this.shader_ = null; //the shader
+    this.gl_ = gl; // webgl context
+    this.type_ = Shader.mode.MATCAP; // type of shader
+    this.shader_ = null; // the shader
   }
 
   Shader.textures = {};

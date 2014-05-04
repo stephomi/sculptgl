@@ -16,22 +16,39 @@ define([
       ctrls[i].__li.hidden = false;
   };
 
+  // some helper functions
+  var addCtrlIntensity = function (tool, fold) {
+    return fold.add(tool, 'intensity_', 0, 1).name('Intensity');
+  };
+  var addCtrlCulling = function (tool, fold) {
+    return fold.add(tool, 'culling_').name('Sculpt culling');
+  };
+  var addCtrlNegative = function (tool, fold, self) {
+    var ctrl = fold.add(tool, 'negative_').name('Negative (N)');
+    if (self) {
+      self.toggleNegative = function () {
+        ctrl.setValue(!ctrl.getValue());
+      };
+    }
+    return ctrl;
+  };
+
   GuiSculptingTools[Sculpt.tool.BRUSH] = {
     ctrls_: [],
     init: function (tool, fold) {
-      this.ctrls_.push(fold.add(tool, 'intensity_', 0, 1).name('Intensity'));
-      this.ctrls_.push(fold.add(tool, 'negative_').name('Negative'));
+      this.ctrls_.push(addCtrlIntensity(tool, fold));
+      this.ctrls_.push(addCtrlNegative(tool, fold, this));
       this.ctrls_.push(fold.add(tool, 'clay_').name('Clay'));
-      this.ctrls_.push(fold.add(tool, 'culling_').name('Sculpt culling'));
+      this.ctrls_.push(addCtrlCulling(tool, fold));
     }
   };
 
   GuiSculptingTools[Sculpt.tool.CREASE] = {
     ctrls_: [],
     init: function (tool, fold) {
-      this.ctrls_.push(fold.add(tool, 'intensity_', 0, 1).name('Intensity'));
-      this.ctrls_.push(fold.add(tool, 'negative_').name('Negative'));
-      this.ctrls_.push(fold.add(tool, 'culling_').name('Sculpt culling'));
+      this.ctrls_.push(addCtrlIntensity(tool, fold));
+      this.ctrls_.push(addCtrlNegative(tool, fold, this));
+      this.ctrls_.push(addCtrlCulling(tool, fold));
     }
   };
 
@@ -43,26 +60,26 @@ define([
   GuiSculptingTools[Sculpt.tool.FLATTEN] = {
     ctrls_: [],
     init: function (tool, fold) {
-      this.ctrls_.push(fold.add(tool, 'intensity_', 0, 1).name('Intensity'));
-      this.ctrls_.push(fold.add(tool, 'negative_').name('Negative'));
-      this.ctrls_.push(fold.add(tool, 'culling_').name('Sculpt culling'));
+      this.ctrls_.push(addCtrlIntensity(tool, fold));
+      this.ctrls_.push(addCtrlNegative(tool, fold, this));
+      this.ctrls_.push(addCtrlCulling(tool, fold));
     }
   };
 
   GuiSculptingTools[Sculpt.tool.INFLATE] = {
     ctrls_: [],
     init: function (tool, fold) {
-      this.ctrls_.push(fold.add(tool, 'intensity_', 0, 1).name('Intensity'));
-      this.ctrls_.push(fold.add(tool, 'negative_').name('Negative'));
-      this.ctrls_.push(fold.add(tool, 'culling_').name('Sculpt culling'));
+      this.ctrls_.push(addCtrlIntensity(tool, fold));
+      this.ctrls_.push(addCtrlNegative(tool, fold, this));
+      this.ctrls_.push(addCtrlCulling(tool, fold));
     }
   };
 
   GuiSculptingTools[Sculpt.tool.PAINT] = {
     ctrls_: [],
     init: function (tool, fold) {
-      this.ctrls_.push(fold.add(tool, 'intensity_', 0, 1).name('Intensity'));
-      this.ctrls_.push(fold.add(tool, 'culling_').name('Sculpt culling'));
+      this.ctrls_.push(addCtrlIntensity(tool, fold));
+      this.ctrls_.push(addCtrlCulling(tool, fold));
       var ctrlColor = fold.addColor(tool, 'color_').name('Color');
       this.ctrls_.push(ctrlColor);
       ctrlColor.onChange(function (value) {
@@ -80,31 +97,31 @@ define([
   GuiSculptingTools[Sculpt.tool.PINCH] = {
     ctrls_: [],
     init: function (tool, fold) {
-      this.ctrls_.push(fold.add(tool, 'intensity_', 0, 1).name('Intensity'));
-      this.ctrls_.push(fold.add(tool, 'negative_').name('Negative'));
-      this.ctrls_.push(fold.add(tool, 'culling_').name('Sculpt culling'));
+      this.ctrls_.push(addCtrlIntensity(tool, fold));
+      this.ctrls_.push(addCtrlNegative(tool, fold, this));
+      this.ctrls_.push(addCtrlCulling(tool, fold));
     }
   };
 
   GuiSculptingTools[Sculpt.tool.ROTATE] = {
     ctrls_: [],
     init: function (tool, fold) {
-      this.ctrls_.push(fold.add(tool, 'culling_').name('Sculpt culling'));
+      this.ctrls_.push(addCtrlCulling(tool, fold));
     }
   };
 
   GuiSculptingTools[Sculpt.tool.SCALE] = {
     ctrls_: [],
     init: function (tool, fold) {
-      this.ctrls_.push(fold.add(tool, 'culling_').name('Sculpt culling'));
+      this.ctrls_.push(addCtrlCulling(tool, fold));
     }
   };
 
   GuiSculptingTools[Sculpt.tool.SMOOTH] = {
     ctrls_: [],
     init: function (tool, fold) {
-      this.ctrls_.push(fold.add(tool, 'intensity_', 0, 1).name('Intensity'));
-      this.ctrls_.push(fold.add(tool, 'culling_').name('Sculpt culling'));
+      this.ctrls_.push(addCtrlIntensity(tool, fold));
+      this.ctrls_.push(addCtrlCulling(tool, fold));
       this.ctrls_.push(fold.add(tool, 'tangent_').name('No shrink'));
     }
   };

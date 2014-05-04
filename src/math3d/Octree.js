@@ -9,9 +9,9 @@ define([
     this.mesh_ = mesh; // the mesh
     this.root_ = null; // root octree cell
 
-    this.triPosInLeaf_ = null; //position index in the leaf (Uint32Array)
+    this.triPosInLeaf_ = null; // position index in the leaf (Uint32Array)
     this.triLeaf_ = []; // octree leaf
-    this.leavesUpdate_ = []; //leaves of the octree to check
+    this.leavesUpdate_ = []; // leaves of the octree to check
   }
 
   Octree.prototype = {
@@ -98,7 +98,7 @@ define([
       var dx = xmax - xmin;
       var dy = ymax - ymin;
       var dz = zmax - zmin;
-      //root octree bigger than minimum aabb...
+      // root octree bigger than minimum aabb...
       if (factor !== undefined && factor !== 0.0) {
         var dfx = dx * factor;
         var dfy = dy * factor;
@@ -118,7 +118,7 @@ define([
       zmin = zmin === zmax ? zmin - offset : zmin;
       zmax = zmin === zmax ? zmin + offset : zmax;
 
-      //octree construction
+      // octree construction
       var nbTriangles = mesh.getNbTriangles();
       var trianglesAll = [];
       for (var i = 0; i < nbTriangles; ++i)
@@ -136,7 +136,7 @@ define([
       var nbTris = iTris.length;
       var acc = 0;
       var trisToMove = new Uint32Array(Utils.getMemory(4 * nbTris), 0, nbTris);
-      //recompute position inside the octree
+      // recompute position inside the octree
       for (var i = 0; i < nbTris; ++i) {
         var idTri = iTris[i];
         var idBox = idTri * 6;
@@ -199,7 +199,7 @@ define([
       var xmax = rootLoose[3];
       var ymax = rootLoose[4];
       var zmax = rootLoose[5];
-      for (var i = 0; i < nbTrisToMove; ++i) { //add triangle to the octree
+      for (var i = 0; i < nbTrisToMove; ++i) { // add triangle to the octree
         var idTri = trisToMove[i];
         var idBox = idTri * 6;
         var idCen = idTri * 3;
@@ -209,7 +209,7 @@ define([
         else if (triBoxes[idBox + 1] > ymax || triBoxes[idBox + 4] < ymin) isOutsideRoot = true;
         else if (triBoxes[idBox + 2] > zmax || triBoxes[idBox + 5] < zmin) isOutsideRoot = true;
 
-        if (isOutsideRoot === true) { //we reconstruct the whole octree, slow... but rare
+        if (isOutsideRoot === true) { // we reconstruct the whole octree, slow... but rare
           this.computeOctree(undefined, 0.3);
           this.leavesUpdate_.length = 0;
           break;

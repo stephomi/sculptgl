@@ -3,9 +3,9 @@ define([], function () {
   'use strict';
 
   function EdgeData(mesh) {
-    this.mesh_ = mesh; //the mesh
+    this.mesh_ = mesh; // the mesh
 
-    this.edges_ = null; //edges (Uint8Array) (1 => outer edge, 0 or 2 => inner edge)
+    this.edges_ = null; // edges (Uint8Array) (1 => outer edge, 0 or 2 => inner edge)
   }
 
   EdgeData.prototype = {

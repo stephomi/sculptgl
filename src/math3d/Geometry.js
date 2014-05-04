@@ -144,10 +144,10 @@ define([
   Geometry.intersectLinePlane = function (s1, s2, origin, normal, out) {
     var dist1 = vec3.dot(vec3.sub(out, s1, origin), normal);
     var dist2 = vec3.dot(vec3.sub(out, s2, origin), normal);
-    //ray copplanar to triangle
+    // ray copplanar to triangle
     if (dist1 === dist2)
       return s2;
-    //intersection between ray and triangle
+    // intersection between ray and triangle
     var val = -dist1 / (dist2 - dist1);
     return vec3.scaleAndAdd(out, s1, vec3.sub(out, s2, s1), val);
   };

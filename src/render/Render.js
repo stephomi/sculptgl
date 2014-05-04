@@ -6,21 +6,21 @@ define([
   'use strict';
 
   function Render(gl, mesh) {
-    this.mesh_ = mesh; //webgl context
-    this.gl_ = gl; //webgl context
+    this.mesh_ = mesh; // webgl context
+    this.gl_ = gl; // webgl context
 
-    this.shader_ = new Shader(gl); //the program shader for the mesh
-    this.shaderWireframe_ = new Shader(gl); //the program shader for the wireframe
+    this.shader_ = new Shader(gl); // the program shader for the mesh
+    this.shaderWireframe_ = new Shader(gl); // the program shader for the wireframe
 
-    this.flatShading_ = false; //use of drawArrays vs drawElements
-    this.showWireframe_ = true; //show wireframe
+    this.flatShading_ = false; // use of drawArrays vs drawElements
+    this.showWireframe_ = true; // show wireframe
 
-    this.vertexBuffer_ = new Buffer(gl, gl.ARRAY_BUFFER, gl.DYNAMIC_DRAW); //vertices buffer
-    this.normalBuffer_ = new Buffer(gl, gl.ARRAY_BUFFER, gl.DYNAMIC_DRAW); //normals buffer
-    this.colorBuffer_ = new Buffer(gl, gl.ARRAY_BUFFER, gl.DYNAMIC_DRAW); //colors buffer
-    this.indexBuffer_ = new Buffer(gl, gl.ELEMENT_ARRAY_BUFFER, gl.STATIC_DRAW); //indexes buffer
-    this.wireframeBuffer_ = new Buffer(gl, gl.ELEMENT_ARRAY_BUFFER, gl.STATIC_DRAW); //wireframe buffer
-    this.reflectionLoc_ = null; //texture reflection
+    this.vertexBuffer_ = new Buffer(gl, gl.ARRAY_BUFFER, gl.DYNAMIC_DRAW); // vertices buffer
+    this.normalBuffer_ = new Buffer(gl, gl.ARRAY_BUFFER, gl.DYNAMIC_DRAW); // normals buffer
+    this.colorBuffer_ = new Buffer(gl, gl.ARRAY_BUFFER, gl.DYNAMIC_DRAW); // colors buffer
+    this.indexBuffer_ = new Buffer(gl, gl.ELEMENT_ARRAY_BUFFER, gl.STATIC_DRAW); // indexes buffer
+    this.wireframeBuffer_ = new Buffer(gl, gl.ELEMENT_ARRAY_BUFFER, gl.STATIC_DRAW); // wireframe buffer
+    this.reflectionLoc_ = null; // texture reflection
   }
 
   Render.ONLY_DRAW_ARRAYS = false;

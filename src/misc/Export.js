@@ -11,9 +11,9 @@ define([
       var ny = array[j + 1];
       var nz = array[j + 2];
       var len = 1.0 / Math.sqrt(nx * nx + ny * ny + nz * nz);
-      array[j] *= len;
-      array[j + 1] *= len;
-      array[j + 2] *= len;
+      array[j] = nx * len;
+      array[j + 1] = ny * len;
+      array[j + 2] = nz * len;
     }
     return array;
   };

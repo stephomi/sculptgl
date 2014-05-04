@@ -28,10 +28,10 @@ define([], function () {
 
   var Utils = {};
 
-  Utils.SCALE = 100.0; //scale factor
-  Utils.TAG_FLAG = 1; //flag value for comparison (always >= tags values)
-  Utils.SCULPT_FLAG = 1; //flag value for sculpt (always >= tags values)
-  Utils.STATE_FLAG = 1; //flag value for states (always >= tags values)
+  Utils.SCALE = 100.0; // scale factor
+  Utils.TAG_FLAG = 1; // flag value for comparison (always >= tags values)
+  Utils.SCULPT_FLAG = 1; // flag value for sculpt (always >= tags values)
+  Utils.STATE_FLAG = 1; // flag value for states (always >= tags values)
 
   Utils.makeProxy = function (source, proxy, wrapFunc) {
     var sourceProto = source.prototype;

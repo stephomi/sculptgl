@@ -41,7 +41,7 @@ define([
         }
         iAr.push(iv1, iv2, iv3);
         ++nbTriangles;
-        //quad to triangle...
+        // quad to triangle...
         if (split.length > 4) {
           var iv4 = parseInt(split[4].split('/')[0], 10);
           if (iv4 < 0)

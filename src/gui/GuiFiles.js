@@ -6,8 +6,8 @@ define([
   'use strict';
 
   function GuiFiles(guiParent, ctrlGui) {
-    this.sculptgl_ = ctrlGui.sculptgl_; //main application
-    this.keySketchfab_ = ''; //sketchfab api key
+    this.sculptgl_ = ctrlGui.sculptgl_; // main application
+    this.keySketchfab_ = ''; // sketchfab api key
     this.init(guiParent);
   }
 
@@ -16,7 +16,7 @@ define([
     init: function (guiParent) {
       var scene = this.sculptgl_.scene_;
 
-      //file fold
+      // file fold
       var foldFiles = guiParent.addFolder('Files (import/export)');
       foldFiles.add(scene, 'resetScene_').name('Reset scene');
       foldFiles.add(this, 'openFile').name('Import (obj, ply, stl)');
@@ -24,7 +24,7 @@ define([
       foldFiles.add(this, 'saveFileAsPLY').name('Export (ply)');
       foldFiles.add(this, 'saveFileAsSTL').name('Export (stl)');
 
-      //Sketchfab fold
+      // Sketchfab fold
       var foldSketchfab = guiParent.addFolder('Go to Sketchfab !');
       foldSketchfab.add(this, 'keySketchfab_').name('API key');
       foldSketchfab.add(this, 'exportSketchfab').name('Upload');

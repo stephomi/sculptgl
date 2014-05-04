@@ -3,10 +3,11 @@ define([], function () {
   'use strict';
 
   function DrawArraysData(mesh) {
-    this.mesh_ = mesh; //the mesh
-    this.verticesXYZ_ = null; //vertices (Float32Array)
-    this.normalsXYZ_ = null; //normals (Float32Array)
-    this.colorsRGB_ = null; //color vertices (Float32Array)
+    this.mesh_ = mesh; // the mesh
+
+    this.verticesXYZ_ = null; // vertices (Float32Array)
+    this.normalsXYZ_ = null; // normals (Float32Array)
+    this.colorsRGB_ = null; // color vertices (Float32Array)
   }
 
   DrawArraysData.prototype = {

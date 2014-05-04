@@ -11,7 +11,7 @@ define([
   'use strict';
 
   function MeshData(mesh) {
-    this.mesh_ = mesh; //the mesh
+    this.mesh_ = mesh; // the mesh
 
     this.vertexData_ = new VertexData(mesh); // the vertex data
     this.indexData_ = new IndexData(mesh); // the index data

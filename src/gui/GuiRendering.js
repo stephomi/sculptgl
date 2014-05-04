@@ -6,16 +6,16 @@ define([
   'use strict';
 
   function GuiRendering(guiParent, ctrlGui) {
-    this.sculptgl_ = ctrlGui.sculptgl_; //main application
+    this.sculptgl_ = ctrlGui.sculptgl_; // main application
 
-    //ui info
-    this.ctrlNbVertices_ = null; //display number of vertices controller
-    this.ctrlNbTriangles_ = null; //display number of triangles controller
+    // ui info
+    this.ctrlNbVertices_ = null; // display number of vertices controller
+    this.ctrlNbTriangles_ = null; // display number of triangles controller
 
-    //ui shading
-    this.ctrlFlatShading_ = null; //flat shading controller
-    this.ctrlShowWireframe_ = null; //wireframe controller
-    this.ctrlShaders_ = null; //shaders controller
+    // ui shading
+    this.ctrlFlatShading_ = null; // flat shading controller
+    this.ctrlShowWireframe_ = null; // wireframe controller
+    this.ctrlShaders_ = null; // shaders controller
 
     this.init(guiParent);
   }
@@ -24,13 +24,13 @@ define([
     /** Initialize */
     init: function (guiParent) {
       var main = this.sculptgl_;
-      //dummy object with empty function
+      // dummy object with empty function
       var dummy = {
         dummyFunc_: function () {
           return;
         }
       };
-      //mesh fold
+      // mesh fold
       var foldMesh = guiParent.addFolder('Mesh');
       this.ctrlNbVertices_ = foldMesh.add(dummy, 'dummyFunc_').name('Ver : 0');
       this.ctrlNbTriangles_ = foldMesh.add(dummy, 'dummyFunc_').name('Tri : 0');

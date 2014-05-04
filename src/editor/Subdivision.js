@@ -116,7 +116,7 @@ define([], function () {
       var betaComp = 0.0;
       var k = 0;
       var id = 0;
-      if (vertOnEdgeOld[i]) { //edge vertex
+      if (vertOnEdgeOld[i]) { // edge vertex
         for (k = 0; k < count; ++k) {
           id = vertRingVert[start + k];
           if (vertOnEdgeOld[id]) {
@@ -139,7 +139,7 @@ define([], function () {
         if (count === 6) {
           beta = 0.0625;
           betaComp = 0.625;
-        } else if (count === 3) { //warren weights
+        } else if (count === 3) { // warren weights
           beta = 0.1875;
           betaComp = 0.4375;
         } else {

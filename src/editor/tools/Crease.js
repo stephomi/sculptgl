@@ -8,9 +8,9 @@ define([
 
   function Crease(states) {
     SculptBase.call(this, states);
-    this.intensity_ = 0.75; //deformation intensity
-    this.negative_ = false; //opposition deformation
-    this.culling_ = false; //if we backface cull the vertices
+    this.intensity_ = 0.75; // deformation intensity
+    this.negative_ = true; // opposition deformation
+    this.culling_ = false; // if we backface cull the vertices
   }
 
   Crease.prototype = {
@@ -19,7 +19,8 @@ define([
       var iVertsInRadius = picking.getPickedVertices();
       var intensity = this.intensity_ * Tablet.getPressureIntensity();
 
-      //undo-redo
+      this.updateProxy(iVertsInRadius);
+      // undo-redo
       this.states_.pushVertices(iVertsInRadius);
 
       var iVertsFront = this.getFrontVertices(iVertsInRadius, picking.getEyeDirection());
@@ -30,6 +31,7 @@ define([
       if (aNormal === null)
         return;
       this.crease(iVertsInRadius, aNormal, picking.getIntersectionPoint(), picking.getLocalRadius2(), intensity);
+      this.projectOnProxy(iVertsInRadius, Math.sqrt(picking.getLocalRadius2()) * 0.5);
 
       this.mesh_.updateMesh(this.mesh_.getTrianglesFromVertices(iVertsInRadius), iVertsInRadius);
     },
@@ -37,18 +39,17 @@ define([
     crease: function (iVertsInRadius, aNormal, center, radiusSquared, intensity) {
       var vAr = this.mesh_.getVertices();
       var radius = Math.sqrt(radiusSquared);
-      var nbVerts = iVertsInRadius.length;
       var cx = center[0];
       var cy = center[1];
       var cz = center[2];
       var anx = aNormal[0];
       var any = aNormal[1];
       var anz = aNormal[2];
-      var deformIntensity = intensity * 0.05;
+      var deformIntensity = intensity * 0.07;
       var brushFactor = deformIntensity * radius;
       if (this.negative_)
         brushFactor = -brushFactor;
-      for (var i = 0; i < nbVerts; ++i) {
+      for (var i = 0, l = iVertsInRadius.length; i < l; ++i) {
         var ind = iVertsInRadius[i] * 3;
         var vx = vAr[ind];
         var vy = vAr[ind + 1];
@@ -61,9 +62,9 @@ define([
         fallOff = 3.0 * fallOff * fallOff - 4.0 * fallOff * dist + 1.0;
         var brushModifier = Math.pow(2.0 - fallOff, -5) * brushFactor;
         fallOff = fallOff * deformIntensity;
-        vAr[ind] += dx * fallOff + anx * brushModifier;
-        vAr[ind + 1] += dy * fallOff + any * brushModifier;
-        vAr[ind + 2] += dz * fallOff + anz * brushModifier;
+        vAr[ind] = vx + dx * fallOff + anx * brushModifier;
+        vAr[ind + 1] = vy + dy * fallOff + any * brushModifier;
+        vAr[ind + 2] = vz + dz * fallOff + anz * brushModifier;
       }
     }
   };

@@ -5,10 +5,10 @@ define([
   'use strict';
 
   function States() {
-    this.undos_ = []; //undo actions
-    this.redos_ = []; //redo actions
-    this.curUndoIndex_ = 0; //current index in undo
-    this.firstState_ = false; //end of undo action
+    this.undos_ = []; // undo actions
+    this.redos_ = []; // redo actions
+    this.curUndoIndex_ = 0; // current index in undo
+    this.firstState_ = false; // end of undo action
   }
 
   States.STACK_LENGTH = 10;

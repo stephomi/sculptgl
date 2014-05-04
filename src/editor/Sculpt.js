@@ -14,22 +14,22 @@ define([
   'use strict';
 
   function Sculpt(states) {
-    this.states_ = states; //for undo-redo
+    this.states_ = states; // for undo-redo
 
-    this.tool_ = Sculpt.tool.BRUSH; //sculpting mode
-    this.tools_ = []; //the sculpting tools
+    this.tool_ = Sculpt.tool.BRUSH; // sculpting mode
+    this.tools_ = []; // the sculpting tools
 
-    //symmetry stuffs
-    this.symmetry_ = true; //if symmetric sculpting is enabled  
+    // symmetry stuffs
+    this.symmetry_ = true; // if symmetric sculpting is enabled  
 
-    //continous stuffs
-    this.continuous_ = false; //continuous sculpting
-    this.sculptTimer_ = -1; //continuous interval timer
+    // continous stuffs
+    this.continuous_ = false; // continuous sculpting
+    this.sculptTimer_ = -1; // continuous interval timer
 
     this.init();
   }
 
-  //the sculpting tools
+  // the sculpting tools
   Sculpt.tool = {
     BRUSH: 0,
     INFLATE: 1,

@@ -8,9 +8,9 @@ define([
 
   function Pinch(states) {
     SculptBase.call(this, states);
-    this.intensity_ = 0.75; //deformation intensity
-    this.negative_ = false; //opposition deformation
-    this.culling_ = false; //if we backface cull the vertices
+    this.intensity_ = 0.75; // deformation intensity
+    this.negative_ = false; // opposition deformation
+    this.culling_ = false; // if we backface cull the vertices
   }
 
   Pinch.prototype = {
@@ -19,7 +19,7 @@ define([
       var iVertsInRadius = picking.getPickedVertices();
       var intensity = this.intensity_ * Tablet.getPressureIntensity();
 
-      //undo-redo
+      // undo-redo
       this.states_.pushVertices(iVertsInRadius);
 
       if (this.culling_)
@@ -33,12 +33,11 @@ define([
     pinch: function (iVertsInRadius, center, radiusSquared, intensity) {
       var vAr = this.mesh_.getVertices();
       var radius = Math.sqrt(radiusSquared);
-      var nbVerts = iVertsInRadius.length;
       var cx = center[0];
       var cy = center[1];
       var cz = center[2];
       var deformIntensity = intensity * 0.05;
-      for (var i = 0; i < nbVerts; ++i) {
+      for (var i = 0, l = iVertsInRadius.length; i < l; ++i) {
         var ind = iVertsInRadius[i] * 3;
         var vx = vAr[ind];
         var vy = vAr[ind + 1];
@@ -50,9 +49,9 @@ define([
         var fallOff = dist * dist;
         fallOff = 3.0 * fallOff * fallOff - 4.0 * fallOff * dist + 1.0;
         fallOff = deformIntensity * fallOff;
-        vAr[ind] += dx * fallOff;
-        vAr[ind + 1] += dy * fallOff;
-        vAr[ind + 2] += dz * fallOff;
+        vAr[ind] = vx + dx * fallOff;
+        vAr[ind + 1] = vy + dy * fallOff;
+        vAr[ind + 2] = vz + dz * fallOff;
       }
     }
   };

@@ -11,8 +11,8 @@ define([
     this.meshOrigin_ = mesh || new Mesh();
     this.meshOrigin_.setTransformData(transformData);
     this.meshOrigin_.setRender(render);
-    this.detailsXYZ_ = null; //details vectors (Float32Array)
-    this.detailsRGB_ = null; //details vectors (Float32Array)
+    this.detailsXYZ_ = null; // details vectors (Float32Array)
+    this.detailsRGB_ = null; // details vectors (Float32Array)
   };
 
   MeshResolution.prototype = {

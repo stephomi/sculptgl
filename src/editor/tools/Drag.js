@@ -12,8 +12,8 @@ define([
 
   function Drag(states) {
     SculptBase.call(this, states);
-    this.dragDir_ = [0.0, 0.0, 0.0]; //direction of deformation
-    this.dragDirSym_ = [0.0, 0.0, 0.0]; //direction of deformation
+    this.dragDir_ = [0.0, 0.0, 0.0]; // direction of deformation
+    this.dragDirSym_ = [0.0, 0.0, 0.0]; // direction of deformation
   }
 
   Drag.prototype = {
@@ -68,7 +68,7 @@ define([
     stroke: function (picking, sym) {
       var iVertsInRadius = picking.getPickedVertices();
 
-      //undo-redo
+      // undo-redo
       this.states_.pushVertices(iVertsInRadius);
 
       if (this.culling_)
@@ -81,7 +81,6 @@ define([
     /** Drag deformation */
     drag: function (iVerts, center, radiusSquared, sym) {
       var vAr = this.mesh_.getVertices();
-      var nbVerts = iVerts.length;
       var radius = Math.sqrt(radiusSquared);
       var cx = center[0];
       var cy = center[1];
@@ -90,17 +89,20 @@ define([
       var dirx = dir[0];
       var diry = dir[1];
       var dirz = dir[2];
-      for (var i = 0; i < nbVerts; ++i) {
+      for (var i = 0, l = iVerts.length; i < l; ++i) {
         var ind = iVerts[i] * 3;
-        var dx = vAr[ind] - cx;
-        var dy = vAr[ind + 1] - cy;
-        var dz = vAr[ind + 2] - cz;
+        var vx = vAr[ind];
+        var vy = vAr[ind + 1];
+        var vz = vAr[ind + 2];
+        var dx = vx - cx;
+        var dy = vy - cy;
+        var dz = vz - cz;
         var dist = Math.sqrt(dx * dx + dy * dy + dz * dz) / radius;
         var fallOff = dist * dist;
         fallOff = 3.0 * fallOff * fallOff - 4.0 * fallOff * dist + 1.0;
-        vAr[ind] += dirx * fallOff;
-        vAr[ind + 1] += diry * fallOff;
-        vAr[ind + 2] += dirz * fallOff;
+        vAr[ind] = vx + dirx * fallOff;
+        vAr[ind + 1] = vy + diry * fallOff;
+        vAr[ind + 2] = vz + dirz * fallOff;
       }
     },
     /** Set a few infos that will be needed for the drag function afterwards */

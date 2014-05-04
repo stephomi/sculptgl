@@ -3,8 +3,8 @@ define([], function () {
   'use strict';
 
   function GuiTablet(guiParent, ctrlGui) {
-    this.ctrlGui_ = ctrlGui; //main gui controller
-    this.sculptgl_ = ctrlGui.sculptgl_; //main application
+    this.ctrlGui_ = ctrlGui; // main gui controller
+    this.sculptgl_ = ctrlGui.sculptgl_; // main application
     this.init(guiParent);
   }
 
@@ -13,7 +13,7 @@ define([], function () {
     init: function (guiParent) {
       var self = this;
 
-      //history fold
+      // history fold
       var foldHistory = guiParent.addFolder('History');
       foldHistory.add(this, 'onUndo').name('Undo (Ctrl+Z)');
       foldHistory.add(this, 'onRedo').name('Redo (Ctrl+Y)');
@@ -28,10 +28,10 @@ define([], function () {
       event.stopPropagation();
       event.preventDefault();
       var key = event.which;
-      if (event.ctrlKey && key === 90) { //z key
+      if (event.ctrlKey && key === 90) { // z key
         this.onUndo();
         event.handled = true;
-      } else if (event.ctrlKey && key === 89) { //y key
+      } else if (event.ctrlKey && key === 89) { // y key
         this.onRedo();
         event.handled = true;
       }

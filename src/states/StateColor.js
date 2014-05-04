@@ -5,9 +5,9 @@ define([
   'use strict';
 
   function StateColor(mesh) {
-    this.mesh_ = mesh; //the mesh
+    this.mesh_ = mesh; // the mesh
     this.idVertState_ = []; // ids of vertices
-    this.cArState_ = []; //copies of color vertices
+    this.cArState_ = []; // copies of color vertices
   }
 
   StateColor.prototype = {
@@ -62,7 +62,7 @@ define([
       for (i = 0; i < nbVerts; ++i)
         idVertRedoState[i] = idVertUndoState[i];
 
-      //fill states arrays
+      // fill states arrays
       var nbState = idVertRedoState.length;
       cArRedoState.length = nbState * 3;
       for (i = 0; i < nbState; ++i) {

@@ -12,15 +12,15 @@ define([
   var mat4 = glm.mat4;
 
   function Picking(camera) {
-    this.mesh_ = null; //mesh
-    this.pickedTriangle_ = -1; //triangle picked
-    this.pickedVertices_ = []; //vertices selected
-    this.interPoint_ = [0.0, 0.0, 0.0]; //intersection point
-    this.rDisplay_ = 50.0; //radius of the selection area (screen space)
-    this.rLocal2_ = 0.0; //radius of the selection area (local/object space)
-    this.rWorld2_ = 0.0; //radius of the selection area (world space)
-    this.camera_ = camera; //the camera
-    this.eyeDir_ = [0.0, 0.0, 0.0]; //eye direction
+    this.mesh_ = null; // mesh
+    this.pickedTriangle_ = -1; // triangle picked
+    this.pickedVertices_ = []; // vertices selected
+    this.interPoint_ = [0.0, 0.0, 0.0]; // intersection point
+    this.rDisplay_ = 50.0; // radius of the selection area (screen space)
+    this.rLocal2_ = 0.0; // radius of the selection area (local/object space)
+    this.rWorld2_ = 0.0; // radius of the selection area (world space)
+    this.camera_ = camera; // the camera
+    this.eyeDir_ = [0.0, 0.0, 0.0]; // eye direction
   }
 
   Picking.prototype = {
@@ -68,13 +68,13 @@ define([
       var vNear = [0.0, 0.0, 0.0];
       var vFar = [0.0, 0.0, 0.0];
       return function (mesh, vNearOrig, vFarOrig, mouseX, mouseY, useSymmetry) {
-        //resest picking
+        // resest picking
         this.mesh_ = null;
         this.pickedTriangle_ = -1;
-        //resest picking
+        // resest picking
         vec3.copy(vNear, vNearOrig);
         vec3.copy(vFar, vFarOrig);
-        //apply symmetry
+        // apply symmetry
         if (useSymmetry) {
           var ptPlane = mesh.getCenter();
           var nPlane = mesh.getSymmetryNormal();
@@ -83,7 +83,7 @@ define([
         }
         var vAr = mesh.getVertices();
         var iAr = mesh.getIndices();
-        //compute eye direction
+        // compute eye direction
         var eyeDir = this.getEyeDirection();
         vec3.sub(eyeDir, vFar, vNear);
         vec3.normalize(eyeDir, eyeDir);
@@ -154,7 +154,7 @@ define([
         }
       }
       if (pickedVertices.length === 0 && this.pickedTriangle_ !== -1) {
-        //no vertices inside the brush radius (big triangle or small radius)
+        // no vertices inside the brush radius (big triangle or small radius)
         var iAr = mesh.getIndices();
         j = this.pickedTriangle_ * 3;
         vertSculptFlags[iAr[j]] = sculptFlag;

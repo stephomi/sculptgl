@@ -10,25 +10,25 @@ define([
   'use strict';
 
   function SculptGL() {
-    this.gl_ = null; //webgl context
+    this.gl_ = null; // webgl context
 
-    //controllers stuffs
-    this.mouseX_ = 0; //the x position
-    this.mouseY_ = 0; //the y position
-    this.lastMouseX_ = 0; //the last x position
-    this.lastMouseY_ = 0; //the last y position
-    this.sumDisplacement_ = 0; //sum of the displacement mouse
-    this.mouseButton_ = 0; //which mouse button is pressed
+    // controllers stuffs
+    this.mouseX_ = 0; // the x position
+    this.mouseY_ = 0; // the y position
+    this.lastMouseX_ = 0; // the last x position
+    this.lastMouseY_ = 0; // the last y position
+    this.sumDisplacement_ = 0; // sum of the displacement mouse
+    this.mouseButton_ = 0; // which mouse button is pressed
 
-    //core of the app
-    this.states_ = new States(); //for undo-redo
-    this.sculpt_ = new Sculpt(this.states_); //sculpting management
-    this.scene_ = null; //the scene
-    this.mesh_ = null; //the selected mesh
+    // core of the app
+    this.states_ = new States(); // for undo-redo
+    this.sculpt_ = new Sculpt(this.states_); // sculpting management
+    this.scene_ = null; // the scene
+    this.mesh_ = null; // the selected mesh
 
-    //ui stuffs
-    this.gui_ = new Gui(this); //gui
-    this.focusGui_ = false; //gui
+    // ui stuffs
+    this.gui_ = new Gui(this); // gui
+    this.focusGui_ = false; // gui
   }
 
   SculptGL.prototype = {

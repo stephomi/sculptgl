@@ -8,9 +8,9 @@ define([
 
   function Flatten(states) {
     SculptBase.call(this, states);
-    this.intensity_ = 0.75; //deformation intensity
-    this.negative_ = false; //opposition deformation
-    this.culling_ = false; //if we backface cull the vertices
+    this.intensity_ = 0.75; // deformation intensity
+    this.negative_ = false; // opposition deformation
+    this.culling_ = false; // if we backface cull the vertices
   }
 
   Flatten.prototype = {
@@ -19,7 +19,7 @@ define([
       var iVertsInRadius = picking.getPickedVertices();
       var intensity = this.intensity_ * Tablet.getPressureIntensity();
 
-      //undo-redo
+      // undo-redo
       this.states_.pushVertices(iVertsInRadius);
 
       var iVertsFront = this.getFrontVertices(iVertsInRadius, picking.getEyeDirection());
@@ -38,7 +38,6 @@ define([
     flatten: function (iVertsInRadius, aNormal, aCenter, center, radiusSquared, intensity) {
       var vAr = this.mesh_.getVertices();
       var radius = Math.sqrt(radiusSquared);
-      var nbVerts = iVertsInRadius.length;
       var cx = center[0];
       var cy = center[1];
       var cz = center[2];
@@ -49,7 +48,7 @@ define([
       var any = aNormal[1];
       var anz = aNormal[2];
       var comp = this.negative_ ? -1.0 : 1.0;
-      for (var i = 0; i < nbVerts; ++i) {
+      for (var i = 0, l = iVertsInRadius.length; i < l; ++i) {
         var ind = iVertsInRadius[i] * 3;
         var vx = vAr[ind];
         var vy = vAr[ind + 1];
@@ -64,9 +63,9 @@ define([
         var fallOff = dist * dist;
         fallOff = 3.0 * fallOff * fallOff - 4.0 * fallOff * dist + 1.0;
         fallOff *= distToPlane * intensity;
-        vAr[ind] -= anx * fallOff;
-        vAr[ind + 1] -= any * fallOff;
-        vAr[ind + 2] -= anz * fallOff;
+        vAr[ind] = vx - anx * fallOff;
+        vAr[ind + 1] = vy - any * fallOff;
+        vAr[ind + 2] = vz - anz * fallOff;
       }
     },
   };

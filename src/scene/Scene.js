@@ -13,24 +13,24 @@ define([
   'use strict';
 
   function Scene(sculptgl, gl) {
-    this.sculptgl_ = sculptgl; //sculptgl
-    this.gl_ = gl; //webgl context
+    this.sculptgl_ = sculptgl; // sculptgl
+    this.gl_ = gl; // webgl context
 
-    //utilities stuffs
-    this.camera_ = new Camera(); //the camera
-    this.picking_ = new Picking(this.camera_); //the ray picking
-    this.pickingSym_ = new Picking(this.camera_); //the symmetrical picking
+    // utilities stuffs
+    this.camera_ = new Camera(); // the camera
+    this.picking_ = new Picking(this.camera_); // the ray picking
+    this.pickingSym_ = new Picking(this.camera_); // the symmetrical picking
 
-    //renderable stuffs
-    this.background_ = null; //the background
-    this.meshes_ = []; //the meshes
+    // renderable stuffs
+    this.background_ = null; // the background
+    this.meshes_ = []; // the meshes
 
-    //datas
-    this.initMeshPath_ = 'ressources/sphere.ply'; //sphere
-    this.initMesh_ = ''; //sphere
+    // datas
+    this.initMeshPath_ = 'ressources/sphere.ply'; // sphere
+    this.initMesh_ = ''; // sphere
 
-    //functions
-    this.resetScene_ = this.resetScene; //reset scene
+    // functions
+    this.resetScene_ = this.resetScene; // reset scene
 
     this.init();
   }
@@ -167,8 +167,7 @@ define([
     },
     /** Load a file */
     loadScene: function (fileData, fileType) {
-      this.startMeshLoad();
-      var mesh = this.sculptgl_.mesh_;
+      var mesh = this.sculptgl_.mesh_ = new Multimesh(new Mesh(this.gl_));
       var data = fileData || this.initMesh_;
       var type = fileType || this.getFileType(this.initMeshPath_);
       if (type === 'obj')
@@ -179,15 +178,6 @@ define([
         Import.importPLY(data, mesh);
       this.endMeshLoad();
     },
-    /** Initialization before loading the mesh */
-    startMeshLoad: function () {
-      this.sculptgl_.mesh_ = new Multimesh(new Mesh(this.gl_));
-      this.sculptgl_.states_.reset();
-      //reset flags (not necessary...)
-      Utils.TAG_FLAG = 1;
-      Utils.SCULPT_FLAG = 1;
-      Utils.STATE_FLAG = 1;
-    },
     /** The loading is finished, set stuffs ... and update camera */
     endMeshLoad: function () {
       var gui = this.sculptgl_.gui_;
@@ -196,7 +186,7 @@ define([
       mesh.initRender();
       gui.updateMesh();
       // uncomment this line to create new scene
-      // this.meshes_.length = 0;
+      this.meshes_.length = 0;
       this.meshes_.push(mesh);
       this.camera_.reset();
       this.render();
@@ -251,6 +241,7 @@ define([
       var ctrlMulti = this.sculptgl_.gui_.ctrlMultiresolution_;
       ctrlMulti.subdivide();
       ctrlMulti.subdivide();
+      this.sculptgl_.states_.reset();
     }
   };
 

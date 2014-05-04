@@ -3,18 +3,18 @@ define([], function () {
   'use strict';
 
   function OctreeCell(parent, depth) {
-    this.parent_ = parent !== undefined ? parent : null; //parent
-    this.depth_ = depth !== undefined ? depth : 0; //depth of current node
-    this.children_ = []; //children
-    //extended boundary for intersect test
+    this.parent_ = parent !== undefined ? parent : null; // parent
+    this.depth_ = depth !== undefined ? depth : 0; // depth of current node
+    this.children_ = []; // children
+    // extended boundary for intersect test
     this.aabbLoose_ = [Infinity, Infinity, Infinity, -Infinity, -Infinity, -Infinity];
-    //boundary in order to store exactly the triangle according to their center
+    // boundary in order to store exactly the triangle according to their center
     this.aabbSplit_ = [Infinity, Infinity, Infinity, -Infinity, -Infinity, -Infinity];
     this.iTris_ = []; //triangles (if cell is a leaf)
   }
 
-  OctreeCell.maxDepth_ = 8; //maximum depth
-  OctreeCell.maxTriangles_ = 100; //maximum triangles per cell
+  OctreeCell.maxDepth_ = 8; // maximum depth
+  OctreeCell.maxTriangles_ = 100; // maximum triangles per cell
 
   OctreeCell.prototype = {
     /** Subdivide octree, aabbSplit must be already set, and aabbLoose will be expanded if it's a leaf  */

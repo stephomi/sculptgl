@@ -13,14 +13,17 @@ define([
   'use strict';
 
   function Gui(sculptgl) {
-    this.sculptgl_ = sculptgl; //main application
+    this.sculptgl_ = sculptgl; // main application
 
-    this.ctrlTablet_ = null; //tablet controller
-    this.ctrlFiles_ = null; //files controller
-    this.ctrlCamera_ = null; //camera controller
-    this.ctrlBackground_ = null; //background controller
-    this.ctrlStates_ = null; //history controller
-    this.ctrlMultiresolution_ = null; //multiresolution controller
+    this.ctrlTablet_ = null; // tablet controller
+    this.ctrlFiles_ = null; // files controller
+    this.ctrlStates_ = null; // history controller
+    this.ctrlCamera_ = null; // camera controller
+    this.ctrlBackground_ = null; // background controller
+
+    this.ctrlSculpting_ = null; // sculpting controller
+    this.ctrlMultiresolution_ = null; // multiresolution controller
+    this.ctrlRendering_ = null; // rendering controller
   }
 
   Gui.prototype = {
@@ -87,10 +90,6 @@ define([
     /** Return the value of the shader */
     getShader: function () {
       return this.ctrlRendering_.getShader();
-    },
-    /** Set negative sculpting */
-    setNegative: function (value) {
-      this.ctrlNegative_.setValue(value);
     }
   };
 
