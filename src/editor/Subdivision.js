@@ -108,7 +108,7 @@ define([], function () {
     for (var i = 0; i < nbVerts; ++i) {
       var j = i * 3;
       var start = vrrStartCount[i * 2];
-      var count = vrrStartCount[i * 2 + 1];
+      var end = start + vrrStartCount[i * 2 + 1];
       var avx = 0.0;
       var avy = 0.0;
       var avz = 0.0;
@@ -117,8 +117,8 @@ define([], function () {
       var k = 0;
       var id = 0;
       if (vertOnEdgeOld[i]) { // edge vertex
-        for (k = 0; k < count; ++k) {
-          id = vertRingVert[start + k];
+        for (k = start; k < end; ++k) {
+          id = vertRingVert[k];
           if (vertOnEdgeOld[id]) {
             id *= 3;
             avx += vArOld[id];
@@ -130,20 +130,21 @@ define([], function () {
         beta = 0.25 / beta;
         betaComp = 0.75;
       } else {
-        for (k = 0; k < count; ++k) {
-          id = vertRingVert[start + k] * 3;
+        for (k = start; k < end; ++k) {
+          id = vertRingVert[k] * 3;
           avx += vArOld[id];
           avy += vArOld[id + 1];
           avz += vArOld[id + 2];
         }
-        if (count === 6) {
+        k = end - start;
+        if (k === 6) {
           beta = 0.0625;
           betaComp = 0.625;
-        } else if (count === 3) { // warren weights
+        } else if (k === 3) { // warren weights
           beta = 0.1875;
           betaComp = 0.4375;
         } else {
-          beta = 0.375 / count;
+          beta = 0.375 / k;
           betaComp = 0.625;
         }
       }

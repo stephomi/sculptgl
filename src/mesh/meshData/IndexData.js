@@ -133,12 +133,12 @@ define([
           var idv3 = iAr[ind + 2] * 2;
 
           var start = vrtStartCount[idv1];
-          var count = vrtStartCount[idv1 + 1];
+          var end = start + vrtStartCount[idv1 + 1];
 
           var j = 0;
           var id = 0;
-          for (j = 0; j < count; ++j) {
-            id = vertRingTri[start + j];
+          for (j = start; j < end; ++j) {
+            id = vertRingTri[j];
             if (triTagFlags[id] !== tagFlag) {
               triTagFlags[id] = tagFlag;
               iTrisExpanded[acc++] = id;
@@ -146,9 +146,9 @@ define([
           }
 
           start = vrtStartCount[idv2];
-          count = vrtStartCount[idv2 + 1];
-          for (j = 0; j < count; ++j) {
-            id = vertRingTri[start + j];
+          end = start + vrtStartCount[idv2 + 1];
+          for (j = start; j < end; ++j) {
+            id = vertRingTri[j];
             if (triTagFlags[id] !== tagFlag) {
               triTagFlags[id] = tagFlag;
               iTrisExpanded[acc++] = id;
@@ -156,9 +156,9 @@ define([
           }
 
           start = vrtStartCount[idv3];
-          count = vrtStartCount[idv3 + 1];
-          for (j = 0; j < count; ++j) {
-            id = vertRingTri[start + j];
+          end = start + vrtStartCount[idv3 + 1];
+          for (j = start; j < end; ++j) {
+            id = vertRingTri[j];
             if (triTagFlags[id] !== tagFlag) {
               triTagFlags[id] = tagFlag;
               iTrisExpanded[acc++] = id;
@@ -183,9 +183,9 @@ define([
       for (var i = 0; i < nbVerts; ++i) {
         var idVert = iVerts[i] * 2;
         var start = vrtStartCount[idVert];
-        var count = vrtStartCount[idVert + 1];
-        for (var j = 0; j < count; ++j) {
-          var iTri = vertRingTri[start + j];
+        var end = start + vrtStartCount[idVert + 1];
+        for (var j = start; j < end; ++j) {
+          var iTri = vertRingTri[j];
           if (triTagFlags[iTri] !== tagFlag) {
             triTagFlags[iTri] = tagFlag;
             iTris[acc++] = iTri;

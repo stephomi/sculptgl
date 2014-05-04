@@ -150,12 +150,12 @@ define([
       for (var i = 0; i < nbTris; ++i) {
         var ind = full ? i : iVerts[i];
         var start = vrtStartCount[ind * 2];
-        var count = vrtStartCount[ind * 2 + 1];
+        var end = start + vrtStartCount[ind * 2 + 1];
         var nx = 0.0;
         var ny = 0.0;
         var nz = 0.0;
-        for (var j = 0; j < count; ++j) {
-          var id = vertRingTri[start + j] * 3;
+        for (var j = start; j < end; ++j) {
+          var id = vertRingTri[j] * 3;
           nx += triNormals[id];
           ny += triNormals[id + 1];
           nz += triNormals[id + 2];
@@ -181,10 +181,10 @@ define([
       for (var i = 0, l = this.getNbVertices(); i < l; ++i) {
         var tagFlag = ++Utils.TAG_FLAG;
         var vrtStart = vrtStartCount[i * 2];
-        var vrtCount = vrtStartCount[i * 2 + 1];
+        var vrtEnd = vrtStart + vrtStartCount[i * 2 + 1];
         var vrrCount = 0;
-        for (var j = 0; j < vrtCount; ++j) {
-          var ind = vertRingTri[vrtStart + j] * 3;
+        for (var j = vrtStart; j < vrtEnd; ++j) {
+          var ind = vertRingTri[j] * 3;
           var iVer1 = iAr[ind];
           var iVer2 = iAr[ind + 1];
           var iVer3 = iAr[ind + 2];
@@ -204,7 +204,7 @@ define([
         vrrStartCount[i * 2] = vrrStart;
         vrrStartCount[i * 2 + 1] = vrrCount;
         vrrStart += vrrCount;
-        if (vrtCount !== vrrCount)
+        if ((vrtEnd - vrtStart) !== vrrCount)
           vertOnEdge[i] = 1;
       }
     },
@@ -227,9 +227,9 @@ define([
         for (i = iBegin; i < nbVerts; ++i) {
           var idVert = iVerts[i] * 2;
           var start = vrrStartCount[idVert];
-          var count = vrrStartCount[idVert + 1];
-          for (var j = 0; j < count; ++j) {
-            var id = vertRingVert[start + j];
+          var end = start + vrrStartCount[idVert + 1];
+          for (var j = start; j < end; ++j) {
+            var id = vertRingVert[j];
             if (vertTagFlags[id] !== tagFlag) {
               vertTagFlags[id] = tagFlag;
               iVertsExpanded[acc++] = id;

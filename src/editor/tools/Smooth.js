@@ -115,7 +115,7 @@ define([
         var i3 = i * 3;
         var id = iVerts[i];
         var start = vrrStartCount[id * 2];
-        var count = vrrStartCount[id * 2 + 1];
+        var end = start + vrrStartCount[id * 2 + 1];
         var avx = 0.0;
         var avy = 0.0;
         var avz = 0.0;
@@ -123,8 +123,8 @@ define([
         var ind = 0;
         if (vertOnEdge[id] === 1) {
           var nbVertEdge = 0;
-          for (j = 0; j < count; ++j) {
-            ind = vertRingVert[start + j];
+          for (j = start; j < end; ++j) {
+            ind = vertRingVert[j];
             // we average only with vertices that are also on the edge
             if (vertOnEdge[ind] === 1) {
               ind *= 3;
@@ -134,18 +134,19 @@ define([
               ++nbVertEdge;
             }
           }
-          count = nbVertEdge;
+          j = nbVertEdge;
         } else {
-          for (j = 0; j < count; ++j) {
-            ind = vertRingVert[start + j] * 3;
+          for (j = start; j < end; ++j) {
+            ind = vertRingVert[j] * 3;
             avx += vAr[ind];
             avy += vAr[ind + 1];
             avz += vAr[ind + 2];
           }
+          j = end - start;
         }
-        smoothVerts[i3] = avx / count;
-        smoothVerts[i3 + 1] = avy / count;
-        smoothVerts[i3 + 2] = avz / count;
+        smoothVerts[i3] = avx / j;
+        smoothVerts[i3 + 1] = avy / j;
+        smoothVerts[i3 + 2] = avz / j;
       }
     }
   };

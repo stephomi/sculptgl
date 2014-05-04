@@ -28,10 +28,10 @@ define([], function () {
       var vertRingTri = mesh.getVerticesRingTri();
       for (var i = 0, nbVerts = mesh.getNbVertices(); i < nbVerts; ++i) {
         var start = vrtStartCount[i * 2];
-        var count = vrtStartCount[i * 2 + 1];
+        var end = start + vrtStartCount[i * 2 + 1];
         var compTest = nbEdges;
-        for (var j = 0; j < count; ++j) {
-          var id = vertRingTri[start + j] * 3;
+        for (var j = start; j < end; ++j) {
+          var id = vertRingTri[j] * 3;
           var iv1 = iAr[id];
           var iv2 = iAr[id + 1];
           var iv3 = iAr[id + 2];
