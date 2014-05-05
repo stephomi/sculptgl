@@ -2,9 +2,8 @@ define([
   'misc/Utils',
   'mesh/multiresolution/MeshResolution',
   'mesh/multiresolution/LowRender',
-  'editor/Subdivision',
-  'editor/Multiresolution'
-], function (Utils, MeshResolution, LowRender, Subdivision, Multiresolution) {
+  'editor/Subdivision'
+], function (Utils, MeshResolution, LowRender, Subdivision) {
 
   'use strict';
 
@@ -45,7 +44,8 @@ define([
     lowerLevel: function () {
       if (this.sel_ === 0)
         return this.meshes_[0];
-      Multiresolution.lowerAnalysis(this.getCurrent(), this.meshes_[--this.sel_]);
+      this.meshes_[this.sel_ - 1].lowerAnalysis(this.getCurrent());
+      --this.sel_;
       this.updateResolution();
       return this.getCurrent();
     },
@@ -53,7 +53,8 @@ define([
     higherLevel: function () {
       if (this.sel_ === this.meshes_.length - 1)
         return this.getCurrent();
-      Multiresolution.higherSynthesis(this.getCurrent(), this.meshes_[++this.sel_]);
+      this.meshes_[this.sel_ + 1].higherSynthesis(this.getCurrent());
+      ++this.sel_;
       this.updateResolution();
       return this.getCurrent();
     },

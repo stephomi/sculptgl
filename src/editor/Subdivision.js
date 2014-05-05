@@ -91,8 +91,6 @@ define([], function () {
   Subdivision.allocateArrays = function (baseMesh, newMesh) {
     newMesh.setVertices(new Float32Array((baseMesh.getNbVertices() + baseMesh.getNbEdges()) * 3));
     newMesh.setIndices(new Uint32Array(baseMesh.getNbTriangles() * 4 * 3));
-    // not necessary because the edges will be computed later
-    // newMesh.edges_ = new Uint8Array(baseMesh.getNbEdges() * 2 + baseMesh.getNbTriangles() * 3);
     newMesh.allocateArrays();
   };
 
