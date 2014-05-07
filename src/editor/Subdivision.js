@@ -20,15 +20,9 @@ define([], function () {
     this.eAr_ = mesh.getEdges();
     this.nbVertices_ = mesh.getNbVertices();
     this.tagEdges_ = new Int32Array(mesh.getNbEdges());
-    this.init();
   };
 
   MidEdgeComputer.prototype = {
-    init: function () {
-      var tagEdges = this.tagEdges_;
-      for (var i = 0, len = tagEdges.length; i < len; ++i)
-        tagEdges[i] = -1;
-    },
     computeMidEdge: function (iv1, iv2, iv3, ide) {
       var vAr = this.vAr_;
       var cAr = this.cAr_;
@@ -39,7 +33,7 @@ define([], function () {
       var id1 = iv1 * 3;
       var id2 = iv2 * 3;
       var idOpp = iv3 * 3;
-      var testEdge = tagEdges[ide];
+      var testEdge = tagEdges[ide] - 1;
       var ivMid = testEdge === -1 ? this.nbVertices_++ : testEdge;
       var idMid = ivMid * 3;
       if (eAr[ide] === 1) { // mid edge vertex
@@ -51,7 +45,7 @@ define([], function () {
         cArOut[idMid + 1] = 0.5 * (cAr[id1 + 1] + cAr[id2 + 1]);
         cArOut[idMid + 2] = 0.5 * (cAr[id1 + 2] + cAr[id2 + 2]);
       } else if (testEdge === -1) { // new mid vertex
-        tagEdges[ide] = ivMid;
+        tagEdges[ide] = ivMid + 1;
         vArOut[idMid] = 0.125 * vAr[idOpp] + 0.375 * (vAr[id1] + vAr[id2]);
         vArOut[idMid + 1] = 0.125 * vAr[idOpp + 1] + 0.375 * (vAr[id1 + 1] + vAr[id2 + 1]);
         vArOut[idMid + 2] = 0.125 * vAr[idOpp + 2] + 0.375 * (vAr[id1 + 2] + vAr[id2 + 2]);

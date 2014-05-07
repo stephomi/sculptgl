@@ -17,6 +17,7 @@ define([
       // multires fold
       var foldMultires = guiParent.addFolder('Multires');
       foldMultires.add(this, 'subdivide');
+      foldMultires.add(this, 'reverse');
       this.ctrlResolution_ = foldMultires.add({
         dummy: 1
       }, 'dummy', 1, 1).step(1).name('resolution');
@@ -33,6 +34,24 @@ define([
       }
       main.states_.pushState(new StateMultiresolution(mul, StateMultiresolution.SUBDIVISION));
       this.ctrlGui_.updateMeshInfo(mul.addLevel());
+      this.updateMeshResolution(mul);
+      main.scene_.render();
+    },
+    /** Inverse loop subdivision */
+    reverse: function () {
+      var main = this.sculptgl_;
+      var mul = main.mesh_;
+      if (mul.sel_ !== 0) {
+        window.alert('Select the lowest resolution before reversing.');
+        return;
+      }
+      main.states_.pushState(new StateMultiresolution(mul, StateMultiresolution.DECIMATION));
+      var newMesh = mul.decimate();
+      if (!newMesh) {
+        window.alert('Sorry it is not possile to revert this mesh.');
+        return;
+      }
+      this.ctrlGui_.updateMeshInfo(newMesh);
       this.updateMeshResolution(mul);
       main.scene_.render();
     },

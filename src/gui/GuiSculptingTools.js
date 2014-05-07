@@ -85,7 +85,7 @@ define([
       ctrlColor.onChange(function (value) {
         if (value.length === 3) { // rgb [255, 255, 255]
           tool.color_ = [value[0], value[1], value[2]];
-        } else if (value.length === 7) { // hex (24 bits style) "#ffaabb"
+        } else if (value.length === 7) { // hex (24 bits style) '#ffaabb'
           var intVal = parseInt(value.slice(1), 16);
           tool.color_ = [(intVal >> 16), (intVal >> 8 & 0xff), (intVal & 0xff)];
         } else // fuck it

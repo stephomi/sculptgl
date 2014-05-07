@@ -12,6 +12,7 @@ define([
     this.meshOrigin_.setRender(render);
     this.detailsXYZ_ = null; // details vectors (Float32Array)
     this.detailsRGB_ = null; // details vectors (Float32Array)
+    this.vertMapping_ = null; // vertex mapping to higher res (Uint32Array)
   };
 
   MeshResolution.prototype = {
@@ -24,25 +25,72 @@ define([
     getDetailsColors: function () {
       return this.detailsRGB_;
     },
+    getVerticesMapping: function () {
+      return this.vertMapping_;
+    },
     setDetailsVertices: function (dAr) {
       this.detailsXYZ_ = dAr;
     },
     setDetailsColors: function (dcAr) {
       this.detailsRGB_ = dcAr;
     },
+    setVerticesMapping: function (vmAr) {
+      this.vertMapping_ = vmAr;
+    },
     /** Go to one level above (down to up) */
     higherSynthesis: function (meshDown) {
-      Subdivision.partialSubdivision(meshDown, this.getVertices(), this.getColors());
+      meshDown.computePartialSubdivision(this.getVertices(), this.getColors());
       this.applyDetails();
     },
     /** Go to one level below (up to down) */
     lowerAnalysis: function (meshUp) {
-      this.getVertices().set(meshUp.getVertices().subarray(0, this.getNbVertices() * 3));
-      this.getColors().set(meshUp.getColors().subarray(0, this.getNbVertices() * 3));
+      this.copyDataFromHigherRes(meshUp);
       var subdVerts = new Float32Array(meshUp.getNbVertices() * 3);
       var subdColors = new Float32Array(meshUp.getNbVertices() * 3);
-      Subdivision.partialSubdivision(this, subdVerts, subdColors);
+      this.computePartialSubdivision(subdVerts, subdColors);
       meshUp.computeDetails(subdVerts, subdColors);
+    },
+    copyDataFromHigherRes: function (meshUp) {
+      var vertMap = this.getVerticesMapping();
+      var vArDown = this.getVertices();
+      var vArUp = meshUp.getVertices();
+      var cArDown = this.getColors();
+      var cArUp = meshUp.getColors();
+      var nbVertices = this.getNbVertices();
+      if (!vertMap) {
+        vArDown.set(vArUp.subarray(0, nbVertices * 3));
+        cArDown.set(cArUp.subarray(0, nbVertices * 3));
+      } else {
+        for (var i = 0; i < nbVertices; ++i) {
+          var id = i * 3;
+          var idUp = vertMap[i] * 3;
+          vArDown[id] = vArUp[idUp];
+          vArDown[id + 1] = vArUp[idUp + 1];
+          vArDown[id + 2] = vArUp[idUp + 2];
+        }
+      }
+    },
+    computePartialSubdivision: function (subdVerts, subdColors) {
+      var verts = subdVerts;
+      var colors = subdColors;
+      var vertMap = this.getVerticesMapping();
+      if (vertMap) {
+        verts = new Float32Array(subdVerts.length);
+        colors = new Float32Array(subdColors.length);
+      }
+      Subdivision.partialSubdivision(this, verts, colors);
+      if (vertMap) {
+        for (var i = 0, l = subdVerts.length / 3; i < l; ++i) {
+          var id = i * 3;
+          var idUp = vertMap[i] * 3;
+          subdVerts[idUp] = verts[id];
+          subdVerts[idUp + 1] = verts[id + 1];
+          subdVerts[idUp + 2] = verts[id + 2];
+          subdColors[idUp] = colors[id];
+          subdColors[idUp + 1] = colors[id + 1];
+          subdColors[idUp + 2] = colors[id + 2];
+        }
+      }
     },
     /** Apply back the detail vectors */
     applyDetails: function () {

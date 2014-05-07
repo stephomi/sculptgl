@@ -2,8 +2,9 @@ define([
   'misc/Utils',
   'mesh/multiresolution/MeshResolution',
   'mesh/multiresolution/LowRender',
-  'editor/Subdivision'
-], function (Utils, MeshResolution, LowRender, Subdivision) {
+  'editor/Subdivision',
+  'editor/Decimation'
+], function (Utils, MeshResolution, LowRender, Subdivision, Decimation) {
 
   'use strict';
 
@@ -33,9 +34,28 @@ define([
         return this.getCurrent();
       var baseMesh = this.getCurrent();
       var newMesh = new MeshResolution(baseMesh.getTransformData(), baseMesh.getRender());
+
       Subdivision.fullSubdivision(baseMesh, newMesh);
       newMesh.initTopology();
+
       this.pushMesh(newMesh);
+      this.getRender().initRender();
+      this.lowRender_.updateBuffers(this.meshes_[this.getLowMeshRender()]);
+      return newMesh;
+    },
+    /** Decimate the mesh (reverse loop subdivision) */
+    decimate: function () {
+      if (this.sel_ !== 0)
+        return this.getCurrent();
+      var baseMesh = this.getCurrent();
+      var newMesh = new MeshResolution(baseMesh.getTransformData(), baseMesh.getRender());
+
+      var status = Decimation.reverseLoop(baseMesh, newMesh);
+      if (!status)
+        return;
+      newMesh.initTopology();
+
+      this.unshiftMesh(newMesh);
       this.getRender().initRender();
       this.lowRender_.updateBuffers(this.meshes_[this.getLowMeshRender()]);
       return newMesh;
@@ -91,17 +111,34 @@ define([
       this.sel_ = this.meshes_.length - 1;
       this.updateResolution();
     },
+    /** Unshift a mesh */
+    unshiftMesh: function (mesh) {
+      this.meshes_.unshift(mesh);
+      this.sel_ = 1;
+      this.lowerLevel();
+    },
     /** Pop the last mesh */
     popMesh: function () {
       this.meshes_.pop();
       this.sel_ = this.meshes_.length - 1;
       this.updateResolution();
     },
+    /** Shift the first mesh */
+    shiftMesh: function () {
+      this.meshes_.shift();
+      this.sel_ = 0;
+      this.updateResolution();
+    },
     /** Render the lower rendering mesh resolution */
     getLowMeshRender: function () {
       var limit = 1500000;
       var sel = this.sel_;
-      while (sel > 0 && this.meshes_[sel].getNbTriangles() > limit) {
+      while (sel > 0) {
+        var mesh = this.meshes_[sel];
+        // we disable low rendering for lower resolution mesh with an index indirection
+        // because because the indexes cannot easily share an higher vertices buffer
+        if (mesh.getVerticesMapping() || mesh.getNbTriangles() < limit)
+          break;
         --sel;
       }
       return sel;

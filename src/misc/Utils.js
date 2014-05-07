@@ -254,5 +254,38 @@ define([], function () {
   // };
   // Utils.vector = vector;
 
+  // Utils.optimizePreTransform = function (newMesh) {
+  //   var vArOld = newMesh.getVertices();
+  //   var cArOld = newMesh.getColors();
+  //   var iArOld = newMesh.getIndices();
+
+  //   var vArNew = new Float32Array(vArOld.length);
+  //   var cArNew = new Float32Array(cArOld.length);
+  //   var iArNew = new Uint32Array(iArOld.length);
+
+  //   var idvPos = new Int32Array(newMesh.getNbVertices());
+  //   var acc = 0;
+  //   for (var i = 0, l = iArNew.length; i < l; ++i) {
+  //     var iv = iArOld[i];
+  //     var tag = idvPos[iv] - 1;
+  //     if (tag === -1) {
+  //       var idNew = acc * 3;
+  //       var idOld = iv * 3;
+  //       vArNew[idNew] = vArOld[idOld];
+  //       vArNew[idNew + 1] = vArOld[idOld + 1];
+  //       vArNew[idNew + 2] = vArOld[idOld + 2];
+  //       cArNew[idNew] = cArOld[idOld];
+  //       cArNew[idNew + 1] = cArOld[idOld + 1];
+  //       cArNew[idNew + 2] = cArOld[idOld + 2];
+  //       tag = acc++;
+  //       idvPos[iv] = tag + 1;
+  //     }
+  //     iArNew[i] = tag;
+  //   }
+  //   newMesh.setVertices(vArNew);
+  //   newMesh.setColors(cArNew);
+  //   newMesh.setIndices(iArNew);
+  // };
+
   return Utils;
 });
