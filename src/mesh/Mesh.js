@@ -80,7 +80,6 @@ define([
     updateMesh: function (iTris, iVerts) {
       this.updateGeometry(iTris, iVerts);
       this.getRender().updateFlatShading(iTris);
-      this.getRender().updateWireframe();
     }
   };
 

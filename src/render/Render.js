@@ -80,25 +80,18 @@ define([
     /** Set show wireframe */
     setShowWireframe: function (showWireframe) {
       this.showWireframe_ = Render.ONLY_DRAW_ARRAYS ? false : showWireframe;
-      this.updateWireframe();
       this.updateWireframeBuffer();
     },
     /** Set flat shading */
     setFlatShading: function (flatShading) {
       this.flatShading_ = flatShading;
       this.updateFlatShading();
-      this.updateWireframe();
       this.updateBuffers(true, true, true);
     },
     /** Update flat shading buffers */
     updateFlatShading: function (iTris) {
       if (this.isUsingDrawArrays())
         this.mesh_.updateDrawArrays(this.getFlatShading(), iTris);
-    },
-    /** Update wireframe buffers */
-    updateWireframe: function () {
-      if (this.getShowWireframe())
-        this.mesh_.updateWireframe(this.isUsingDrawArrays());
     },
     /** Initialize rendering */
     initRender: function () {

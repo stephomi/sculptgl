@@ -9,23 +9,19 @@ define([], function () {
   }
 
   WireframeData.prototype = {
-    /** Return wireframe arrays */
+    /** Return wireframe array (or compute it if not up to date) */
     getWireframe: function (useDrawArrays) {
-      return useDrawArrays ? this.drawArraysWireframe_ : this.drawElementsWireframe_;
-    },
-    /** Updates the arrays that are going to be used for webgl */
-    updateWireframe: function (useDrawArrays) {
       var mesh = this.mesh_;
       var nbEdges = mesh.getNbEdges();
       var cdw;
       if (useDrawArrays) {
         if (this.drawArraysWireframe_ && this.drawArraysWireframe_.length === nbEdges * 2) {
-          return;
+          return this.drawArraysWireframe_;
         }
         cdw = this.drawArraysWireframe_ = new Uint32Array(nbEdges * 2);
       } else {
         if (this.drawElementsWireframe_ && this.drawElementsWireframe_.length === nbEdges * 2) {
-          return;
+          return this.drawElementsWireframe_;
         }
         cdw = this.drawElementsWireframe_ = new Uint32Array(nbEdges * 2);
       }
@@ -67,6 +63,7 @@ define([], function () {
           nbLines++;
         }
       }
+      return useDrawArrays ? this.drawArraysWireframe_ : this.drawElementsWireframe_;
     }
   };
 

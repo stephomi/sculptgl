@@ -6,48 +6,50 @@ define([
 
   var Decimation = {};
 
-  Decimation.getSeed = function (mesh) {
+  Decimation.getSeed = function (mesh, vEvenTags) {
     var vAr = mesh.getVertices();
     var onEdge = mesh.getVerticesOnEdge();
     var vrvStartCount = mesh.getVerticesRingVertStartCount();
     for (var i = 0, l = vAr.length; i < l; ++i) {
-      if (onEdge[i] !== 0)
+      if (vEvenTags[i] !== 0)
         continue;
       var len = vrvStartCount[i * 2 + 1];
-      if (len !== 6)
+      var vBorder = onEdge[i];
+      if ((vBorder && len !== 4) || (!vBorder && len !== 6))
         return i;
     }
     return 0;
   };
 
-  Decimation.tagVertices = function (mesh) {
+  Decimation.tagVertices = function (mesh, vEvenTags) {
     var tagFlag = ++Utils.TAG_FLAG;
     var vFlags = mesh.getVerticesTagFlags();
     var vrvSC = mesh.getVerticesRingVertStartCount();
     var vrv = mesh.getVerticesRingVert();
+    var onEdge = mesh.getVerticesOnEdge();
 
-    // 0 not processed, -1 odd vertex, 1 even vertex
-    var vEvenTags = new Int8Array(mesh.getNbVertices());
-
-    var idStart = Decimation.getSeed(mesh);
-    var stack = [idStart];
-    vEvenTags[idStart] = 1;
-    while (stack.length > 0) {
-      var idVert = stack.pop();
+    var vSeed = Decimation.getSeed(mesh, vEvenTags);
+    vEvenTags[vSeed] = 1;
+    var stack = new Uint32Array(Utils.getMemory(mesh.getNbVertices() * 4), 0, mesh.getNbVertices());
+    if (stack.length === 0)
+      return;
+    stack[0] = vSeed;
+    var curStack = 1;
+    while (curStack > 0) {
+      var idVert = stack[--curStack];
       var start = vrvSC[idVert * 2];
       var end = start + vrvSC[idVert * 2 + 1];
       var i = 0;
+      var vBorder = onEdge[idVert];
       var stamp = ++tagFlag;
       // tag the odd vertices
       for (i = start; i < end; ++i) {
         var oddi = vrv[i];
         vFlags[oddi] = stamp;
         var oddTag = vEvenTags[oddi];
-        if (oddTag === 1) {
-          // already an even vertex
-          console.log('An odd vertex is already marked as a even one.');
+        // already an even vertex
+        if (oddTag === 1)
           return;
-        }
         vEvenTags[oddi] = -1; //odd vertex
         vFlags[oddi] = stamp;
       }
@@ -55,14 +57,16 @@ define([
       // visited candidates opposites even vertex
       stamp = ++tagFlag;
       for (i = start; i < end; ++i) {
-        var oddId = vrv[i] * 2;
-        var oddStart = vrvSC[oddId];
-        var oddEnd = vrvSC[oddId + 1];
-        if (oddEnd !== 6) {
-          // extraordinary vertex marked as odd vertex
-          console.log('An extraordinary vertex is marked as an odd vertex.');
+        var oddId = vrv[i];
+        var oddStart = vrvSC[oddId * 2];
+        var oddEnd = vrvSC[oddId * 2 + 1];
+        var oddBorder = onEdge[oddId];
+        // extraordinary vertex marked as odd vertex
+        if ((oddBorder && oddEnd !== 4) || (!oddBorder && oddEnd !== 6))
           return;
-        }
+        // odd vertex on the boundary and even in the interior
+        if (oddBorder && !vBorder)
+          return;
         oddEnd += oddStart;
         // find opposite vertex
         for (var j = oddStart; j < oddEnd; ++j) {
@@ -81,15 +85,11 @@ define([
             if (vFlags[vrv[k]] === (stamp - 1))
               nbOdd++;
           }
-          if (nbOdd === 0) {
-            console.log('IMPOSSIBLE');
-            return;
-          }
           if (nbOdd === 2) {
             vEvenTags[evenj] = -1;
           } else {
             vEvenTags[evenj] = 1;
-            stack.push(evenj);
+            stack[curStack++] = evenj;
           }
         }
       }
@@ -98,8 +98,29 @@ define([
     return vEvenTags;
   };
 
+  /** Tag the even vertices */
+  Decimation.tagEvenVertices = function (mesh) {
+    var nbVertices = mesh.getNbVertices();
+    // 0 not processed, -1 odd vertex, 1 even vertex
+    var vEvenTags = new Int8Array(nbVertices);
+    var running = true;
+    while (running) {
+      var status = Decimation.tagVertices(mesh, vEvenTags);
+      if (!status)
+        return;
+      running = false;
+      for (var i = 0; i < nbVertices; ++i) {
+        if (vEvenTags[i] === 0) {
+          running = true;
+          break;
+        }
+      }
+    }
+    return vEvenTags;
+  };
+
   /** Creates the coarse triangles from the tagged vertices */
-  Decimation.createTriangles = function (baseMesh, newMesh, vEvenTags, iArCenterUp) {
+  Decimation.createTriangles = function (baseMesh, newMesh, vEvenTags) {
     var teAr = baseMesh.getTriEdges();
     var iArUp = baseMesh.getIndices();
     var tagEdges = new Int32Array(baseMesh.getNbEdges());
@@ -123,6 +144,7 @@ define([
         tagEdges[teAr[j]] = iv3 + 1;
     }
     var iArDown = new Uint32Array(nbTriangles * 3 / 4);
+    var iArCenterUp = new Uint32Array(nbTriangles / 4);
     var acc = 0;
     for (i = 0; i < nbTriangles; ++i) {
       var id = i * 3;
@@ -143,6 +165,7 @@ define([
       ++acc;
     }
     newMesh.setIndices(iArDown);
+    return iArCenterUp;
   };
 
   /** Creates the vertices of the mesh */
@@ -214,11 +237,10 @@ define([
 
   /** Apply the reverse of loop subdivision */
   Decimation.reverseLoop = function (baseMesh, newMesh) {
-    var vEvenTags = Decimation.tagVertices(baseMesh);
+    var vEvenTags = Decimation.tagEvenVertices(baseMesh);
     if (!vEvenTags)
       return false;
-    var iArCenterUp = new Uint32Array(baseMesh.getNbTriangles() / 4);
-    Decimation.createTriangles(baseMesh, newMesh, vEvenTags, iArCenterUp);
+    var iArCenterUp = Decimation.createTriangles(baseMesh, newMesh, vEvenTags);
     Decimation.createVertices(baseMesh, newMesh, iArCenterUp);
     Decimation.copyVerticesData(baseMesh, newMesh);
     newMesh.allocateArrays();
