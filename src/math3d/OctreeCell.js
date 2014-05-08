@@ -2,9 +2,9 @@ define([], function () {
 
   'use strict';
 
-  function OctreeCell(parent, depth) {
-    this.parent_ = parent !== undefined ? parent : null; // parent
-    this.depth_ = depth !== undefined ? depth : 0; // depth of current node
+  function OctreeCell(parent) {
+    this.parent_ = parent ? parent : null; // parent
+    this.depth_ = parent ? parent.depth_ + 1 : 0; // depth of current node
     this.children_ = []; // children
     // extended boundary for intersect test
     this.aabbLoose_ = [Infinity, Infinity, Infinity, -Infinity, -Infinity, -Infinity];
@@ -19,65 +19,69 @@ define([], function () {
   OctreeCell.prototype = {
     /** Subdivide octree, aabbSplit must be already set, and aabbLoose will be expanded if it's a leaf  */
     build: function (mesh, iTris) {
-      var i = 0;
       var aabbLoose = this.aabbLoose_;
       var aabbSplit = this.aabbSplit_;
+      var i = 0;
       for (i = 0; i < 6; ++i)
         aabbLoose[i] = aabbSplit[i];
       this.iTris_ = iTris;
-      var nbTriangles = iTris.length;
-      if (nbTriangles > OctreeCell.maxTriangles_ && this.depth_ < OctreeCell.maxDepth_)
-        this.constructCells(mesh);
-      else if (nbTriangles > 0) {
-        var bxmin = Infinity;
-        var bymin = Infinity;
-        var bzmin = Infinity;
-        var bxmax = -Infinity;
-        var bymax = -Infinity;
-        var bzmax = -Infinity;
-        var triBoxes = mesh.getTriBoxes();
-        var triPosInLeaf = mesh.getTriPosInLeaf();
-        var triLeaf = mesh.getTriLeaf();
-        for (i = 0; i < nbTriangles; ++i) {
-          var id = iTris[i];
-          triLeaf[id] = this;
-          triPosInLeaf[id] = i;
-          id *= 6;
-          var xmin = triBoxes[id];
-          var ymin = triBoxes[id + 1];
-          var zmin = triBoxes[id + 2];
-          var xmax = triBoxes[id + 3];
-          var ymax = triBoxes[id + 4];
-          var zmax = triBoxes[id + 5];
-          if (xmin < bxmin) bxmin = xmin;
-          if (xmax > bxmax) bxmax = xmax;
-          if (ymin < bymin) bymin = ymin;
-          if (ymax > bymax) bymax = ymax;
-          if (zmin < bzmin) bzmin = zmin;
-          if (zmax > bzmax) bzmax = zmax;
-        }
-        aabbLoose[0] = bxmin;
-        aabbLoose[1] = bymin;
-        aabbLoose[2] = bzmin;
-        aabbLoose[3] = bxmax;
-        aabbLoose[4] = bymax;
-        aabbLoose[5] = bzmax;
-        var parent = this.parent_;
-        // expands parent loose aabb cells
-        while (parent !== null) {
-          var pLoose = parent.aabbLoose_;
-          if (bxmin < pLoose[0]) pLoose[0] = bxmin;
-          if (bymin < pLoose[1]) pLoose[1] = bymin;
-          if (bzmin < pLoose[2]) pLoose[2] = bzmin;
-          if (bxmax > pLoose[3]) pLoose[3] = bxmax;
-          if (bymax > pLoose[4]) pLoose[4] = bymax;
-          if (bzmax > pLoose[5]) pLoose[5] = bzmax;
-          parent = parent.parent_;
+
+      var stack = new Array(iTris.length);
+      stack[0] = this;
+      var curStack = 1;
+      var leaves = [];
+      while (curStack > 0) {
+        var cell = stack[--curStack];
+        var nbTriangles = cell.iTris_.length;
+        if (nbTriangles > OctreeCell.maxTriangles_ && cell.depth_ < OctreeCell.maxDepth_) {
+          cell.constructChildren(mesh);
+          var children = cell.children_;
+          for (i = 0; i < 8; ++i)
+            stack[curStack + i] = children[i];
+          curStack += 8;
+        } else if (nbTriangles > 0) {
+          leaves.push(cell);
         }
       }
+      var nbLeaves = leaves.length;
+      for (i = 0; i < nbLeaves; ++i)
+        leaves[i].constructLeaf(mesh);
+    },
+    /** Construct the leaf  */
+    constructLeaf: function (mesh) {
+      var iTris = this.iTris_;
+      var nbTriangles = iTris.length;
+      var bxmin = Infinity;
+      var bymin = Infinity;
+      var bzmin = Infinity;
+      var bxmax = -Infinity;
+      var bymax = -Infinity;
+      var bzmax = -Infinity;
+      var triBoxes = mesh.getTriBoxes();
+      var triPosInLeaf = mesh.getTriPosInLeaf();
+      var triLeaf = mesh.getTriLeaf();
+      for (var i = 0; i < nbTriangles; ++i) {
+        var id = iTris[i];
+        triLeaf[id] = this;
+        triPosInLeaf[id] = i;
+        id *= 6;
+        var xmin = triBoxes[id];
+        var ymin = triBoxes[id + 1];
+        var zmin = triBoxes[id + 2];
+        var xmax = triBoxes[id + 3];
+        var ymax = triBoxes[id + 4];
+        var zmax = triBoxes[id + 5];
+        if (xmin < bxmin) bxmin = xmin;
+        if (xmax > bxmax) bxmax = xmax;
+        if (ymin < bymin) bymin = ymin;
+        if (ymax > bymax) bymax = ymax;
+        if (zmin < bzmin) bzmin = zmin;
+        if (zmax > bzmax) bzmax = zmax;
+      }
+      this.expandsAabbLoose(bxmin, bymin, bzmin, bxmax, bymax, bzmax);
     },
     /** Construct sub cells of the octree */
-    constructCells: function (mesh) {
+    constructChildren: function (mesh) {
       var split = this.aabbSplit_;
       var xmin = split[0];
       var ymin = split[1];
@@ -92,14 +96,23 @@ define([], function () {
       var ycen = (ymax + ymin) * 0.5;
       var zcen = (zmax + zmin) * 0.5;
 
-      var iTris0 = [];
-      var iTris1 = [];
-      var iTris2 = [];
-      var iTris3 = [];
-      var iTris4 = [];
-      var iTris5 = [];
-      var iTris6 = [];
-      var iTris7 = [];
+      var child0 = new OctreeCell(this);
+      var child1 = new OctreeCell(this);
+      var child2 = new OctreeCell(this);
+      var child3 = new OctreeCell(this);
+      var child4 = new OctreeCell(this);
+      var child5 = new OctreeCell(this);
+      var child6 = new OctreeCell(this);
+      var child7 = new OctreeCell(this);
+
+      var iTris0 = child0.iTris_;
+      var iTris1 = child1.iTris_;
+      var iTris2 = child2.iTris_;
+      var iTris3 = child3.iTris_;
+      var iTris4 = child4.iTris_;
+      var iTris5 = child5.iTris_;
+      var iTris6 = child6.iTris_;
+      var iTris7 = child7.iTris_;
       var triCenters = mesh.getTriCenters();
       var iTris = this.iTris_;
       var nbTriangles = iTris.length;
@@ -136,39 +149,14 @@ define([], function () {
           }
         }
       }
-      var nextDepth = this.depth_ + 1;
-
-      var child0 = new OctreeCell(this, nextDepth);
       child0.setAabbSplit(xmin, ymin, zmin, xcen, ycen, zcen);
-      child0.build(mesh, iTris0);
-
-      var child1 = new OctreeCell(this, nextDepth);
       child1.setAabbSplit(xmin + dX, ymin, zmin, xcen + dX, ycen, zcen);
-      child1.build(mesh, iTris1);
-
-      var child2 = new OctreeCell(this, nextDepth);
       child2.setAabbSplit(xcen, ycen - dY, zcen, xmax, ymax - dY, zmax);
-      child2.build(mesh, iTris2);
-
-      var child3 = new OctreeCell(this, nextDepth);
       child3.setAabbSplit(xmin, ymin, zmin + dZ, xcen, ycen, zcen + dZ);
-      child3.build(mesh, iTris3);
-
-      var child4 = new OctreeCell(this, nextDepth);
       child4.setAabbSplit(xmin, ymin + dY, zmin, xcen, ycen + dY, zcen);
-      child4.build(mesh, iTris4);
-
-      var child5 = new OctreeCell(this, nextDepth);
       child5.setAabbSplit(xcen, ycen, zcen - dZ, xmax, ymax, zmax - dZ);
-      child5.build(mesh, iTris5);
-
-      var child6 = new OctreeCell(this, nextDepth);
       child6.setAabbSplit(xcen, ycen, zcen, xmax, ymax, zmax);
-      child6.build(mesh, iTris6);
-
-      var child7 = new OctreeCell(this, nextDepth);
       child7.setAabbSplit(xcen - dX, ycen, zcen, xmax - dX, ymax, zmax);
-      child7.build(mesh, iTris7);
 
       this.children_.length = 0;
       this.children_.push(child0, child1, child2, child3, child4, child5, child6, child7);
@@ -297,6 +285,39 @@ define([], function () {
         }
         children.length = 0;
         parent.checkEmptiness();
+      }
+    },
+    /** Expand aabb loose */
+    expandsAabbLoose: function (bxmin, bymin, bzmin, bxmax, bymax, bzmax) {
+      var parent = this;
+      while (parent !== null) {
+        var pLoose = parent.aabbLoose_;
+        var proceed = false;
+        if (bxmin < pLoose[0]) {
+          pLoose[0] = bxmin;
+          proceed = true;
+        }
+        if (bymin < pLoose[1]) {
+          pLoose[1] = bymin;
+          proceed = true;
+        }
+        if (bzmin < pLoose[2]) {
+          pLoose[2] = bzmin;
+          proceed = true;
+        }
+        if (bxmax > pLoose[3]) {
+          pLoose[3] = bxmax;
+          proceed = true;
+        }
+        if (bymax > pLoose[4]) {
+          pLoose[4] = bymax;
+          proceed = true;
+        }
+        if (bzmax > pLoose[5]) {
+          pLoose[5] = bzmax;
+          proceed = true;
+        }
+        parent = proceed ? parent.parent_ : null;
       }
     }
   };

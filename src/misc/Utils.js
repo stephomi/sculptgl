@@ -125,9 +125,10 @@ define([], function () {
 
   /** Compute ACMR and ATVR (vertex post transform ratio) */
   Utils.outputsACMRandATVR = function (mesh) {
-    var iAr = mesh.indicesABC_;
+    var iAr = mesh.getIndices();
     var sizeCache = 32;
-    var cache = new Array(sizeCache);
+    var cache = [];
+    cache.length = sizeCache;
 
     var isCacheMiss = function (id) {
       for (var k = 0; k < sizeCache; ++k) {
@@ -136,7 +137,7 @@ define([], function () {
           return 1;
         } else if (cache[k] === id) {
           // not sure about that one...
-          // Is a cache HIT moves the vert
+          // Does a cache HIT moves the vert
           // up in the FIFO ?
           // cache.splice(k,1)
           // cache.push(id)

@@ -30,7 +30,10 @@ define([
     allocateArrays: function () {
       var nbTriangles = this.mesh_.getNbTriangles();
       this.triPosInLeaf_ = new Uint32Array(nbTriangles);
-      this.triLeaf_.length = nbTriangles;
+      var triLeaf = this.triLeaf_;
+      triLeaf.length = nbTriangles;
+      for (var i = 0; i < nbTriangles; ++i)
+        triLeaf[i] = undefined;
     },
     /** Return triangles intersected by a ray */
     intersectRay: function (vNear, rayInv, hint) {
@@ -111,18 +114,25 @@ define([
         zmax += dfz;
       }
       var offset = Math.sqrt(dx * dx + dy * dy + dz * dz) * 0.2;
-      xmin = xmin === xmax ? xmin - offset : xmin;
-      xmax = xmin === xmax ? xmax + offset : xmax;
-      ymin = ymin === ymax ? ymin - offset : ymin;
-      ymax = ymin === ymax ? ymin + offset : ymax;
-      zmin = zmin === zmax ? zmin - offset : zmin;
-      zmax = zmin === zmax ? zmin + offset : zmax;
+      if (xmin === xmax) {
+        xmin -= offset;
+        xmax += offset;
+      }
+      if (ymin === ymax) {
+        ymin -= offset;
+        ymax += offset;
+      }
+      if (zmin === zmax) {
+        zmin -= offset;
+        zmax += offset;
+      }
 
       // octree construction
       var nbTriangles = mesh.getNbTriangles();
       var trianglesAll = [];
+      trianglesAll.length = nbTriangles;
       for (var i = 0; i < nbTriangles; ++i)
-        trianglesAll.push(i);
+        trianglesAll[i] = i;
       this.root_ = new OctreeCell();
       this.root_.setAabbSplit(xmin, ymin, zmin, xmax, ymax, zmax);
       this.root_.build(mesh, trianglesAll);
@@ -130,7 +140,7 @@ define([
     updateOctreeRemove: function (iTris) {
       var mesh = this.mesh_;
       var triCenters = mesh.getTriCenters();
-      var triBoxes = mesh.getTriBoxes();
+      var tboxes = mesh.getTriBoxes();
       var triPosInLeaf = this.triPosInLeaf_;
       var triLeaf = this.triLeaf_;
       var nbTris = iTris.length;
@@ -139,23 +149,17 @@ define([
       // recompute position inside the octree
       for (var i = 0; i < nbTris; ++i) {
         var idTri = iTris[i];
-        var idBox = idTri * 6;
+        var idb = idTri * 6;
         var idCen = idTri * 3;
         var leaf = triLeaf[idTri];
-        var split = leaf.aabbSplit_;
+        var ab = leaf.aabbSplit_;
 
         var vx = triCenters[idCen];
         var vy = triCenters[idCen + 1];
         var vz = triCenters[idCen + 2];
-        var hasMoved = false;
-        if (vx <= split[0]) hasMoved = true;
-        else if (vy <= split[1]) hasMoved = true;
-        else if (vz <= split[2]) hasMoved = true;
-        else if (vx > split[3]) hasMoved = true;
-        else if (vy > split[4]) hasMoved = true;
-        else if (vz > split[5]) hasMoved = true;
 
-        if (hasMoved === true) {
+        if (vx <= ab[0] || vy <= ab[1] || vz <= ab[2] || vx > ab[3] || vy > ab[4] || vz > ab[5]) {
+          // a triangle center has moved from its cell
           trisToMove[acc++] = iTris[i];
           var trisInLeaf = leaf.iTris_;
           if (trisInLeaf.length > 0) { // remove tris from octree cell
@@ -166,19 +170,7 @@ define([
             trisInLeaf.pop();
           }
         } else { // expands cell aabb loose if necessary
-          var loose = leaf.aabbLoose_;
-          var bxmin = triBoxes[idBox];
-          var bymin = triBoxes[idBox + 1];
-          var bzmin = triBoxes[idBox + 2];
-          var bxmax = triBoxes[idBox + 3];
-          var bymax = triBoxes[idBox + 4];
-          var bzmax = triBoxes[idBox + 5];
-          if (bxmin < loose[0]) loose[0] = bxmin;
-          if (bymin < loose[1]) loose[1] = bymin;
-          if (bzmin < loose[2]) loose[2] = bzmin;
-          if (bxmax > loose[3]) loose[3] = bxmax;
-          if (bymax > loose[4]) loose[4] = bymax;
-          if (bzmax > loose[5]) loose[5] = bzmax;
+          leaf.expandsAabbLoose(tboxes[idb], tboxes[idb + 1], tboxes[idb + 2], tboxes[idb + 3], tboxes[idb + 4], tboxes[idb + 5]);
         }
       }
       return new Uint32Array(trisToMove.subarray(0, acc));
@@ -201,23 +193,19 @@ define([
       var zmax = rootLoose[5];
       for (var i = 0; i < nbTrisToMove; ++i) { // add triangle to the octree
         var idTri = trisToMove[i];
-        var idBox = idTri * 6;
         var idCen = idTri * 3;
-
-        var isOutsideRoot = false;
-        if (triBoxes[idBox] > xmax || triBoxes[idBox + 3] < xmin) isOutsideRoot = true;
-        else if (triBoxes[idBox + 1] > ymax || triBoxes[idBox + 4] < ymin) isOutsideRoot = true;
-        else if (triBoxes[idBox + 2] > zmax || triBoxes[idBox + 5] < zmin) isOutsideRoot = true;
-
-        if (isOutsideRoot === true) { // we reconstruct the whole octree, slow... but rare
+        var idBox = idTri * 6;
+        var tc = triCenters.subarray(idCen, idCen + 3);
+        var tb = triBoxes.subarray(idBox, idBox + 6);
+        if (tb[0] > xmax || tb[3] < xmin || tb[1] > ymax || tb[4] < ymin || tb[2] > zmax || tb[5] < zmin) {
+          // a triangle is outside the root node
+          // we reconstruct the whole octree, slow... but rare
           this.computeOctree(undefined, 0.3);
           this.leavesUpdate_.length = 0;
           break;
         } else {
           var leaf = triLeaf[idTri];
-          var triBox = triBoxes.subarray(idBox, idBox + 6);
-          var triCenter = triCenters.subarray(idCen, idCen + 3);
-          var newleaf = root.addTriangle(idTri, triBox, triCenter);
+          var newleaf = root.addTriangle(idTri, tb, tc);
           if (newleaf) {
             triPosInLeaf[idTri] = newleaf.iTris_.length - 1;
             triLeaf[idTri] = newleaf;
@@ -244,7 +232,7 @@ define([
         if (!leaf.iTris_.length)
           leaf.checkEmptiness(cutLeaves);
         else if (leaf.iTris_.length > octreeMaxTriangles && leaf.depth_ < octreeMaxDepth)
-          leaf.constructCells(this.mesh_);
+          leaf.build(this.mesh_, leaf.iTris_);
       }
       this.leavesUpdate_.length = 0;
     }
