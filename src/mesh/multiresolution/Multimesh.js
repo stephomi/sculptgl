@@ -129,6 +129,15 @@ define([
       this.sel_ = 0;
       this.updateResolution();
     },
+    /** Delete the lower resolution meshes */
+    deleteLower: function () {
+      this.meshes_.splice(0, this.sel_);
+      this.sel_ = 0;
+    },
+    /** Delete the higher resolution meshes */
+    deleteHigher: function () {
+      this.meshes_.splice(this.sel_ + 1);
+    },
     /** Render the lower rendering mesh resolution */
     getLowMeshRender: function () {
       var limit = 1500000;

@@ -2,45 +2,81 @@ define([], function () {
 
   'use strict';
 
-  function StateMultiresolution(multimesh, type, ignoreData) {
+  function StateMultiresolution(multimesh, type, isRedo) {
     this.multimesh_ = multimesh; // the multires mesh
     this.mesh_ = multimesh.getCurrent(); // the sub multimesh
-    this.vArState_ = null; // copies of vertices coordinates
-    this.cArState_ = null; // copies of vertices coordinates
-    if (type !== StateMultiresolution.SELECTION && !ignoreData) {
-      this.vArState_ = new Float32Array(this.mesh_.getVertices());
-      this.cArState_ = new Float32Array(this.mesh_.getColors());
+    this.type_ = type; // the type of action
+    this.sel_ = multimesh.sel_; // the selected mesh
+
+    switch (this.type_) {
+    case StateMultiresolution.DELETE_LOWER:
+      this.deletedMeshes_ = multimesh.meshes_.slice(0, multimesh.sel_); // deleted meshes
+      break;
+    case StateMultiresolution.DELETE_HIGHER:
+      this.deletedMeshes_ = multimesh.meshes_.slice(multimesh.sel_ + 1); // deleted meshes
+      break;
+    case StateMultiresolution.SUBDIVISION:
+    case StateMultiresolution.DECIMATION:
+      if (!isRedo) {
+        this.vArState_ = new Float32Array(this.mesh_.getVertices()); // copies of vertices coordinates
+        this.cArState_ = new Float32Array(this.mesh_.getColors()); // copies of colors coordinates
+      }
+      break;
     }
-    this.type_ = type;
   }
 
   StateMultiresolution.SUBDIVISION = 0; // subdivision of the mesh
   StateMultiresolution.DECIMATION = 1; // decimation of the mesh
   StateMultiresolution.SELECTION = 2; // change selection of resolution
+  StateMultiresolution.DELETE_LOWER = 3; // deletes lower resolution
+  StateMultiresolution.DELETE_HIGHER = 4; // deletes higher resolution
 
   StateMultiresolution.prototype = {
     /** On undo */
     undo: function () {
-      if (this.type_ === StateMultiresolution.SELECTION) {
-        this.multimesh_.selectMesh(this.mesh_);
-      } else {
+      var mul = this.multimesh_;
+      switch (this.type_) {
+      case StateMultiresolution.SELECTION:
+        mul.selectMesh(this.mesh_);
+        break;
+      case StateMultiresolution.DELETE_LOWER:
+        [].unshift.apply(mul.meshes_, this.deletedMeshes_);
+        mul.sel_ = this.deletedMeshes_.length;
+        break;
+      case StateMultiresolution.DELETE_HIGHER:
+        [].push.apply(mul.meshes_, this.deletedMeshes_);
+        break;
+      case StateMultiresolution.SUBDIVISION:
         this.mesh_.setVertices(new Float32Array(this.vArState_));
         this.mesh_.setColors(new Float32Array(this.cArState_));
-        if (this.type_ === StateMultiresolution.SUBDIVISION) {
-          this.multimesh_.popMesh();
-        } else if (this.type_ === StateMultiresolution.DECIMATION) {
-          this.multimesh_.shiftMesh();
-        }
+        mul.popMesh();
+        break;
+      case StateMultiresolution.DECIMATION:
+        this.mesh_.setVertices(new Float32Array(this.vArState_));
+        this.mesh_.setColors(new Float32Array(this.cArState_));
+        mul.shiftMesh();
+        break;
       }
     },
     /** On redo */
     redo: function () {
-      if (this.type_ === StateMultiresolution.SELECTION) {
-        this.multimesh_.selectMesh(this.mesh_);
-      } else if (this.type_ === StateMultiresolution.SUBDIVISION) {
-        this.multimesh_.pushMesh(this.mesh_);
-      } else if (this.type_ === StateMultiresolution.DECIMATION) {
-        this.multimesh_.unshiftMesh(this.mesh_);
+      var mul = this.multimesh_;
+      switch (this.type_) {
+      case StateMultiresolution.SELECTION:
+        mul.selectMesh(this.mesh_);
+        break;
+      case StateMultiresolution.DELETE_LOWER:
+        mul.deleteLower();
+        break;
+      case StateMultiresolution.DELETE_HIGHER:
+        mul.deleteHigher();
+        break;
+      case StateMultiresolution.SUBDIVISION:
+        mul.pushMesh(this.mesh_);
+        break;
+      case StateMultiresolution.DECIMATION:
+        mul.unshiftMesh(this.mesh_);
+        break;
       }
     },
     /** Push the redo state */
