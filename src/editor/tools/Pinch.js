@@ -48,7 +48,7 @@ define([
         var dist = Math.sqrt(dx * dx + dy * dy + dz * dz) / radius;
         var fallOff = dist * dist;
         fallOff = 3.0 * fallOff * fallOff - 4.0 * fallOff * dist + 1.0;
-        fallOff = deformIntensity * fallOff;
+        fallOff = fallOff * deformIntensity;
         vAr[ind] = vx + dx * fallOff;
         vAr[ind + 1] = vy + dy * fallOff;
         vAr[ind + 2] = vz + dz * fallOff;

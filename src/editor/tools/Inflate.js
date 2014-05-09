@@ -27,7 +27,6 @@ define([
         iVertsInRadius = this.getFrontVertices(iVertsInRadius, picking.getEyeDirection());
 
       this.inflate(iVertsInRadius, picking.getIntersectionPoint(), picking.getLocalRadius2(), intensity);
-      this.projectOnProxy(iVertsInRadius, Math.sqrt(picking.getLocalRadius2()) * 0.5);
 
       this.mesh_.updateMesh(this.mesh_.getTrianglesFromVertices(iVertsInRadius), iVertsInRadius);
     },
@@ -35,6 +34,7 @@ define([
     inflate: function (iVerts, center, radiusSquared, intensity) {
       var mesh = this.mesh_;
       var vAr = mesh.getVertices();
+      var vProxy = mesh.getVerticesProxy();
       var nAr = mesh.getNormals();
       var radius = Math.sqrt(radiusSquared);
       var deformIntensity = intensity * radius * 0.1;
@@ -45,13 +45,12 @@ define([
       var cz = center[2];
       for (var i = 0, l = iVerts.length; i < l; ++i) {
         var ind = iVerts[i] * 3;
-        var vx = vAr[ind];
-        var vy = vAr[ind + 1];
-        var vz = vAr[ind + 2];
-        var dx = vx - cx;
-        var dy = vy - cy;
-        var dz = vz - cz;
+        var dx = vProxy[ind] - cx;
+        var dy = vProxy[ind + 1] - cy;
+        var dz = vProxy[ind + 2] - cz;
         var dist = Math.sqrt(dx * dx + dy * dy + dz * dz) / radius;
+        if (dist > 1.0)
+          dist = 1.0;
         var fallOff = dist * dist;
         fallOff = 3.0 * fallOff * fallOff - 4.0 * fallOff * dist + 1.0;
         fallOff = deformIntensity * fallOff;
@@ -59,9 +58,9 @@ define([
         var ny = nAr[ind + 1];
         var nz = nAr[ind + 2];
         fallOff /= Math.sqrt(nx * nx + ny * ny + nz * nz);
-        vAr[ind] = vx + nx * fallOff;
-        vAr[ind + 1] = vy + ny * fallOff;
-        vAr[ind + 2] = vz + nz * fallOff;
+        vAr[ind] += nx * fallOff;
+        vAr[ind + 1] += ny * fallOff;
+        vAr[ind + 2] += nz * fallOff;
       }
     }
   };

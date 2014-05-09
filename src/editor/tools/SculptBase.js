@@ -63,9 +63,7 @@ define([
         dist = 0.0;
       }
       var sym = sculptgl.sculpt_.getSymmetry();
-      if (sumDisp > minSpacing * 100.0)
-        sumDisp = 0.0;
-      else if (sumDisp > minSpacing || sumDisp === 0.0) {
+      if (sumDisp > minSpacing || sumDisp === 0.0) {
         sumDisp = 0.0;
         for (var i = 0; i <= dist; i += step) {
           picking.intersectionMouseMesh(mesh, mouseX, mouseY);
@@ -152,30 +150,6 @@ define([
           vProxy[ind] = vAr[ind];
           vProxy[ind + 1] = vAr[ind + 1];
           vProxy[ind + 2] = vAr[ind + 2];
-        }
-      }
-    },
-    /** Project a vertex on the proxy if it is too far away */
-    projectOnProxy: function (iVerts, proxyMax) {
-      var mesh = this.mesh_;
-      var vAr = mesh.getVertices();
-      var vProxy = mesh.getVerticesProxy();
-      var proxyMax2 = proxyMax * proxyMax;
-      for (var i = 0, l = iVerts.length; i < l; ++i) {
-        var ind = iVerts[i] * 3;
-        var vx = vAr[ind];
-        var vy = vAr[ind + 1];
-        var vz = vAr[ind + 2];
-        var dx = vx - vProxy[ind];
-        var dy = vy - vProxy[ind + 1];
-        var dz = vz - vProxy[ind + 2];
-        var dist = dx * dx + dy * dy + dz * dz;
-        // went to far... reproject on the proxy mesh
-        if (dist > proxyMax2) {
-          dist = (proxyMax / Math.sqrt(dist)) - 1.0;
-          vAr[ind] = vx + dx * dist;
-          vAr[ind + 1] = vy + dy * dist;
-          vAr[ind + 2] = vz + dz * dist;
         }
       }
     }

@@ -31,13 +31,14 @@ define([
       if (aNormal === null)
         return;
       this.crease(iVertsInRadius, aNormal, picking.getIntersectionPoint(), picking.getLocalRadius2(), intensity);
-      this.projectOnProxy(iVertsInRadius, Math.sqrt(picking.getLocalRadius2()) * 0.5);
 
       this.mesh_.updateMesh(this.mesh_.getTrianglesFromVertices(iVertsInRadius), iVertsInRadius);
     },
     /** Pinch+brush-like sculpt */
     crease: function (iVertsInRadius, aNormal, center, radiusSquared, intensity) {
-      var vAr = this.mesh_.getVertices();
+      var mesh = this.mesh_;
+      var vAr = mesh.getVertices();
+      var vProxy = mesh.getVerticesProxy();
       var radius = Math.sqrt(radiusSquared);
       var cx = center[0];
       var cy = center[1];
@@ -51,20 +52,19 @@ define([
         brushFactor = -brushFactor;
       for (var i = 0, l = iVertsInRadius.length; i < l; ++i) {
         var ind = iVertsInRadius[i] * 3;
-        var vx = vAr[ind];
-        var vy = vAr[ind + 1];
-        var vz = vAr[ind + 2];
-        var dx = cx - vx;
-        var dy = cy - vy;
-        var dz = cz - vz;
+        var dx = cx - vProxy[ind];
+        var dy = cy - vProxy[ind + 1];
+        var dz = cz - vProxy[ind + 2];
         var dist = Math.sqrt(dx * dx + dy * dy + dz * dz) / radius;
+        if (dist > 1.0)
+          dist = 1.0;
         var fallOff = dist * dist;
         fallOff = 3.0 * fallOff * fallOff - 4.0 * fallOff * dist + 1.0;
         var brushModifier = Math.pow(2.0 - fallOff, -5) * brushFactor;
         fallOff = fallOff * deformIntensity;
-        vAr[ind] = vx + dx * fallOff + anx * brushModifier;
-        vAr[ind + 1] = vy + dy * fallOff + any * brushModifier;
-        vAr[ind + 2] = vz + dz * fallOff + anz * brushModifier;
+        vAr[ind] += dx * fallOff + anx * brushModifier;
+        vAr[ind + 1] += dy * fallOff + any * brushModifier;
+        vAr[ind + 2] += dz * fallOff + anz * brushModifier;
       }
     }
   };

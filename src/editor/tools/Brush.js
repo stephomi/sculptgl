@@ -13,6 +13,7 @@ define([
     this.negative_ = false; // opposition deformation
     this.clay_ = true; // clay sculpting (modifier for brush tool)
     this.culling_ = false; // if we backface cull the vertices
+    this.accumulate_ = false; // if ignore the proxy
   }
 
   Brush.prototype = {
@@ -37,13 +38,14 @@ define([
         var aCenter = this.areaCenter(iVertsFront);
         Flatten.prototype.flatten.call(this, iVertsInRadius, aNormal, aCenter, picking.getIntersectionPoint(), picking.getLocalRadius2(), intensity);
       }
-      this.projectOnProxy(iVertsInRadius, Math.sqrt(picking.getLocalRadius2()) * (this.clay_ ? 0.7 : 1.0));
 
       this.mesh_.updateMesh(this.mesh_.getTrianglesFromVertices(iVertsInRadius), iVertsInRadius);
     },
     /** Brush stroke, move vertices along a direction computed by their averaging normals */
     brush: function (iVertsInRadius, aNormal, center, radiusSquared, intensity) {
-      var vAr = this.mesh_.getVertices();
+      var mesh = this.mesh_;
+      var vAr = mesh.getVertices();
+      var vProxy = this.accumulate_ ? vAr : mesh.getVerticesProxy();
       var radius = Math.sqrt(radiusSquared);
       var deformIntensityBrush = intensity * radius * (this.clay_ ? 0.1 : 0.05);
       if (this.negative_)
@@ -56,19 +58,18 @@ define([
       var anz = aNormal[2];
       for (var i = 0, l = iVertsInRadius.length; i < l; ++i) {
         var ind = iVertsInRadius[i] * 3;
-        var vx = vAr[ind];
-        var vy = vAr[ind + 1];
-        var vz = vAr[ind + 2];
-        var dx = vx - cx;
-        var dy = vy - cy;
-        var dz = vz - cz;
+        var dx = vProxy[ind] - cx;
+        var dy = vProxy[ind + 1] - cy;
+        var dz = vProxy[ind + 2] - cz;
         var dist = Math.sqrt(dx * dx + dy * dy + dz * dz) / radius;
+        if (dist > 1.0)
+          dist = 1.0;
         var fallOff = dist * dist;
         fallOff = 3.0 * fallOff * fallOff - 4.0 * fallOff * dist + 1.0;
         fallOff *= deformIntensityBrush;
-        vAr[ind] = vx + anx * fallOff;
-        vAr[ind + 1] = vy + any * fallOff;
-        vAr[ind + 2] = vz + anz * fallOff;
+        vAr[ind] += anx * fallOff;
+        vAr[ind + 1] += any * fallOff;
+        vAr[ind + 2] += anz * fallOff;
       }
     }
   };

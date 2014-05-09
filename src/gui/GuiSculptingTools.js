@@ -39,6 +39,7 @@ define([
       this.ctrls_.push(addCtrlIntensity(tool, fold));
       this.ctrls_.push(addCtrlNegative(tool, fold, this));
       this.ctrls_.push(fold.add(tool, 'clay_').name('Clay'));
+      this.ctrls_.push(fold.add(tool, 'accumulate_').name('Accumulate'));
       this.ctrls_.push(addCtrlCulling(tool, fold));
     }
   };
