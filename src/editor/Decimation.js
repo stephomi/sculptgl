@@ -199,10 +199,6 @@ define([
       var tag1 = tagMid[mid1];
       var tag2 = tagMid[mid2];
       var tag3 = tagMid[mid3];
-      if (tag1 === 0) {
-        tagMid[mid1] = 1;
-        vertexMapUp[acc++] = mid1;
-      }
       if (tag2 === 0) {
         tagMid[mid2] = 1;
         vertexMapUp[acc++] = mid2;
@@ -210,6 +206,10 @@ define([
       if (tag3 === 0) {
         tagMid[mid3] = 1;
         vertexMapUp[acc++] = mid3;
+      }
+      if (tag1 === 0) {
+        tagMid[mid1] = 1;
+        vertexMapUp[acc++] = mid1;
       }
     }
   };

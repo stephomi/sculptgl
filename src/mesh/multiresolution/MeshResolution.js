@@ -53,10 +53,10 @@ define([
     copyDataFromHigherRes: function (meshUp) {
       var vertMap = this.getVerticesMapping();
       var vArDown = this.getVertices();
-      var vArUp = meshUp.getVertices();
       var cArDown = this.getColors();
-      var cArUp = meshUp.getColors();
       var nbVertices = this.getNbVertices();
+      var vArUp = meshUp.getVertices();
+      var cArUp = meshUp.getColors();
       if (!vertMap) {
         vArDown.set(vArUp.subarray(0, nbVertices * 3));
         cArDown.set(cArUp.subarray(0, nbVertices * 3));
@@ -67,6 +67,9 @@ define([
           vArDown[id] = vArUp[idUp];
           vArDown[id + 1] = vArUp[idUp + 1];
           vArDown[id + 2] = vArUp[idUp + 2];
+          cArDown[id] = cArUp[idUp];
+          cArDown[id + 1] = cArUp[idUp + 1];
+          cArDown[id + 2] = cArUp[idUp + 2];
         }
       }
     },
