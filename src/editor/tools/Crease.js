@@ -56,8 +56,8 @@ define([
         var dy = cy - vProxy[ind + 1];
         var dz = cz - vProxy[ind + 2];
         var dist = Math.sqrt(dx * dx + dy * dy + dz * dz) / radius;
-        if (dist > 1.0)
-          dist = 1.0;
+        if (dist >= 1.0)
+          continue;
         var fallOff = dist * dist;
         fallOff = 3.0 * fallOff * fallOff - 4.0 * fallOff * dist + 1.0;
         var brushModifier = Math.pow(2.0 - fallOff, -5) * brushFactor;

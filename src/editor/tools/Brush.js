@@ -62,8 +62,8 @@ define([
         var dy = vProxy[ind + 1] - cy;
         var dz = vProxy[ind + 2] - cz;
         var dist = Math.sqrt(dx * dx + dy * dy + dz * dz) / radius;
-        if (dist > 1.0)
-          dist = 1.0;
+        if (dist >= 1.0)
+          continue;
         var fallOff = dist * dist;
         fallOff = 3.0 * fallOff * fallOff - 4.0 * fallOff * dist + 1.0;
         fallOff *= deformIntensityBrush;
