@@ -82,7 +82,10 @@ define([
           mouseX += dx * step;
           mouseY += dy * step;
         }
-        sculptgl.mesh_.updateBuffers(colorState);
+        if (colorState)
+          sculptgl.mesh_.updateColorBuffer();
+        else
+          sculptgl.mesh_.updateGeometryBuffers();
       }
       sculptgl.sumDisplacement_ = sumDisp;
     },

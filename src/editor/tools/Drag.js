@@ -60,7 +60,7 @@ define([
           mouseX += dx * step;
           mouseY += dy * step;
         }
-        this.mesh_.updateBuffers();
+        this.mesh_.updateGeometryBuffers();
       }
       sculptgl.sumDisplacement_ = sumDisp;
     },
@@ -76,7 +76,7 @@ define([
 
       this.drag(iVertsInRadius, picking.getIntersectionPoint(), picking.getLocalRadius2(), sym);
 
-      this.mesh_.updateMesh(this.mesh_.getTrianglesFromVertices(iVertsInRadius), iVertsInRadius);
+      this.mesh_.updateGeometry(this.mesh_.getTrianglesFromVertices(iVertsInRadius), iVertsInRadius);
     },
     /** Drag deformation */
     drag: function (iVerts, center, radiusSquared, sym) {

@@ -39,7 +39,7 @@ define([
         Flatten.prototype.flatten.call(this, iVertsInRadius, aNormal, aCenter, picking.getIntersectionPoint(), picking.getLocalRadius2(), intensity);
       }
 
-      this.mesh_.updateMesh(this.mesh_.getTrianglesFromVertices(iVertsInRadius), iVertsInRadius);
+      this.mesh_.updateGeometry(this.mesh_.getTrianglesFromVertices(iVertsInRadius), iVertsInRadius);
     },
     /** Brush stroke, move vertices along a direction computed by their averaging normals */
     brush: function (iVertsInRadius, aNormal, center, radiusSquared, intensity) {

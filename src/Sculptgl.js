@@ -92,6 +92,7 @@ define([
       event.preventDefault();
       this.mouseButton_ = 0;
       Multimesh.RENDER_HINT = Multimesh.NONE;
+      this.scene_.render();
     },
     /** Mouse wheel event */
     onMouseWheel: function (event) {

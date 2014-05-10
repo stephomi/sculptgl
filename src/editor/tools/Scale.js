@@ -52,7 +52,7 @@ define([
         pickingSym.pickVerticesInSphere(rLocal2);
         this.stroke(pickingSym, delta);
       }
-      this.mesh_.updateBuffers();
+      this.mesh_.updateGeometryBuffers();
     },
     /** On stroke */
     stroke: function (picking, delta) {
@@ -66,7 +66,7 @@ define([
 
       this.scale(iVertsInRadius, picking.getIntersectionPoint(), picking.getLocalRadius2(), delta);
 
-      this.mesh_.updateMesh(this.mesh_.getTrianglesFromVertices(iVertsInRadius), iVertsInRadius);
+      this.mesh_.updateGeometry(this.mesh_.getTrianglesFromVertices(iVertsInRadius), iVertsInRadius);
     },
     /** Scale the vertices around the mouse point intersection */
     scale: function (iVerts, center, radiusSquared, intensity) {

@@ -69,7 +69,7 @@ define([
         pickingSym.pickVerticesInSphere(rLocal2);
         this.stroke(pickingSym, lx, ly, mx, my, this.rotateDataSym_);
       }
-      this.mesh_.updateBuffers();
+      this.mesh_.updateGeometryBuffers();
     },
     /** On stroke */
     stroke: function (picking, mx, my, lx, ly, rotateData) {
@@ -83,7 +83,7 @@ define([
 
       this.rotate(iVertsInRadius, picking.getIntersectionPoint(), picking.getLocalRadius2(), mx, my, lx, ly, rotateData);
 
-      this.mesh_.updateMesh(this.mesh_.getTrianglesFromVertices(iVertsInRadius), iVertsInRadius);
+      this.mesh_.updateGeometry(this.mesh_.getTrianglesFromVertices(iVertsInRadius), iVertsInRadius);
     },
     /** Rotate the vertices around the mouse point intersection */
     rotate: function (iVerts, center, radiusSquared, mouseX, mouseY, lastMouseX, lastMouseY, rotateData) {

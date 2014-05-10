@@ -14,7 +14,8 @@ define([
     /** On undo */
     undo: function () {
       this.pullState();
-      this.mesh_.updateResolution();
+      this.mesh_.updateGeometry();
+      this.mesh_.updateGeometryBuffers();
     },
     /** On redo */
     redo: function () {

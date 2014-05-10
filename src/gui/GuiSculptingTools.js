@@ -122,8 +122,8 @@ define([
     ctrls_: [],
     init: function (tool, fold) {
       this.ctrls_.push(addCtrlIntensity(tool, fold));
-      this.ctrls_.push(addCtrlCulling(tool, fold));
       this.ctrls_.push(fold.add(tool, 'tangent_').name('No shrink'));
+      this.ctrls_.push(addCtrlCulling(tool, fold));
     }
   };
 

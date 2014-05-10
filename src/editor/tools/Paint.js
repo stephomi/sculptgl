@@ -35,7 +35,7 @@ define([
 
       this.paint(iVertsInRadius, picking.getIntersectionPoint(), picking.getLocalRadius2(), intensity);
 
-      this.mesh_.updateMesh(this.mesh_.getTrianglesFromVertices(iVertsInRadius), iVertsInRadius);
+      this.mesh_.updateGeometry(this.mesh_.getTrianglesFromVertices(iVertsInRadius), iVertsInRadius);
     },
     /** Paint color vertices */
     paint: function (iVerts, center, radiusSquared, intensity) {

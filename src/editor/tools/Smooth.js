@@ -30,7 +30,7 @@ define([
       else
         this.smooth(iVertsInRadius, intensity);
 
-      this.mesh_.updateMesh(this.mesh_.getTrianglesFromVertices(iVertsInRadius), iVertsInRadius);
+      this.mesh_.updateGeometry(this.mesh_.getTrianglesFromVertices(iVertsInRadius), iVertsInRadius);
     },
     /** Smooth a group of vertices. New position is given by simple averaging */
     smooth: function (iVerts, intensity) {

@@ -30,6 +30,9 @@ define([
     this.initMeshPath_ = 'ressources/sphere.ply'; // sphere
     this.initMesh_ = ''; // sphere
 
+    // one render at a time
+    this.preventRender_ = false; // prevent multiple render per render
+
     // functions
     this.resetScene_ = this.resetScene; // reset scene
 
@@ -72,10 +75,14 @@ define([
     },
     /** Request a render */
     render: function () {
+      if (this.preventRender_ === true)
+        return;
       window.requestAnimationFrame(this.applyRender.bind(this));
+      this.preventRender_ = true;
     },
     /** Render the scene */
     applyRender: function () {
+      this.preventRender_ = false;
       var gl = this.gl_;
       gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
       this.camera_.updateView();

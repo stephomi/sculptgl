@@ -80,8 +80,8 @@ define([
     },
     /** Update the mesh after a change in resolution */
     updateResolution: function () {
-      this.updateMesh();
-      this.updateBuffers(true, true, true);
+      this.updateGeometry();
+      this.updateBuffers();
     },
     /** Change the resolution */
     selectResolution: function (sel) {

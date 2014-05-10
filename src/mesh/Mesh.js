@@ -69,17 +69,13 @@ define([
       this.updateTrianglesAabbAndNormal(iTris);
       this.updateVerticesNormal(iVerts);
       this.updateOctree(iTris);
+      this.updateFlatShading(iTris);
     },
     /** Allocate arrays, except for : coordinates, primitives, edges, wireframe, drawArrays, details */
     allocateArrays: function () {
       this.getIndexData().allocateArrays();
       this.getVertexData().allocateArrays();
       this.getOctree().allocateArrays();
-    },
-    /** Update the mesh */
-    updateMesh: function (iTris, iVerts) {
-      this.updateGeometry(iTris, iVerts);
-      this.getRender().updateFlatShading(iTris);
     }
   };
 

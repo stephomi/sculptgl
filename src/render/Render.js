@@ -90,7 +90,7 @@ define([
     setFlatShading: function (flatShading) {
       this.flatShading_ = flatShading;
       this.updateFlatShading();
-      this.updateBuffers(true, true, true);
+      this.updateBuffers();
     },
     /** Set the shader */
     setShader: function (shaderType) {
@@ -108,7 +108,6 @@ define([
         this.setMaterial(0);
       this.setShader(this.shader_.type_);
       this.setShowWireframe(this.getShowWireframe());
-      this.setFlatShading(this.getFlatShading());
     },
     /** Render the mesh */
     render: function (sculptgl) {
@@ -116,23 +115,39 @@ define([
       if (this.getShowWireframe())
         this.shaderWireframe_.draw(this, sculptgl);
     },
-    /** Update buffers */
-    updateBuffers: function (updateColors, updateIndex, updateWireframe) {
-      var mesh = this.mesh_;
-      var useDrawArrays = this.isUsingDrawArrays();
-      this.getVertexBuffer().update(mesh.getRenderVertices(useDrawArrays));
-      this.getNormalBuffer().update(mesh.getRenderNormals(useDrawArrays));
-      if (updateColors)
-        this.getColorBuffer().update(mesh.getRenderColors(useDrawArrays));
-      if (updateIndex && !useDrawArrays)
-        this.getIndexBuffer().update(mesh.getRenderIndices());
-      if (updateWireframe)
-        this.updateWireframeBuffer();
+    /** Updates color buffer */
+    updateVertexBuffer: function () {
+      this.getVertexBuffer().update(this.mesh_.getRenderVertices(this.isUsingDrawArrays()));
+    },
+    /** Updates color buffer */
+    updateNormalBuffer: function () {
+      this.getNormalBuffer().update(this.mesh_.getRenderNormals(this.isUsingDrawArrays()));
+    },
+    /** Updates color buffer */
+    updateColorBuffer: function () {
+      this.getColorBuffer().update(this.mesh_.getRenderColors(this.isUsingDrawArrays()));
+    },
+    /** Updates index buffer */
+    updateIndexBuffer: function () {
+      if (!this.isUsingDrawArrays())
+        this.getIndexBuffer().update(this.mesh_.getRenderIndices());
     },
     /** Updates wireframe buffer */
     updateWireframeBuffer: function () {
       if (this.getShowWireframe())
         this.getWireframeBuffer().update(this.mesh_.getWireframe(this.isUsingDrawArrays()));
+    },
+    /** Update vertices and normals the buffers */
+    updateGeometryBuffers: function () {
+      this.updateVertexBuffer();
+      this.updateNormalBuffer();
+    },
+    /** Update all the buffers */
+    updateBuffers: function () {
+      this.updateGeometryBuffers();
+      this.updateColorBuffer();
+      this.updateIndexBuffer();
+      this.updateWireframeBuffer();
     },
     /** Free gl memory */
     release: function () {

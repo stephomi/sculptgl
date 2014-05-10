@@ -14,7 +14,8 @@ define([
     /** On undo */
     undo: function () {
       this.pullState();
-      this.mesh_.updateResolution();
+      this.mesh_.updateFlatShading();
+      this.mesh_.updateColorBuffer();
     },
     /** On redo */
     redo: function () {
