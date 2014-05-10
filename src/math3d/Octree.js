@@ -223,15 +223,15 @@ define([
       var leavesUpdate = this.leavesUpdate_;
       var nbLeaves = leavesUpdate.length;
       var cutLeaves = [];
-      var octreeMaxTriangles = OctreeCell.maxTriangles_;
-      var octreeMaxDepth = OctreeCell.maxDepth_;
+      var maxTriangles = OctreeCell.MAX_TRIANGLES;
+      var maxDepth = OctreeCell.MAX_DEPTH;
       for (var i = 0; i < nbLeaves; ++i) {
         var leaf = leavesUpdate[i];
         if (leaf === null)
           break;
         if (!leaf.iTris_.length)
           leaf.checkEmptiness(cutLeaves);
-        else if (leaf.iTris_.length > octreeMaxTriangles && leaf.depth_ < octreeMaxDepth)
+        else if (leaf.iTris_.length > maxTriangles && leaf.depth_ < maxDepth)
           leaf.build(this.mesh_, leaf.iTris_);
       }
       this.leavesUpdate_.length = 0;

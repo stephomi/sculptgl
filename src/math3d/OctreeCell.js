@@ -13,8 +13,8 @@ define([], function () {
     this.iTris_ = []; //triangles (if cell is a leaf)
   }
 
-  OctreeCell.maxDepth_ = 8; // maximum depth
-  OctreeCell.maxTriangles_ = 100; // maximum triangles per cell
+  OctreeCell.MAX_DEPTH = 8; // maximum depth
+  OctreeCell.MAX_TRIANGLES = 100; // maximum triangles per cell
 
   OctreeCell.prototype = {
     /** Subdivide octree, aabbSplit must be already set, and aabbLoose will be expanded if it's a leaf  */
@@ -33,7 +33,7 @@ define([], function () {
       while (curStack > 0) {
         var cell = stack[--curStack];
         var nbTriangles = cell.iTris_.length;
-        if (nbTriangles > OctreeCell.maxTriangles_ && cell.depth_ < OctreeCell.maxDepth_) {
+        if (nbTriangles > OctreeCell.MAX_TRIANGLES && cell.depth_ < OctreeCell.MAX_DEPTH) {
           cell.constructChildren(mesh);
           var children = cell.children_;
           for (i = 0; i < 8; ++i)
