@@ -33,21 +33,17 @@ define([
       var triLeaf = this.triLeaf_;
       triLeaf.length = nbTriangles;
       for (var i = 0; i < nbTriangles; ++i)
-        triLeaf[i] = undefined;
+        triLeaf[i] = null;
     },
     /** Return triangles intersected by a ray */
-    intersectRay: function (vNear, rayInv, hint) {
+    intersectRay: function (vNear, eyeDir, hint) {
       var collectTris = new Uint32Array(Utils.getMemory(hint * 4), 0, hint);
-      var acc = [0];
-      this.root_.collectIntersectRay(vNear, rayInv, collectTris, acc);
-      return new Uint32Array(collectTris.subarray(0, acc[0]));
+      return this.root_.collectIntersectRay(vNear, eyeDir, collectTris);
     },
     /** Return triangles inside a sphere */
     intersectSphere: function (vert, radiusSquared, leavesHit, hint) {
       var collectTris = new Uint32Array(Utils.getMemory(hint * 4), 0, hint);
-      var acc = [0];
-      this.root_.collectIntersectSphere(vert, radiusSquared, leavesHit, collectTris, acc);
-      return new Uint32Array(collectTris.subarray(0, acc[0]));
+      return this.root_.collectIntersectSphere(vert, radiusSquared, leavesHit, collectTris);
     },
     /**
      * Update Octree

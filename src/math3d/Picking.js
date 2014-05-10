@@ -63,7 +63,6 @@ define([
       var v1 = [0.0, 0.0, 0.0];
       var v2 = [0.0, 0.0, 0.0];
       var v3 = [0.0, 0.0, 0.0];
-      var rayInv = [0.0, 0.0, 0.0];
       var vertInter = [0.0, 0.0, 0.0];
       var vNear = [0.0, 0.0, 0.0];
       var vFar = [0.0, 0.0, 0.0];
@@ -87,10 +86,7 @@ define([
         var eyeDir = this.getEyeDirection();
         vec3.sub(eyeDir, vFar, vNear);
         vec3.normalize(eyeDir, eyeDir);
-        rayInv[0] = 1 / eyeDir[0];
-        rayInv[1] = 1 / eyeDir[1];
-        rayInv[2] = 1 / eyeDir[2];
-        var iTrisCandidates = mesh.intersectRay(vNear, rayInv, mesh.getNbTriangles());
+        var iTrisCandidates = mesh.intersectRay(vNear, eyeDir, mesh.getNbTriangles());
         var distance = Infinity;
         var nbTrisCandidates = iTrisCandidates.length;
         for (var i = 0; i < nbTrisCandidates; ++i) {
