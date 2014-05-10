@@ -99,7 +99,7 @@ define([
       event.stopPropagation();
       event.preventDefault();
       var delta = Math.max(-1.0, Math.min(1.0, (event.wheelDelta || -event.detail)));
-      this.scene_.camera_.zoom(delta * 0.02);
+      this.scene_.getCamera().zoom(delta * 0.02);
       Multimesh.RENDER_HINT = Multimesh.CAMERA;
       this.scene_.render();
     },
@@ -116,11 +116,13 @@ define([
           this.sculpt_.start(this);
         }
       }
-      if (button === 3 || (button === 1 && this.scene_.picking_.mesh_ === null) || (event.altKey && button !== 0)) {
+      var picking = this.scene_.getPicking();
+      if (button === 3 || (button === 1 && picking.mesh_ === null) || (event.altKey && button !== 0)) {
         this.mouseButton_ = 3;
-        if (this.scene_.camera_.usePivot_)
-          this.scene_.picking_.intersectionMouseMesh(this.mesh_, mouseX, mouseY);
-        this.scene_.camera_.start(mouseX, mouseY, this.scene_.picking_);
+        var camera = this.scene_.getCamera();
+        if (camera.usePivot_)
+          picking.intersectionMouseMesh(this.mesh_, mouseX, mouseY);
+        camera.start(mouseX, mouseY, picking);
       }
     },
     /** Mouse move event */
@@ -132,12 +134,12 @@ define([
       var button = this.mouseButton_;
       var scene = this.scene_;
       var sculpt = this.sculpt_;
-      var camera = scene.camera_;
+      var camera = scene.getCamera();
       if (this.mesh_ && (button !== 1 || sculpt.allowPicking())) {
         Multimesh.RENDER_HINT = Multimesh.PICKING;
-        scene.picking_.intersectionMouseMesh(this.mesh_, mouseX, mouseY);
+        scene.getPicking().intersectionMouseMesh(this.mesh_, mouseX, mouseY);
         if (this.sculpt_.getSymmetry())
-          scene.pickingSym_.intersectionMouseMesh(this.mesh_, mouseX, mouseY, true);
+          scene.getSymmetryPicking().intersectionMouseMesh(this.mesh_, mouseX, mouseY, true);
       }
       if (button === 1 && !event.altKey) {
         Multimesh.RENDER_HINT = Multimesh.SCULPT;
