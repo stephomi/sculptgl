@@ -8,6 +8,39 @@ define([
   var glfloat = 0x1406;
 
   var ShaderMatcap = {};
+
+  ShaderMatcap.materials = [{
+    path: 'ressources/pearl.jpg',
+    name: 'Pearl'
+  }, {
+    path: 'ressources/clay.jpg',
+    name: 'Clay'
+  }, {
+    path: 'ressources/skin.jpg',
+    name: 'Skin'
+  }, {
+    path: 'ressources/bronze.jpg',
+    name: 'Bronze'
+  }, {
+    path: 'ressources/green.jpg',
+    name: 'Green'
+  }, {
+    path: 'ressources/white.jpg',
+    name: 'White'
+  }, {
+    path: 'ressources/chavant.jpg',
+    name: 'Chavant'
+  }, {
+    path: 'ressources/drink.jpg',
+    name: 'Drink'
+  }, {
+    path: 'ressources/redvelvet.jpg',
+    name: 'Red Velvet'
+  }, {
+    path: 'ressources/orange.jpg',
+    name: 'Orange'
+  }];
+
   ShaderMatcap.uniforms = {};
   ShaderMatcap.attributes = {};
   ShaderMatcap.program = undefined;

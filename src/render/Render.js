@@ -78,6 +78,10 @@ define([
       this.texture0_ = tex;
     },
     /** Set show wireframe */
+    setMaterial: function (idMat) {
+      this.setTexture0(Shader.textures[idMat]);
+    },
+    /** Set show wireframe */
     setShowWireframe: function (showWireframe) {
       this.showWireframe_ = Render.ONLY_DRAW_ARRAYS ? false : showWireframe;
       this.updateWireframeBuffer();
@@ -88,6 +92,10 @@ define([
       this.updateFlatShading();
       this.updateBuffers(true, true, true);
     },
+    /** Set the shader */
+    setShader: function (shaderType) {
+      this.shader_.setType(shaderType);
+    },
     /** Update flat shading buffers */
     updateFlatShading: function (iTris) {
       if (this.isUsingDrawArrays())
@@ -95,28 +103,18 @@ define([
     },
     /** Initialize rendering */
     initRender: function () {
-      this.initShaderWireframe();
-      this.updateShaders(this.shader_.type_);
+      this.shaderWireframe_.setType(Shader.mode.WIREFRAME);
+      if (this.shader_.type_ === Shader.mode.MATCAP && !this.texture0_)
+        this.setMaterial(0);
+      this.setShader(this.shader_.type_);
       this.setShowWireframe(this.getShowWireframe());
       this.setFlatShading(this.getFlatShading());
-    },
-    /** Creates the wireframe shader */
-    initShaderWireframe: function () {
-      this.shaderWireframe_.type_ = Shader.mode.WIREFRAME;
-      this.shaderWireframe_.init();
     },
     /** Render the mesh */
     render: function (sculptgl) {
       this.shader_.draw(this, sculptgl);
       if (this.getShowWireframe())
         this.shaderWireframe_.draw(this, sculptgl);
-    },
-    /** Update the shaders on the mesh, load the texture(s) first if the shaders need it */
-    updateShaders: function (shaderType) {
-      if (shaderType >= Shader.mode.MATCAP)
-        this.setTexture0(Shader.textures[shaderType]);
-      this.shader_.type_ = shaderType;
-      this.shader_.init();
     },
     /** Update buffers */
     updateBuffers: function (updateColors, updateIndex, updateWireframe) {

@@ -1,7 +1,8 @@
 define([
   'render/Shader',
+  'render/Shaders/ShaderMatcap',
   'render/Render'
-], function (Shader, Render) {
+], function (Shader, ShaderMatcap, Render) {
 
   'use strict';
 
@@ -16,6 +17,7 @@ define([
     this.ctrlFlatShading_ = null; // flat shading controller
     this.ctrlShowWireframe_ = null; // wireframe controller
     this.ctrlShaders_ = null; // shaders controller
+    this.ctrlMatcap_ = null; // matcap texture controller
 
     this.init(guiParent);
   }
@@ -23,36 +25,42 @@ define([
   GuiRendering.prototype = {
     /** Initialize */
     init: function (guiParent) {
+      var self = this;
       var main = this.sculptgl_;
       // dummy object with empty function
       var dummy = {
-        dummyFunc_: function () {
+        func_: function () {
           return;
-        }
+        },
+        type_: Shader.mode.MATCAP,
+        material_: 0,
       };
       // mesh fold
       var foldMesh = guiParent.addFolder('Mesh');
-      this.ctrlNbVertices_ = foldMesh.add(dummy, 'dummyFunc_').name('Ver : 0');
-      this.ctrlNbTriangles_ = foldMesh.add(dummy, 'dummyFunc_').name('Tri : 0');
+      this.ctrlNbVertices_ = foldMesh.add(dummy, 'func_').name('Ver : 0');
+      this.ctrlNbTriangles_ = foldMesh.add(dummy, 'func_').name('Tri : 0');
       var optionsShaders = {
+        'Matcap': Shader.mode.MATCAP,
         'Phong': Shader.mode.PHONG,
         'Transparency': Shader.mode.TRANSPARENCY,
-        'Normal shader': Shader.mode.NORMAL,
-        'Clay': Shader.mode.MATCAP,
-        'Chavant': Shader.mode.MATCAP + 1,
-        'Skin': Shader.mode.MATCAP + 2,
-        'Drink': Shader.mode.MATCAP + 3,
-        'Red velvet': Shader.mode.MATCAP + 4,
-        'Orange': Shader.mode.MATCAP + 5,
-        'Bronze': Shader.mode.MATCAP + 6
+        'Normal shader': Shader.mode.NORMAL
       };
-      var dummyShader = {
-        type_: Shader.mode.MATCAP
-      };
-      this.ctrlShaders_ = foldMesh.add(dummyShader, 'type_', optionsShaders).name('Shader');
+      this.ctrlShaders_ = foldMesh.add(dummy, 'type_', optionsShaders).name('Shader');
       this.ctrlShaders_.onChange(function (value) {
+        var val = parseInt(value, 10);
         if (main.mesh_) {
-          main.mesh_.updateShaders(parseInt(value, 10), main.scene_.textures_, main.scene_.shaders_);
+          main.mesh_.setShader(val);
+          main.scene_.render();
+        }
+        self.ctrlMatcap_.__li.hidden = val !== Shader.mode.MATCAP;
+      });
+      var optionMaterials = {};
+      for (var i = 0, mats = ShaderMatcap.materials, l = mats.length; i < l; ++i)
+        optionMaterials[mats[i].name] = i;
+      this.ctrlMatcap_ = foldMesh.add(dummy, 'material_', optionMaterials).name('Material');
+      this.ctrlMatcap_.onChange(function (value) {
+        if (main.mesh_) {
+          main.mesh_.setMaterial(value);
           main.scene_.render();
         }
       });

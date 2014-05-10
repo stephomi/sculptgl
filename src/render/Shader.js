@@ -35,8 +35,12 @@ define([
   Shader.prototype = {
     /** Initialize the shader */
     init: function () {
-      var shader = Shader[Math.min(this.type_, Shader.mode.MATCAP)];
-      this.shader_ = shader.getOrCreate(this.gl_);
+      this.shader_ = Shader[this.type_].getOrCreate(this.gl_);
+    },
+    /** Set the shader */
+    setType: function (type) {
+      this.type_ = type;
+      this.init();
     },
     /** Draw */
     draw: function (render, sculptgl) {

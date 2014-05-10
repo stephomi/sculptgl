@@ -7,8 +7,9 @@ define([
   'mesh/Mesh',
   'mesh/multiresolution/Multimesh',
   'render/Shader',
+  'render/Shaders/ShaderMatcap',
   'math3d/Picking'
-], function (Utils, Export, Import, Background, Camera, Mesh, Multimesh, Shader, Picking) {
+], function (Utils, Export, Import, Background, Camera, Mesh, Multimesh, Shader, ShaderMatcap, Picking) {
 
   'use strict';
 
@@ -192,7 +193,7 @@ define([
     /** Load textures (preload) */
     loadTextures: function () {
       var self = this;
-      var loadTex = function (path, mode) {
+      var loadTex = function (path, idMaterial) {
         var mat = new Image();
         mat.src = path;
         var gl = self.gl_;
@@ -204,18 +205,13 @@ define([
           gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_NEAREST);
           gl.generateMipmap(gl.TEXTURE_2D);
           gl.bindTexture(gl.TEXTURE_2D, null);
-          Shader.textures[mode] = idTex;
-          if (mode === Shader.mode.MATCAP)
+          Shader.textures[idMaterial] = idTex;
+          if (idMaterial === 0)
             self.loadSphere();
         };
       };
-      loadTex('ressources/clay.jpg', Shader.mode.MATCAP);
-      loadTex('ressources/chavant.jpg', Shader.mode.MATCAP + 1);
-      loadTex('ressources/skin.jpg', Shader.mode.MATCAP + 2);
-      loadTex('ressources/drink.jpg', Shader.mode.MATCAP + 3);
-      loadTex('ressources/redvelvet.jpg', Shader.mode.MATCAP + 4);
-      loadTex('ressources/orange.jpg', Shader.mode.MATCAP + 5);
-      loadTex('ressources/bronze.jpg', Shader.mode.MATCAP + 6);
+      for (var i = 0, mats = ShaderMatcap.materials, l = mats.length; i < l; ++i)
+        loadTex(mats[i].path, i);
     },
     /** Load the sphere */
     loadSphere: function () {
