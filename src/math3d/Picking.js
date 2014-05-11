@@ -48,6 +48,9 @@ define([
     getPickedVertices: function () {
       return this.pickedVertices_;
     },
+    getPickedTriangle: function () {
+      return this.pickedTriangle_;
+    },
     /** Intersection between a ray the mouse position */
     intersectionMouseMesh: function (mesh, mouseX, mouseY, useSymmetry) {
       var vNear = this.camera_.unproject(mouseX, mouseY, 0.0);

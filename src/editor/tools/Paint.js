@@ -1,26 +1,77 @@
 define([
+  'lib/glMatrix',
   'misc/Utils',
   'misc/Tablet',
+  'states/StateColor',
   'editor/tools/SculptBase'
-], function (Utils, Tablet, SculptBase) {
+], function (glm, Utils, Tablet, StateColor, SculptBase) {
 
   'use strict';
+
+  var vec3 = glm.vec3;
 
   function Paint(states) {
     SculptBase.call(this, states);
     this.intensity_ = 0.75; // deformation intensity
     this.culling_ = false; // if we backface cull the vertices
     this.color_ = [168.0, 66.0, 66.0]; // color painting
+    this.pickColor_ = false; // color picking
+    this.pickCallback_ = null; // callback function after picking a color
   }
 
   Paint.prototype = {
     /** Start sculpting operation */
     start: function (sculptgl) {
-      SculptBase.prototype.start.call(this, sculptgl, true);
+      var picking = sculptgl.scene_.picking_;
+      var mesh = sculptgl.mesh_;
+      picking.intersectionMouseMesh(mesh, sculptgl.mouseX_, sculptgl.mouseY_);
+      if (picking.mesh_ === null)
+        return;
+      this.mesh_ = mesh;
+      if (this.pickColor_)
+        return this.pickColor(picking.getPickedTriangle(), picking.getIntersectionPoint());
+      this.states_.pushState(new StateColor(mesh));
+      this.update(sculptgl, true);
     },
     /** Update sculpting operation */
     update: function (sculptgl) {
+      if (this.pickColor_ === true) {
+        var picking = sculptgl.scene_.picking_;
+        picking.intersectionMouseMesh(this.mesh_, sculptgl.mouseX_, sculptgl.mouseY_);
+        if (picking.mesh_ !== null)
+          this.pickColor(picking.getPickedTriangle(), picking.getIntersectionPoint());
+        return;
+      }
       this.sculptStroke(sculptgl, true);
+    },
+    /** Pick the color under the mouse */
+    setPickCallback: function (cb) {
+      this.pickCallback_ = cb;
+    },
+    /** Pick the color under the mouse */
+    pickColor: function (idTri, inter) {
+      var mesh = this.mesh_;
+      var color = this.color_;
+      var iAr = mesh.getIndices();
+      var cAr = mesh.getColors();
+      var vAr = mesh.getVertices();
+
+      var id = idTri * 3;
+      var iv1 = iAr[id] * 3;
+      var iv2 = iAr[id + 1] * 3;
+      var iv3 = iAr[id + 2] * 3;
+
+      var len1 = vec3.len(vec3.sub(color, inter, vAr.subarray(iv1, iv1 + 3)));
+      var len2 = vec3.len(vec3.sub(color, inter, vAr.subarray(iv2, iv2 + 3)));
+      var len3 = vec3.len(vec3.sub(color, inter, vAr.subarray(iv3, iv3 + 3)));
+      var sum = 1.0 / (len1 + len2 + len3);
+      vec3.set(color, 0.0, 0.0, 0.0);
+      vec3.scaleAndAdd(color, color, cAr.subarray(iv1, iv1 + 3), (len2 + len3 - len1) * sum);
+      vec3.scaleAndAdd(color, color, cAr.subarray(iv2, iv2 + 3), (len1 + len3 - len2) * sum);
+      vec3.scaleAndAdd(color, color, cAr.subarray(iv3, iv3 + 3), (len1 + len2 - len3) * sum);
+      vec3.scale(color, color, 255.0);
+
+      this.pickCallback_();
     },
     /** On stroke */
     stroke: function (picking) {

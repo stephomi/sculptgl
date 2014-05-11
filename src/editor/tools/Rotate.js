@@ -3,14 +3,14 @@ define([
   'misc/Utils',
   'math3d/Geometry',
   'editor/tools/SculptBase'
-], function (glmatrix, Utils, Geometry, SculptBase) {
+], function (glm, Utils, Geometry, SculptBase) {
 
   'use strict';
 
-  var vec2 = glmatrix.vec2;
-  var vec3 = glmatrix.vec3;
-  var mat4 = glmatrix.mat4;
-  var quat = glmatrix.quat;
+  var vec2 = glm.vec2;
+  var vec3 = glm.vec3;
+  var mat4 = glm.mat4;
+  var quat = glm.quat;
 
   function Rotate(states) {
     SculptBase.call(this, states);

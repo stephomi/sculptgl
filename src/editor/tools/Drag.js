@@ -3,12 +3,12 @@ define([
   'misc/Utils',
   'math3d/Geometry',
   'editor/tools/SculptBase'
-], function (glmatrix, Utils, Geometry, SculptBase) {
+], function (glm, Utils, Geometry, SculptBase) {
 
   'use strict';
 
-  var vec3 = glmatrix.vec3;
-  var mat4 = glmatrix.mat4;
+  var vec3 = glm.vec3;
+  var mat4 = glm.mat4;
 
   function Drag(states) {
     SculptBase.call(this, states);

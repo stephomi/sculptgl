@@ -32,6 +32,22 @@ define([
     }
     return ctrl;
   };
+  var addCtrlColor = function (tool, fold) {
+    var ctrl = fold.addColor(tool, 'color_').name('Color');
+    ctrl.onChange(function (value) {
+      if (value.length === 3) { // rgb [255, 255, 255]
+        tool.color_ = [value[0], value[1], value[2]];
+      } else if (value.length === 7) { // hex (24 bits style) '#ffaabb'
+        var intVal = parseInt(value.slice(1), 16);
+        tool.color_ = [(intVal >> 16), (intVal >> 8 & 0xff), (intVal & 0xff)];
+      } else // fuck it
+        tool.color_ = [168, 66, 66];
+    });
+    tool.setPickCallback(function () {
+      ctrl.updateDisplay();
+    });
+    return ctrl;
+  };
 
   GuiSculptingTools[Sculpt.tool.BRUSH] = {
     ctrls_: [],
@@ -81,17 +97,8 @@ define([
     init: function (tool, fold) {
       this.ctrls_.push(addCtrlIntensity(tool, fold));
       this.ctrls_.push(addCtrlCulling(tool, fold));
-      var ctrlColor = fold.addColor(tool, 'color_').name('Color');
-      this.ctrls_.push(ctrlColor);
-      ctrlColor.onChange(function (value) {
-        if (value.length === 3) { // rgb [255, 255, 255]
-          tool.color_ = [value[0], value[1], value[2]];
-        } else if (value.length === 7) { // hex (24 bits style) '#ffaabb'
-          var intVal = parseInt(value.slice(1), 16);
-          tool.color_ = [(intVal >> 16), (intVal >> 8 & 0xff), (intVal & 0xff)];
-        } else // fuck it
-          tool.color_ = [168, 66, 66];
-      });
+      this.ctrls_.push(addCtrlColor(tool, fold));
+      this.ctrls_.push(fold.add(tool, 'pickColor_').name('Pick color'));
     }
   };
 

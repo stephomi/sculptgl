@@ -2,15 +2,15 @@ define(function () {
 
   'use strict';
 
-  var glMatrix = {};
+  var glm = {};
 
-  glMatrix.vec2 = window.vec2;
-  glMatrix.vec3 = window.vec3;
-  glMatrix.vec4 = window.vec4;
-  glMatrix.mat2 = window.mat2;
-  glMatrix.mat3 = window.mat3;
-  glMatrix.mat4 = window.mat4;
-  glMatrix.quat = window.quat;
+  glm.vec2 = window.vec2;
+  glm.vec3 = window.vec3;
+  glm.vec4 = window.vec4;
+  glm.mat2 = window.mat2;
+  glm.mat3 = window.mat3;
+  glm.mat4 = window.mat4;
+  glm.quat = window.quat;
 
-  return glMatrix;
+  return glm;
 });

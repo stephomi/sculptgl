@@ -2,9 +2,8 @@ define([
   'misc/Utils',
   'misc/Tablet',
   'math3d/Geometry',
-  'states/StateGeometry',
-  'states/StateColor'
-], function (Utils, Tablet, Geometry, StateGeometry, StateColor) {
+  'states/StateGeometry'
+], function (Utils, Tablet, Geometry, StateGeometry) {
 
   'use strict';
 
@@ -19,19 +18,19 @@ define([
       return this.mesh_;
     },
     /** Start sculpting */
-    start: function (sculptgl, colorState) {
+    start: function (sculptgl) {
       var picking = sculptgl.scene_.picking_;
       var mesh = sculptgl.mesh_;
       picking.intersectionMouseMesh(mesh, sculptgl.mouseX_, sculptgl.mouseY_);
       if (picking.mesh_ === null)
         return;
-      this.states_.pushState(colorState ? new StateColor(mesh) : new StateGeometry(mesh));
+      this.states_.pushState(new StateGeometry(mesh));
       this.mesh_ = mesh;
-      this.startSculpt(sculptgl, colorState);
+      this.startSculpt(sculptgl);
     },
     /** Start sculpting operation */
-    startSculpt: function (sculptgl, colorState) {
-      this.sculptStroke(sculptgl, colorState);
+    startSculpt: function (sculptgl) {
+      this.sculptStroke(sculptgl);
     },
     /** Update sculpting operation */
     update: function (sculptgl) {

@@ -35,7 +35,7 @@ define([
     name: 'Drink'
   }, {
     path: 'ressources/redvelvet.jpg',
-    name: 'Red Velvet'
+    name: 'Red velvet'
   }, {
     path: 'ressources/orange.jpg',
     name: 'Orange'
