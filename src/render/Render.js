@@ -108,6 +108,7 @@ define([
         this.setMaterial(0);
       this.setShader(this.shader_.type_);
       this.setShowWireframe(this.getShowWireframe());
+      this.updateBuffers();
     },
     /** Render the mesh */
     render: function (sculptgl) {
