@@ -116,12 +116,13 @@ define([
           this.sculpt_.start(this);
         }
       }
-      var picking = this.scene_.getPicking();
+      var scene = this.scene_;
+      var picking = scene.getPicking();
       if (button === 3 || (button === 1 && picking.mesh_ === null) || (event.altKey && button !== 0)) {
         this.mouseButton_ = 3;
-        var camera = this.scene_.getCamera();
+        var camera = scene.getCamera();
         if (camera.usePivot_)
-          picking.intersectionMouseMeshes(this.meshes_, mouseX, mouseY);
+          picking.intersectionMouseMeshes(scene.meshes_, mouseX, mouseY);
         camera.start(mouseX, mouseY, picking);
       }
     },
