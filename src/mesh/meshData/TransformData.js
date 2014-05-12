@@ -14,7 +14,7 @@ define([
 
     this.center_ = [0.0, 0.0, 0.0]; // center of the mesh (local space, before transformation)
     this.matrix_ = mat4.create(); // transformation matrix of the mesh
-    this.scale_ = -1.0; // the scale is already applied in the matrix transform
+    this.scale_ = 1.0; // the scale is already applied in the matrix transform
 
     this.symmetryNormal_ = [1.0, 0.0, 0.0]; // symmetry normal
 

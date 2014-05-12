@@ -72,7 +72,7 @@ define([
           if (this.mesh_ === null)
             continue;
           var interTest = this.getIntersectionPoint();
-          var testDistance = vec3.sqrDist(vNear, interTest);
+          var testDistance = vec3.dist(vNearTransform, interTest) * mesh.getScale();
           if (testDistance < nearDistance) {
             nearDistance = testDistance;
             nearMesh = mesh;
