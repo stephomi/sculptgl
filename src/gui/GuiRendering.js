@@ -27,7 +27,7 @@ define([
     init: function (guiParent) {
       var self = this;
       var main = this.sculptgl_;
-      // dummy object with empty function
+      // dummy object with empty function or startup mockup
       var dummy = {
         func_: function () {
           return;
@@ -96,6 +96,14 @@ define([
       this.ctrlFlatShading_.updateDisplay();
       this.ctrlShowWireframe_.object = render;
       this.ctrlShowWireframe_.updateDisplay();
+      this.ctrlMatcap_.object = render;
+      this.ctrlMatcap_.updateDisplay();
+      this.updateMeshInfo(mesh);
+    },
+    /** Update number of vertices and triangles */
+    updateMeshInfo: function (mesh) {
+      this.ctrlNbVertices_.name('Ver : ' + mesh.getNbVertices());
+      this.ctrlNbTriangles_.name('Tri : ' + mesh.getNbTriangles());
     },
     /** Return true if flat shading is enabled */
     getFlatShading: function () {

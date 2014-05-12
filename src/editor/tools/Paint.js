@@ -20,17 +20,16 @@ define([
   }
 
   Paint.prototype = {
+    /** Push undo operation */
+    pushState: function () {
+      if (!this.pickColor_)
+        this.states_.pushState(new StateColor(this.mesh_));
+    },
     /** Start sculpting operation */
-    start: function (sculptgl) {
+    startSculpt: function (sculptgl) {
       var picking = sculptgl.scene_.picking_;
-      var mesh = sculptgl.mesh_;
-      picking.intersectionMouseMesh(mesh, sculptgl.mouseX_, sculptgl.mouseY_);
-      if (picking.mesh_ === null)
-        return;
-      this.mesh_ = mesh;
       if (this.pickColor_)
         return this.pickColor(picking.getPickedTriangle(), picking.getIntersectionPoint());
-      this.states_.pushState(new StateColor(mesh));
       this.update(sculptgl, true);
     },
     /** Update sculpting operation */

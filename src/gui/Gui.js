@@ -71,13 +71,11 @@ define([
       if (!mesh)
         return;
       this.ctrlRendering_.updateMesh(mesh);
-      this.updateMeshInfo(mesh);
       this.ctrlMultiresolution_.updateMeshResolution(mesh);
     },
     /** Update number of vertices and triangles */
     updateMeshInfo: function (mesh) {
-      this.ctrlRendering_.ctrlNbVertices_.name('Ver : ' + mesh.getNbVertices());
-      this.ctrlRendering_.ctrlNbTriangles_.name('Tri : ' + mesh.getNbTriangles());
+      this.ctrlRendering_.updateMeshInfo(mesh);
     },
     /** Return true if flat shading is enabled */
     getFlatShading: function () {

@@ -21,6 +21,7 @@ define([
     this.indexBuffer_ = new Buffer(gl, gl.ELEMENT_ARRAY_BUFFER, gl.STATIC_DRAW); // indices buffer
     this.wireframeBuffer_ = new Buffer(gl, gl.ELEMENT_ARRAY_BUFFER, gl.STATIC_DRAW); // wireframe buffer
     this.texture0_ = null; // a texture
+    this.material_ = 0; // the chosen material index (texture)
   }
 
   Render.ONLY_DRAW_ARRAYS = false;
@@ -79,6 +80,7 @@ define([
     },
     /** Set show wireframe */
     setMaterial: function (idMat) {
+      this.material_ = idMat;
       this.setTexture0(Shader.textures[idMat]);
     },
     /** Set show wireframe */

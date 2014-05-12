@@ -19,7 +19,7 @@ define([
       // file fold
       var foldFiles = guiParent.addFolder('Files (import/export)');
       foldFiles.add(scene, 'resetScene_').name('Reset scene');
-      foldFiles.add(this, 'openFile').name('Import (obj, ply, stl)');
+      foldFiles.add(this, 'openFile').name('Add (obj, ply, stl)');
       foldFiles.add(this, 'saveFileAsOBJ').name('Export (obj)');
       foldFiles.add(this, 'saveFileAsPLY').name('Export (ply)');
       foldFiles.add(this, 'saveFileAsSTL').name('Export (stl)');

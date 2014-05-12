@@ -19,14 +19,14 @@ define([
     path: 'ressources/skin.jpg',
     name: 'Skin'
   }, {
-    path: 'ressources/bronze.jpg',
-    name: 'Bronze'
-  }, {
     path: 'ressources/green.jpg',
     name: 'Green'
   }, {
     path: 'ressources/white.jpg',
     name: 'White'
+  }, {
+    path: 'ressources/bronze.jpg',
+    name: 'Bronze'
   }, {
     path: 'ressources/chavant.jpg',
     name: 'Chavant'

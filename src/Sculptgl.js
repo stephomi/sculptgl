@@ -121,7 +121,7 @@ define([
         this.mouseButton_ = 3;
         var camera = this.scene_.getCamera();
         if (camera.usePivot_)
-          picking.intersectionMouseMesh(this.mesh_, mouseX, mouseY);
+          picking.intersectionMouseMeshes(this.meshes_, mouseX, mouseY);
         camera.start(mouseX, mouseY, picking);
       }
     },
@@ -135,10 +135,14 @@ define([
       var scene = this.scene_;
       var sculpt = this.sculpt_;
       var camera = scene.getCamera();
+      var meshes = this.scene_.meshes_;
       if (this.mesh_ && (button !== 1 || sculpt.allowPicking())) {
         Multimesh.RENDER_HINT = Multimesh.PICKING;
-        scene.getPicking().intersectionMouseMesh(this.mesh_, mouseX, mouseY);
-        if (this.sculpt_.getSymmetry())
+        if (button === 1)
+          scene.getPicking().intersectionMouseMesh(this.mesh_, mouseX, mouseY);
+        else
+          scene.getPicking().intersectionMouseMeshes(meshes, mouseX, mouseY);
+        if (this.sculpt_.getSymmetry() && this.mesh_)
           scene.getSymmetryPicking().intersectionMouseMesh(this.mesh_, mouseX, mouseY, true);
       }
       if (button === 1 && !event.altKey) {

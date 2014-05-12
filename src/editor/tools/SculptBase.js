@@ -20,13 +20,21 @@ define([
     /** Start sculpting */
     start: function (sculptgl) {
       var picking = sculptgl.scene_.picking_;
-      var mesh = sculptgl.mesh_;
-      picking.intersectionMouseMesh(mesh, sculptgl.mouseX_, sculptgl.mouseY_);
-      if (picking.mesh_ === null)
+      picking.intersectionMouseMeshes(sculptgl.scene_.meshes_, sculptgl.mouseX_, sculptgl.mouseY_);
+      var mesh = picking.mesh_;
+      if (mesh === null)
         return;
-      this.states_.pushState(new StateGeometry(mesh));
+      if (sculptgl.mesh_ !== mesh) {
+        sculptgl.mesh_ = mesh;
+        sculptgl.gui_.updateMesh();
+      }
       this.mesh_ = mesh;
+      this.pushState();
       this.startSculpt(sculptgl);
+    },
+    /** Push undo operation */
+    pushState: function () {
+      this.states_.pushState(new StateGeometry(this.mesh_));
     },
     /** Start sculpting operation */
     startSculpt: function (sculptgl) {

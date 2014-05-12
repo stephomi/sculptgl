@@ -192,7 +192,7 @@ define([
       mesh.initRender();
       gui.updateMesh();
       // uncomment this line to create new scene
-      this.meshes_.length = 0;
+      // this.meshes_.length = 0;
       this.meshes_.push(mesh);
       this.camera_.reset();
       this.render();

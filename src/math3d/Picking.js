@@ -51,6 +51,42 @@ define([
     getPickedTriangle: function () {
       return this.pickedTriangle_;
     },
+    /** Intersection between a ray the mouse position for every meshes */
+    intersectionMouseMeshes: (function () {
+      var vNearTransform = [0.0, 0.0, 0.0];
+      var vFarTransform = [0.0, 0.0, 0.0];
+      var matInverse = mat4.create();
+      var nearPoint = [0.0, 0.0, 0.0];
+      return function (meshes, mouseX, mouseY) {
+        var vNear = this.camera_.unproject(mouseX, mouseY, 0.0);
+        var vFar = this.camera_.unproject(mouseX, mouseY, 1.0);
+        var nearDistance = Infinity;
+        var nearMesh = null;
+        var nearTriangle = -1;
+        for (var i = 0, nbMeshes = meshes.length; i < nbMeshes; ++i) {
+          var mesh = meshes[i];
+          mat4.invert(matInverse, mesh.getMatrix());
+          vec3.transformMat4(vNearTransform, vNear, matInverse);
+          vec3.transformMat4(vFarTransform, vFar, matInverse);
+          this.intersectionRayMesh(mesh, vNearTransform, vFarTransform, mouseX, mouseY);
+          if (this.mesh_ === null)
+            continue;
+          var interTest = this.getIntersectionPoint();
+          var testDistance = vec3.sqrDist(vNear, interTest);
+          if (testDistance < nearDistance) {
+            nearDistance = testDistance;
+            nearMesh = mesh;
+            vec3.copy(nearPoint, interTest);
+            nearTriangle = this.getPickedTriangle();
+          }
+        }
+        this.mesh_ = nearMesh;
+        vec3.copy(this.interPoint_, nearPoint);
+        this.pickedTriangle_ = nearTriangle;
+        if (nearTriangle !== -1)
+          this.computeRadiusWorld2(mouseX, mouseY);
+      };
+    })(),
     /** Intersection between a ray the mouse position */
     intersectionMouseMesh: function (mesh, mouseX, mouseY, useSymmetry) {
       var vNear = this.camera_.unproject(mouseX, mouseY, 0.0);
@@ -107,12 +143,11 @@ define([
           v3[1] = vAr[ind3 + 1];
           v3[2] = vAr[ind3 + 2];
           if (Geometry.intersectionRayTriangle(vNear, eyeDir, v1, v2, v3, vertInter)) {
-            var testDistance = vec3.sqrDist(vNear, vertInter); {
-              if (testDistance < distance) {
-                distance = testDistance;
-                vec3.copy(this.interPoint_, vertInter);
-                this.pickedTriangle_ = iTrisCandidates[i];
-              }
+            var testDistance = vec3.sqrDist(vNear, vertInter);
+            if (testDistance < distance) {
+              distance = testDistance;
+              vec3.copy(this.interPoint_, vertInter);
+              this.pickedTriangle_ = iTrisCandidates[i];
             }
           }
         }
