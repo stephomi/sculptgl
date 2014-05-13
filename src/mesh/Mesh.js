@@ -8,7 +8,7 @@ define([
   'use strict';
 
   function Mesh(gl) {
-    this.meshData_ = new MeshData(this); // the vertex data
+    this.meshData_ = new MeshData(this); // the mesh data
     this.octree_ = new Octree(this); // octree
     this.render_ = gl ? new Render(gl, this) : null; // octree
   }

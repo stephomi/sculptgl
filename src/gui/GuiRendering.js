@@ -1,6 +1,6 @@
 define([
   'render/Shader',
-  'render/Shaders/ShaderMatcap',
+  'render/shaders/ShaderMatcap',
   'render/Render'
 ], function (Shader, ShaderMatcap, Render) {
 

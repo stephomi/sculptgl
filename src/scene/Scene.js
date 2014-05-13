@@ -7,7 +7,7 @@ define([
   'mesh/Mesh',
   'mesh/multiresolution/Multimesh',
   'render/Shader',
-  'render/Shaders/ShaderMatcap',
+  'render/shaders/ShaderMatcap',
   'math3d/Picking'
 ], function (Utils, Export, Import, Background, Camera, Mesh, Multimesh, Shader, ShaderMatcap, Picking) {
 

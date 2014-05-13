@@ -145,7 +145,7 @@ define([
       while (sel > 0) {
         var mesh = this.meshes_[sel];
         // we disable low rendering for lower resolution mesh with an index indirection
-        // because because the indexes cannot easily share an higher vertices buffer
+        // because the indexes cannot easily share an higher vertices buffer
         if (mesh.getVerticesMapping() || mesh.getNbTriangles() < limit)
           break;
         --sel;
