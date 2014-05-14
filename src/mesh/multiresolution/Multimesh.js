@@ -34,6 +34,7 @@ define([
         return this.getCurrent();
       var baseMesh = this.getCurrent();
       var newMesh = new MeshResolution(baseMesh.getTransformData(), baseMesh.getRender());
+      baseMesh.setVerticesMapping(undefined);
 
       Subdivision.fullSubdivision(baseMesh, newMesh);
       newMesh.initTopology();

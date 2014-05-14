@@ -14,6 +14,8 @@ define([], function () {
       break;
     case StateMultiresolution.DELETE_HIGHER:
       this.deletedMeshes_ = multimesh.meshes_.slice(multimesh.sel_ + 1); // deleted meshes
+      if (!isRedo)
+        this.vMappingState_ = this.mesh_.getVerticesMapping(); // vertex mapping low to high res
       break;
     case StateMultiresolution.SUBDIVISION:
     case StateMultiresolution.DECIMATION:
@@ -45,6 +47,7 @@ define([], function () {
         break;
       case StateMultiresolution.DELETE_HIGHER:
         [].push.apply(mul.meshes_, this.deletedMeshes_);
+        this.mesh_.setVerticesMapping(this.vMappingState_);
         break;
       case StateMultiresolution.SUBDIVISION:
         this.mesh_.setVertices(new Float32Array(this.vArState_));
