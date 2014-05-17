@@ -34,7 +34,7 @@ define([
     },
     /** Updates buffer */
     updateBuffers: function (mesh) {
-      this.getIndexBuffer().update(mesh.getRenderIndices());
+      this.getIndexBuffer().update(mesh.getTriangles());
       this.getWireframeBuffer().update(mesh.getWireframe());
     },
     /** Render the mesh */

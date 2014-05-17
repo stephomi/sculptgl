@@ -29,7 +29,7 @@ define([
     startSculpt: function (sculptgl) {
       var picking = sculptgl.scene_.picking_;
       if (this.pickColor_)
-        return this.pickColor(picking.getPickedTriangle(), picking.getIntersectionPoint());
+        return this.pickColor(picking.getPickedFace(), picking.getIntersectionPoint());
       this.update(sculptgl, true);
     },
     /** Update sculpting operation */
@@ -38,7 +38,7 @@ define([
         var picking = sculptgl.scene_.picking_;
         picking.intersectionMouseMesh(this.mesh_, sculptgl.mouseX_, sculptgl.mouseY_);
         if (picking.mesh_ !== null)
-          this.pickColor(picking.getPickedTriangle(), picking.getIntersectionPoint());
+          this.pickColor(picking.getPickedFace(), picking.getIntersectionPoint());
         return;
       }
       this.sculptStroke(sculptgl, true);
@@ -48,27 +48,30 @@ define([
       this.pickCallback_ = cb;
     },
     /** Pick the color under the mouse */
-    pickColor: function (idTri, inter) {
+    pickColor: function (idFace, inter) {
       var mesh = this.mesh_;
       var color = this.color_;
-      var iAr = mesh.getIndices();
+      var fAr = mesh.getFaces();
       var cAr = mesh.getColors();
       var vAr = mesh.getVertices();
 
-      var id = idTri * 3;
-      var iv1 = iAr[id] * 3;
-      var iv2 = iAr[id + 1] * 3;
-      var iv3 = iAr[id + 2] * 3;
+      var id = idFace * 4;
+      var iv1 = fAr[id] * 3;
+      var iv2 = fAr[id + 1] * 3;
+      var iv3 = fAr[id + 2] * 3;
+      var iv4 = fAr[id + 3] * 3;
 
       var len1 = vec3.len(vec3.sub(color, inter, vAr.subarray(iv1, iv1 + 3)));
       var len2 = vec3.len(vec3.sub(color, inter, vAr.subarray(iv2, iv2 + 3)));
       var len3 = vec3.len(vec3.sub(color, inter, vAr.subarray(iv3, iv3 + 3)));
-      var sum = 1.0 / (len1 + len2 + len3);
+      var len4 = iv4 >= 0 ? vec3.len(vec3.sub(color, inter, vAr.subarray(iv4, iv4 + 3))) : 0;
+      var sum = len1 + len2 + len3 + len4;
       vec3.set(color, 0.0, 0.0, 0.0);
-      vec3.scaleAndAdd(color, color, cAr.subarray(iv1, iv1 + 3), (len2 + len3 - len1) * sum);
-      vec3.scaleAndAdd(color, color, cAr.subarray(iv2, iv2 + 3), (len1 + len3 - len2) * sum);
-      vec3.scaleAndAdd(color, color, cAr.subarray(iv3, iv3 + 3), (len1 + len2 - len3) * sum);
-      vec3.scale(color, color, 255.0);
+      vec3.scaleAndAdd(color, color, cAr.subarray(iv1, iv1 + 3), (sum - len1) / sum);
+      vec3.scaleAndAdd(color, color, cAr.subarray(iv2, iv2 + 3), (sum - len2) / sum);
+      vec3.scaleAndAdd(color, color, cAr.subarray(iv3, iv3 + 3), (sum - len3) / sum);
+      if (iv4 >= 0) vec3.scaleAndAdd(color, color, cAr.subarray(iv4, iv4 + 3), (sum - len4) / sum);
+      vec3.scale(color, color, 255.0 / (iv4 >= 0 ? 3 : 2));
 
       this.pickCallback_();
     },
@@ -85,7 +88,7 @@ define([
 
       this.paint(iVertsInRadius, picking.getIntersectionPoint(), picking.getLocalRadius2(), intensity);
 
-      this.mesh_.updateFlatShading(this.mesh_.getTrianglesFromVertices(iVertsInRadius));
+      this.mesh_.updateFlatShading(this.mesh_.getFacesFromVertices(iVertsInRadius));
     },
     /** Paint color vertices */
     paint: function (iVerts, center, radiusSquared, intensity) {

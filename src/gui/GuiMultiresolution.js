@@ -8,6 +8,7 @@ define([
     this.ctrlGui_ = ctrlGui;
     this.sculptgl_ = ctrlGui.sculptgl_; // main application
     this.ctrlResolution_ = null; // multiresolution controller
+    this.securityBelt_ = true; // security belt
     this.init(guiParent);
   }
 
@@ -34,6 +35,12 @@ define([
         window.alert('Select the highest resolution before subdividing.');
         return;
       }
+      if (this.securityBelt_ && mul.getNbTriangles() > 400000) {
+        window.alert('The next subdivision level will reach ' + mul.getNbFaces() * 4 + ' faces.\nIf you know what you are doing, click again on "subdivide".');
+        this.securityBelt_ = false;
+        return;
+      }
+      this.securityBelt_ = true;
       main.states_.pushState(new StateMultiresolution(mul, StateMultiresolution.SUBDIVISION));
       this.ctrlGui_.updateMeshInfo(mul.addLevel());
       this.updateMeshResolution(mul);

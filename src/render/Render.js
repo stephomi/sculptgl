@@ -99,9 +99,9 @@ define([
       this.shader_.setType(shaderType);
     },
     /** Update flat shading buffers */
-    updateFlatShading: function (iTris) {
+    updateFlatShading: function (iFaces) {
       if (this.isUsingDrawArrays())
-        this.mesh_.updateDrawArrays(this.getFlatShading(), iTris);
+        this.mesh_.updateDrawArrays(this.getFlatShading(), iFaces);
     },
     /** Initialize rendering */
     initRender: function () {
@@ -133,7 +133,7 @@ define([
     /** Updates index buffer */
     updateIndexBuffer: function () {
       if (!this.isUsingDrawArrays())
-        this.getIndexBuffer().update(this.mesh_.getRenderIndices());
+        this.getIndexBuffer().update(this.mesh_.getRenderTriangles());
     },
     /** Updates wireframe buffer */
     updateWireframeBuffer: function () {

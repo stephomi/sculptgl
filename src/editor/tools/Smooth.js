@@ -30,7 +30,7 @@ define([
       else
         this.smooth(iVertsInRadius, intensity);
 
-      this.mesh_.updateGeometry(this.mesh_.getTrianglesFromVertices(iVertsInRadius), iVertsInRadius);
+      this.mesh_.updateGeometry(this.mesh_.getFacesFromVertices(iVertsInRadius), iVertsInRadius);
     },
     /** Smooth a group of vertices. New position is given by simple averaging */
     smooth: function (iVerts, intensity) {
@@ -106,7 +106,7 @@ define([
     /** Laplacian smooth. Special rule for vertex on the edge of the mesh. */
     laplacianSmooth: function (iVerts, smoothVerts) {
       var mesh = this.mesh_;
-      var vrrStartCount = mesh.getVerticesRingVertStartCount();
+      var vrvStartCount = mesh.getVerticesRingVertStartCount();
       var vertRingVert = mesh.getVerticesRingVert();
       var vertOnEdge = mesh.getVerticesOnEdge();
       var vAr = mesh.getVertices();
@@ -114,8 +114,8 @@ define([
       for (var i = 0; i < nbVerts; ++i) {
         var i3 = i * 3;
         var id = iVerts[i];
-        var start = vrrStartCount[id * 2];
-        var end = start + vrrStartCount[id * 2 + 1];
+        var start = vrvStartCount[id * 2];
+        var end = start + vrvStartCount[id * 2 + 1];
         var avx = 0.0;
         var avy = 0.0;
         var avz = 0.0;

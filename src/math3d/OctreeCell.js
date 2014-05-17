@@ -8,13 +8,13 @@ define([], function () {
     this.children_ = []; // children
     // extended boundary for intersect test
     this.aabbLoose_ = [Infinity, Infinity, Infinity, -Infinity, -Infinity, -Infinity];
-    // boundary in order to store exactly the triangle according to their center
+    // boundary in order to store exactly the face according to their center
     this.aabbSplit_ = [Infinity, Infinity, Infinity, -Infinity, -Infinity, -Infinity];
-    this.iTris_ = []; //triangles (if cell is a leaf)
+    this.iFaces_ = []; // faces (if cell is a leaf)
   }
 
   OctreeCell.MAX_DEPTH = 8; // maximum depth
-  OctreeCell.MAX_TRIANGLES = 100; // maximum triangles per cell
+  OctreeCell.MAX_FACES = 100; // maximum faces per cell
   (function () {
     var nb = OctreeCell.MAX_DEPTH * OctreeCell.MAX_DEPTH + OctreeCell.MAX_DEPTH;
     var stack = OctreeCell.STACK = new Array(nb);
@@ -24,13 +24,13 @@ define([], function () {
 
   OctreeCell.prototype = {
     /** Subdivide octree, aabbSplit must be already set, and aabbLoose will be expanded if it's a leaf  */
-    build: function (mesh, iTris) {
+    build: function (mesh, iFaces) {
       var aabbLoose = this.aabbLoose_;
       var aabbSplit = this.aabbSplit_;
       var i = 0;
       for (i = 0; i < 6; ++i)
         aabbLoose[i] = aabbSplit[i];
-      this.iTris_ = iTris;
+      this.iFaces_ = iFaces;
 
       var stack = OctreeCell.STACK;
       stack[0] = this;
@@ -38,14 +38,14 @@ define([], function () {
       var leaves = [];
       while (curStack > 0) {
         var cell = stack[--curStack];
-        var nbTriangles = cell.iTris_.length;
-        if (nbTriangles > OctreeCell.MAX_TRIANGLES && cell.depth_ < OctreeCell.MAX_DEPTH) {
+        var nbFaces = cell.iFaces_.length;
+        if (nbFaces > OctreeCell.MAX_FACES && cell.depth_ < OctreeCell.MAX_DEPTH) {
           cell.constructChildren(mesh);
           var children = cell.children_;
           for (i = 0; i < 8; ++i)
             stack[curStack + i] = children[i];
           curStack += 8;
-        } else if (nbTriangles > 0) {
+        } else if (nbFaces > 0) {
           leaves.push(cell);
         }
       }
@@ -55,28 +55,28 @@ define([], function () {
     },
     /** Construct the leaf  */
     constructLeaf: function (mesh) {
-      var iTris = this.iTris_;
-      var nbTriangles = iTris.length;
+      var iFaces = this.iFaces_;
+      var nbFaces = iFaces.length;
       var bxmin = Infinity;
       var bymin = Infinity;
       var bzmin = Infinity;
       var bxmax = -Infinity;
       var bymax = -Infinity;
       var bzmax = -Infinity;
-      var triBoxes = mesh.getTriBoxes();
-      var triPosInLeaf = mesh.getTriPosInLeaf();
-      var triLeaf = mesh.getTriLeaf();
-      for (var i = 0; i < nbTriangles; ++i) {
-        var id = iTris[i];
-        triLeaf[id] = this;
-        triPosInLeaf[id] = i;
+      var faceBoxes = mesh.getFaceBoxes();
+      var facePosInLeaf = mesh.getFacePosInLeaf();
+      var faceLeaf = mesh.getFaceLeaf();
+      for (var i = 0; i < nbFaces; ++i) {
+        var id = iFaces[i];
+        faceLeaf[id] = this;
+        facePosInLeaf[id] = i;
         id *= 6;
-        var xmin = triBoxes[id];
-        var ymin = triBoxes[id + 1];
-        var zmin = triBoxes[id + 2];
-        var xmax = triBoxes[id + 3];
-        var ymax = triBoxes[id + 4];
-        var zmax = triBoxes[id + 5];
+        var xmin = faceBoxes[id];
+        var ymin = faceBoxes[id + 1];
+        var zmin = faceBoxes[id + 2];
+        var xmax = faceBoxes[id + 3];
+        var ymax = faceBoxes[id + 4];
+        var zmax = faceBoxes[id + 5];
         if (xmin < bxmin) bxmin = xmin;
         if (xmax > bxmax) bxmax = xmax;
         if (ymin < bymin) bymin = ymin;
@@ -111,47 +111,47 @@ define([], function () {
       var child6 = new OctreeCell(this);
       var child7 = new OctreeCell(this);
 
-      var iTris0 = child0.iTris_;
-      var iTris1 = child1.iTris_;
-      var iTris2 = child2.iTris_;
-      var iTris3 = child3.iTris_;
-      var iTris4 = child4.iTris_;
-      var iTris5 = child5.iTris_;
-      var iTris6 = child6.iTris_;
-      var iTris7 = child7.iTris_;
-      var triCenters = mesh.getTriCenters();
-      var iTris = this.iTris_;
-      var nbTriangles = iTris.length;
-      for (var i = 0; i < nbTriangles; ++i) {
-        var iTri = iTris[i];
-        var id = iTri * 3;
-        var cx = triCenters[id];
-        var cy = triCenters[id + 1];
-        var cz = triCenters[id + 2];
+      var iFaces0 = child0.iFaces_;
+      var iFaces1 = child1.iFaces_;
+      var iFaces2 = child2.iFaces_;
+      var iFaces3 = child3.iFaces_;
+      var iFaces4 = child4.iFaces_;
+      var iFaces5 = child5.iFaces_;
+      var iFaces6 = child6.iFaces_;
+      var iFaces7 = child7.iFaces_;
+      var faceCenters = mesh.getFaceCenters();
+      var iFaces = this.iFaces_;
+      var nbFaces = iFaces.length;
+      for (var i = 0; i < nbFaces; ++i) {
+        var iFace = iFaces[i];
+        var id = iFace * 3;
+        var cx = faceCenters[id];
+        var cy = faceCenters[id + 1];
+        var cz = faceCenters[id + 2];
 
         if (cx > xcen) {
           if (cy > ycen) {
             if (cz > zcen)
-              iTris6.push(iTri);
+              iFaces6.push(iFace);
             else
-              iTris5.push(iTri);
+              iFaces5.push(iFace);
           } else {
             if (cz > zcen)
-              iTris2.push(iTri);
+              iFaces2.push(iFace);
             else
-              iTris1.push(iTri);
+              iFaces1.push(iFace);
           }
         } else {
           if (cy > ycen) {
             if (cz > zcen)
-              iTris7.push(iTri);
+              iFaces7.push(iFace);
             else
-              iTris4.push(iTri);
+              iFaces4.push(iFace);
           } else {
             if (cz > zcen)
-              iTris3.push(iTri);
+              iFaces3.push(iFace);
             else
-              iTris0.push(iTri);
+              iFaces0.push(iFace);
           }
         }
       }
@@ -166,7 +166,7 @@ define([], function () {
 
       this.children_.length = 0;
       this.children_.push(child0, child1, child2, child3, child4, child5, child6, child7);
-      iTris.length = 0;
+      iFaces.length = 0;
     },
     setAabbSplit: function (xmin, ymin, zmin, xmax, ymax, zmax) {
       var aabb = this.aabbSplit_;
@@ -177,8 +177,8 @@ define([], function () {
       aabb[4] = ymax;
       aabb[5] = zmax;
     },
-    /** Collect triangles in cells hit by a ray */
-    collectIntersectRay: function (vNear, eyeDir, collectTris) {
+    /** Collect faces in cells hit by a ray */
+    collectIntersectRay: function (vNear, eyeDir, collectFaces) {
       var vx = vNear[0];
       var vy = vNear[1];
       var vz = vNear[2];
@@ -209,15 +209,15 @@ define([], function () {
             stack[curStack + i] = children[i];
           curStack += 8;
         } else {
-          var iTris = cell.iTris_;
-          collectTris.set(iTris, acc);
-          acc += iTris.length;
+          var iFaces = cell.iFaces_;
+          collectFaces.set(iFaces, acc);
+          acc += iFaces.length;
         }
       }
-      return new Uint32Array(collectTris.subarray(0, acc));
+      return new Uint32Array(collectFaces.subarray(0, acc));
     },
-    /** Collect triangles inside a sphere */
-    collectIntersectSphere: function (vert, radiusSquared, leavesHit, collectTris) {
+    /** Collect faces inside a sphere */
+    collectIntersectSphere: function (vert, radiusSquared, leavesHit, collectFaces) {
       var vx = vert[0];
       var vy = vert[1];
       var vz = vert[2];
@@ -255,15 +255,15 @@ define([], function () {
           curStack += 8;
         } else {
           leavesHit.push(cell);
-          var iTris = cell.iTris_;
-          collectTris.set(iTris, acc);
-          acc += iTris.length;
+          var iFaces = cell.iFaces_;
+          collectFaces.set(iFaces, acc);
+          acc += iFaces.length;
         }
       }
-      return new Uint32Array(collectTris.subarray(0, acc));
+      return new Uint32Array(collectFaces.subarray(0, acc));
     },
-    /** Add triangle in the octree, subdivide the cell if necessary */
-    addTriangle: function (triId, aabb, center) {
+    /** Add a face in the octree, subdivide the cell if necessary */
+    addFace: function (faceId, aabb, center) {
       var cx = center[0];
       var cy = center[1];
       var cz = center[2];
@@ -287,7 +287,7 @@ define([], function () {
         if (cy > split[4]) continue;
         if (cz > split[5]) continue;
         var loose = cell.aabbLoose_;
-        // expands cell aabb loose with aabb tri
+        // expands cell aabb loose with aabb face
         if (bxmin < loose[0]) loose[0] = bxmin;
         if (bymin < loose[1]) loose[1] = bymin;
         if (bzmin < loose[2]) loose[2] = bzmin;
@@ -300,7 +300,7 @@ define([], function () {
             stack[curStack + i] = children[i];
           curStack += 8;
         } else {
-          cell.iTris_.push(triId);
+          cell.iFaces_.push(faceId);
           return cell;
         }
       }
@@ -321,7 +321,7 @@ define([], function () {
         var pushParent = true;
         for (var i = 0; i < 8; ++i) {
           var child = children[i];
-          if (child.iTris_.length > 0 || child.children_.length === 8) {
+          if (child.iFaces_.length > 0 || child.children_.length === 8) {
             pushParent = false;
             break;
           }

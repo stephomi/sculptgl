@@ -66,7 +66,7 @@ define([
 
       this.scale(iVertsInRadius, picking.getIntersectionPoint(), picking.getLocalRadius2(), delta);
 
-      this.mesh_.updateGeometry(this.mesh_.getTrianglesFromVertices(iVertsInRadius), iVertsInRadius);
+      this.mesh_.updateGeometry(this.mesh_.getFacesFromVertices(iVertsInRadius), iVertsInRadius);
     },
     /** Scale the vertices around the mouse point intersection */
     scale: function (iVerts, center, radiusSquared, intensity) {

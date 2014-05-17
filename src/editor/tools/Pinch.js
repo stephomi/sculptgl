@@ -27,7 +27,7 @@ define([
 
       this.pinch(iVertsInRadius, picking.getIntersectionPoint(), picking.getLocalRadius2(), intensity);
 
-      this.mesh_.updateGeometry(this.mesh_.getTrianglesFromVertices(iVertsInRadius), iVertsInRadius);
+      this.mesh_.updateGeometry(this.mesh_.getFacesFromVertices(iVertsInRadius), iVertsInRadius);
     },
     /** Pinch, vertices gather around intersection point */
     pinch: function (iVertsInRadius, center, radiusSquared, intensity) {

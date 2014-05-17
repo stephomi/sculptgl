@@ -9,17 +9,17 @@ define([
     this.mesh_ = mesh; // the mesh
     this.root_ = null; // root octree cell
 
-    this.triPosInLeaf_ = null; // position index in the leaf (Uint32Array)
-    this.triLeaf_ = []; // octree leaf
+    this.facePosInLeaf_ = null; // position index in the leaf (Uint32Array)
+    this.faceLeaf_ = []; // octree leaf
     this.leavesUpdate_ = []; // leaves of the octree to check
   }
 
   Octree.prototype = {
-    getTriPosInLeaf: function () {
-      return this.triPosInLeaf_;
+    getFacePosInLeaf: function () {
+      return this.facePosInLeaf_;
     },
-    getTriLeaf: function () {
-      return this.triLeaf_;
+    getFaceLeaf: function () {
+      return this.faceLeaf_;
     },
     getLeavesUpdate: function () {
       return this.leavesUpdate_;
@@ -28,32 +28,32 @@ define([
       return this.root_.aabbSplit_;
     },
     allocateArrays: function () {
-      var nbTriangles = this.mesh_.getNbTriangles();
-      this.triPosInLeaf_ = new Uint32Array(nbTriangles);
-      var triLeaf = this.triLeaf_;
-      triLeaf.length = nbTriangles;
-      for (var i = 0; i < nbTriangles; ++i)
-        triLeaf[i] = null;
+      var nbFaces = this.mesh_.getNbFaces();
+      this.facePosInLeaf_ = new Uint32Array(nbFaces);
+      var faceLeaf = this.faceLeaf_;
+      faceLeaf.length = nbFaces;
+      for (var i = 0; i < nbFaces; ++i)
+        faceLeaf[i] = null;
     },
-    /** Return triangles intersected by a ray */
+    /** Return faces intersected by a ray */
     intersectRay: function (vNear, eyeDir, hint) {
-      var collectTris = new Uint32Array(Utils.getMemory(hint * 4), 0, hint);
-      return this.root_.collectIntersectRay(vNear, eyeDir, collectTris);
+      var collectFaces = new Uint32Array(Utils.getMemory(hint * 4), 0, hint);
+      return this.root_.collectIntersectRay(vNear, eyeDir, collectFaces);
     },
-    /** Return triangles inside a sphere */
+    /** Return faces inside a sphere */
     intersectSphere: function (vert, radiusSquared, leavesHit, hint) {
-      var collectTris = new Uint32Array(Utils.getMemory(hint * 4), 0, hint);
-      return this.root_.collectIntersectSphere(vert, radiusSquared, leavesHit, collectTris);
+      var collectFaces = new Uint32Array(Utils.getMemory(hint * 4), 0, hint);
+      return this.root_.collectIntersectSphere(vert, radiusSquared, leavesHit, collectFaces);
     },
     /**
      * Update Octree
-     * For each triangle we check if its position inside the octree has changed
-     * if so... we mark this triangle and we remove it from its former cells
-     * We push back the marked triangles into the octree
+     * For each faces we check if its position inside the octree has changed
+     * if so... we mark this face and we remove it from its former cells
+     * We push back the marked faces into the octree
      */
-    updateOctree: function (iTris) {
-      if (iTris)
-        this.updateOctreeAdd(this.updateOctreeRemove(iTris));
+    updateOctree: function (iFaces) {
+      if (iFaces)
+        this.updateOctreeAdd(this.updateOctreeRemove(iFaces));
       else
         this.computeOctree(undefined, 0.3);
       this.mesh_.computeCenter();
@@ -124,60 +124,60 @@ define([
       }
 
       // octree construction
-      var nbTriangles = mesh.getNbTriangles();
-      var trianglesAll = [];
-      trianglesAll.length = nbTriangles;
-      for (var i = 0; i < nbTriangles; ++i)
-        trianglesAll[i] = i;
+      var nbFaces = mesh.getNbFaces();
+      var facesAll = [];
+      facesAll.length = nbFaces;
+      for (var i = 0; i < nbFaces; ++i)
+        facesAll[i] = i;
       this.root_ = new OctreeCell();
       this.root_.setAabbSplit(xmin, ymin, zmin, xmax, ymax, zmax);
-      this.root_.build(mesh, trianglesAll);
+      this.root_.build(mesh, facesAll);
     },
-    updateOctreeRemove: function (iTris) {
+    updateOctreeRemove: function (iFaces) {
       var mesh = this.mesh_;
-      var triCenters = mesh.getTriCenters();
-      var tboxes = mesh.getTriBoxes();
-      var triPosInLeaf = this.triPosInLeaf_;
-      var triLeaf = this.triLeaf_;
-      var nbTris = iTris.length;
+      var faceCenters = mesh.getFaceCenters();
+      var fboxes = mesh.getFaceBoxes();
+      var facePosInLeaf = this.facePosInLeaf_;
+      var faceLeaf = this.faceLeaf_;
+      var nbFaces = iFaces.length;
       var acc = 0;
-      var trisToMove = new Uint32Array(Utils.getMemory(4 * nbTris), 0, nbTris);
+      var facesToMove = new Uint32Array(Utils.getMemory(4 * nbFaces), 0, nbFaces);
       // recompute position inside the octree
-      for (var i = 0; i < nbTris; ++i) {
-        var idTri = iTris[i];
-        var idb = idTri * 6;
-        var idCen = idTri * 3;
-        var leaf = triLeaf[idTri];
+      for (var i = 0; i < nbFaces; ++i) {
+        var idFace = iFaces[i];
+        var idb = idFace * 6;
+        var idCen = idFace * 3;
+        var leaf = faceLeaf[idFace];
         var ab = leaf.aabbSplit_;
 
-        var vx = triCenters[idCen];
-        var vy = triCenters[idCen + 1];
-        var vz = triCenters[idCen + 2];
+        var vx = faceCenters[idCen];
+        var vy = faceCenters[idCen + 1];
+        var vz = faceCenters[idCen + 2];
 
         if (vx <= ab[0] || vy <= ab[1] || vz <= ab[2] || vx > ab[3] || vy > ab[4] || vz > ab[5]) {
-          // a triangle center has moved from its cell
-          trisToMove[acc++] = iTris[i];
-          var trisInLeaf = leaf.iTris_;
-          if (trisInLeaf.length > 0) { // remove tris from octree cell
-            var iTriLast = trisInLeaf[trisInLeaf.length - 1];
-            var iPos = triPosInLeaf[idTri];
-            trisInLeaf[iPos] = iTriLast;
-            triPosInLeaf[iTriLast] = iPos;
-            trisInLeaf.pop();
+          // a face center has moved from its cell
+          facesToMove[acc++] = iFaces[i];
+          var facesInLeaf = leaf.iFaces_;
+          if (facesInLeaf.length > 0) { // remove faces from octree cell
+            var iFaceLast = facesInLeaf[facesInLeaf.length - 1];
+            var iPos = facePosInLeaf[idFace];
+            facesInLeaf[iPos] = iFaceLast;
+            facePosInLeaf[iFaceLast] = iPos;
+            facesInLeaf.pop();
           }
         } else { // expands cell aabb loose if necessary
-          leaf.expandsAabbLoose(tboxes[idb], tboxes[idb + 1], tboxes[idb + 2], tboxes[idb + 3], tboxes[idb + 4], tboxes[idb + 5]);
+          leaf.expandsAabbLoose(fboxes[idb], fboxes[idb + 1], fboxes[idb + 2], fboxes[idb + 3], fboxes[idb + 4], fboxes[idb + 5]);
         }
       }
-      return new Uint32Array(trisToMove.subarray(0, acc));
+      return new Uint32Array(facesToMove.subarray(0, acc));
     },
-    updateOctreeAdd: function (trisToMove) {
+    updateOctreeAdd: function (facesToMove) {
       var mesh = this.mesh_;
-      var triCenters = mesh.getTriCenters();
-      var triBoxes = mesh.getTriBoxes();
-      var triPosInLeaf = this.triPosInLeaf_;
-      var triLeaf = this.triLeaf_;
-      var nbTrisToMove = trisToMove.length;
+      var faceCenters = mesh.getFaceCenters();
+      var faceBoxes = mesh.getFaceBoxes();
+      var facePosInLeaf = this.facePosInLeaf_;
+      var faceLeaf = this.faceLeaf_;
+      var nbFacesToMove = facesToMove.length;
 
       var root = this.root_;
       var rootLoose = root.aabbLoose_;
@@ -187,28 +187,28 @@ define([
       var xmax = rootLoose[3];
       var ymax = rootLoose[4];
       var zmax = rootLoose[5];
-      for (var i = 0; i < nbTrisToMove; ++i) { // add triangle to the octree
-        var idTri = trisToMove[i];
-        var idCen = idTri * 3;
-        var idBox = idTri * 6;
-        var tc = triCenters.subarray(idCen, idCen + 3);
-        var tb = triBoxes.subarray(idBox, idBox + 6);
-        if (tb[0] > xmax || tb[3] < xmin || tb[1] > ymax || tb[4] < ymin || tb[2] > zmax || tb[5] < zmin) {
-          // a triangle is outside the root node
+      for (var i = 0; i < nbFacesToMove; ++i) { // add face to the octree
+        var idFace = facesToMove[i];
+        var idCen = idFace * 3;
+        var idBox = idFace * 6;
+        var fc = faceCenters.subarray(idCen, idCen + 3);
+        var fb = faceBoxes.subarray(idBox, idBox + 6);
+        if (fb[0] > xmax || fb[3] < xmin || fb[1] > ymax || fb[4] < ymin || fb[2] > zmax || fb[5] < zmin) {
+          // a face is outside the root node
           // we reconstruct the whole octree, slow... but rare
           this.computeOctree(undefined, 0.3);
           this.leavesUpdate_.length = 0;
           break;
         } else {
-          var leaf = triLeaf[idTri];
-          var newleaf = root.addTriangle(idTri, tb, tc);
+          var leaf = faceLeaf[idFace];
+          var newleaf = root.addFace(idFace, fb, fc);
           if (newleaf) {
-            triPosInLeaf[idTri] = newleaf.iTris_.length - 1;
-            triLeaf[idTri] = newleaf;
-          } else { // failed to insert tri in octree, re-insert it back
-            var trisLeaf = leaf.iTris_;
-            triPosInLeaf[idTri] = trisLeaf.length;
-            trisLeaf.push(trisToMove[i]);
+            facePosInLeaf[idFace] = newleaf.iFaces_.length - 1;
+            faceLeaf[idFace] = newleaf;
+          } else { // failed to insert face in octree, re-insert it back
+            var facesInLeaf = leaf.iFaces_;
+            facePosInLeaf[idFace] = facesInLeaf.length;
+            facesInLeaf.push(facesToMove[i]);
           }
         }
       }
@@ -219,16 +219,16 @@ define([
       var leavesUpdate = this.leavesUpdate_;
       var nbLeaves = leavesUpdate.length;
       var cutLeaves = [];
-      var maxTriangles = OctreeCell.MAX_TRIANGLES;
+      var maxFaces = OctreeCell.MAX_FACES;
       var maxDepth = OctreeCell.MAX_DEPTH;
       for (var i = 0; i < nbLeaves; ++i) {
         var leaf = leavesUpdate[i];
         if (leaf === null)
           break;
-        if (!leaf.iTris_.length)
+        if (!leaf.iFaces_.length)
           leaf.checkEmptiness(cutLeaves);
-        else if (leaf.iTris_.length > maxTriangles && leaf.depth_ < maxDepth)
-          leaf.build(this.mesh_, leaf.iTris_);
+        else if (leaf.iFaces_.length > maxFaces && leaf.depth_ < maxDepth)
+          leaf.build(this.mesh_, leaf.iFaces_);
       }
       this.leavesUpdate_.length = 0;
     }

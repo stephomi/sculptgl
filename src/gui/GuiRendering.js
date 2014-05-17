@@ -11,7 +11,7 @@ define([
 
     // ui info
     this.ctrlNbVertices_ = null; // display number of vertices controller
-    this.ctrlNbTriangles_ = null; // display number of triangles controller
+    this.ctrlNbFaces_ = null; // display number of faces controller
 
     // ui shading
     this.ctrlFlatShading_ = null; // flat shading controller
@@ -38,7 +38,7 @@ define([
       // mesh fold
       var foldMesh = guiParent.addFolder('Mesh');
       this.ctrlNbVertices_ = foldMesh.add(dummy, 'func_').name('Ver : 0');
-      this.ctrlNbTriangles_ = foldMesh.add(dummy, 'func_').name('Tri : 0');
+      this.ctrlNbFaces_ = foldMesh.add(dummy, 'func_').name('Faces : 0');
       var optionsShaders = {
         'Matcap': Shader.mode.MATCAP,
         'Phong': Shader.mode.PHONG,
@@ -100,10 +100,10 @@ define([
       this.ctrlMatcap_.updateDisplay();
       this.updateMeshInfo(mesh);
     },
-    /** Update number of vertices and triangles */
+    /** Update number of vertices and faces */
     updateMeshInfo: function (mesh) {
       this.ctrlNbVertices_.name('Ver : ' + mesh.getNbVertices());
-      this.ctrlNbTriangles_.name('Tri : ' + mesh.getNbTriangles());
+      this.ctrlNbFaces_.name('Faces : ' + mesh.getNbFaces());
     },
     /** Return true if flat shading is enabled */
     getFlatShading: function () {

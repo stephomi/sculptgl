@@ -9,12 +9,11 @@ define([
   /** Import OBJ file */
   Import.importOBJ = function (data, mesh) {
     var vAr = [];
-    var iAr = [];
+    var fAr = [];
     var nbVertices = 0;
     var lines = data.split('\n');
     var split = [];
     var nbLength = lines.length;
-    var nbTriangles = 0;
     for (var i = 0; i < nbLength; ++i) {
       var line = lines[i].trim();
       if (line.startsWith('v ')) {
@@ -23,43 +22,30 @@ define([
         ++nbVertices;
       } else if (line.startsWith('f ')) {
         split = line.split(/\s+/);
-        var split1 = split[1].split('/'),
-          split2 = split[2].split('/'),
-          split3 = split[3].split('/');
-        var iv1 = parseInt(split1[0], 10);
-        var iv2 = parseInt(split2[0], 10);
-        var iv3 = parseInt(split3[0], 10);
-
-        if (iv1 < 0) {
-          iv1 += nbVertices;
-          iv2 += nbVertices;
-          iv3 += nbVertices;
-        } else {
-          --iv1;
-          --iv2;
-          --iv3;
-        }
-        iAr.push(iv1, iv2, iv3);
-        ++nbTriangles;
-        // quad to triangle...
-        if (split.length > 4) {
-          var iv4 = parseInt(split[4].split('/')[0], 10);
-          if (iv4 < 0)
-            iv4 += nbVertices;
-          else --iv4;
-          iAr.push(iv1, iv3, iv4);
-          ++nbTriangles;
-        }
+        var iv1 = parseInt(split[1].split('/')[0], 10);
+        var iv2 = parseInt(split[2].split('/')[0], 10);
+        var iv3 = parseInt(split[3].split('/')[0], 10);
+        var isQuad = split.length > 4;
+        var iv4 = isQuad ? parseInt(split[4].split('/')[0], 10) : undefined;
+        if (isQuad && (iv4 === iv1 || iv4 === iv2 || iv4 === iv3))
+          continue;
+        if (iv1 === iv2 || iv1 === iv3 || iv2 === iv3)
+          continue;
+        iv1 = iv1 < 0 ? iv1 + nbVertices : iv1 - 1;
+        iv2 = iv2 < 0 ? iv2 + nbVertices : iv2 - 1;
+        iv3 = iv3 < 0 ? iv3 + nbVertices : iv3 - 1;
+        if (isQuad) iv4 = iv4 < 0 ? iv4 + nbVertices : iv4 - 1;
+        fAr.push(iv1, iv2, iv3, isQuad ? iv4 : -1);
       }
     }
     mesh.setVertices(new Float32Array(vAr));
-    mesh.setIndices(new Uint32Array(iAr));
+    mesh.setFaces(new Int32Array(fAr));
   };
 
   /** Import PLY file */
   Import.importPLY = function (buffer, mesh) {
     var data = Utils.ab2str(buffer);
-    var vAr, cAr, iAr;
+    var vAr, cAr, fAr;
     var lines = data.split('\n');
     var split = [];
     var nbVertices = -1;
@@ -104,24 +90,24 @@ define([
         ++i;
         vAr = new Float32Array(nbVertices * 3);
         cAr = colorIndex !== -1 ? new Float32Array(nbVertices * 3) : null;
-        iAr = new Uint32Array(nbFaces * 4);
-        var offsetTri = 0;
+        fAr = new Int32Array(nbFaces * 4);
+        var offsetFace = 0;
         if (isBinary)
-          offsetTri = Import.importBinaryPLY(buffer, offsetData + i, offsetVertex, vAr, iAr, cAr, colorIndex);
+          offsetFace = Import.importBinaryPLY(buffer, offsetData + i, offsetVertex, vAr, fAr, cAr, colorIndex);
         else
-          offsetTri = Import.importAsciiPLY(lines, i, vAr, iAr, cAr, colorIndex);
-        iAr = iAr.subarray(0, offsetTri);
+          offsetFace = Import.importAsciiPLY(lines, i, vAr, fAr, cAr, colorIndex);
+        fAr = fAr.subarray(0, offsetFace);
         break;
       }
       ++i;
     }
     mesh.setVertices(vAr);
-    mesh.setIndices(iAr);
+    mesh.setFaces(fAr);
     mesh.setColors(cAr);
   };
 
   /** Import binary PLY file */
-  Import.importBinaryPLY = function (buffer, offData, offVert, vAr, iAr, cAr, colorIndex) {
+  Import.importBinaryPLY = function (buffer, offData, offVert, vAr, fAr, cAr, colorIndex) {
     var data = new Uint8Array(buffer);
     var nbVertices = vAr.length / 3;
     var vb = new Uint8Array(nbVertices * 12);
@@ -144,33 +130,25 @@ define([
     }
     vAr.set(new Float32Array(vb.buffer));
 
-    var nbFaces = iAr.length / 4;
-    var ib = new Uint8Array(nbFaces * 16);
+    var nbFaces = fAr.length / 4;
+    var ib = new Int8Array(nbFaces * 16);
     var idt = 0;
     for (i = 0; i < nbFaces; ++i) {
       var pol = data[offData++];
-      if (pol === 3) {
-        for (inc = 0; inc < 12; ++inc) {
+      var nb = pol * 4;
+      if (pol === 3 || pol === 4) {
+        for (inc = 0; inc < nb; ++inc) {
           ib[idt++] = data[offData++];
         }
-      } else if (pol === 4) {
-        ib[idt++] = data[offData - 12];
-        ib[idt++] = data[offData - 11];
-        ib[idt++] = data[offData - 10];
-        ib[idt++] = data[offData - 9];
-
-        ib[idt++] = data[offData - 4];
-        ib[idt++] = data[offData - 3];
-        ib[idt++] = data[offData - 2];
-        ib[idt++] = data[offData - 1];
-
-        ib[idt++] = data[offData++];
-        ib[idt++] = data[offData++];
-        ib[idt++] = data[offData++];
-        ib[idt++] = data[offData++];
+        if (pol === 3) {
+          ib[idt++] = -1;
+          ib[idt++] = -1;
+          ib[idt++] = -1;
+          ib[idt++] = -1;
+        }
       }
     }
-    iAr.set(new Uint32Array(ib.buffer));
+    fAr.set(new Int32Array(ib.buffer));
     return idt / 4;
   };
 
@@ -201,19 +179,11 @@ define([
       split = lines[i].trim().split(/\s+/);
       var nbVert = parseInt(split[0], 10);
       if (nbVert === 3 || nbVert === 4) {
-        var iv1 = parseInt(split[1], 10);
-        var iv2 = parseInt(split[2], 10);
-        var iv3 = parseInt(split[3], 10);
-        iAr[id] = iv1;
-        iAr[id + 1] = iv2;
-        iAr[id + 2] = iv3;
-        id += 3;
-        if (nbVert === 4) {
-          iAr[id] = iv1;
-          iAr[id + 1] = iv3;
-          iAr[id + 2] = parseInt(split[4], 10);
-          id += 3;
-        }
+        iAr[id] = parseInt(split[1], 10);
+        iAr[id + 1] = parseInt(split[2], 10);
+        iAr[id + 2] = parseInt(split[3], 10);
+        iAr[id + 3] = nbVert === 4 ? parseInt(split[4], 10) : -1;
+        id += 4;
       }
     }
     return id;
@@ -227,16 +197,17 @@ define([
     nbTriangles = vb.length / 9;
     var mapVertices = {};
     var nbVertices = [0];
-    var iAr = new Uint32Array(nbTriangles * 3);
+    var iAr = new Int32Array(nbTriangles * 4);
     for (var i = 0; i < nbTriangles; ++i) {
-      var idt = i * 3;
+      var idt = i * 4;
       var idv = i * 9;
       iAr[idt] = Import.detectNewVertex(mapVertices, vb, idv, nbVertices);
       iAr[idt + 1] = Import.detectNewVertex(mapVertices, vb, idv + 3, nbVertices);
       iAr[idt + 2] = Import.detectNewVertex(mapVertices, vb, idv + 6, nbVertices);
+      iAr[idt + 3] = -1;
     }
     mesh.setVertices(vb.subarray(0, nbVertices[0] * 3));
-    mesh.setIndices(iAr);
+    mesh.setFaces(iAr);
   };
 
   /** Check if the vertex already exists */

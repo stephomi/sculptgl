@@ -97,7 +97,7 @@ define([
     },
     /** Apply back the detail vectors */
     applyDetails: function () {
-      var vrrStartCountUp = this.getVerticesRingVertStartCount();
+      var vrvStartCountUp = this.getVerticesRingVertStartCount();
       var vertRingVertUp = this.getVerticesRingVert();
       var vArUp = this.getVertices();
       var nArUp = this.getNormals();
@@ -127,7 +127,7 @@ define([
         nz *= len;
 
         // tangent vec (vertex neighbor - vertex)
-        var k = vertRingVertUp[vrrStartCountUp[i * 2]] * 3;
+        var k = vertRingVertUp[vrvStartCountUp[i * 2]] * 3;
         var tx = vArUp[k] - vx;
         var ty = vArUp[k + 1] - vy;
         var tz = vArUp[k + 2] - vz;
@@ -166,7 +166,7 @@ define([
     },
     /** Compute the detail vectors */
     computeDetails: function (subdVerts, subdColors) {
-      var vrrStartCountUp = this.getVerticesRingVertStartCount();
+      var vrvStartCountUp = this.getVerticesRingVertStartCount();
       var vertRingVertUp = this.getVerticesRingVert();
       var vArUp = this.getVertices();
       var nArUp = this.getNormals();
@@ -192,7 +192,7 @@ define([
         nz *= len;
 
         // tangent vec (vertex neighbor - vertex)
-        var k = vertRingVertUp[vrrStartCountUp[i * 2]] * 3;
+        var k = vertRingVertUp[vrvStartCountUp[i * 2]] * 3;
         var tx = subdVerts[k] - subdVerts[j];
         var ty = subdVerts[k + 1] - subdVerts[j + 1];
         var tz = subdVerts[k + 2] - subdVerts[j + 2];

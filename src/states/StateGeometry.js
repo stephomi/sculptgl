@@ -15,7 +15,7 @@ define([
     undo: function () {
       this.pullState();
       var mesh = this.mesh_;
-      mesh.updateGeometry(mesh.getTrianglesFromVertices(this.idVertState_), this.idVertState_);
+      mesh.updateGeometry(mesh.getFacesFromVertices(this.idVertState_), this.idVertState_);
       mesh.updateGeometryBuffers();
     },
     /** On redo */

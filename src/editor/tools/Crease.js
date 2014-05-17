@@ -32,7 +32,7 @@ define([
         return;
       this.crease(iVertsInRadius, aNormal, picking.getIntersectionPoint(), picking.getLocalRadius2(), intensity);
 
-      this.mesh_.updateGeometry(this.mesh_.getTrianglesFromVertices(iVertsInRadius), iVertsInRadius);
+      this.mesh_.updateGeometry(this.mesh_.getFacesFromVertices(iVertsInRadius), iVertsInRadius);
     },
     /** Pinch+brush-like sculpt */
     crease: function (iVertsInRadius, aNormal, center, radiusSquared, intensity) {

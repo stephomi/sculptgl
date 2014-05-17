@@ -26,23 +26,35 @@ define([], function () {
         cdw = this.drawElementsWireframe_ = new Uint32Array(nbEdges * 2);
       }
 
-      var iAr = mesh.getIndices();
-      var teAr = mesh.getTriEdges();
-      var nbTriangles = mesh.getNbTriangles();
+      var fAr = mesh.getFaces();
+      var feAr = mesh.getFaceEdges();
+      var nbFaces = mesh.getNbFaces();
+      var facesToTris = mesh.getFacesToTriangles();
 
       var nbLines = 0;
       var tagEdges = new Int32Array(nbEdges);
 
-      for (var i = 0; i < nbTriangles; ++i) {
-        var id = i * 3;
+      for (var i = 0; i < nbFaces; ++i) {
+        var id = i * 4;
 
-        var iv1 = useDrawArrays ? id : iAr[id];
-        var iv2 = useDrawArrays ? id + 1 : iAr[id + 1];
-        var iv3 = useDrawArrays ? id + 2 : iAr[id + 2];
+        var iv1, iv2, iv3;
+        var iv4 = fAr[id + 3];
+        if (useDrawArrays) {
+          var idTri = facesToTris[i] * 3;
+          iv1 = idTri;
+          iv2 = idTri + 1;
+          iv3 = idTri + 2;
+          if (iv4 >= 0) iv4 = idTri + 5;
+        } else {
+          iv1 = fAr[id];
+          iv2 = fAr[id + 1];
+          iv3 = fAr[id + 2];
+        }
 
-        var ide1 = teAr[id];
-        var ide2 = teAr[id + 1];
-        var ide3 = teAr[id + 2];
+        var ide1 = feAr[id];
+        var ide2 = feAr[id + 1];
+        var ide3 = feAr[id + 2];
+        var ide4 = feAr[id + 3];
 
         if (tagEdges[ide1] === 0) {
           tagEdges[ide1] = 1;
@@ -59,6 +71,12 @@ define([], function () {
         if (tagEdges[ide3] === 0) {
           tagEdges[ide3] = 1;
           cdw[nbLines * 2] = iv3;
+          cdw[nbLines * 2 + 1] = iv4 < 0 ? iv1 : iv4;
+          nbLines++;
+        }
+        if (iv4 >= 0 && tagEdges[ide4] === 0) {
+          tagEdges[ide4] = 1;
+          cdw[nbLines * 2] = iv4;
           cdw[nbLines * 2 + 1] = iv1;
           nbLines++;
         }

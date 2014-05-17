@@ -76,7 +76,7 @@ define([
 
       this.drag(iVertsInRadius, picking.getIntersectionPoint(), picking.getLocalRadius2(), sym);
 
-      this.mesh_.updateGeometry(this.mesh_.getTrianglesFromVertices(iVertsInRadius), iVertsInRadius);
+      this.mesh_.updateGeometry(this.mesh_.getFacesFromVertices(iVertsInRadius), iVertsInRadius);
     },
     /** Drag deformation */
     drag: function (iVerts, center, radiusSquared, sym) {

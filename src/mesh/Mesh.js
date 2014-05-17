@@ -41,8 +41,8 @@ define([
     getRenderColors: function (useDrawArrays) {
       return useDrawArrays ? this.getDrawArraysData().colorsRGB_ : this.getColors();
     },
-    getRenderIndices: function () {
-      return this.getIndices();
+    getRenderTriangles: function () {
+      return this.getTriangles();
     },
     getRenderNbTriangles: function () {
       return this.getNbTriangles();
@@ -60,16 +60,17 @@ define([
     },
     /** Init topoloy stuffs */
     initTopology: function () {
-      this.initTriangleRings();
+      this.initFaceRings();
       this.initEdges();
       this.initVertexRings();
+      this.initRenderTriangles();
     },
     /** Updates the mesh Geometry */
-    updateGeometry: function (iTris, iVerts) {
-      this.updateTrianglesAabbAndNormal(iTris);
+    updateGeometry: function (iFaces, iVerts) {
+      this.updateFacesAabbAndNormal(iFaces);
       this.updateVerticesNormal(iVerts);
-      this.updateOctree(iTris);
-      this.updateFlatShading(iTris);
+      this.updateOctree(iFaces);
+      this.updateFlatShading(iFaces);
     },
     /** Allocate arrays, except for : coordinates, primitives, edges, wireframe, drawArrays, details */
     allocateArrays: function () {

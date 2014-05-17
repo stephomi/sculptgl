@@ -13,7 +13,7 @@ define([
 
   function Picking(camera) {
     this.mesh_ = null; // mesh
-    this.pickedTriangle_ = -1; // triangle picked
+    this.pickedFace_ = -1; // face picked
     this.pickedVertices_ = []; // vertices selected
     this.interPoint_ = [0.0, 0.0, 0.0]; // intersection point
     this.rDisplay_ = 50.0; // radius of the selection area (screen space)
@@ -48,8 +48,8 @@ define([
     getPickedVertices: function () {
       return this.pickedVertices_;
     },
-    getPickedTriangle: function () {
-      return this.pickedTriangle_;
+    getPickedFace: function () {
+      return this.pickedFace_;
     },
     /** Intersection between a ray the mouse position for every meshes */
     intersectionMouseMeshes: (function () {
@@ -62,7 +62,7 @@ define([
         var vFar = this.camera_.unproject(mouseX, mouseY, 1.0);
         var nearDistance = Infinity;
         var nearMesh = null;
-        var nearTriangle = -1;
+        var nearFace = -1;
         for (var i = 0, nbMeshes = meshes.length; i < nbMeshes; ++i) {
           var mesh = meshes[i];
           mat4.invert(matInverse, mesh.getMatrix());
@@ -77,13 +77,13 @@ define([
             nearDistance = testDistance;
             nearMesh = mesh;
             vec3.copy(nearPoint, interTest);
-            nearTriangle = this.getPickedTriangle();
+            nearFace = this.getPickedFace();
           }
         }
         this.mesh_ = nearMesh;
         vec3.copy(this.interPoint_, nearPoint);
-        this.pickedTriangle_ = nearTriangle;
-        if (nearTriangle !== -1)
+        this.pickedFace_ = nearFace;
+        if (nearFace !== -1)
           this.computeRadiusWorld2(mouseX, mouseY);
       };
     })(),
@@ -108,7 +108,7 @@ define([
       return function (mesh, vNearOrig, vFarOrig, mouseX, mouseY, useSymmetry) {
         // resest picking
         this.mesh_ = null;
-        this.pickedTriangle_ = -1;
+        this.pickedFace_ = -1;
         // resest picking
         vec3.copy(vNear, vNearOrig);
         vec3.copy(vFar, vFarOrig);
@@ -120,19 +120,19 @@ define([
           Geometry.mirrorPoint(vFar, ptPlane, nPlane);
         }
         var vAr = mesh.getVertices();
-        var iAr = mesh.getIndices();
+        var fAr = mesh.getFaces();
         // compute eye direction
         var eyeDir = this.getEyeDirection();
         vec3.sub(eyeDir, vFar, vNear);
         vec3.normalize(eyeDir, eyeDir);
-        var iTrisCandidates = mesh.intersectRay(vNear, eyeDir, mesh.getNbTriangles());
+        var iFacesCandidates = mesh.intersectRay(vNear, eyeDir, mesh.getNbFaces());
         var distance = Infinity;
-        var nbTrisCandidates = iTrisCandidates.length;
-        for (var i = 0; i < nbTrisCandidates; ++i) {
-          var indTri = iTrisCandidates[i] * 3;
-          var ind1 = iAr[indTri] * 3;
-          var ind2 = iAr[indTri + 1] * 3;
-          var ind3 = iAr[indTri + 2] * 3;
+        var nbFacesCandidates = iFacesCandidates.length;
+        for (var i = 0; i < nbFacesCandidates; ++i) {
+          var indFace = iFacesCandidates[i] * 4;
+          var ind1 = fAr[indFace] * 3;
+          var ind2 = fAr[indFace + 1] * 3;
+          var ind3 = fAr[indFace + 2] * 3;
           v1[0] = vAr[ind1];
           v1[1] = vAr[ind1 + 1];
           v1[2] = vAr[ind1 + 2];
@@ -142,16 +142,26 @@ define([
           v3[0] = vAr[ind3];
           v3[1] = vAr[ind3 + 1];
           v3[2] = vAr[ind3 + 2];
-          if (Geometry.intersectionRayTriangle(vNear, eyeDir, v1, v2, v3, vertInter)) {
+          var hit = Geometry.intersectionRayTriangle(vNear, eyeDir, v1, v2, v3, vertInter);
+          if (hit === false) {
+            ind2 = fAr[indFace + 3] * 3;
+            if (ind2 >= 0) {
+              v2[0] = vAr[ind2];
+              v2[1] = vAr[ind2 + 1];
+              v2[2] = vAr[ind2 + 2];
+              hit = Geometry.intersectionRayTriangle(vNear, eyeDir, v1, v3, v2, vertInter);
+            }
+          }
+          if (hit) {
             var testDistance = vec3.sqrDist(vNear, vertInter);
             if (testDistance < distance) {
               distance = testDistance;
               vec3.copy(this.interPoint_, vertInter);
-              this.pickedTriangle_ = iTrisCandidates[i];
+              this.pickedFace_ = iFacesCandidates[i];
             }
           }
         }
-        if (this.pickedTriangle_ !== -1) {
+        if (this.pickedFace_ !== -1) {
           this.mesh_ = mesh;
           this.computeRadiusWorld2(mouseX, mouseY);
         } else {
@@ -166,8 +176,8 @@ define([
       var vertSculptFlags = mesh.getVerticesSculptFlags();
       var leavesHit = mesh.getLeavesUpdate();
       var inter = this.getIntersectionPoint();
-      var iTrisInCells = mesh.intersectSphere(inter, rLocal2, leavesHit, mesh.getNbTriangles());
-      var iVerts = mesh.getVerticesFromTriangles(iTrisInCells);
+      var iTrisInCells = mesh.intersectSphere(inter, rLocal2, leavesHit, mesh.getNbFaces());
+      var iVerts = mesh.getVerticesFromFaces(iTrisInCells);
       var nbVerts = iVerts.length;
       var sculptFlag = ++Utils.SCULPT_FLAG;
       var pickedVertices = new Uint32Array(Utils.getMemory(4 * nbVerts + 12), 0, nbVerts + 3);
@@ -187,16 +197,20 @@ define([
           pickedVertices[acc++] = ind;
         }
       }
-      if (pickedVertices.length === 0 && this.pickedTriangle_ !== -1) {
-        // no vertices inside the brush radius (big triangle or small radius)
-        var iAr = mesh.getIndices();
-        j = this.pickedTriangle_ * 3;
-        vertSculptFlags[iAr[j]] = sculptFlag;
-        vertSculptFlags[iAr[j] + 1] = sculptFlag;
-        vertSculptFlags[iAr[j] + 2] = sculptFlag;
-        pickedVertices[acc++] = iAr[j];
-        pickedVertices[acc++] = iAr[j + 1];
-        pickedVertices[acc++] = iAr[j + 2];
+      if (pickedVertices.length === 0 && this.pickedFace_ !== -1) {
+        // no vertices inside the brush radius (big face or small radius)
+        var fAr = mesh.getFaces();
+        j = this.pickedFace_ * 3;
+        vertSculptFlags[fAr[j]] = sculptFlag;
+        vertSculptFlags[fAr[j + 1]] = sculptFlag;
+        vertSculptFlags[fAr[j + 2]] = sculptFlag;
+        pickedVertices[acc++] = fAr[j];
+        pickedVertices[acc++] = fAr[j + 1];
+        pickedVertices[acc++] = fAr[j + 2];
+        if (fAr[j + 3] >= 0) {
+          vertSculptFlags[fAr[j + 3]] = sculptFlag;
+          pickedVertices[acc++] = fAr[j + 3];
+        }
       }
       this.pickedVertices_ = new Uint32Array(pickedVertices.subarray(0, acc));
       return this.pickedVertices_;
