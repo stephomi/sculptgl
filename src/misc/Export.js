@@ -21,8 +21,9 @@ define([
   var Export = {};
 
   /** Export OBJ file */
-  Export.exportOBJ = function (mesh) {
+  Export.exportOBJ = function (mesh, useColor) {
     var vAr = mesh.getVertices();
+    var cAr = mesh.getColors();
     var fAr = mesh.getFaces();
     var data = 's 0\n';
     var nbVertices = mesh.getNbVertices();
@@ -31,7 +32,10 @@ define([
     var j = 0;
     for (i = 0; i < nbVertices; ++i) {
       j = i * 3;
-      data += 'v ' + vAr[j] + ' ' + vAr[j + 1] + ' ' + vAr[j + 2] + '\n';
+      if (useColor)
+        data += 'v ' + vAr[j] + ' ' + vAr[j + 1] + ' ' + vAr[j + 2] + ' ' + cAr[j] + ' ' + cAr[j + 1] + ' ' + cAr[j + 2] + '\n';
+      else
+        data += 'v ' + vAr[j] + ' ' + vAr[j + 1] + ' ' + vAr[j + 2] + '\n';
     }
     for (i = 0; i < nbFaces; ++i) {
       j = i * 4;
@@ -211,10 +215,8 @@ define([
     var fd = new FormData();
 
     fd.append('token', key);
-    var blob = Export.exportPLY(mesh);
-
-    fd.append('fileModel', blob);
-    fd.append('filenameModel', 'model.ply');
+    fd.append('fileModel', Export.exportOBJ(mesh, true));
+    fd.append('filenameModel', 'model.obj');
 
     var xhr = new XMLHttpRequest();
     xhr.open('POST', 'https://api.sketchfab.com/v1/models');
@@ -225,7 +227,7 @@ define([
       if (!res.success)
         window.alert('Sketchfab upload error :\n' + res.error);
       else
-        window.alert('Upload success !');
+        window.prompt('Upload success !\nHere"s your link :', 'https://sketchfab.com/models/' + res.result.id);
     };
     xhr.addEventListener('load', result, true);
     xhr.send(fd);

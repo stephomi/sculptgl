@@ -7,7 +7,6 @@ define([
 
   function GuiFiles(guiParent, ctrlGui) {
     this.sculptgl_ = ctrlGui.sculptgl_; // main application
-    this.keySketchfab_ = ''; // sketchfab api key
     this.init(guiParent);
   }
 
@@ -26,7 +25,6 @@ define([
 
       // Sketchfab fold
       var foldSketchfab = guiParent.addFolder('Go to Sketchfab !');
-      foldSketchfab.add(this, 'keySketchfab_').name('API key');
       foldSketchfab.add(this, 'exportSketchfab').name('Upload');
     },
     /** Open file */
@@ -62,11 +60,11 @@ define([
       var mesh = this.sculptgl_.mesh_;
       if (!mesh)
         return;
-      if (this.keySketchfab_ === '') {
-        window.alert('Please enter a sketchfab API Key.');
-        return;
-      }
-      Export.exportSketchfab(mesh, this.keySketchfab_);
+      var message = 'Please enter your sketchfab API Key.\n';
+      message += 'You can also leave an empty field to upload anonymously.\n';
+      message += '(a new window will pop up when the uploading and processing is finished)';
+      var api = window.prompt(message, '');
+      Export.exportSketchfab(mesh, api === '' ? 'babc9a5cd4f343f9be0c7bd9cf93600c' : api);
     }
   };
 
