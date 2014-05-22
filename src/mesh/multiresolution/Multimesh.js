@@ -44,7 +44,7 @@ define([
       this.lowRender_.updateBuffers(this.meshes_[this.getLowMeshRender()]);
       return newMesh;
     },
-    /** Decimate the mesh (reverse loop subdivision) */
+    /** Decimate the mesh (reverse subdivision) */
     decimate: function () {
       if (this.sel_ !== 0)
         return this.getCurrent();
@@ -143,15 +143,17 @@ define([
     getLowMeshRender: function () {
       var limit = 1500000;
       var sel = this.sel_;
-      while (sel > 0) {
+      while (sel >= 0) {
         var mesh = this.meshes_[sel];
         // we disable low rendering for lower resolution mesh with an index indirection
         // because the indexes cannot easily share an higher vertices buffer
-        if (mesh.getVerticesMapping() || mesh.getNbTriangles() < limit)
-          break;
+        if (mesh.getVerticesMapping())
+          return sel === this.sel_ ? sel : sel + 1;
+        if (mesh.getNbTriangles() < limit)
+          return sel;
         --sel;
       }
-      return sel;
+      return 0;
     },
     /** Render the at a lower resolution */
     lowRender: function (sculptgl) {
