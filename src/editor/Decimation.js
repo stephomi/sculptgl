@@ -378,6 +378,8 @@ define([
 
   /** Apply the reverse of loop subdivision */
   Decimation.reverseLoop = function (baseMesh, newMesh) {
+    if (baseMesh.getNbFaces() % 4 !== 0)
+      return false;
     var vEvenTags = Decimation.tagEvenVertices(baseMesh);
     if (!vEvenTags)
       return false;
