@@ -46,7 +46,7 @@ define([
       this.updateMeshResolution(mul);
       main.scene_.render();
     },
-    /** Inverse loop subdivision */
+    /** Inverse subdivision */
     reverse: function () {
       var main = this.sculptgl_;
       var mul = main.mesh_;
@@ -54,8 +54,8 @@ define([
         window.alert('Select the lowest resolution before reversing.');
         return;
       }
-      var stateRes = new StateMultiresolution(mul, StateMultiresolution.DECIMATION);
-      var newMesh = mul.decimate();
+      var stateRes = new StateMultiresolution(mul, StateMultiresolution.REVERSION);
+      var newMesh = mul.computeReverse();
       if (!newMesh) {
         window.alert('Sorry it is not possile to revert this mesh.');
         return;

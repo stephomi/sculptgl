@@ -4,9 +4,9 @@ define([
 
   'use strict';
 
-  var Decimation = {};
+  var Reversion = {};
 
-  Decimation.detectExtraordinaryVertices = function (mesh) {
+  Reversion.detectExtraordinaryVertices = function (mesh) {
     var nbVertices = mesh.getNbVertices();
     var fAr = mesh.getFaces();
     var onEdge = mesh.getVerticesOnEdge();
@@ -42,7 +42,7 @@ define([
   };
 
   /** Return the first extraordinary vertex if it exists... or a random vertex otherwise */
-  Decimation.getSeed = function (mesh, vEvenTags, vExtraTags) {
+  Reversion.getSeed = function (mesh, vEvenTags, vExtraTags) {
     for (var i = 0, l = mesh.getNbVertices(); i < l; ++i) {
       if (vEvenTags[i] !== 0)
         continue;
@@ -53,14 +53,14 @@ define([
   };
 
   /** Tag the even vertices */
-  Decimation.tagVertices = function (mesh, vEvenTags, vExtraTags) {
+  Reversion.tagVertices = function (mesh, vEvenTags, vExtraTags) {
     var tagFlag = ++Utils.TAG_FLAG;
     var vFlags = mesh.getVerticesTagFlags();
     var vrvSC = mesh.getVerticesRingVertStartCount();
     var vrv = mesh.getVerticesRingVert();
     var onEdge = mesh.getVerticesOnEdge();
 
-    var vSeed = Decimation.getSeed(mesh, vEvenTags, vExtraTags);
+    var vSeed = Reversion.getSeed(mesh, vEvenTags, vExtraTags);
     vEvenTags[vSeed] = 1;
     var stack = new Uint32Array(Utils.getMemory(mesh.getNbVertices() * 4), 0, mesh.getNbVertices());
     if (stack.length === 0)
@@ -129,14 +129,14 @@ define([
   };
 
   /** Tag the even vertices */
-  Decimation.tagEvenVertices = function (mesh) {
+  Reversion.tagEvenVertices = function (mesh) {
     var nbVertices = mesh.getNbVertices();
     // 0 not processed, -1 odd vertex, 1 even vertex
     var vEvenTags = new Int8Array(nbVertices);
-    var vExtraTags = Decimation.detectExtraordinaryVertices(mesh);
+    var vExtraTags = Reversion.detectExtraordinaryVertices(mesh);
     var running = true;
     while (running) {
-      var status = Decimation.tagVertices(mesh, vEvenTags, vExtraTags);
+      var status = Reversion.tagVertices(mesh, vEvenTags, vExtraTags);
       if (!status)
         return;
       running = false;
@@ -151,7 +151,7 @@ define([
   };
 
   /** Creates the coarse faces from the tagged vertices */
-  Decimation.createFaces = function (baseMesh, newMesh, vEvenTags) {
+  Reversion.createFaces = function (baseMesh, newMesh, vEvenTags) {
     var feAr = baseMesh.getFaceEdges();
     var fArUp = baseMesh.getFaces();
     var tagEdges = new Int32Array(baseMesh.getNbEdges());
@@ -252,7 +252,7 @@ define([
   };
 
   /** Creates the vertices of the mesh */
-  Decimation.createVertices = function (baseMesh, newMesh, triFaceOrQuadCenter) {
+  Reversion.createVertices = function (baseMesh, newMesh, triFaceOrQuadCenter) {
     var acc = 0;
     var vertexMapUp = new Uint32Array(baseMesh.getNbVertices());
     newMesh.setVerticesMapping(vertexMapUp);
@@ -356,38 +356,61 @@ define([
   };
 
   /** Copy the vertices data from up to low */
-  Decimation.copyVerticesData = function (baseMesh, newMesh) {
+  Reversion.copyVerticesData = function (baseMesh, newMesh) {
     var vArUp = baseMesh.getVertices();
     var cArUp = baseMesh.getColors();
-    var vertexMapUp = newMesh.getVerticesMapping();
     var vArDown = newMesh.getVertices();
     var cArDown = new Float32Array(vArDown);
-    for (var i = 0, len = newMesh.getNbVertices(); i < len; ++i) {
-      var id = i * 3;
-      var idUp = vertexMapUp[i] * 3;
-      vArDown[id] = vArUp[idUp];
-      vArDown[id + 1] = vArUp[idUp + 1];
-      vArDown[id + 2] = vArUp[idUp + 2];
-      cArDown[id] = cArUp[idUp];
-      cArDown[id + 1] = cArUp[idUp + 1];
-      cArDown[id + 2] = cArUp[idUp + 2];
-    }
-    newMesh.setVertices(vArDown);
     newMesh.setColors(cArDown);
+    var vertexMapUp = newMesh.getVerticesMapping();
+    var i = 0;
+    var nbVertices = newMesh.getNbVertices();
+    for (i = 0; i < nbVertices; ++i) {
+      if (vertexMapUp[i] >= nbVertices)
+        break;
+    }
+    if (i === nbVertices) {
+      // we don't have to keep the vertex mapping
+      var fArDown = newMesh.getFaces();
+      var nb = fArDown.length;
+      for (i = 0; i < nb; ++i) {
+        var idv = fArDown[i];
+        if (idv >= 0)
+          fArDown[i] = vertexMapUp[idv];
+      }
+      // direct mapping for even vertices
+      for (i = 0; i < nbVertices; ++i)
+        vertexMapUp[i] = i;
+      vArDown.set(vArUp.subarray(0, nbVertices * 3));
+      cArDown.set(cArUp.subarray(0, nbVertices * 3));
+    } else {
+      // we keep the vertex mapping
+      newMesh.setEvenMapping(true);
+      for (i = 0; i < nbVertices; ++i) {
+        var id = i * 3;
+        var idUp = vertexMapUp[i] * 3;
+        vArDown[id] = vArUp[idUp];
+        vArDown[id + 1] = vArUp[idUp + 1];
+        vArDown[id + 2] = vArUp[idUp + 2];
+        cArDown[id] = cArUp[idUp];
+        cArDown[id + 1] = cArUp[idUp + 1];
+        cArDown[id + 2] = cArUp[idUp + 2];
+      }
+    }
   };
 
-  /** Apply the reverse of loop subdivision */
-  Decimation.reverseLoop = function (baseMesh, newMesh) {
+  /** Apply the reverse of a subdivision */
+  Reversion.computeReverse = function (baseMesh, newMesh) {
     if (baseMesh.getNbFaces() % 4 !== 0)
       return false;
-    var vEvenTags = Decimation.tagEvenVertices(baseMesh);
+    var vEvenTags = Reversion.tagEvenVertices(baseMesh);
     if (!vEvenTags)
       return false;
-    Decimation.createVertices(baseMesh, newMesh, Decimation.createFaces(baseMesh, newMesh, vEvenTags));
-    Decimation.copyVerticesData(baseMesh, newMesh);
+    Reversion.createVertices(baseMesh, newMesh, Reversion.createFaces(baseMesh, newMesh, vEvenTags));
+    Reversion.copyVerticesData(baseMesh, newMesh);
     newMesh.allocateArrays();
     return true;
   };
 
-  return Decimation;
+  return Reversion;
 });

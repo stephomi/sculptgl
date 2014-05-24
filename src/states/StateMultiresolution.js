@@ -18,7 +18,7 @@ define([], function () {
         this.vMappingState_ = this.mesh_.getVerticesMapping(); // vertex mapping low to high res
       break;
     case StateMultiresolution.SUBDIVISION:
-    case StateMultiresolution.DECIMATION:
+    case StateMultiresolution.REVERSION:
       if (!isRedo) {
         this.vArState_ = new Float32Array(this.mesh_.getVertices()); // copies of vertices coordinates
         this.cArState_ = new Float32Array(this.mesh_.getColors()); // copies of colors coordinates
@@ -28,7 +28,7 @@ define([], function () {
   }
 
   StateMultiresolution.SUBDIVISION = 0; // subdivision of the mesh
-  StateMultiresolution.DECIMATION = 1; // decimation of the mesh
+  StateMultiresolution.REVERSION = 1; // reversion of the mesh
   StateMultiresolution.SELECTION = 2; // change selection of resolution
   StateMultiresolution.DELETE_LOWER = 3; // deletes lower resolution
   StateMultiresolution.DELETE_HIGHER = 4; // deletes higher resolution
@@ -54,7 +54,7 @@ define([], function () {
         this.mesh_.setColors(new Float32Array(this.cArState_));
         mul.popMesh();
         break;
-      case StateMultiresolution.DECIMATION:
+      case StateMultiresolution.REVERSION:
         this.mesh_.setVertices(new Float32Array(this.vArState_));
         this.mesh_.setColors(new Float32Array(this.cArState_));
         mul.shiftMesh();
@@ -77,7 +77,7 @@ define([], function () {
       case StateMultiresolution.SUBDIVISION:
         mul.pushMesh(this.mesh_);
         break;
-      case StateMultiresolution.DECIMATION:
+      case StateMultiresolution.REVERSION:
         mul.unshiftMesh(this.mesh_);
         break;
       }

@@ -3,8 +3,8 @@ define([
   'mesh/multiresolution/MeshResolution',
   'mesh/multiresolution/LowRender',
   'editor/Subdivision',
-  'editor/Decimation'
-], function (Utils, MeshResolution, LowRender, Subdivision, Decimation) {
+  'editor/Reversion'
+], function (Utils, MeshResolution, LowRender, Subdivision, Reversion) {
 
   'use strict';
 
@@ -28,7 +28,7 @@ define([
     getCurrent: function () {
       return this.meshes_[this.sel_];
     },
-    /** Add an extra level to the mesh (loop subdivision) */
+    /** Add an extra level to the mesh (subdivision) */
     addLevel: function () {
       if ((this.meshes_.length - 1) !== this.sel_)
         return this.getCurrent();
@@ -41,24 +41,22 @@ define([
 
       this.pushMesh(newMesh);
       this.getRender().initRender();
-      this.lowRender_.updateBuffers(this.meshes_[this.getLowMeshRender()]);
       return newMesh;
     },
-    /** Decimate the mesh (reverse subdivision) */
-    decimate: function () {
+    /** Reverse the mesh (reverse subdivision) */
+    computeReverse: function () {
       if (this.sel_ !== 0)
         return this.getCurrent();
       var baseMesh = this.getCurrent();
       var newMesh = new MeshResolution(baseMesh.getTransformData(), baseMesh.getRender());
 
-      var status = Decimation.reverseLoop(baseMesh, newMesh);
+      var status = Reversion.computeReverse(baseMesh, newMesh);
       if (!status)
         return;
       newMesh.initTopology();
 
       this.unshiftMesh(newMesh);
       this.getRender().initRender();
-      this.lowRender_.updateBuffers(this.meshes_[this.getLowMeshRender()]);
       return newMesh;
     },
     /** Go to one level below in mesh resolution */
@@ -83,6 +81,7 @@ define([
     updateResolution: function () {
       this.updateGeometry();
       this.updateBuffers();
+      this.lowRender_.updateBuffers(this.meshes_[this.getLowIndexRender()]);
     },
     /** Change the resolution */
     selectResolution: function (sel) {
@@ -139,15 +138,15 @@ define([
     deleteHigher: function () {
       this.meshes_.splice(this.sel_ + 1);
     },
-    /** Render the lower rendering mesh resolution */
-    getLowMeshRender: function () {
+    /** Return the rendering mesh index */
+    getLowIndexRender: function () {
       var limit = 1500000;
       var sel = this.sel_;
       while (sel >= 0) {
         var mesh = this.meshes_[sel];
-        // we disable low rendering for lower resolution mesh with an index indirection
-        // because the indexes cannot easily share an higher vertices buffer
-        if (mesh.getVerticesMapping())
+        // we disable low rendering for lower resolution mesh with
+        // an index indirection for even vertices
+        if (mesh.getEvenMapping() === true)
           return sel === this.sel_ ? sel : sel + 1;
         if (mesh.getNbTriangles() < limit)
           return sel;
@@ -157,7 +156,7 @@ define([
     },
     /** Render the at a lower resolution */
     lowRender: function (sculptgl) {
-      var lowSel = this.getLowMeshRender();
+      var lowSel = this.getLowIndexRender();
       if (lowSel === this.sel_)
         return this.getCurrent().render(sculptgl);
       var tmpSel = this.sel_;

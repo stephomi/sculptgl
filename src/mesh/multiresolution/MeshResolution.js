@@ -13,6 +13,7 @@ define([
     this.detailsXYZ_ = null; // details vectors (Float32Array)
     this.detailsRGB_ = null; // details vectors (Float32Array)
     this.vertMapping_ = null; // vertex mapping to higher res (Uint32Array)
+    this.evenMapping_ = false; // if the even vertices are not aligned with higher res
   };
 
   MeshResolution.prototype = {
@@ -25,6 +26,9 @@ define([
     getDetailsColors: function () {
       return this.detailsRGB_;
     },
+    getEvenMapping: function () {
+      return this.evenMapping_;
+    },
     getVerticesMapping: function () {
       return this.vertMapping_;
     },
@@ -36,6 +40,9 @@ define([
     },
     setVerticesMapping: function (vmAr) {
       this.vertMapping_ = vmAr;
+    },
+    setEvenMapping: function (bool) {
+      this.evenMapping_ = bool;
     },
     /** Go to one level above (down to up) */
     higherSynthesis: function (meshDown) {
@@ -51,16 +58,16 @@ define([
       meshUp.computeDetails(subdVerts, subdColors);
     },
     copyDataFromHigherRes: function (meshUp) {
-      var vertMap = this.getVerticesMapping();
       var vArDown = this.getVertices();
       var cArDown = this.getColors();
       var nbVertices = this.getNbVertices();
       var vArUp = meshUp.getVertices();
       var cArUp = meshUp.getColors();
-      if (!vertMap) {
+      if (this.getEvenMapping() === false) {
         vArDown.set(vArUp.subarray(0, nbVertices * 3));
         cArDown.set(cArUp.subarray(0, nbVertices * 3));
       } else {
+        var vertMap = this.getVerticesMapping();
         for (var i = 0; i < nbVertices; ++i) {
           var id = i * 3;
           var idUp = vertMap[i] * 3;
@@ -83,7 +90,12 @@ define([
       }
       Subdivision.partialSubdivision(this, verts, colors);
       if (vertMap) {
-        for (var i = 0, l = subdVerts.length / 3; i < l; ++i) {
+        var startMapping = this.getEvenMapping() === true ? 0 : this.getNbVertices();
+        if (startMapping > 0) {
+          subdVerts.set(verts.subarray(0, startMapping * 3));
+          subdColors.set(colors.subarray(0, startMapping * 3));
+        }
+        for (var i = startMapping, l = subdVerts.length / 3; i < l; ++i) {
           var id = i * 3;
           var idUp = vertMap[i] * 3;
           subdVerts[idUp] = verts[id];

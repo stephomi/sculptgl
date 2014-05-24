@@ -139,14 +139,14 @@ define([], function () {
 
   var Subdivision = {};
 
-  /** Apply a complete loop subdivision (by updating the topology) */
+  /** Apply a complete subdivision (by updating the topology) */
   Subdivision.fullSubdivision = function (baseMesh, newMesh) {
     Subdivision.allocateArrays(baseMesh, newMesh);
     Subdivision.applyEvenSmooth(baseMesh, newMesh.getVertices(), newMesh.getColors());
     Subdivision.applyOddSmooth(baseMesh, newMesh.getVertices(), newMesh.getColors(), newMesh.getFaces());
   };
 
-  /** Apply loop subdivision without topology computation */
+  /** Apply subdivision without topology computation */
   Subdivision.partialSubdivision = function (baseMesh, vertOut, colorOut) {
     Subdivision.applyEvenSmooth(baseMesh, vertOut, colorOut);
     Subdivision.applyOddSmooth(baseMesh, vertOut, colorOut);
