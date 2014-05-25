@@ -22,10 +22,12 @@ define([
       foldFiles.add(this, 'saveFileAsOBJ').name('Export (obj)');
       foldFiles.add(this, 'saveFileAsPLY').name('Export (ply)');
       foldFiles.add(this, 'saveFileAsSTL').name('Export (stl)');
+      foldFiles.close();
 
       // Sketchfab fold
       var foldSketchfab = guiParent.addFolder('Go to Sketchfab !');
       foldSketchfab.add(this, 'exportSketchfab').name('Upload');
+      foldSketchfab.close();
     },
     /** Open file */
     openFile: function () {

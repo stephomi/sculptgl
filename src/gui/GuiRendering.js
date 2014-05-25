@@ -9,10 +9,6 @@ define([
   function GuiRendering(guiParent, ctrlGui) {
     this.sculptgl_ = ctrlGui.sculptgl_; // main application
 
-    // ui info
-    this.ctrlNbVertices_ = null; // display number of vertices controller
-    this.ctrlNbFaces_ = null; // display number of faces controller
-
     // ui shading
     this.ctrlFlatShading_ = null; // flat shading controller
     this.ctrlShowWireframe_ = null; // wireframe controller
@@ -29,23 +25,18 @@ define([
       var main = this.sculptgl_;
       // dummy object with empty function or startup mockup
       var dummy = {
-        func_: function () {
-          return;
-        },
         type_: Shader.mode.MATCAP,
         material_: 0,
       };
-      // mesh fold
-      var foldMesh = guiParent.addFolder('Mesh');
-      this.ctrlNbVertices_ = foldMesh.add(dummy, 'func_').name('Ver : 0');
-      this.ctrlNbFaces_ = foldMesh.add(dummy, 'func_').name('Faces : 0');
+      // render fold
+      var foldRender = guiParent.addFolder('Rendering');
       var optionsShaders = {
         'Matcap': Shader.mode.MATCAP,
         'Phong': Shader.mode.PHONG,
         'Transparency': Shader.mode.TRANSPARENCY,
         'Normal shader': Shader.mode.NORMAL
       };
-      this.ctrlShaders_ = foldMesh.add(dummy, 'type_', optionsShaders).name('Shader');
+      this.ctrlShaders_ = foldRender.add(dummy, 'type_', optionsShaders).name('Shader');
       this.ctrlShaders_.onChange(function (value) {
         var val = parseInt(value, 10);
         if (main.mesh_) {
@@ -57,7 +48,7 @@ define([
       var optionMaterials = {};
       for (var i = 0, mats = ShaderMatcap.materials, l = mats.length; i < l; ++i)
         optionMaterials[mats[i].name] = i;
-      this.ctrlMatcap_ = foldMesh.add(dummy, 'material_', optionMaterials).name('Material');
+      this.ctrlMatcap_ = foldRender.add(dummy, 'material_', optionMaterials).name('Material');
       this.ctrlMatcap_.onChange(function (value) {
         if (main.mesh_) {
           main.mesh_.setMaterial(value);
@@ -68,14 +59,14 @@ define([
         flatShading_: true,
         showWireframe_: true
       };
-      this.ctrlFlatShading_ = foldMesh.add(dummyRender, 'flatShading_').name('flat (slower)');
+      this.ctrlFlatShading_ = foldRender.add(dummyRender, 'flatShading_').name('flat (slower)');
       this.ctrlFlatShading_.onChange(function (value) {
         if (main.mesh_) {
           main.mesh_.setFlatShading(value);
           main.scene_.render();
         }
       });
-      this.ctrlShowWireframe_ = foldMesh.add(dummyRender, 'showWireframe_').name('wireframe');
+      this.ctrlShowWireframe_ = foldRender.add(dummyRender, 'showWireframe_').name('wireframe');
       this.ctrlShowWireframe_.onChange(function (value) {
         if (main.mesh_) {
           main.mesh_.setShowWireframe(value);
@@ -85,7 +76,7 @@ define([
       if (Render.ONLY_DRAW_ARRAYS)
         this.ctrlShowWireframe_.__li.hidden = true;
 
-      foldMesh.open();
+      foldRender.open();
     },
     /** Update information on mesh */
     updateMesh: function (mesh) {
@@ -98,12 +89,6 @@ define([
       this.ctrlShowWireframe_.updateDisplay();
       this.ctrlMatcap_.object = render;
       this.ctrlMatcap_.updateDisplay();
-      this.updateMeshInfo(mesh);
-    },
-    /** Update number of vertices and faces */
-    updateMeshInfo: function (mesh) {
-      this.ctrlNbVertices_.name('Ver : ' + mesh.getNbVertices());
-      this.ctrlNbFaces_.name('Faces : ' + mesh.getNbFaces());
     },
     /** Return true if flat shading is enabled */
     getFlatShading: function () {
@@ -116,7 +101,7 @@ define([
     /** Return the value of the shader */
     getShader: function () {
       return this.ctrlShaders_.getValue();
-    },
+    }
   };
 
   return GuiRendering;

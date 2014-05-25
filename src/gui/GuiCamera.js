@@ -54,7 +54,7 @@ define([
         scene.render();
       });
 
-      cameraFold.open();
+      cameraFold.close();
 
       window.addEventListener('keydown', this.onKeyDown.bind(this), false);
       window.addEventListener('keyup', this.onKeyUp.bind(this), false);

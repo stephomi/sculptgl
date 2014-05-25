@@ -14,7 +14,7 @@ define([], function () {
       var backgroundFold = guiParent.addFolder('background');
       backgroundFold.add(this, 'resetBackground').name('Reset');
       backgroundFold.add(this, 'importBackground').name('Import (jpg, png...)');
-      backgroundFold.open();
+      backgroundFold.close();
     },
     /** Reset background */
     resetBackground: function () {

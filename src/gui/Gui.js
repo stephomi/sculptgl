@@ -7,8 +7,9 @@ define([
   'gui/GuiTablet',
   'gui/GuiMultiresolution',
   'gui/GuiRendering',
-  'gui/GuiSculpting'
-], function (Dat, GuiBackground, GuiCamera, GuiFiles, GuiStates, GuiTablet, GuiMultiresolution, GuiRendering, GuiSculpting) {
+  'gui/GuiSculpting',
+  'gui/GuiMesh'
+], function (Dat, GuiBackground, GuiCamera, GuiFiles, GuiStates, GuiTablet, GuiMultiresolution, GuiRendering, GuiSculpting, GuiMesh) {
 
   'use strict';
 
@@ -21,6 +22,7 @@ define([
     this.ctrlCamera_ = null; // camera controller
     this.ctrlBackground_ = null; // background controller
 
+    this.ctrlMesh_ = null; // mesh controller
     this.ctrlSculpting_ = null; // sculpting controller
     this.ctrlMultiresolution_ = null; // multiresolution controller
     this.ctrlRendering_ = null; // rendering controller
@@ -58,6 +60,7 @@ define([
       this.ctrlStates_ = new GuiStates(gui, this);
       this.ctrlCamera_ = new GuiCamera(gui, this);
       this.ctrlBackground_ = new GuiBackground(gui, this);
+      this.ctrlMesh_ = new GuiMesh(gui, this);
     },
     /** Initialize the mesh editing gui (on the right) */
     initEditingGui: function (gui) {
@@ -72,10 +75,11 @@ define([
         return;
       this.ctrlRendering_.updateMesh(mesh);
       this.ctrlMultiresolution_.updateMeshResolution(mesh);
+      this.updateMeshInfo(mesh);
     },
     /** Update number of vertices and triangles */
     updateMeshInfo: function (mesh) {
-      this.ctrlRendering_.updateMeshInfo(mesh);
+      this.ctrlMesh_.updateMeshInfo(mesh);
     },
     /** Return true if flat shading is enabled */
     getFlatShading: function () {
