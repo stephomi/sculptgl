@@ -27,7 +27,7 @@ define([
     },
     /** Start sculpting operation */
     startSculpt: function (sculptgl) {
-      var picking = sculptgl.scene_.picking_;
+      var picking = sculptgl.scene_.getPicking();
       if (this.pickColor_)
         return this.pickColor(picking.getPickedFace(), picking.getIntersectionPoint());
       this.update(sculptgl, true);
@@ -35,7 +35,7 @@ define([
     /** Update sculpting operation */
     update: function (sculptgl) {
       if (this.pickColor_ === true) {
-        var picking = sculptgl.scene_.picking_;
+        var picking = sculptgl.scene_.getPicking();
         picking.intersectionMouseMesh(this.mesh_, sculptgl.mouseX_, sculptgl.mouseY_);
         if (picking.mesh_ !== null)
           this.pickColor(picking.getPickedFace(), picking.getIntersectionPoint());

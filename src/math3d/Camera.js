@@ -16,7 +16,7 @@ define([
   function Camera() {
     this.mode_ = Camera.mode.PLANE; // camera mode
     this.type_ = Camera.projType.PERSPECTIVE; // the projection type
-    this.rot_ = quat.create(); // quaternion
+    this.quatRot_ = quat.create(); // quaternion rotation
     this.view_ = mat4.create(); // view matrix
     this.proj_ = mat4.create(); // projection matrix
     this.lastNormalizedMouseXY_ = [0.0, 0.0]; // last mouse position ( 0..1 )
@@ -74,16 +74,16 @@ define([
         var length = vec2.dist(this.lastNormalizedMouseXY_, normalizedMouseXY);
         var diff = [0.0, 0.0];
         vec2.sub(diff, normalizedMouseXY, this.lastNormalizedMouseXY_);
-        var axe = [-diff[1], diff[0], 0.0];
-        vec3.normalize(axe, axe);
-        quat.mul(this.rot_, quat.setAxisAngle([0.0, 0.0, 0.0, 0.0], axe, length * 2.0), this.rot_);
+        var axis = [-diff[1], diff[0], 0.0];
+        vec3.normalize(axis, axis);
+        quat.mul(this.quatRot_, quat.setAxisAngle([0.0, 0.0, 0.0, 0.0], axis, length * 2.0), this.quatRot_);
       } else if (this.mode_ === Camera.mode.SPHERICAL) {
         var mouseOnSphereBefore = Geometry.mouseOnUnitSphere(this.lastNormalizedMouseXY_);
         var mouseOnSphereAfter = Geometry.mouseOnUnitSphere(normalizedMouseXY);
         var angle = Math.acos(Math.min(1.0, vec3.dot(mouseOnSphereBefore, mouseOnSphereAfter)));
-        var axeRot = [0.0, 0.0, 0.0];
-        vec3.normalize(axeRot, vec3.cross(axeRot, mouseOnSphereBefore, mouseOnSphereAfter));
-        quat.mul(this.rot_, quat.setAxisAngle([0.0, 0.0, 0.0, 0.0], axeRot, angle * 2.0), this.rot_);
+        var axisRot = [0.0, 0.0, 0.0];
+        vec3.normalize(axisRot, vec3.cross(axisRot, mouseOnSphereBefore, mouseOnSphereAfter));
+        quat.mul(this.quatRot_, quat.setAxisAngle([0.0, 0.0, 0.0, 0.0], axisRot, angle * 2.0), this.quatRot_);
       }
       if (this.stepCount_ > 0) {
         --this.stepCount_;
@@ -101,7 +101,7 @@ define([
         mat4.lookAt(view, [tx, ty, this.zoom_], [tx, ty, 0.0], [0.0, 1.0, 0.0]);
       else
         mat4.lookAt(view, [tx, ty, 1000.0], [tx, ty, 0.0], [0.0, 1.0, 0.0]);
-      mat4.mul(view, view, mat4.fromQuat(mat4.create(), this.rot_));
+      mat4.mul(view, view, mat4.fromQuat(mat4.create(), this.quatRot_));
       var center = this.center_;
       mat4.translate(view, view, [-center[0], -center[1], -center[2]]);
     },
@@ -154,44 +154,53 @@ define([
       this.transX_ = 0.0;
       this.transY_ = 0.0;
       this.speed_ = Utils.SCALE * 0.9;
-      this.rot_ = quat.create();
+      this.quatRot_ = quat.create();
       this.center_ = [0.0, 0.0, 0.0];
       this.zoom_ = 0.0;
       this.zoom(-0.6);
     },
     /** Reset view front */
     resetViewFront: function () {
-      this.rot_ = quat.create();
+      this.quatRot_ = quat.create();
     },
     /** Reset view top */
     resetViewTop: function () {
-      this.rot_ = quat.rotateX(this.rot_, quat.create(), Math.PI * 0.5);
+      this.quatRot_ = quat.rotateX(this.quatRot_, quat.create(), Math.PI * 0.5);
     },
     /** Reset view left */
     resetViewLeft: function () {
-      this.rot_ = quat.rotateY(this.rot_, quat.create(), -Math.PI * 0.5);
+      this.quatRot_ = quat.rotateY(this.quatRot_, quat.create(), -Math.PI * 0.5);
     },
     /** Project the mouse coordinate into the world coordinate at a given z */
-    unproject: function (mouseX, mouseY, z) {
-      var height = this.height_;
-      var winx = (2.0 * mouseX / this.width_) - 1.0,
-        winy = (height - 2.0 * mouseY) / height,
-        winz = 2.0 * z - 1.0;
-      var n = [winx, winy, winz, 1];
+    unproject: (function () {
       var mat = mat4.create();
-      vec4.transformMat4(n, n, mat4.invert(mat, mat4.mul(mat, this.proj_, this.view_)));
-      var w = n[3];
-      return [n[0] / w, n[1] / w, n[2] / w];
-    },
+      var n = [0.0, 0.0, 0.0, 1.0];
+      return function (mouseX, mouseY, z) {
+        var height = this.height_;
+        n[0] = (2.0 * mouseX / this.width_) - 1.0;
+        n[1] = (height - 2.0 * mouseY) / height;
+        n[2] = 2.0 * z - 1.0;
+        n[3] = 1.0;
+        vec4.transformMat4(n, n, mat4.invert(mat, mat4.mul(mat, this.proj_, this.view_)));
+        var w = n[3];
+        return [n[0] / w, n[1] / w, n[2] / w];
+      };
+    })(),
     /** Project a vertex onto the screen */
-    project: function (vector) {
-      var vec = [vector[0], vector[1], vector[2], 1];
-      vec4.transformMat4(vec, vec, this.view_);
-      vec4.transformMat4(vec, vec, this.proj_);
-      var w = vec[3];
-      var height = this.height_;
-      return [(vec[0] / w + 1) * this.width_ * 0.5, height - (vec[1] / w + 1.0) * height * 0.5, (vec[2] / w + 1.0) * 0.5];
-    }
+    project: (function () {
+      var vec = [0.0, 0.0, 0.0, 1.0];
+      return function (vector) {
+        vec[0] = vector[0];
+        vec[1] = vector[1];
+        vec[2] = vector[2];
+        vec[3] = 1.0;
+        vec4.transformMat4(vec, vec, this.view_);
+        vec4.transformMat4(vec, vec, this.proj_);
+        var w = vec[3];
+        var height = this.height_;
+        return [(vec[0] / w + 1) * this.width_ * 0.5, height - (vec[1] / w + 1.0) * height * 0.5, (vec[2] / w + 1.0) * 0.5];
+      };
+    })()
   };
 
   return Camera;

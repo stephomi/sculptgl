@@ -22,7 +22,7 @@ define([
       var mesh = this.mesh_;
       var mouseX = sculptgl.mouseX_;
       var mouseY = sculptgl.mouseY_;
-      var picking = sculptgl.scene_.picking_;
+      var picking = sculptgl.scene_.getPicking();
       var vNear = picking.camera_.unproject(mouseX, mouseY, 0.0);
       var vFar = picking.camera_.unproject(mouseX, mouseY, 1.0);
       var matInverse = mat4.create();
@@ -32,7 +32,7 @@ define([
       var rLocal2 = picking.getLocalRadius2();
       picking.pickVerticesInSphere(rLocal2);
       if (sculptgl.sculpt_.getSymmetry()) {
-        var pickingSym = sculptgl.scene_.pickingSym_;
+        var pickingSym = sculptgl.scene_.getSymmetryPicking();
         pickingSym.intersectionRayMesh(mesh, vNear, vFar, mouseX, mouseY, true);
         if (!pickingSym.mesh_)
           return;
@@ -43,12 +43,12 @@ define([
     /** Make a brush scale stroke */
     sculptStroke: function (sculptgl) {
       var delta = sculptgl.mouseX_ - sculptgl.lastMouseX_;
-      var picking = sculptgl.scene_.picking_;
+      var picking = sculptgl.scene_.getPicking();
       var rLocal2 = picking.getLocalRadius2();
       picking.pickVerticesInSphere(rLocal2);
       this.stroke(picking, delta);
       if (sculptgl.sculpt_.getSymmetry()) {
-        var pickingSym = sculptgl.scene_.pickingSym_;
+        var pickingSym = sculptgl.scene_.getSymmetryPicking();
         pickingSym.pickVerticesInSphere(rLocal2);
         this.stroke(pickingSym, delta);
       }

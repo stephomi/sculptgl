@@ -78,24 +78,27 @@ define([
     }
   };
   /** Updates uniforms */
-  ShaderBase.updateUniforms = function (render, sculptgl) {
-    var gl = render.gl_;
-    var scene = sculptgl.scene_;
-    var picking = scene.getPicking();
-    var pickingSym = scene.getSymmetryPicking();
-    var mesh = render.getMesh();
-    var mvMatrix = mesh.getMV();
-    var useSym = (mesh === sculptgl.mesh_) && sculptgl.sculpt_.getSymmetry();
+  ShaderBase.updateUniforms = (function () {
+    var tmp = [0.0, 0.0, 0.0];
+    return function (render, sculptgl) {
+      var gl = render.gl_;
+      var scene = sculptgl.scene_;
+      var picking = scene.getPicking();
+      var pickingSym = scene.getSymmetryPicking();
+      var mesh = render.getMesh();
+      var mvMatrix = mesh.getMV();
+      var useSym = (mesh === sculptgl.mesh_) && sculptgl.sculpt_.getSymmetry();
 
-    var uniforms = this.uniforms;
-    gl.uniform3fv(uniforms.uInter, vec3.transformMat4([0.0, 0.0, 0.0], picking.getIntersectionPoint(), mvMatrix));
-    gl.uniform3fv(uniforms.uInterSym, vec3.transformMat4([0.0, 0.0, 0.0], pickingSym.getIntersectionPoint(), mvMatrix));
-    gl.uniform3fv(uniforms.uPlaneO, vec3.transformMat4([0.0, 0.0, 0.0], mesh.getCenter(), mvMatrix));
-    var nMat = mat3.normalFromMat4(mat3.create(), mvMatrix);
-    gl.uniform3fv(uniforms.uPlaneN, vec3.transformMat3([0.0, 0.0, 0.0], mesh.getSymmetryNormal(), nMat));
-    gl.uniform1f(uniforms.uScale, useSym ? mesh.getScale() : -1.0);
-    gl.uniform1f(uniforms.uRadius2, picking.mesh_ ? picking.getWorldRadius2() : -1.0);
-  };
+      var uniforms = this.uniforms;
+      gl.uniform3fv(uniforms.uInter, vec3.transformMat4(tmp, picking.getIntersectionPoint(), mvMatrix));
+      gl.uniform3fv(uniforms.uInterSym, vec3.transformMat4(tmp, pickingSym.getIntersectionPoint(), mvMatrix));
+      gl.uniform3fv(uniforms.uPlaneO, vec3.transformMat4(tmp, mesh.getCenter(), mvMatrix));
+      var nMat = mat3.normalFromMat4(mat3.create(), mvMatrix);
+      gl.uniform3fv(uniforms.uPlaneN, vec3.transformMat3(tmp, mesh.getSymmetryNormal(), nMat));
+      gl.uniform1f(uniforms.uScale, useSym ? mesh.getScale() : -1.0);
+      gl.uniform1f(uniforms.uRadius2, picking.mesh_ ? picking.getWorldRadius2() : -1.0);
+    };
+  })();
   /** Draw buffer */
   ShaderBase.drawBuffer = function (render) {
     var lengthIndexArray = render.getMesh().getRenderNbTriangles() * 3;

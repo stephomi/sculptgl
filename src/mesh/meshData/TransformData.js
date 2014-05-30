@@ -77,7 +77,7 @@ define([
     /** Move the mesh center to a certain point */
     moveTo: function (destination) {
       mat4.translate(this.matrix_, this.matrix_, vec3.sub(destination, destination, this.center_));
-    },
+    }
   };
 
   return TransformData;

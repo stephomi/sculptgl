@@ -111,7 +111,7 @@ define([
     }
   };
 
-  GuiSculptingTools[Sculpt.tool.ROTATE] = {
+  GuiSculptingTools[Sculpt.tool.TWIST] = {
     ctrls_: [],
     init: function (tool, fold) {
       this.ctrls_.push(addCtrlCulling(tool, fold));
@@ -132,6 +132,16 @@ define([
       this.ctrls_.push(fold.add(tool, 'tangent_').name('No shrink'));
       this.ctrls_.push(addCtrlCulling(tool, fold));
     }
+  };
+
+  GuiSculptingTools[Sculpt.tool.TRANSLATE] = {
+    ctrls_: [],
+    init: function () {}
+  };
+
+  GuiSculptingTools[Sculpt.tool.ROTATE] = {
+    ctrls_: [],
+    init: function () {}
   };
 
   return GuiSculptingTools;

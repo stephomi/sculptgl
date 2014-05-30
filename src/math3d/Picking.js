@@ -15,7 +15,7 @@ define([
     this.mesh_ = null; // mesh
     this.pickedFace_ = -1; // face picked
     this.pickedVertices_ = []; // vertices selected
-    this.interPoint_ = [0.0, 0.0, 0.0]; // intersection point
+    this.interPoint_ = [0.0, 0.0, 0.0]; // intersection point (mesh local space)
     this.rDisplay_ = 50.0; // radius of the selection area (screen space)
     this.rLocal2_ = 0.0; // radius of the selection area (local/object space)
     this.rWorld2_ = 0.0; // radius of the selection area (world space)

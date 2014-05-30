@@ -27,14 +27,16 @@ define([
       var optionsSculpt = {
         'Brush (1)': Sculpt.tool.BRUSH,
         'Inflate (2)': Sculpt.tool.INFLATE,
-        'Rotate (3)': Sculpt.tool.ROTATE,
+        'Twist (3)': Sculpt.tool.TWIST,
         'Smooth (4)': Sculpt.tool.SMOOTH,
         'Flatten (5)': Sculpt.tool.FLATTEN,
         'Pinch (6)': Sculpt.tool.PINCH,
         'Crease (7)': Sculpt.tool.CREASE,
         'Drag (8)': Sculpt.tool.DRAG,
         'Paint (9)': Sculpt.tool.PAINT,
-        'Scale (0)': Sculpt.tool.SCALE
+        'Scale (0)': Sculpt.tool.SCALE,
+        'Translate': Sculpt.tool.TRANSLATE,
+        'Rotate': Sculpt.tool.ROTATE
       };
       var dummy = {
         tool_: this.sculpt_.tool_
@@ -53,7 +55,7 @@ define([
 
       this.initTool(Sculpt.tool.BRUSH, foldSculpt);
       this.initTool(Sculpt.tool.INFLATE, foldSculpt);
-      this.initTool(Sculpt.tool.ROTATE, foldSculpt);
+      this.initTool(Sculpt.tool.TWIST, foldSculpt);
       this.initTool(Sculpt.tool.SMOOTH, foldSculpt);
       this.initTool(Sculpt.tool.FLATTEN, foldSculpt);
       this.initTool(Sculpt.tool.PINCH, foldSculpt);
@@ -61,6 +63,8 @@ define([
       this.initTool(Sculpt.tool.DRAG, foldSculpt);
       this.initTool(Sculpt.tool.PAINT, foldSculpt);
       this.initTool(Sculpt.tool.SCALE, foldSculpt);
+      this.initTool(Sculpt.tool.TRANSLATE, foldSculpt);
+      this.initTool(Sculpt.tool.ROTATE, foldSculpt);
 
       GuiSculptingTools.show(this.sculpt_.tool_);
 
@@ -104,7 +108,7 @@ define([
         break;
       case 51: // 3
       case 99: // NUMPAD 3
-        ctrlSculpt.setValue(Sculpt.tool.ROTATE);
+        ctrlSculpt.setValue(Sculpt.tool.TWIST);
         break;
       case 52: // 4
       case 100: // NUMPAD 4
@@ -164,6 +168,8 @@ define([
       GuiSculptingTools.hide(sculpt.tool_);
       sculpt.tool_ = newValue;
       GuiSculptingTools.show(newValue);
+      this.ctrlContinuous_.__li.hidden = this.sculpt_.allowPicking() === false;
+      this.ctrlSymmetry_.__li.hidden = newValue === Sculpt.tool.TRANSLATE || newValue === Sculpt.tool.ROTATE;
     }
   };
 

@@ -2,129 +2,72 @@ define([
   'lib/glMatrix',
   'misc/Utils',
   'math3d/Geometry',
+  'states/StateTransform',
   'editor/tools/SculptBase'
-], function (glm, Utils, Geometry, SculptBase) {
+], function (glm, Utils, Geometry, StateTransform, SculptBase) {
 
   'use strict';
 
   var vec2 = glm.vec2;
   var vec3 = glm.vec3;
+  var mat3 = glm.mat3;
   var mat4 = glm.mat4;
   var quat = glm.quat;
 
   function Rotate(states) {
     SculptBase.call(this, states);
-    this.culling_ = false; // if we backface cull the vertices
-    this.rotateData_ = {
-      normal: [0.0, 0.0, 0.0], // normal of rotation plane
-      center: [0.0, 0.0] // 2D center of rotation 
-    };
-    this.rotateDataSym_ = {
-      normal: [0.0, 0.0, 0.0], // normal of rotation plane
-      center: [0.0, 0.0] // 2D center of rotation 
-    };
+    this.lastNormalizedMouseXY_ = [0.0, 0.0]; // last mouse position ( 0..1 )
+    this.preTranslate_ = mat4.create(); // pre translate matrix
+    this.postTranslate_ = mat4.create(); // post translate matrix
   }
 
   Rotate.prototype = {
-    /** Start a rotate sculpt stroke */
-    startSculpt: function (sculptgl) {
-      var mouseX = sculptgl.mouseX_;
-      var mouseY = sculptgl.mouseY_;
-      var picking = sculptgl.scene_.picking_;
-      var vNear = picking.camera_.unproject(mouseX, mouseY, 0.0);
-      var vFar = picking.camera_.unproject(mouseX, mouseY, 1.0);
-      var matInverse = mat4.create();
-      mat4.invert(matInverse, this.mesh_.getMatrix());
-      vec3.transformMat4(vNear, vNear, matInverse);
-      vec3.transformMat4(vFar, vFar, matInverse);
-      this.initRotateData(picking, mouseX, mouseY, this.rotateData_);
-      if (sculptgl.sculpt_.getSymmetry()) {
-        var pickingSym = sculptgl.scene_.pickingSym_;
-        pickingSym.intersectionRayMesh(this.mesh_, vNear, vFar, mouseX, mouseY, true);
-        if (!pickingSym.mesh_)
-          return;
-        this.initRotateData(pickingSym, mouseX, mouseY, this.rotateDataSym_);
-        pickingSym.setLocalRadius2(picking.getLocalRadius2());
-      }
+    /** Push undo operation */
+    pushState: function () {
+      this.states_.pushState(new StateTransform(this.mesh_));
     },
-    /** Set a few infos that will be needed for the rotate function afterwards */
-    initRotateData: function (picking, mouseX, mouseY, rotateData) {
-      picking.pickVerticesInSphere(picking.getLocalRadius2());
-      vec3.negate(rotateData.normal, picking.getEyeDirection());
-      rotateData.center[0] = mouseX;
-      rotateData.center[1] = mouseY;
-    },
-    /** Make a brush rotate stroke */
-    sculptStroke: function (sculptgl) {
-      var mx = sculptgl.mouseX_;
-      var my = sculptgl.mouseY_;
-      var lx = sculptgl.lastMouseX_;
-      var ly = sculptgl.lastMouseY_;
-      var picking = sculptgl.scene_.picking_;
-      var rLocal2 = picking.getLocalRadius2();
-      picking.pickVerticesInSphere(rLocal2);
-      this.stroke(picking, mx, my, lx, ly, this.rotateData_);
-      if (sculptgl.sculpt_.getSymmetry()) {
-        var pickingSym = sculptgl.scene_.pickingSym_;
-        pickingSym.pickVerticesInSphere(rLocal2);
-        this.stroke(pickingSym, lx, ly, mx, my, this.rotateDataSym_);
-      }
-      this.mesh_.updateGeometryBuffers();
-    },
-    /** On stroke */
-    stroke: function (picking, mx, my, lx, ly, rotateData) {
-      var iVertsInRadius = picking.getPickedVertices();
+    /** Start sculpting operation */
+    startSculpt: (function () {
+      var tmp = [0.0, 0.0, 0.0];
+      var rot = mat3.create();
+      var qu = [0.0, 0.0, 0.0, 1.0];
+      return function (sculptgl) {
+        var camera = sculptgl.scene_.getCamera();
+        this.lastNormalizedMouseXY_ = Geometry.normalizedMouse(sculptgl.mouseX_, sculptgl.mouseY_, camera.width_, camera.height_);
 
-      // undo-redo
-      this.states_.pushVertices(iVertsInRadius);
+        var matrix = this.mesh_.getMatrix();
+        vec3.transformMat3(tmp, this.mesh_.getCenter(), mat3.fromMat4(rot, matrix));
+        vec3.set(tmp, tmp[0] + matrix[12], tmp[1] + matrix[13], tmp[2] + matrix[14]);
+        mat4.fromRotationTranslation(this.preTranslate_, qu, tmp);
+        mat4.fromRotationTranslation(this.postTranslate_, qu, vec3.negate(tmp, tmp));
+      };
+    })(),
+    /** Update sculpting operation */
+    update: (function () {
+      var qu = [0.0, 0.0, 0.0, 1.0];
+      var axis = [0.0, 0.0, 0.0];
+      var matRot = mat4.create();
+      return function (sculptgl) {
+        var mesh = this.mesh_;
+        var camera = sculptgl.scene_.getCamera();
+        var lastNormalized = this.lastNormalizedMouseXY_;
 
-      if (this.culling_)
-        iVertsInRadius = this.getFrontVertices(iVertsInRadius, picking.getEyeDirection());
+        var normalizedMouseXY = Geometry.normalizedMouse(sculptgl.mouseX_, sculptgl.mouseY_, camera.width_, camera.height_);
+        var length = vec2.dist(this.lastNormalizedMouseXY_, normalizedMouseXY);
+        vec3.set(axis, lastNormalized[1] - normalizedMouseXY[1], normalizedMouseXY[0] - this.lastNormalizedMouseXY_[0], 0.0);
+        vec3.normalize(axis, axis);
+        this.lastNormalizedMouseXY_ = normalizedMouseXY;
 
-      this.rotate(iVertsInRadius, picking.getIntersectionPoint(), picking.getLocalRadius2(), mx, my, lx, ly, rotateData);
+        vec3.transformQuat(axis, axis, quat.invert(qu, camera.quatRot_));
+        mat4.fromQuat(matRot, quat.setAxisAngle(qu, axis, length * 2.0));
 
-      this.mesh_.updateGeometry(this.mesh_.getFacesFromVertices(iVertsInRadius), iVertsInRadius);
-    },
-    /** Rotate the vertices around the mouse point intersection */
-    rotate: function (iVerts, center, radiusSquared, mouseX, mouseY, lastMouseX, lastMouseY, rotateData) {
-      var mesh = this.mesh_;
-      var mouseCenter = rotateData.center;
-      var vecMouse = [mouseX - mouseCenter[0], mouseY - mouseCenter[1]];
-      if (vec2.len(vecMouse) < 30)
-        return;
-      vec2.normalize(vecMouse, vecMouse);
-      var nPlane = rotateData.normal;
-      var rot = [0.0, 0.0, 0.0, 0.0];
-      var vecOldMouse = [lastMouseX - mouseCenter[0], lastMouseY - mouseCenter[1]];
-      vec2.normalize(vecOldMouse, vecOldMouse);
-      var angle = Geometry.signedAngle2d(vecMouse, vecOldMouse);
-      var vAr = mesh.getVertices();
-      var radius = Math.sqrt(radiusSquared);
-      var cx = center[0];
-      var cy = center[1];
-      var cz = center[2];
-      var coord = [0.0, 0.0, 0.0];
-      for (var i = 0, l = iVerts.length; i < l; ++i) {
-        var ind = iVerts[i] * 3;
-        var vx = vAr[ind];
-        var vy = vAr[ind + 1];
-        var vz = vAr[ind + 2];
-        var dx = vx - cx;
-        var dy = vy - cy;
-        var dz = vz - cz;
-        var dist = Math.sqrt(dx * dx + dy * dy + dz * dz) / radius;
-        var fallOff = dist * dist;
-        fallOff = 3.0 * fallOff * fallOff - 4.0 * fallOff * dist + 1.0;
-        quat.setAxisAngle(rot, nPlane, angle * fallOff);
-        vec3.set(coord, vx, vy, vz);
-        vec3.sub(coord, coord, center);
-        vec3.transformQuat(coord, coord, rot);
-        vec3.add(coord, coord, center);
-        vAr[ind] = coord[0];
-        vAr[ind + 1] = coord[1];
-        vAr[ind + 2] = coord[2];
-      }
-    }
+        var matrix = mesh.getMatrix();
+        mat4.mul(matRot, this.preTranslate_, matRot);
+        mat4.mul(matRot, matRot, this.postTranslate_);
+
+        mat4.mul(matrix, matRot, matrix);
+      };
+    })()
   };
 
   Utils.makeProxy(SculptBase, Rotate);

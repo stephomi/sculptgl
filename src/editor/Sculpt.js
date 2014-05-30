@@ -1,15 +1,17 @@
 define([
   'editor/tools/Brush',
   'editor/tools/Inflate',
-  'editor/tools/Rotate',
+  'editor/tools/Twist',
   'editor/tools/Smooth',
   'editor/tools/Flatten',
   'editor/tools/Pinch',
   'editor/tools/Crease',
   'editor/tools/Drag',
   'editor/tools/Paint',
-  'editor/tools/Scale'
-], function (Brush, Inflate, Rotate, Smooth, Flatten, Pinch, Crease, Drag, Paint, Scale) {
+  'editor/tools/Scale',
+  'editor/tools/Translate',
+  'editor/tools/Rotate'
+], function (Brush, Inflate, Twist, Smooth, Flatten, Pinch, Crease, Drag, Paint, Scale, Translate, Rotate) {
 
   'use strict';
 
@@ -33,14 +35,16 @@ define([
   Sculpt.tool = {
     BRUSH: 0,
     INFLATE: 1,
-    ROTATE: 2,
+    TWIST: 2,
     SMOOTH: 3,
     FLATTEN: 4,
     PINCH: 5,
     CREASE: 6,
     DRAG: 7,
     PAINT: 8,
-    SCALE: 9
+    SCALE: 9,
+    TRANSLATE: 10,
+    ROTATE: 11
   };
 
   Sculpt.prototype = {
@@ -56,7 +60,7 @@ define([
       var states = this.states_;
       this.tools_[Sculpt.tool.BRUSH] = new Brush(states);
       this.tools_[Sculpt.tool.INFLATE] = new Inflate(states);
-      this.tools_[Sculpt.tool.ROTATE] = new Rotate(states);
+      this.tools_[Sculpt.tool.TWIST] = new Twist(states);
       this.tools_[Sculpt.tool.SMOOTH] = new Smooth(states);
       this.tools_[Sculpt.tool.FLATTEN] = new Flatten(states);
       this.tools_[Sculpt.tool.PINCH] = new Pinch(states);
@@ -64,6 +68,8 @@ define([
       this.tools_[Sculpt.tool.DRAG] = new Drag(states);
       this.tools_[Sculpt.tool.PAINT] = new Paint(states);
       this.tools_[Sculpt.tool.SCALE] = new Scale(states);
+      this.tools_[Sculpt.tool.TRANSLATE] = new Translate(states);
+      this.tools_[Sculpt.tool.ROTATE] = new Rotate(states);
 
       var canvas = document.getElementById('canvas');
       canvas.addEventListener('mouseup', this.onMouseUp.bind(this), false);
@@ -85,13 +91,11 @@ define([
     allowPicking: function () {
       var tool = this.tool_;
       var st = Sculpt.tool;
-      return tool !== st.ROTATE && tool !== st.DRAG && tool !== st.SCALE;
+      return tool !== st.TWIST && tool !== st.DRAG && tool !== st.SCALE && tool !== st.TRANSLATE && tool !== st.ROTATE;
     },
     /** Return true if the current tool is using continous sculpting */
     isUsingContinuous: function () {
-      var tool = this.tool_;
-      var st = Sculpt.tool;
-      return this.continuous_ && tool !== st.ROTATE && tool !== st.DRAG && tool !== st.SCALE;
+      return this.continuous_ && this.allowPicking();
     },
     /** Start sculpting */
     start: function (sculptgl) {

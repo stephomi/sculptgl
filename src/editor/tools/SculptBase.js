@@ -13,13 +13,9 @@ define([
   }
 
   SculptBase.prototype = {
-    /** Return the mesh */
-    getMesh: function () {
-      return this.mesh_;
-    },
     /** Start sculpting */
     start: function (sculptgl) {
-      var picking = sculptgl.scene_.picking_;
+      var picking = sculptgl.scene_.getPicking();
       picking.intersectionMouseMeshes(sculptgl.scene_.meshes_, sculptgl.mouseX_, sculptgl.mouseY_);
       var mesh = picking.mesh_;
       if (mesh === null)
@@ -49,8 +45,8 @@ define([
       var mesh = this.mesh_;
       var mouseX = sculptgl.mouseX_;
       var mouseY = sculptgl.mouseY_;
-      var picking = sculptgl.scene_.picking_;
-      var pickingSym = sculptgl.scene_.pickingSym_;
+      var picking = sculptgl.scene_.getPicking();
+      var pickingSym = sculptgl.scene_.getSymmetryPicking();
       var lx = sculptgl.lastMouseX_;
       var ly = sculptgl.lastMouseY_;
       var dx = mouseX - lx;
