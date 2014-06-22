@@ -34,7 +34,8 @@ define([
         'Matcap': Shader.mode.MATCAP,
         'Phong': Shader.mode.PHONG,
         'Transparency': Shader.mode.TRANSPARENCY,
-        'Normal shader': Shader.mode.NORMAL
+        'Normal shader': Shader.mode.NORMAL,
+        'UV shader': Shader.mode.UV
       };
       this.ctrlShaders_ = foldRender.add(dummy, 'type_', optionsShaders).name('Shader');
       this.ctrlShaders_.onChange(function (value) {

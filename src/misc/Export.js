@@ -21,7 +21,7 @@ define([
   var Export = {};
 
   /** Export OBJ file */
-  Export.exportOBJ = function (mesh, useColor) {
+  Export.exportOBJ = function (mesh, saveColor) {
     var vAr = mesh.getVertices();
     var cAr = mesh.getColors();
     var fAr = mesh.getFaces();
@@ -32,15 +32,31 @@ define([
     var j = 0;
     for (i = 0; i < nbVertices; ++i) {
       j = i * 3;
-      if (useColor)
-        data += 'v ' + vAr[j] + ' ' + vAr[j + 1] + ' ' + vAr[j + 2] + ' ' + cAr[j] + ' ' + cAr[j + 1] + ' ' + cAr[j + 2] + '\n';
-      else
-        data += 'v ' + vAr[j] + ' ' + vAr[j + 1] + ' ' + vAr[j + 2] + '\n';
+      data += 'v ' + vAr[j] + ' ' + vAr[j + 1] + ' ' + vAr[j + 2];
+      data += (saveColor ? ' ' + cAr[j] + ' ' + cAr[j + 1] + ' ' + cAr[j + 2] + '\n' : '\n');
+    }
+    var nbTexCoords = mesh.getNbTexCoords();
+    var fArUV = mesh.getFacesTexCoord();
+    var uvAr = mesh.getTexCoords();
+    var saveUV = true;
+    for (i = 0; i < nbTexCoords; ++i) {
+      j = i * 2;
+      data += 'vt ' + uvAr[j] + ' ' + uvAr[j + 1] + '\n';
     }
     for (i = 0; i < nbFaces; ++i) {
       j = i * 4;
       var id = fAr[j + 3];
-      data += 'f ' + (1 + fAr[j]) + ' ' + (1 + fAr[j + 1]) + ' ' + (1 + fAr[j + 2]) + (id >= 0 ? ' ' + (1 + id) + '\n' : '\n');
+      if (saveUV) {
+        data += 'f ' + (1 + fAr[j]) + '/' + (1 + fArUV[j]);
+        data += ' ' + (1 + fAr[j + 1]) + '/' + (1 + fArUV[j + 1]);
+        data += ' ' + (1 + fAr[j + 2]) + '/' + (1 + fArUV[j + 2]);
+        data += (id >= 0 ? ' ' + (1 + id) + '/' + (1 + fArUV[j + 3]) + '\n' : '\n');
+      } else {
+        data += 'f ' + (1 + fAr[j]);
+        data += ' ' + (1 + fAr[j + 1]);
+        data += ' ' + (1 + fAr[j + 2]);
+        data += (id >= 0 ? ' ' + (1 + id) + '\n' : '\n');
+      }
     }
     return new Blob([data]);
   };

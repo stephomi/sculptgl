@@ -7,20 +7,23 @@ define([
   function VertexData(mesh) {
     this.mesh_ = mesh; // the mesh
 
+    // attributes vertex ( no duplicates )
     this.verticesXYZ_ = null; // vertices (Float32Array)
     this.colorsRGB_ = null; // color vertices (Float32Array)
     this.normalsXYZ_ = null; // normals (Float32Array)
 
+    // topology stuffs
     this.vertOnEdge_ = null; // vertices on edge (Uint8Array) (1 => on edge)
     this.vrfStartCount_ = null; // array of neighborhood faces (start/count) (Uint32Array)
     this.vertRingFace_ = null; // array of neighborhood faces (Uint32Array)
     this.vrvStartCount_ = null; // array of neighborhood vertices (start/count) (Uint32Array)
     this.vertRingVert_ = null; // array neighborhood vertices (Uint32Array)
 
+    // flag for general purposes stuff
     this.vertTagFlags_ = null; // tag flags (<= Utils.TAG_FLAG) (Uint32Array)
-    // flag for editing
+    // flag for editing (tag vertices on each start of a sculpting session)
     this.vertSculptFlags_ = null; // sculpt flags (<= Utils.SCULPT_FLAG) (Uint32Array)
-    // flag for history
+    // flag for history (tag vertices on each start of a sculpting session)
     this.vertStateFlags_ = null; // state flags (<= Utils.STATE_FLAG) (Uint32Array)
 
     this.vertProxy_ = null; // vertex proxy (Float32Array)
@@ -154,8 +157,8 @@ define([
       var faceNormals = mesh.getFaceNormals();
 
       var full = iVerts === undefined;
-      var nbFaces = full ? this.getNbVertices() : iVerts.length;
-      for (var i = 0; i < nbFaces; ++i) {
+      var nbVerts = full ? this.getNbVertices() : iVerts.length;
+      for (var i = 0; i < nbVerts; ++i) {
         var ind = full ? i : iVerts[i];
         var start = vrfStartCount[ind * 2];
         var end = start + vrfStartCount[ind * 2 + 1];
@@ -168,7 +171,7 @@ define([
           ny += faceNormals[id + 1];
           nz += faceNormals[id + 2];
         }
-        var len = 1.0 / nbFaces;
+        var len = 1.0 / (end - start);
         ind *= 3;
         nAr[ind] = nx * len;
         nAr[ind + 1] = ny * len;

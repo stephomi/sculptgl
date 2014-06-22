@@ -7,11 +7,12 @@ define([
   function IndexData(mesh) {
     this.mesh_ = mesh; // the mesh
 
+    this.facesABCD_ = null; // faces (Int32Array)
+
     this.faceEdges_ = null; // faces to edges (Int32Array)
     this.faceNormalsXYZ_ = null; // faces normals (Float32Array)
     this.faceBoxes_ = null; // faces bbox (Float32Array)
     this.faceCentersXYZ_ = null; // faces center (Float32Array)
-    this.facesABCD_ = null; // faces (Int32Array)
 
     this.facesToTriangles_ = null; // faces to triangles (Uint32Array)
     this.trianglesABC_ = null; // triangles (Uint32Array)
@@ -256,7 +257,7 @@ define([
     /** Return all the faces linked to a group of vertices */
     initRenderTriangles: function () {
       var nbFaces = this.getNbFaces();
-      var faces = this.getFaces();
+      var faces = this.mesh_.getFacesTexCoord();
       var facesToTris = this.facesToTriangles_;
       var iAr = new Uint32Array(Utils.getMemory(4 * nbFaces * 6), 0, nbFaces * 6);
       var acc = 0;

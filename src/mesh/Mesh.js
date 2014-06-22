@@ -33,13 +33,16 @@ define([
       this.render_ = render;
     },
     getRenderVertices: function (useDrawArrays) {
-      return useDrawArrays ? this.getDrawArraysData().verticesXYZ_ : this.getVertices();
+      return useDrawArrays ? this.getDrawArraysData().verticesXYZ_ : this.getVerticesTexCoord();
     },
     getRenderNormals: function (useDrawArrays) {
-      return useDrawArrays ? this.getDrawArraysData().normalsXYZ_ : this.getNormals();
+      return useDrawArrays ? this.getDrawArraysData().normalsXYZ_ : this.getNormalsTexCoord();
     },
     getRenderColors: function (useDrawArrays) {
-      return useDrawArrays ? this.getDrawArraysData().colorsRGB_ : this.getColors();
+      return useDrawArrays ? this.getDrawArraysData().colorsRGB_ : this.getColorsTexCoord();
+    },
+    getRenderTexCoords: function (useDrawArrays) {
+      return useDrawArrays ? this.getDrawArraysData().texCoordsST_ : this.getTexCoords();
     },
     getRenderTriangles: function () {
       return this.getTriangles();
@@ -71,11 +74,13 @@ define([
       this.updateVerticesNormal(iVerts);
       this.updateOctree(iFaces);
       this.updateFlatShading(iFaces);
+      this.updateDuplicateVertices(iVerts);
     },
-    /** Allocate arrays, except for : coordinates, primitives, edges, wireframe, drawArrays, details */
+    /** Allocate arrays, except for : coordinates, primitives, edges, wireframe, drawArrays, uv stuffs */
     allocateArrays: function () {
       this.getIndexData().allocateArrays();
       this.getVertexData().allocateArrays();
+      this.getTexCoordsData().allocateArrays();
       this.getOctree().allocateArrays();
     }
   };

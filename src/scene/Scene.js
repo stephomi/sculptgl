@@ -27,7 +27,7 @@ define([
     this.meshes_ = []; // the meshes
 
     // datas
-    this.initMeshPath_ = 'ressources/sphere.ply'; // sphere
+    this.initMeshPath_ = 'resources/sphere.obj'; // sphere
     this.initMesh_ = ''; // sphere
 
     // one render at a time
@@ -209,7 +209,9 @@ define([
           gl.bindTexture(gl.TEXTURE_2D, idTex);
           gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, mat);
           gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
-          gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_NEAREST);
+          gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_LINEAR);
+          gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.REPEAT);
+          gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.REPEAT);
           gl.generateMipmap(gl.TEXTURE_2D);
           gl.bindTexture(gl.TEXTURE_2D, null);
           Shader.textures[idMaterial] = idTex;
@@ -240,8 +242,8 @@ define([
       this.meshes_.length = 0;
       this.loadScene();
       var ctrlMulti = this.sculptgl_.gui_.ctrlMultiresolution_;
-      while (this.meshes_[0].getNbFaces() < 20000)
-        ctrlMulti.subdivide();
+      // while (this.meshes_[0].getNbFaces() < 20000)
+      //   ctrlMulti.subdivide();
       this.sculptgl_.states_.reset();
     }
   };

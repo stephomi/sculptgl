@@ -1,11 +1,12 @@
 define([
+  'render/shaders/ShaderBackground',
   'render/shaders/ShaderMatcap',
-  'render/shaders/ShaderPhong',
   'render/shaders/ShaderNormal',
+  'render/shaders/ShaderPhong',
   'render/shaders/ShaderTransparency',
-  'render/shaders/ShaderWireframe',
-  'render/shaders/ShaderBackground'
-], function (SMatcap, SPhong, SNormal, STransparency, SWireframe, SBackground) {
+  'render/shaders/ShaderUV',
+  'render/shaders/ShaderWireframe'
+], function (Sbackground, Smatcap, Snormal, Sphong, Stransparency, Suv, Swireframe) {
 
   'use strict';
 
@@ -22,15 +23,17 @@ define([
     WIREFRAME: 2,
     NORMAL: 3,
     BACKGROUND: 4,
-    MATCAP: 5
+    UV: 5,
+    MATCAP: 6
   };
 
-  Shader[Shader.mode.PHONG] = SPhong;
-  Shader[Shader.mode.WIREFRAME] = SWireframe;
-  Shader[Shader.mode.TRANSPARENCY] = STransparency;
-  Shader[Shader.mode.NORMAL] = SNormal;
-  Shader[Shader.mode.MATCAP] = SMatcap;
-  Shader[Shader.mode.BACKGROUND] = SBackground;
+  Shader[Shader.mode.BACKGROUND] = Sbackground;
+  Shader[Shader.mode.PHONG] = Sphong;
+  Shader[Shader.mode.MATCAP] = Smatcap;
+  Shader[Shader.mode.NORMAL] = Snormal;
+  Shader[Shader.mode.TRANSPARENCY] = Stransparency;
+  Shader[Shader.mode.UV] = Suv;
+  Shader[Shader.mode.WIREFRAME] = Swireframe;
 
   Shader.prototype = {
     /** Initialize the shader */

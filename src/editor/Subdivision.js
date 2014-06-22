@@ -1,4 +1,6 @@
-define([], function () {
+define([
+  'misc/Utils'
+], function (Utils) {
 
   'use strict';
 
@@ -46,6 +48,7 @@ define([], function () {
       var ivMid = testEdge === -1 ? this.nbVertices_++ : testEdge;
       var idMid = ivMid * 3;
       if (eAr[ide] === 1) { // mid edge vertex
+        tagEdges[ide] = ivMid + 1;
         vArOut[idMid] = 0.5 * (vAr[id1] + vAr[id2]);
         vArOut[idMid + 1] = 0.5 * (vAr[id1 + 1] + vAr[id2 + 1]);
         vArOut[idMid + 2] = 0.5 * (vAr[id1 + 2] + vAr[id2 + 2]);
@@ -88,6 +91,7 @@ define([], function () {
       var ivMid = testEdge === -1 ? this.nbVertices_++ : testEdge;
       var idMid = ivMid * 3;
       if (eAr[ide] === 1) { // mid edge vertex
+        tagEdges[ide] = ivMid + 1;
         vArOut[idMid] = 0.5 * (vAr[id1] + vAr[id2]);
         vArOut[idMid + 1] = 0.5 * (vAr[id1 + 1] + vAr[id2 + 1]);
         vArOut[idMid + 2] = 0.5 * (vAr[id1 + 2] + vAr[id2 + 2]);
@@ -141,22 +145,20 @@ define([], function () {
 
   /** Apply a complete subdivision (by updating the topology) */
   Subdivision.fullSubdivision = function (baseMesh, newMesh) {
-    Subdivision.allocateArrays(baseMesh, newMesh);
+    var nbVertices = baseMesh.getNbVertices() + baseMesh.getNbEdges() + baseMesh.getNbQuads();
+    newMesh.setVertices(new Float32Array(nbVertices * 3));
+    newMesh.setColors(new Float32Array(nbVertices * 3));
+    newMesh.setFaces(new Int32Array(baseMesh.getNbFaces() * 4 * 4));
     Subdivision.applyEvenSmooth(baseMesh, newMesh.getVertices(), newMesh.getColors());
-    Subdivision.applyOddSmooth(baseMesh, newMesh.getVertices(), newMesh.getColors(), newMesh.getFaces());
+    var tags = Subdivision.applyOddSmooth(baseMesh, newMesh.getVertices(), newMesh.getColors(), newMesh.getFaces());
+    Subdivision.computeTexCoords(baseMesh, newMesh, tags);
+    newMesh.allocateArrays();
   };
 
   /** Apply subdivision without topology computation */
   Subdivision.partialSubdivision = function (baseMesh, vertOut, colorOut) {
     Subdivision.applyEvenSmooth(baseMesh, vertOut, colorOut);
     Subdivision.applyOddSmooth(baseMesh, vertOut, colorOut);
-  };
-
-  /** Allocate the arrays for the new mesh */
-  Subdivision.allocateArrays = function (baseMesh, newMesh) {
-    newMesh.setVertices(new Float32Array((baseMesh.getNbVertices() + baseMesh.getNbEdges() + baseMesh.getNbQuads()) * 3));
-    newMesh.setFaces(new Int32Array(baseMesh.getNbFaces() * 4 * 4));
-    newMesh.allocateArrays();
   };
 
   /** Even vertices smoothing */
@@ -301,7 +303,7 @@ define([], function () {
     var fAr = mesh.getFaces();
     var feAr = mesh.getFaceEdges();
     var oddComputer = new OddVertexComputer(mesh, odds, colorOut);
-    for (var i = 0, l = mesh.getNbFaces(); i < l; ++i) {
+    for (var i = 0, len = mesh.getNbFaces(); i < len; ++i) {
       var id = i * 4;
       var iv1 = fAr[id];
       var iv2 = fAr[id + 1];
@@ -342,8 +344,162 @@ define([], function () {
         fArOut[id + 9] = iv2;
         fArOut[id + 13] = iv3;
       }
-      id += 12;
     }
+    return oddComputer.tagEdges_;
+  };
+
+  /** Computes uv coords (except for center vertices) */
+  Subdivision.computeTexCoords = function (mesh, newMesh, tagEdges) {
+    var newNbVertices = newMesh.getNbVertices();
+    var startCount = new Uint32Array(newNbVertices * 2);
+    startCount.set(mesh.getVerticesDuplicateStartCount());
+
+    var fArOld = mesh.getFaces();
+    var fArUVOld = mesh.getFacesTexCoord();
+
+    var bound = newMesh.getNbFaces() * 3;
+    var uvArOld = mesh.getTexCoords();
+    var uvAr = new Float32Array(Utils.getMemory(bound * 4 * 2), 0, bound * 2);
+
+    var i = 0;
+    var len = mesh.getNbVertices();
+    var offset = newNbVertices - len;
+    // reorder even duplicates vertex indices
+    for (i = 0; i < len; ++i) {
+      var start = startCount[i * 2];
+      if (start > 0)
+        startCount[i * 2] = start + offset;
+    }
+    uvAr.set(uvArOld);
+    uvAr.set(uvArOld.subarray(len * 2), (len + offset) * 2);
+    var nbTexCoords = mesh.getNbTexCoords();
+
+    var acc = offset + nbTexCoords;
+    var feAr = mesh.getFaceEdges();
+
+    // compute uv for new odd vertices
+    var tagUVMin = new Uint32Array(tagEdges.length);
+    var tagUVMax = new Uint32Array(tagEdges.length);
+    len = fArOld.length;
+    for (i = 0; i < len; ++i) {
+      var ide = feAr[i];
+      if (ide === -1)
+        continue;
+      var iNext = (i + 1) % 4 === 0 ? i - 3 : i + 1;
+      var iuv1 = fArUVOld[i];
+      var iuv2 = fArUVOld[iNext];
+      if (iuv2 < 0)
+        iuv2 = fArUVOld[i - 2];
+      var tg = tagEdges[ide] - 1;
+
+      // test if we already processed this edge
+      var tgMax = tagUVMax[ide];
+      var iuvMax = iuv1 > iuv2 ? iuv1 : iuv2;
+      var iuvMin = iuv1 < iuv2 ? iuv1 : iuv2;
+      if (tgMax !== 0) {
+        // test if we already processed this UV edge or if it's a duplicate
+        if (tgMax !== iuvMax || tagUVMin[ide] !== iuvMin) {
+          uvAr[acc * 2] = (uvArOld[iuv1 * 2] + uvArOld[iuv2 * 2]) * 0.5;
+          uvAr[acc * 2 + 1] = (uvArOld[iuv1 * 2 + 1] + uvArOld[iuv2 * 2 + 1]) * 0.5;
+          startCount[tg * 2] = acc++;
+          startCount[tg * 2 + 1] = 1;
+        }
+      } else {
+        // first time we process this edge
+        uvAr[tg * 2] = (uvArOld[iuv1 * 2] + uvArOld[iuv2 * 2]) * 0.5;
+        uvAr[tg * 2 + 1] = (uvArOld[iuv1 * 2 + 1] + uvArOld[iuv2 * 2 + 1]) * 0.5;
+        tagUVMin[ide] = iuvMin;
+        tagUVMax[ide] = iuvMax;
+      }
+    }
+    var texCoords = new Float32Array(acc * 2);
+    texCoords.set(uvAr.subarray(0, acc * 2));
+
+    newMesh.setTexCoords(texCoords);
+    newMesh.setVerticesDuplicateStartCount(startCount);
+
+    Subdivision.computeFaceTexCoords(mesh, newMesh, tagEdges);
+  };
+
+  /** Computes uv faces and uv coordinates for center vertices */
+  Subdivision.computeFaceTexCoords = function (mesh, newMesh, tagEdges) {
+    var fArUVOld = mesh.getFacesTexCoord();
+    var fAr = newMesh.getFaces();
+    var fArUV = new Int32Array(fAr.length);
+    var feAr = mesh.getFaceEdges();
+
+    var nbVertices = mesh.getNbVertices();
+    var offset = newMesh.getNbVertices() - nbVertices;
+
+    var startCount = newMesh.getVerticesDuplicateStartCount();
+    var uvAr = newMesh.getTexCoords();
+    for (var i = 0, len = mesh.getNbFaces(); i < len; ++i) {
+      var id = i * 4;
+      var iuv1 = fArUVOld[id];
+      var iuv2 = fArUVOld[id + 1];
+      var iuv3 = fArUVOld[id + 2];
+      var iuv4 = fArUVOld[id + 3];
+      if (iuv1 >= nbVertices) iuv1 += offset;
+      if (iuv2 >= nbVertices) iuv2 += offset;
+      if (iuv3 >= nbVertices) iuv3 += offset;
+      if (iuv4 >= nbVertices) iuv4 += offset;
+
+      var ide = feAr[id];
+      var tg1 = tagEdges[ide] - 1;
+      if (tg1 < 0)
+        tg1 = startCount[(-tg1 - 1) * 2];
+      else if (startCount[tg1 * 2] > 0)
+        tagEdges[ide] = -tg1;
+
+      ide = feAr[id + 1];
+      var tg2 = tagEdges[ide] - 1;
+      if (tg2 < 0)
+        tg2 = startCount[(-tg2 - 1) * 2];
+      else if (startCount[tg2 * 2] > 0)
+        tagEdges[ide] = -tg2;
+
+      ide = feAr[id + 2];
+      var tg3 = tagEdges[ide] - 1;
+      if (tg3 < 0)
+        tg3 = startCount[(-tg3 - 1) * 2];
+      else if (startCount[tg3 * 2] > 0)
+        tagEdges[ide] = -tg3;
+
+      id *= 4;
+      if (iuv4 >= 0) {
+        ide = feAr[i * 4 + 3];
+        var tg4 = tagEdges[ide] - 1;
+        if (tg4 < 0)
+          tg4 = startCount[(-tg4 - 1) * 2];
+        else if (startCount[tg4 * 2] > 0)
+          tagEdges[ide] = -tg4;
+
+        fArUV[id + 1] = fArUV[id + 4] = tg1;
+        fArUV[id + 6] = fArUV[id + 9] = tg2;
+        fArUV[id + 11] = fArUV[id + 14] = tg3;
+        fArUV[id + 3] = fArUV[id + 12] = tg4;
+        fArUV[id + 2] = fArUV[id + 7] = fArUV[id + 8] = fArUV[id + 13] = fAr[id + 2];
+        fArUV[id] = iuv1;
+        fArUV[id + 5] = iuv2;
+        fArUV[id + 10] = iuv3;
+        fArUV[id + 15] = iuv4;
+
+        // even averaging for center quad
+        var im = fAr[id + 2] * 2;
+        uvAr[im] = (uvAr[iuv1 * 2] + uvAr[iuv2 * 2] + uvAr[iuv3 * 2] + uvAr[iuv4 * 2]) * 0.25;
+        uvAr[im + 1] = (uvAr[iuv1 * 2 + 1] + uvAr[iuv2 * 2 + 1] + uvAr[iuv3 * 2 + 1] + uvAr[iuv4 * 2 + 1]) * 0.25;
+      } else {
+        fArUV[id] = fArUV[id + 5] = fArUV[id + 8] = tg1;
+        fArUV[id + 1] = fArUV[id + 10] = fArUV[id + 12] = tg2;
+        fArUV[id + 2] = fArUV[id + 6] = fArUV[id + 14] = tg3;
+        fArUV[id + 3] = fArUV[id + 7] = fArUV[id + 11] = fArUV[id + 15] = -1;
+        fArUV[id + 4] = iuv1;
+        fArUV[id + 9] = iuv2;
+        fArUV[id + 13] = iuv3;
+      }
+    }
+
+    newMesh.setFacesTexCoord(fArUV);
   };
 
   return Subdivision;

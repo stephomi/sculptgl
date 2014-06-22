@@ -9,8 +9,11 @@ define([
   /** Import OBJ file */
   Import.importOBJ = function (data, mesh) {
     var vAr = [];
+    var texAr = [];
     var fAr = [];
+    var uvfAr = [];
     var nbVertices = 0;
+    var nbTexCoords = 0;
     var lines = data.split('\n');
     var split = [];
     var nbLength = lines.length;
@@ -20,12 +23,20 @@ define([
         split = line.split(/\s+/);
         vAr.push(parseFloat(split[1]), parseFloat(split[2]), parseFloat(split[3]));
         ++nbVertices;
+      } else if (line.startsWith('vt ')) {
+        split = line.split(/\s+/);
+        texAr.push(parseFloat(split[1]), parseFloat(split[2]));
+        ++nbTexCoords;
       } else if (line.startsWith('f ')) {
         split = line.split(/\s+/);
-        var iv1 = parseInt(split[1].split('/')[0], 10);
-        var iv2 = parseInt(split[2].split('/')[0], 10);
-        var iv3 = parseInt(split[3].split('/')[0], 10);
+        var sp1 = split[1].split('/');
+        var sp2 = split[2].split('/');
+        var sp3 = split[3].split('/');
         var isQuad = split.length > 4;
+
+        var iv1 = parseInt(sp1[0], 10);
+        var iv2 = parseInt(sp2[0], 10);
+        var iv3 = parseInt(sp3[0], 10);
         var iv4 = isQuad ? parseInt(split[4].split('/')[0], 10) : undefined;
         if (isQuad && (iv4 === iv1 || iv4 === iv2 || iv4 === iv3))
           continue;
@@ -36,10 +47,24 @@ define([
         iv3 = iv3 < 0 ? iv3 + nbVertices : iv3 - 1;
         if (isQuad) iv4 = iv4 < 0 ? iv4 + nbVertices : iv4 - 1;
         fAr.push(iv1, iv2, iv3, isQuad ? iv4 : -1);
+
+        if (sp1[1]) {
+          var uv1 = parseInt(sp1[1], 10);
+          var uv2 = parseInt(sp2[1], 10);
+          var uv3 = parseInt(sp3[1], 10);
+          var uv4 = isQuad ? parseInt(split[4].split('/')[1], 10) : undefined;
+          uv1 = uv1 < 0 ? uv1 + nbTexCoords : uv1 - 1;
+          uv2 = uv2 < 0 ? uv2 + nbTexCoords : uv2 - 1;
+          uv3 = uv3 < 0 ? uv3 + nbTexCoords : uv3 - 1;
+          if (isQuad) uv4 = uv4 < 0 ? uv4 + nbTexCoords : uv4 - 1;
+          uvfAr.push(uv1, uv2, uv3, isQuad ? uv4 : -1);
+        }
       }
     }
     mesh.setVertices(new Float32Array(vAr));
     mesh.setFaces(new Int32Array(fAr));
+    if (texAr.length > 0)
+      mesh.initTexCoordsDataFromOBJData(texAr, uvfAr);
   };
 
   /** Import PLY file */

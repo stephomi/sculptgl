@@ -18,6 +18,7 @@ define([
     this.vertexBuffer_ = new Buffer(gl, gl.ARRAY_BUFFER, gl.DYNAMIC_DRAW); // vertices buffer
     this.normalBuffer_ = new Buffer(gl, gl.ARRAY_BUFFER, gl.DYNAMIC_DRAW); // normals buffer
     this.colorBuffer_ = new Buffer(gl, gl.ARRAY_BUFFER, gl.DYNAMIC_DRAW); // colors buffer
+    this.texCoordBuffer_ = new Buffer(gl, gl.ARRAY_BUFFER, gl.STATIC_DRAW); // texCoords buffer
     this.indexBuffer_ = new Buffer(gl, gl.ELEMENT_ARRAY_BUFFER, gl.STATIC_DRAW); // indices buffer
     this.wireframeBuffer_ = new Buffer(gl, gl.ELEMENT_ARRAY_BUFFER, gl.STATIC_DRAW); // wireframe buffer
     this.texture0_ = null; // a texture
@@ -46,6 +47,10 @@ define([
     /** Return color buffer */
     getColorBuffer: function () {
       return this.colorBuffer_;
+    },
+    /** Return texCoord buffer */
+    getTexCoordBuffer: function () {
+      return this.texCoordBuffer_;
     },
     /** Return index buffer */
     getIndexBuffer: function () {
@@ -130,6 +135,10 @@ define([
     updateColorBuffer: function () {
       this.getColorBuffer().update(this.mesh_.getRenderColors(this.isUsingDrawArrays()));
     },
+    /** Updates texCoord buffer */
+    updateTexCoordBuffer: function () {
+      this.getTexCoordBuffer().update(this.mesh_.getRenderTexCoords(this.isUsingDrawArrays()));
+    },
     /** Updates index buffer */
     updateIndexBuffer: function () {
       if (!this.isUsingDrawArrays())
@@ -149,6 +158,7 @@ define([
     updateBuffers: function () {
       this.updateGeometryBuffers();
       this.updateColorBuffer();
+      this.updateTexCoordBuffer();
       this.updateIndexBuffer();
       this.updateWireframeBuffer();
     },

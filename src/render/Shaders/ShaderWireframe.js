@@ -21,7 +21,7 @@ define([
     '{',
     '  vec4 pos = uMVP * vec4(aVertex, 1.0);',
     '  pos[3] += 0.0001;',
-    '  gl_Position =  pos;',
+    '  gl_Position = pos;',
     '}'
   ].join('\n');
 
