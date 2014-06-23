@@ -50,6 +50,11 @@ define([], function () {
     return new Int16Array(buffer)[0] === 256;
   })();
 
+  /** Return true if the number is a power of two */
+  Utils.isPowerOfTwo = function (x) {
+    return x !== 0 && (x & (x - 1)) === 0;
+  };
+
   /** Return the nearest power of two value */
   Utils.nextHighestPowerOfTwo = function (x) {
     --x;
