@@ -116,7 +116,9 @@ define([
       var cArUp = this.getColors();
       var nbVertsUp = this.getNbVertices();
 
-      var vArOut = new Float32Array(vArUp.length);
+      var vArTemp = new Float32Array(Utils.getMemory(vArUp.length * 4), 0, vArUp.length);
+      vArTemp.set(vArUp);
+
       var dAr = this.getDetailsVertices();
       var dColorAr = this.getDetailsColors();
 
@@ -124,9 +126,9 @@ define([
         var j = i * 3;
 
         // vertex coord
-        var vx = vArUp[j];
-        var vy = vArUp[j + 1];
-        var vz = vArUp[j + 2];
+        var vx = vArTemp[j];
+        var vy = vArTemp[j + 1];
+        var vz = vArTemp[j + 2];
 
         // normal vec
         var nx = nArUp[j];
@@ -140,9 +142,9 @@ define([
 
         // tangent vec (vertex neighbor - vertex)
         var k = vertRingVertUp[vrvStartCountUp[i * 2]] * 3;
-        var tx = vArUp[k] - vx;
-        var ty = vArUp[k + 1] - vy;
-        var tz = vArUp[k + 2] - vz;
+        var tx = vArTemp[k] - vx;
+        var ty = vArTemp[k + 1] - vy;
+        var tz = vArTemp[k + 2] - vz;
         // distance to normal plane
         len = tx * nx + ty * ny + tz * nz;
         // project on normal plane
@@ -166,15 +168,14 @@ define([
         var dz = dAr[j + 2];
 
         // detail vec in the local frame
-        vArOut[j] = vx + nx * dx + tx * dy + bix * dz;
-        vArOut[j + 1] = vy + ny * dx + ty * dy + biy * dz;
-        vArOut[j + 2] = vz + nz * dx + tz * dy + biz * dz;
+        vArUp[j] = vx + nx * dx + tx * dy + bix * dz;
+        vArUp[j + 1] = vy + ny * dx + ty * dy + biy * dz;
+        vArUp[j + 2] = vz + nz * dx + tz * dy + biz * dz;
 
         cArUp[j] += dColorAr[j];
         cArUp[j + 1] += dColorAr[j + 1];
         cArUp[j + 2] += dColorAr[j + 2];
       }
-      this.setVertices(vArOut);
     },
     /** Compute the detail vectors */
     computeDetails: function (subdVerts, subdColors) {

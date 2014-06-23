@@ -80,7 +80,7 @@ define([
       this.updateDuplicateGeometry(iVerts);
       this.updateFlatShading(iFaces);
     },
-    /** Allocate arrays, except for : coordinates, primitives, edges, wireframe, drawArrays, uv stuffs */
+    /** Allocate some resources */
     allocateArrays: function () {
       this.getIndexData().allocateArrays();
       this.getVertexData().allocateArrays();
