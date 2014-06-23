@@ -64,8 +64,13 @@ define([
     isUsingDrawArrays: function () {
       return Render.ONLY_DRAW_ARRAYS ? true : this.getFlatShading();
     },
+    /** Return true if the shader is using UVs */
+    isUsingTexCoords: function () {
+      return this.shader_.isUsingTexCoords();
+    },
+    /** Return true if the shader is using alpha transparency stuffs */
     isTransparent: function () {
-      return this.shader_.type_ === Shader.mode.TRANSPARENCY;
+      return this.shader_.isTransparent();
     },
     /** Return flat shading */
     getFlatShading: function () {
@@ -102,6 +107,9 @@ define([
     /** Set the shader */
     setShader: function (shaderType) {
       this.shader_.setType(shaderType);
+      this.mesh_.updateDuplicateGeometry();
+      this.mesh_.updateDuplicateColors();
+      this.updateBuffers();
     },
     /** Update flat shading buffers */
     updateFlatShading: function (iFaces) {
@@ -137,7 +145,8 @@ define([
     },
     /** Updates texCoord buffer */
     updateTexCoordBuffer: function () {
-      this.getTexCoordBuffer().update(this.mesh_.getRenderTexCoords(this.isUsingDrawArrays()));
+      if (this.isUsingTexCoords())
+        this.getTexCoordBuffer().update(this.mesh_.getRenderTexCoords());
     },
     /** Updates index buffer */
     updateIndexBuffer: function () {
@@ -147,7 +156,7 @@ define([
     /** Updates wireframe buffer */
     updateWireframeBuffer: function () {
       if (this.getShowWireframe())
-        this.getWireframeBuffer().update(this.mesh_.getWireframe(this.isUsingDrawArrays()));
+        this.getWireframeBuffer().update(this.mesh_.getWireframe());
     },
     /** Update vertices and normals the buffers */
     updateGeometryBuffers: function () {

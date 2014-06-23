@@ -76,11 +76,12 @@ define([
       colors.set(mesh.getColors());
       mesh.setColors(colors.subarray(0, nbVertices * 3));
     },
-    updateDuplicateVertices: function (iVerts) {
+    updateDuplicateGeometry: function (iVerts) {
       var mesh = this.mesh_;
       var vAr = this.getVerticesTexCoord();
-      if (vAr === mesh.getVertices())
+      if (!mesh.isUsingTexCoords() || vAr === mesh.getVertices())
         return;
+
       var cAr = this.getColorsTexCoord();
       var nAr = this.getNormalsTexCoord();
       var startCount = this.getVerticesDuplicateStartCount();
@@ -111,6 +112,34 @@ define([
           nAr[idDup] = nx;
           nAr[idDup + 1] = ny;
           nAr[idDup + 2] = nz;
+          cAr[idDup] = cx;
+          cAr[idDup + 1] = cy;
+          cAr[idDup + 2] = cz;
+        }
+      }
+    },
+    updateDuplicateColors: function (iVerts) {
+      var mesh = this.mesh_;
+      if (!mesh.isUsingTexCoords() || this.getVerticesTexCoord() === mesh.getVertices())
+        return;
+
+      var cAr = this.getColorsTexCoord();
+      var startCount = this.getVerticesDuplicateStartCount();
+
+      var full = iVerts === undefined;
+      var nbVerts = full ? mesh.getNbVertices() : iVerts.length;
+      for (var i = 0; i < nbVerts; ++i) {
+        var ind = full ? i : iVerts[i];
+        var start = startCount[ind * 2];
+        if (start === 0)
+          continue;
+        var end = start + startCount[ind * 2 + 1];
+        var idOrig = ind * 3;
+        var cx = cAr[idOrig];
+        var cy = cAr[idOrig + 1];
+        var cz = cAr[idOrig + 2];
+        for (var j = start; j < end; ++j) {
+          var idDup = j * 3;
           cAr[idDup] = cx;
           cAr[idDup + 1] = cy;
           cAr[idDup + 2] = cz;

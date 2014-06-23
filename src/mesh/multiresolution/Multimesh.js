@@ -80,6 +80,7 @@ define([
     /** Update the mesh after a change in resolution */
     updateResolution: function () {
       this.updateGeometry();
+      this.updateDuplicateColors();
       this.updateBuffers();
       this.lowRender_.updateBuffers(this.meshes_[this.getLowIndexRender()]);
     },
@@ -166,6 +167,8 @@ define([
     },
     /** Render the mesh */
     render: function (sculptgl) {
+      if (this.getCurrent().isUsingTexCoords())
+        return this.getCurrent().render(sculptgl);
       if (Multimesh.RENDER_HINT === Multimesh.PICKING || Multimesh.RENDER_HINT === Multimesh.NONE)
         return this.getCurrent().render(sculptgl);
       if (this.isUsingDrawArrays())

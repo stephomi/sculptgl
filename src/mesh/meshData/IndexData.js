@@ -15,6 +15,7 @@ define([
     this.faceCentersXYZ_ = null; // faces center (Float32Array)
 
     this.facesToTriangles_ = null; // faces to triangles (Uint32Array)
+    this.UVtrianglesABC_ = null; // triangles tex coords (Uint32Array)
     this.trianglesABC_ = null; // triangles (Uint32Array)
 
     this.faceTagFlags_ = null; // triangles tag (<= Utils.TAG_FLAG) (Uint32Array)
@@ -56,6 +57,9 @@ define([
     },
     getNbFaces: function () {
       return this.facesABCD_.length / 4;
+    },
+    getTrianglesTexCoord: function () {
+      return this.UVtrianglesABC_;
     },
     getTriangles: function () {
       return this.trianglesABC_;
@@ -254,11 +258,16 @@ define([
       }
       return new Uint32Array(iFaces.subarray(0, acc));
     },
-    /** Return all the faces linked to a group of vertices */
+    /** Computes triangles */
     initRenderTriangles: function () {
+      var mesh = this.mesh_;
+      this.UVtrianglesABC_ = this.computeTrianglesFromFaces(mesh.getFacesTexCoord());
+      this.trianglesABC_ = this.computeTrianglesFromFaces(mesh.getFaces());
+    },
+    /** Computes triangles from faces */
+    computeTrianglesFromFaces: function (faces) {
       var nbFaces = this.getNbFaces();
-      var faces = this.mesh_.getFacesTexCoord();
-      var facesToTris = this.facesToTriangles_;
+      var facesToTris = this.getFacesToTriangles();
       var iAr = new Uint32Array(Utils.getMemory(4 * nbFaces * 6), 0, nbFaces * 6);
       var acc = 0;
       for (var i = 0; i < nbFaces; ++i) {
@@ -281,7 +290,7 @@ define([
           ++acc;
         }
       }
-      this.trianglesABC_ = new Uint32Array(iAr.subarray(0, acc * 3));
+      return new Uint32Array(iAr.subarray(0, acc * 3));
     }
   };
 

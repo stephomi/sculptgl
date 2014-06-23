@@ -241,6 +241,7 @@ define([
       var cen = triFaceOrQuadCenter[i];
       if (cen < 0)
         continue;
+      // tri
       var id = cen * 4;
       var idFace = i * 4;
       fArDown[idFace] = tagEdges[feAr[id]] - 1;
@@ -399,6 +400,115 @@ define([
     }
   };
 
+  /** Apply the reverse of a subdivision for the texCoord mesh */
+  Reversion.computeTexCoords = function (baseMesh, newMesh, triFaceOrQuadCenter) {
+    var dupUp = baseMesh.getVerticesDuplicateStartCount();
+
+    var nbVertices = newMesh.getNbVertices();
+    var dup = new Uint32Array(nbVertices * 2);
+    var vertexMapUp = newMesh.getVerticesMapping();
+
+    var uvArUp = baseMesh.getTexCoords();
+    var uvAr = new Float32Array(Utils.getMemory(baseMesh.getNbTexCoords() * 4 * 2), 0, baseMesh.getNbTexCoords() * 2);
+    var uvMap = new Uint32Array(nbVertices);
+    var nbTexCoords = nbVertices;
+    for (var i = 0; i < nbVertices; ++i) {
+      var ivUp = vertexMapUp[i];
+      var start = dupUp[ivUp * 2];
+      uvAr[i * 2] = uvArUp[ivUp * 2];
+      uvAr[i * 2 + 1] = uvArUp[ivUp * 2 + 1];
+      if (start === 0)
+        continue;
+      // vertex with duplicates
+      var startOld = uvMap[i] = start - nbTexCoords;
+      var nbDupl = dupUp[ivUp * 2 + 1];
+      for (var j = nbTexCoords, end = nbTexCoords + nbDupl; j < end; ++j) {
+        uvAr[j * 2] = uvArUp[(startOld + j) * 2];
+        uvAr[j * 2 + 1] = uvArUp[(startOld + j) * 2 + 1];
+      }
+      dup[i * 2] = nbTexCoords;
+      dup[i * 2 + 1] = nbDupl;
+      nbTexCoords += nbDupl;
+    }
+    newMesh.setTexCoords(new Float32Array(uvAr.subarray(0, nbTexCoords * 2)));
+    newMesh.setVerticesDuplicateStartCount(dup);
+
+    Reversion.computeFaceTexCoords(baseMesh, newMesh, triFaceOrQuadCenter, uvMap);
+  };
+
+  /** Computes uv faces and uv coordinates for center vertices */
+  Reversion.computeFaceTexCoords = function (baseMesh, newMesh, triFaceOrQuadCenter, uvMap) {
+    var fArUp = baseMesh.getFaces();
+    var fArUVUp = baseMesh.getFacesTexCoord();
+    var vrfSC = baseMesh.getVerticesRingFaceStartCount();
+    var vrf = baseMesh.getVerticesRingFace();
+    var dupUp = baseMesh.getVerticesDuplicateStartCount();
+
+    var fAr = newMesh.getFaces();
+    var fArUV = new Int32Array(fAr);
+    var vertexMapUp = newMesh.getVerticesMapping();
+
+    for (var i = 0, len = fAr.length; i < len; ++i) {
+      var iv = fAr[i];
+      if (iv < 0)
+        continue;
+      var ivUp = vertexMapUp[iv];
+      if (dupUp[ivUp * 2] === 0)
+        continue;
+      // vertex with duplicates
+      var index = i % 4;
+      var iCen = triFaceOrQuadCenter[(i - index) / 4];
+      var vertUV = -1;
+      if (iCen >= 0) {
+        // tri
+        var idCen = iCen * 4;
+        var mid1, mid2;
+        if (index === 0) {
+          mid1 = fArUp[idCen + 1];
+          mid2 = fArUp[idCen];
+        } else if (index === 1) {
+          mid1 = fArUp[idCen + 2];
+          mid2 = fArUp[idCen + 1];
+        } else {
+          mid1 = fArUp[idCen];
+          mid2 = fArUp[idCen + 2];
+        }
+        var startTri = vrfSC[ivUp * 2];
+        var endTri = startTri + vrfSC[ivUp * 2 + 1];
+        for (var idt = startTri; idt < endTri; ++idt) {
+          var idTri = vrf[idt] * 4;
+          var idMid1 = fArUp[idTri];
+          var idMid2 = fArUp[idTri + 1];
+          var idMid3 = fArUp[idTri + 2];
+          if (idMid1 === mid1) {
+            if (idMid2 === mid2) vertUV = fArUVUp[idTri + 2];
+          } else if (idMid2 === mid1) {
+            if (idMid3 === mid2) vertUV = fArUVUp[idTri];
+          } else if (idMid3 === mid1) {
+            if (idMid1 === mid2) vertUV = fArUVUp[idTri + 1];
+          }
+          if (vertUV >= 0) break;
+        }
+      } else {
+        // quad
+        iCen = -iCen - 1;
+        var startQuad = vrfSC[iCen * 2];
+        var endQuad = startQuad + 4;
+        for (var idq = startQuad; idq < endQuad; ++idq) {
+          var idQuad = vrf[idq] * 4;
+          if (fArUp[idQuad] === ivUp) vertUV = fArUVUp[idQuad];
+          else if (fArUp[idQuad + 1] === ivUp) vertUV = fArUVUp[idQuad + 1];
+          else if (fArUp[idQuad + 2] === ivUp) vertUV = fArUVUp[idQuad + 2];
+          else if (fArUp[idQuad + 3] === ivUp) vertUV = fArUVUp[idQuad + 3];
+          if (vertUV >= 0) break;
+        }
+      }
+      fArUV[i] = vertUV === ivUp ? vertUV : vertUV - uvMap[iv];
+    }
+
+    newMesh.setFacesTexCoord(fArUV);
+  };
+
   /** Apply the reverse of a subdivision */
   Reversion.computeReverse = function (baseMesh, newMesh) {
     if (baseMesh.getNbFaces() % 4 !== 0)
@@ -406,8 +516,10 @@ define([
     var vEvenTags = Reversion.tagEvenVertices(baseMesh);
     if (!vEvenTags)
       return false;
-    Reversion.createVertices(baseMesh, newMesh, Reversion.createFaces(baseMesh, newMesh, vEvenTags));
+    var triFaceOrQuadCenter = Reversion.createFaces(baseMesh, newMesh, vEvenTags);
+    Reversion.createVertices(baseMesh, newMesh, triFaceOrQuadCenter);
     Reversion.copyVerticesData(baseMesh, newMesh);
+    Reversion.computeTexCoords(baseMesh, newMesh, triFaceOrQuadCenter);
     newMesh.allocateArrays();
     return true;
   };

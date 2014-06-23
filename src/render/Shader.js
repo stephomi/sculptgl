@@ -13,7 +13,7 @@ define([
   function Shader(gl) {
     this.gl_ = gl; // webgl context
     this.type_ = Shader.mode.MATCAP; // type of shader
-    this.shader_ = null; // the shader
+    this.shaderObject_ = null; // the shader
   }
 
   Shader.textures = {};
@@ -36,9 +36,17 @@ define([
   Shader[Shader.mode.WIREFRAME] = Swireframe;
 
   Shader.prototype = {
+    /** Return true if the shader is using UVs */
+    isUsingTexCoords: function () {
+      return this.type_ === Shader.mode.UV;
+    },
+    /** Return true if the shader is using alpha transparency stuffs */
+    isTransparent: function () {
+      return this.type_ === Shader.mode.TRANSPARENCY;
+    },
     /** Initialize the shader */
     init: function () {
-      this.shader_ = Shader[this.type_].getOrCreate(this.gl_);
+      this.shaderObject_ = Shader[this.type_].getOrCreate(this.gl_);
     },
     /** Set the shader */
     setType: function (type) {
@@ -47,7 +55,7 @@ define([
     },
     /** Draw */
     draw: function (render, sculptgl) {
-      this.shader_.draw(render, sculptgl);
+      this.shaderObject_.draw(render, sculptgl);
     }
   };
 

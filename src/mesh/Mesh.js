@@ -32,20 +32,23 @@ define([
     setRender: function (render) {
       this.render_ = render;
     },
-    getRenderVertices: function (useDrawArrays) {
-      return useDrawArrays ? this.getDrawArraysData().verticesXYZ_ : this.getVerticesTexCoord();
+    getRenderVertices: function () {
+      if (this.isUsingDrawArrays()) return this.getVerticesDrawArrays(this.isUsingTexCoords());
+      return this.isUsingTexCoords() ? this.getVerticesTexCoord() : this.getVertices();
     },
-    getRenderNormals: function (useDrawArrays) {
-      return useDrawArrays ? this.getDrawArraysData().normalsXYZ_ : this.getNormalsTexCoord();
+    getRenderNormals: function () {
+      if (this.isUsingDrawArrays()) return this.getNormalsDrawArrays(this.isUsingTexCoords());
+      return this.isUsingTexCoords() ? this.getNormalsTexCoord() : this.getNormals();
     },
-    getRenderColors: function (useDrawArrays) {
-      return useDrawArrays ? this.getDrawArraysData().colorsRGB_ : this.getColorsTexCoord();
+    getRenderColors: function () {
+      if (this.isUsingDrawArrays()) return this.getColorsDrawArrays(this.isUsingTexCoords());
+      return this.isUsingTexCoords() ? this.getColorsTexCoord() : this.getColors();
     },
-    getRenderTexCoords: function (useDrawArrays) {
-      return useDrawArrays ? this.getDrawArraysData().texCoordsST_ : this.getTexCoords();
+    getRenderTexCoords: function () {
+      return this.isUsingDrawArrays() ? this.getTexCoordsDrawArrays(this.isUsingTexCoords()) : this.getTexCoords();
     },
     getRenderTriangles: function () {
-      return this.getTriangles();
+      return this.isUsingTexCoords() ? this.getTrianglesTexCoord() : this.getTriangles();
     },
     getRenderNbTriangles: function () {
       return this.getNbTriangles();
@@ -59,6 +62,7 @@ define([
       this.allocateArrays();
       this.initTopology();
       this.updateGeometry();
+      this.updateDuplicateColors();
       this.scaleAndCenter();
     },
     /** Init topoloy stuffs */
@@ -73,8 +77,8 @@ define([
       this.updateFacesAabbAndNormal(iFaces);
       this.updateVerticesNormal(iVerts);
       this.updateOctree(iFaces);
+      this.updateDuplicateGeometry(iVerts);
       this.updateFlatShading(iFaces);
-      this.updateDuplicateVertices(iVerts);
     },
     /** Allocate arrays, except for : coordinates, primitives, edges, wireframe, drawArrays, uv stuffs */
     allocateArrays: function () {

@@ -242,8 +242,8 @@ define([
       this.meshes_.length = 0;
       this.loadScene();
       var ctrlMulti = this.sculptgl_.gui_.ctrlMultiresolution_;
-      // while (this.meshes_[0].getNbFaces() < 20000)
-      //   ctrlMulti.subdivide();
+      while (this.meshes_[0].getNbFaces() < 20000)
+        ctrlMulti.subdivide();
       this.sculptgl_.states_.reset();
     }
   };

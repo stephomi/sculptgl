@@ -12,6 +12,18 @@ define([], function () {
   }
 
   DrawArraysData.prototype = {
+    getVerticesDrawArrays: function () {
+      return this.verticesXYZ_;
+    },
+    getNormalsDrawArrays: function () {
+      return this.normalsXYZ_;
+    },
+    getColorsDrawArrays: function () {
+      return this.colorsRGB_;
+    },
+    getTexCoordsDrawArrays: function () {
+      return this.texCoordsST_;
+    },
     /** Updates the arrays that are going to be used by webgl */
     updateDrawArrays: function (flat, iFaces) {
       var mesh = this.mesh_;

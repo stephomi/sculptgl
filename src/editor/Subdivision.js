@@ -348,7 +348,7 @@ define([
     return oddComputer.tagEdges_;
   };
 
-  /** Computes uv coords (except for center vertices) */
+  /** Subdivide tex coords mesh */
   Subdivision.computeTexCoords = function (mesh, newMesh, tagEdges) {
     var newNbVertices = newMesh.getNbVertices();
     var startCount = new Uint32Array(newNbVertices * 2);

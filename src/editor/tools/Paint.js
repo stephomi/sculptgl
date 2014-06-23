@@ -88,6 +88,7 @@ define([
 
       this.paint(iVertsInRadius, picking.getIntersectionPoint(), picking.getLocalRadius2(), intensity);
 
+      this.mesh_.updateDuplicateColors(iVertsInRadius);
       this.mesh_.updateFlatShading(this.mesh_.getFacesFromVertices(iVertsInRadius));
     },
     /** Paint color vertices */

@@ -10,10 +10,11 @@ define([], function () {
 
   WireframeData.prototype = {
     /** Return wireframe array (or compute it if not up to date) */
-    getWireframe: function (useDrawArrays) {
+    getWireframe: function () {
       var mesh = this.mesh_;
       var nbEdges = mesh.getNbEdges();
       var cdw;
+      var useDrawArrays = this.mesh_.isUsingDrawArrays();
       if (useDrawArrays) {
         if (this.drawArraysWireframe_ && this.drawArraysWireframe_.length === nbEdges * 2) {
           return this.drawArraysWireframe_;
