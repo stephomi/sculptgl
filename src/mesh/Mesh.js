@@ -33,19 +33,19 @@ define([
       this.render_ = render;
     },
     getRenderVertices: function () {
-      if (this.isUsingDrawArrays()) return this.getVerticesDrawArrays(this.isUsingTexCoords());
+      if (this.isUsingDrawArrays()) return this.getVerticesDrawArrays();
       return this.isUsingTexCoords() ? this.getVerticesTexCoord() : this.getVertices();
     },
     getRenderNormals: function () {
-      if (this.isUsingDrawArrays()) return this.getNormalsDrawArrays(this.isUsingTexCoords());
+      if (this.isUsingDrawArrays()) return this.getNormalsDrawArrays();
       return this.isUsingTexCoords() ? this.getNormalsTexCoord() : this.getNormals();
     },
     getRenderColors: function () {
-      if (this.isUsingDrawArrays()) return this.getColorsDrawArrays(this.isUsingTexCoords());
+      if (this.isUsingDrawArrays()) return this.getColorsDrawArrays();
       return this.isUsingTexCoords() ? this.getColorsTexCoord() : this.getColors();
     },
     getRenderTexCoords: function () {
-      return this.isUsingDrawArrays() ? this.getTexCoordsDrawArrays(this.isUsingTexCoords()) : this.getTexCoords();
+      return this.isUsingDrawArrays() ? this.getTexCoordsDrawArrays() : this.getTexCoords();
     },
     getRenderTriangles: function () {
       return this.isUsingTexCoords() ? this.getTrianglesTexCoord() : this.getTriangles();

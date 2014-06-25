@@ -109,6 +109,8 @@ define([
       this.shader_.setType(shaderType);
       this.mesh_.updateDuplicateGeometry();
       this.mesh_.updateDuplicateColors();
+      if (this.isUsingTexCoords())
+        this.updateFlatShading();
       this.updateBuffers();
     },
     /** Update flat shading buffers */
