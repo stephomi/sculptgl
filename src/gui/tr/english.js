@@ -58,6 +58,11 @@ define([], function () {
     multiresNotReversible: 'Sorry it is not possile to reverse this mesh.\n' +
       'The mesh is not a product of a (loop-catmull) subdivision surface.',
 
+    // remesh
+    remeshTitle: 'Remesh',
+    remeshRemesh: 'Remesh',
+    remeshResolution: 'Resolution',
+
     // sculpt
     sculptTitle: 'sculpt',
     sculptBrush: 'Brush (1)',

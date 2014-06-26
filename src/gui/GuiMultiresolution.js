@@ -26,7 +26,7 @@ define([
       foldMultires.add(this, 'deleteHigher').name(TR('multiresDelHigher'));
       foldMultires.add(this, 'deleteLower').name(TR('multiresDelLower'));
       this.ctrlResolution_.onChange(this.onResolutionChanged.bind(this));
-      foldMultires.open();
+      foldMultires.close();
     },
     /** Subdivide the mesh */
     subdivide: function () {

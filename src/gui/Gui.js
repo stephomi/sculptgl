@@ -4,13 +4,14 @@ define([
   'gui/GuiCamera',
   'gui/GuiConfig',
   'gui/GuiFiles',
-  'gui/GuiStates',
-  'gui/GuiTablet',
+  'gui/GuiMesh',
   'gui/GuiMultiresolution',
   'gui/GuiRendering',
+  'gui/GuiRemesh',
   'gui/GuiSculpting',
-  'gui/GuiMesh'
-], function (Dat, GuiBackground, GuiCamera, GuiConfig, GuiFiles, GuiStates, GuiTablet, GuiMultiresolution, GuiRendering, GuiSculpting, GuiMesh) {
+  'gui/GuiStates',
+  'gui/GuiTablet'
+], function (Dat, GuiBackground, GuiCamera, GuiConfig, GuiFiles, GuiMesh, GuiMultiresolution, GuiRendering, GuiRemesh, GuiSculpting, GuiStates, GuiTablet) {
 
   'use strict';
 
@@ -25,6 +26,7 @@ define([
 
     this.ctrlMesh_ = null; // mesh controller
     this.ctrlSculpting_ = null; // sculpting controller
+    this.ctrlRemesh_ = null; // remesh controller
     this.ctrlMultiresolution_ = null; // multiresolution controller
     this.ctrlRendering_ = null; // rendering controller
 
@@ -72,8 +74,9 @@ define([
     },
     /** Initialize the mesh editing gui (on the right) */
     initEditingGui: function (gui) {
-      this.ctrlSculpting_ = new GuiSculpting(gui, this);
+      this.ctrlRemesh_ = new GuiRemesh(gui, this);
       this.ctrlMultiresolution_ = new GuiMultiresolution(gui, this);
+      this.ctrlSculpting_ = new GuiSculpting(gui, this);
       this.ctrlRendering_ = new GuiRendering(gui, this);
     },
     /** Update information on mesh */

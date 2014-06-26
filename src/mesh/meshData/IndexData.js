@@ -249,10 +249,10 @@ define([
         var start = vrfStartCount[idVert];
         var end = start + vrfStartCount[idVert + 1];
         for (var j = start; j < end; ++j) {
-          var iTri = vertRingFace[j];
-          if (faceTagFlags[iTri] !== tagFlag) {
-            faceTagFlags[iTri] = tagFlag;
-            iFaces[acc++] = iTri;
+          var iFace = vertRingFace[j];
+          if (faceTagFlags[iFace] !== tagFlag) {
+            faceTagFlags[iFace] = tagFlag;
+            iFaces[acc++] = iFace;
           }
         }
       }
