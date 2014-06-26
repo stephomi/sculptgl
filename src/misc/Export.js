@@ -4,20 +4,6 @@ define([
 
   'use strict';
 
-  var normalizeArray = function (array) {
-    for (var i = 0, l = array.length; i < l; ++i) {
-      var j = i * 3;
-      var nx = array[j];
-      var ny = array[j + 1];
-      var nz = array[j + 2];
-      var len = 1.0 / Math.sqrt(nx * nx + ny * ny + nz * nz);
-      array[j] = nx * len;
-      array[j + 1] = ny * len;
-      array[j + 2] = nz * len;
-    }
-    return array;
-  };
-
   var Export = {};
 
   /** Export OBJ file */
@@ -70,8 +56,9 @@ define([
   Export.exportAsciiSTL = function (mesh) {
     var vAr = mesh.getVertices();
     var iAr = mesh.getTriangles();
-    var faceNormals = normalizeArray(new Float32Array(mesh.getFaceNormals()));
-    normalizeArray(mesh.getFaceNormals(), faceNormals);
+    var origFN = mesh.getFaceNormals();
+    var faceNormals = new Float32Array(Utils.getMemory(origFN.length * 4), 0, origFN.length);
+    Utils.normalizeArrayVec3(origFN, faceNormals);
     var data = 'solid mesh\n';
     var nbTriangles = mesh.getNbTriangles();
     for (var i = 0; i < nbTriangles; ++i) {
@@ -95,7 +82,11 @@ define([
   Export.exportBinarySTL = function (mesh) {
     var vAr = mesh.getVertices();
     var iAr = mesh.getTriangles();
-    var faceNormals = normalizeArray(new Float32Array(mesh.getFaceNormals()));
+
+    var origFN = mesh.getFaceNormals();
+    var faceNormals = new Float32Array(Utils.getMemory(origFN.length * 4), 0, origFN.length);
+    Utils.normalizeArrayVec3(origFN, faceNormals);
+
     var nbTriangles = mesh.getNbTriangles();
 
     var data = new Uint8Array(84 + nbTriangles * 50);

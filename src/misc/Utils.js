@@ -224,6 +224,21 @@ define([], function () {
     };
   };
 
+  Utils.normalizeArrayVec3 = function (array, out) {
+    var arrayOut = out || array;
+    for (var i = 0, l = array.length; i < l; ++i) {
+      var j = i * 3;
+      var nx = array[j];
+      var ny = array[j + 1];
+      var nz = array[j + 2];
+      var len = 1.0 / Math.sqrt(nx * nx + ny * ny + nz * nz);
+      arrayOut[j] = nx * len;
+      arrayOut[j + 1] = ny * len;
+      arrayOut[j + 2] = nz * len;
+    }
+    return arrayOut;
+  };
+
   // var vector = function (ArrayConstructor, initSize) {
   //   this.constructor_ = ArrayConstructor;
   //   this.data_ = new ArrayConstructor(initSize);
