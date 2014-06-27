@@ -158,6 +158,52 @@ define([
           vProxy[ind + 2] = vAr[ind + 2];
         }
       }
+    },
+    /** Laplacian smooth. Special rule for vertex on the edge of the mesh. */
+    laplacianSmooth: function (iVerts, smoothVerts) {
+      var mesh = this.mesh_;
+      var vrvStartCount = mesh.getVerticesRingVertStartCount();
+      var vertRingVert = mesh.getVerticesRingVert();
+      var vertOnEdge = mesh.getVerticesOnEdge();
+      var vAr = mesh.getVertices();
+      var nbVerts = iVerts.length;
+      for (var i = 0; i < nbVerts; ++i) {
+        var i3 = i * 3;
+        var id = iVerts[i];
+        var start = vrvStartCount[id * 2];
+        var end = start + vrvStartCount[id * 2 + 1];
+        var avx = 0.0;
+        var avy = 0.0;
+        var avz = 0.0;
+        var j = 0;
+        var ind = 0;
+        if (vertOnEdge[id] === 1) {
+          var nbVertEdge = 0;
+          for (j = start; j < end; ++j) {
+            ind = vertRingVert[j];
+            // we average only with vertices that are also on the edge
+            if (vertOnEdge[ind] === 1) {
+              ind *= 3;
+              avx += vAr[ind];
+              avy += vAr[ind + 1];
+              avz += vAr[ind + 2];
+              ++nbVertEdge;
+            }
+          }
+          j = nbVertEdge;
+        } else {
+          for (j = start; j < end; ++j) {
+            ind = vertRingVert[j] * 3;
+            avx += vAr[ind];
+            avy += vAr[ind + 1];
+            avz += vAr[ind + 2];
+          }
+          j = end - start;
+        }
+        smoothVerts[i3] = avx / j;
+        smoothVerts[i3 + 1] = avy / j;
+        smoothVerts[i3 + 2] = avz / j;
+      }
     }
   };
 

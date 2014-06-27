@@ -1,8 +1,9 @@
 define([
   'misc/Utils',
   'misc/Tablet',
-  'editor/tools/SculptBase'
-], function (Utils, Tablet, SculptBase) {
+  'editor/tools/SculptBase',
+  'editor/tools/Smooth'
+], function (Utils, Tablet, SculptBase, Smooth) {
 
   'use strict';
 
@@ -27,6 +28,7 @@ define([
         iVertsInRadius = this.getFrontVertices(iVertsInRadius, picking.getEyeDirection());
 
       this.inflate(iVertsInRadius, picking.getIntersectionPoint(), picking.getLocalRadius2(), intensity);
+      Smooth.prototype.smoothTangent.call(this, iVertsInRadius, 1.0);
 
       this.mesh_.updateGeometry(this.mesh_.getFacesFromVertices(iVertsInRadius), iVertsInRadius);
     },

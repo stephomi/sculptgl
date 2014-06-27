@@ -2,8 +2,9 @@ define([
   'lib/glMatrix',
   'misc/Utils',
   'math3d/Geometry',
-  'editor/tools/SculptBase'
-], function (glm, Utils, Geometry, SculptBase) {
+  'editor/tools/SculptBase',
+  'editor/tools/Smooth'
+], function (glm, Utils, Geometry, SculptBase, Smooth) {
 
   'use strict';
 
@@ -75,6 +76,7 @@ define([
         iVertsInRadius = this.getFrontVertices(iVertsInRadius, picking.getEyeDirection());
 
       this.drag(iVertsInRadius, picking.getIntersectionPoint(), picking.getLocalRadius2(), sym);
+      Smooth.prototype.smoothTangent.call(this, iVertsInRadius, 1.0);
 
       this.mesh_.updateGeometry(this.mesh_.getFacesFromVertices(iVertsInRadius), iVertsInRadius);
     },
