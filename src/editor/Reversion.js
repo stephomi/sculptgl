@@ -186,21 +186,26 @@ define([
         //quad
         var ivCorner = 0;
         var ivCenter = 0;
+        var oppEdge = 0;
         if (tag1 === 1) {
           ivCorner = iv1;
           ivCenter = iv3;
-          tagEdges[feAr[j + 1]] = iv1 + 1;
+          oppEdge = tagEdges[feAr[j + 1]] - 1;
+          tagEdges[feAr[j + 2]] = iv1 + 1;
         } else if (tag2 === 1) {
           ivCorner = iv2;
           ivCenter = iv4;
-          tagEdges[feAr[j + 1]] = iv2 + 1;
+          oppEdge = tagEdges[feAr[j + 2]] - 1;
+          tagEdges[feAr[j + 3]] = iv2 + 1;
         } else if (tag3 === 1) {
           ivCorner = iv3;
           ivCenter = iv1;
-          tagEdges[feAr[j + 1]] = iv3 + 1;
+          oppEdge = tagEdges[feAr[j + 3]] - 1;
+          tagEdges[feAr[j]] = iv3 + 1;
         } else {
           ivCorner = iv4;
           ivCenter = iv2;
+          oppEdge = tagEdges[feAr[j]] - 1;
           tagEdges[feAr[j + 1]] = iv4 + 1;
         }
         var quad = centerQuadUp[ivCenter] - 1;
@@ -210,7 +215,6 @@ define([
           centerQuadUp[ivCenter] = ++acc;
         } else {
           var idQuad = quad * 4;
-          var oppEdge = tagEdges[feAr[j + 1]] - 1;
           if (oppEdge < 0) {
             // no opposite edge
             if (fArDown[idQuad + 2] < 0) {
