@@ -14,32 +14,44 @@ define([
   var quat = glm.quat;
 
   function Camera() {
-    this.mode_ = Camera.mode.PLANE; // camera mode
+    this.mode_ = Camera.mode.ORBIT; // camera mode
     this.type_ = Camera.projType.PERSPECTIVE; // the projection type
+
     this.quatRot_ = quat.create(); // quaternion rotation
     this.view_ = mat4.create(); // view matrix
     this.proj_ = mat4.create(); // projection matrix
+
     this.lastNormalizedMouseXY_ = [0.0, 0.0]; // last mouse position ( 0..1 )
     this.width_ = 0.0; // viewport width
     this.height_ = 0.0; // viewport height
+
+    this.speed_ = 1.0; // solve scale issue
+    this.fov_ = 45.0; // vertical field of view
+
+    // translation stuffs
     this.zoom_ = 20.0; // zoom value
     this.transX_ = 0.0; // translation in x
     this.transY_ = 0.0; // translation in y
-    this.speed_ = 1.0; // solve scale issue
     this.moveX_ = 0; // free look (strafe), possible values : -1, 0, 1
     this.moveZ_ = 0; // free look (strafe), possible values : -1, 0, 1
-    this.fov_ = 45.0; // vertical field of view
+
+    // pivot stuffs
+    this.usePivot_ = false; // if rotation is centered around the picked point
     this.center_ = [0.0, 0.0, 0.0]; // center of rotation
     this.stepCenter_ = [0.0, 0.0, 0.0]; // step vector to translate between pivots
     this.stepZoom_ = 0.0; // step zoom value
     this.stepCount_ = 0; // number of translation between pivots
-    this.usePivot_ = false; // if rotation is centered around the picked point
+
+    // orbit camera
+    this.rotX_ = 0.0; // x rot for orbit camera
+    this.rotY_ = 0.0; // y rot for orbit camera
   }
 
   // the camera modes
   Camera.mode = {
-    SPHERICAL: 0,
-    PLANE: 1
+    ORBIT: 0,
+    SPHERICAL: 1,
+    PLANE: 2
   };
 
   // the projection type
@@ -68,43 +80,58 @@ define([
       }
     },
     /** Compute rotation values (by updating the quaternion) */
-    rotate: function (mouseX, mouseY) {
-      var normalizedMouseXY = Geometry.normalizedMouse(mouseX, mouseY, this.width_, this.height_);
-      if (this.mode_ === Camera.mode.PLANE) {
-        var length = vec2.dist(this.lastNormalizedMouseXY_, normalizedMouseXY);
-        var diff = [0.0, 0.0];
-        vec2.sub(diff, normalizedMouseXY, this.lastNormalizedMouseXY_);
-        var axis = [-diff[1], diff[0], 0.0];
-        vec3.normalize(axis, axis);
-        quat.mul(this.quatRot_, quat.setAxisAngle([0.0, 0.0, 0.0, 0.0], axis, length * 2.0), this.quatRot_);
-      } else if (this.mode_ === Camera.mode.SPHERICAL) {
-        var mouseOnSphereBefore = Geometry.mouseOnUnitSphere(this.lastNormalizedMouseXY_);
-        var mouseOnSphereAfter = Geometry.mouseOnUnitSphere(normalizedMouseXY);
-        var angle = Math.acos(Math.min(1.0, vec3.dot(mouseOnSphereBefore, mouseOnSphereAfter)));
-        var axisRot = [0.0, 0.0, 0.0];
-        vec3.normalize(axisRot, vec3.cross(axisRot, mouseOnSphereBefore, mouseOnSphereAfter));
-        quat.mul(this.quatRot_, quat.setAxisAngle([0.0, 0.0, 0.0, 0.0], axisRot, angle * 2.0), this.quatRot_);
-      }
-      if (this.stepCount_ > 0) {
-        --this.stepCount_;
-        this.zoom_ += this.stepZoom_;
-        vec3.add(this.center_, this.center_, this.stepCenter_);
-      }
-      this.lastNormalizedMouseXY_ = normalizedMouseXY;
-    },
+    rotate: (function () {
+      var diff = [0.0, 0.0];
+      var axisRot = [0.0, 0.0, 0.0];
+      var quatTmp = [0.0, 0.0, 0.0, 0.0];
+
+      return function (mouseX, mouseY) {
+        var normalizedMouseXY = Geometry.normalizedMouse(mouseX, mouseY, this.width_, this.height_);
+        if (this.mode_ === Camera.mode.ORBIT) {
+          vec2.sub(diff, normalizedMouseXY, this.lastNormalizedMouseXY_);
+          this.rotX_ = Math.max(Math.min(this.rotX_ - diff[1], Math.PI * 0.5), -Math.PI * 0.5);
+          this.rotY_ = this.rotY_ + diff[0];
+          quat.identity(this.quatRot_);
+          quat.rotateX(this.quatRot_, this.quatRot_, this.rotX_);
+          quat.rotateY(this.quatRot_, this.quatRot_, this.rotY_);
+        } else if (this.mode_ === Camera.mode.PLANE) {
+          var length = vec2.dist(this.lastNormalizedMouseXY_, normalizedMouseXY);
+          vec2.sub(diff, normalizedMouseXY, this.lastNormalizedMouseXY_);
+          vec3.normalize(axisRot, vec3.set(axisRot, -diff[1], diff[0], 0.0));
+          quat.mul(this.quatRot_, quat.setAxisAngle(quatTmp, axisRot, length * 2.0), this.quatRot_);
+        } else if (this.mode_ === Camera.mode.SPHERICAL) {
+          var mouseOnSphereBefore = Geometry.mouseOnUnitSphere(this.lastNormalizedMouseXY_);
+          var mouseOnSphereAfter = Geometry.mouseOnUnitSphere(normalizedMouseXY);
+          var angle = Math.acos(Math.min(1.0, vec3.dot(mouseOnSphereBefore, mouseOnSphereAfter)));
+          vec3.normalize(axisRot, vec3.cross(axisRot, mouseOnSphereBefore, mouseOnSphereAfter));
+          quat.mul(this.quatRot_, quat.setAxisAngle(quatTmp, axisRot, angle * 2.0), this.quatRot_);
+        }
+        if (this.stepCount_ > 0) {
+          --this.stepCount_;
+          this.zoom_ += this.stepZoom_;
+          vec3.add(this.center_, this.center_, this.stepCenter_);
+        }
+        this.lastNormalizedMouseXY_ = normalizedMouseXY;
+      };
+    })(),
     /** Update model view matrices */
-    updateView: function () {
-      var view = this.view_;
-      var tx = this.transX_;
-      var ty = this.transY_;
-      if (this.type_ === Camera.projType.PERSPECTIVE)
-        mat4.lookAt(view, [tx, ty, this.zoom_], [tx, ty, 0.0], [0.0, 1.0, 0.0]);
-      else
-        mat4.lookAt(view, [tx, ty, 1000.0], [tx, ty, 0.0], [0.0, 1.0, 0.0]);
-      mat4.mul(view, view, mat4.fromQuat(mat4.create(), this.quatRot_));
-      var center = this.center_;
-      mat4.translate(view, view, [-center[0], -center[1], -center[2]]);
-    },
+    updateView: (function () {
+      var up = [0.0, 1.0, 0.0];
+      var eye = [0.0, 0.0, 0.0];
+      var center = [0.0, 0.0, 0.0];
+      var matTmp = mat4.create();
+      var vecTmp = [0.0, 0.0, 0.0];
+
+      return function () {
+        var view = this.view_;
+        var tx = this.transX_;
+        var ty = this.transY_;
+        var zoom = this.type_ === Camera.projType.PERSPECTIVE ? this.zoom_ : 1000.0;
+        mat4.lookAt(view, vec3.set(eye, tx, ty, zoom), vec3.set(center, tx, ty, 0.0), up);
+        mat4.mul(view, view, mat4.fromQuat(matTmp, this.quatRot_));
+        mat4.translate(view, view, vec3.negate(vecTmp, this.center_));
+      };
+    })(),
     /** Update projection matrix */
     updateProjection: function () {
       this.proj_ = mat4.create();
@@ -151,24 +178,27 @@ define([
     },
     /** Reset camera */
     reset: function () {
-      this.transX_ = 0.0;
-      this.transY_ = 0.0;
+      this.transX_ = this.transY_ = this.zoom_ = this.rotX_ = this.rotY_ = 0.0;
       this.speed_ = Utils.SCALE * 0.9;
       this.quatRot_ = quat.create();
-      this.center_ = [0.0, 0.0, 0.0];
-      this.zoom_ = 0.0;
+      vec3.set(this.center_, 0.0, 0.0, 0.0);
       this.zoom(-0.6);
     },
     /** Reset view front */
     resetViewFront: function () {
+      this.rotX_ = this.rotY_ = 0.0;
       this.quatRot_ = quat.create();
     },
     /** Reset view top */
     resetViewTop: function () {
+      this.rotX_ = Math.PI * 0.5;
+      this.rotY_ = 0.0;
       this.quatRot_ = quat.rotateX(this.quatRot_, quat.create(), Math.PI * 0.5);
     },
     /** Reset view left */
     resetViewLeft: function () {
+      this.rotX_ = 0.0;
+      this.rotY_ = -Math.PI * 0.5;
       this.quatRot_ = quat.rotateY(this.quatRot_, quat.create(), -Math.PI * 0.5);
     },
     /** Project the mouse coordinate into the world coordinate at a given z */

@@ -21,8 +21,12 @@ define([
       var cameraFold = guiParent.addFolder('Camera');
       // reset camera
       cameraFold.add(this, 'resetCamera').name('Reset');
+      cameraFold.add(this, 'resetFront').name('Front view (F)');
+      cameraFold.add(this, 'resetLeft').name('Left view (L)');
+      cameraFold.add(this, 'resetTop').name('Top view (T)');
       // camera mode
       var ctrlCameraMode = cameraFold.add(camera, 'mode_', {
+        'Orbit': Camera.mode.ORBIT,
         'Spherical': Camera.mode.SPHERICAL,
         'Plane': Camera.mode.PLANE
       }).name('Mode');
@@ -38,6 +42,10 @@ define([
 
       ctrlCameraMode.onChange(function (value) {
         camera.mode_ = parseInt(value, 10);
+        if (camera.mode_ === Camera.mode.ORBIT) {
+          camera.resetViewFront();
+          scene.render();
+        }
       });
       ctrlCameraType.onChange(function (value) {
         camera.type_ = parseInt(value, 10);
@@ -104,7 +112,6 @@ define([
       event.stopPropagation();
       event.preventDefault();
       var key = event.which;
-      var scene = this.scene_;
       var camera = this.scene_.camera_;
       switch (key) {
       case 37: // LEFT
@@ -122,16 +129,13 @@ define([
         camera.moveZ_ = 0;
         break;
       case 70: // F
-        camera.resetViewFront();
-        scene.render();
+        this.resetFront();
         break;
       case 84: // T
-        camera.resetViewTop();
-        scene.render();
+        this.resetTop();
         break;
       case 76: // L
-        camera.resetViewLeft();
-        scene.render();
+        this.resetLeft();
         break;
       }
       if (this.cameraTimer_ !== -1 && camera.moveX_ === 0 && camera.moveZ_ === 0) {
@@ -139,11 +143,26 @@ define([
         this.cameraTimer_ = -1;
       }
     },
-    /** Immort background */
+    /** Reset camera */
     resetCamera: function () {
       this.scene_.camera_.reset();
       this.scene_.render();
     },
+    /** Reset to front view */
+    resetFront: function () {
+      this.scene_.camera_.resetViewFront();
+      this.scene_.render();
+    },
+    /** Reset to left view */
+    resetLeft: function () {
+      this.scene_.camera_.resetViewLeft();
+      this.scene_.render();
+    },
+    /** Reset to top view */
+    resetTop: function () {
+      this.scene_.camera_.resetViewTop();
+      this.scene_.render();
+    }
   };
 
   return GuiCamera;
