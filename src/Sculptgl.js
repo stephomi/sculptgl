@@ -165,6 +165,20 @@ define([
       this.lastMouseX_ = mouseX;
       this.lastMouseY_ = mouseY;
       scene.render();
+    },
+    /** Replace a mesh in the scene */
+    replaceMesh: function (mesh, newMesh) {
+      var meshes = this.scene_.meshes_;
+      for (var i = 0, nbMeshes = meshes.length; i < nbMeshes; ++i) {
+        var testMesh = meshes[i];
+        // a bit ugly... but when we convert a Mesh to a Multimesh
+        // we should consider the mesh as equal (an uniqueID would be cleaner...)
+        if (testMesh === mesh || (testMesh.getMeshOrigin && testMesh.getMeshOrigin() === mesh)) {
+          meshes[i] = newMesh;
+          break;
+        }
+      }
+      this.mesh_ = newMesh;
     }
   };
 

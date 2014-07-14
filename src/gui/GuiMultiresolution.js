@@ -1,7 +1,8 @@
 define([
   'gui/GuiTR',
+  'mesh/multiresolution/Multimesh',
   'states/StateMultiresolution'
-], function (TR, StateMultiresolution) {
+], function (TR, Multimesh, StateMultiresolution) {
 
   'use strict';
 
@@ -28,10 +29,22 @@ define([
       this.ctrlResolution_.onChange(this.onResolutionChanged.bind(this));
       foldMultires.close();
     },
+    /** Check if the mesh is a multiresolution one */
+    isMultimesh: function (mesh) {
+      return mesh.meshes_ !== undefined;
+    },
+    /** Convert a mesh into a multiresolution one */
+    convertToMultimesh: function (mesh) {
+      var multimesh = new Multimesh(mesh);
+      this.sculptgl_.replaceMesh(mesh, multimesh);
+      return multimesh;
+    },
     /** Subdivide the mesh */
     subdivide: function () {
       var main = this.sculptgl_;
       var mul = main.mesh_;
+      if (!this.isMultimesh(mul))
+        mul = this.convertToMultimesh(mul);
       if (mul.sel_ !== mul.meshes_.length - 1) {
         window.alert(TR('multiresSelectHighest'));
         return;
@@ -51,6 +64,8 @@ define([
     reverse: function () {
       var main = this.sculptgl_;
       var mul = main.mesh_;
+      if (!this.isMultimesh(mul))
+        mul = main.mesh_ = this.convertToMultimesh(mul);
       if (mul.sel_ !== 0) {
         window.alert(TR('multiresSelectLowest'));
         return;
@@ -70,7 +85,7 @@ define([
     deleteLower: function () {
       var main = this.sculptgl_;
       var mul = main.mesh_;
-      if (mul.sel_ === 0) {
+      if (!this.isMultimesh(mul) || mul.sel_ === 0) {
         window.alert(TR('multiresNoLower'));
         return;
       }
@@ -82,7 +97,7 @@ define([
     deleteHigher: function () {
       var main = this.sculptgl_;
       var mul = main.mesh_;
-      if (mul.sel_ === mul.meshes_.length - 1) {
+      if (!this.isMultimesh(mul) || mul.sel_ === mul.meshes_.length - 1) {
         window.alert(TR('multiresNoHigher'));
         return;
       }
@@ -95,7 +110,7 @@ define([
       var uiRes = value - 1;
       var main = this.sculptgl_;
       var multimesh = main.mesh_;
-      if (multimesh.sel_ === uiRes)
+      if (!this.isMultimesh(multimesh) || multimesh.sel_ === uiRes)
         return;
       main.states_.pushState(new StateMultiresolution(multimesh, StateMultiresolution.SELECTION));
       multimesh.selectResolution(uiRes);
@@ -104,6 +119,11 @@ define([
     },
     /** Update the mesh resolution slider */
     updateMeshResolution: function (multimesh) {
+      if (!this.isMultimesh(multimesh)) {
+        this.ctrlResolution_.max(1);
+        this.ctrlResolution_.setValue(0);
+        return;
+      }
       this.ctrlResolution_.max(multimesh.meshes_.length);
       this.ctrlResolution_.setValue(multimesh.sel_ + 1);
     }

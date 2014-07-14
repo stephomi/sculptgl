@@ -1,8 +1,9 @@
 define([
   'editor/SurfaceNets',
   'math3d/Geometry',
+  'mesh/Mesh',
   'misc/Utils'
-], function (SurfaceNets, Geometry, Utils) {
+], function (SurfaceNets, Geometry, Mesh, Utils) {
 
   'use strict';
 
@@ -272,22 +273,23 @@ define([
     };
   };
 
-  Remesh.applyGeometry = function (mesh, vertices, faces) {
-    // reset a few stuffs
-    mesh.setTexCoords(null);
-    mesh.setColors(null);
-    if (mesh.deleteLower) {
-      mesh.deleteLower();
-      mesh.deleteHigher();
-    }
-
-    mesh.setVertices(vertices);
-    mesh.setFaces(faces);
+  Remesh.createMesh = function (mesh, vertices, faces) {
+    var newMesh = new Mesh();
+    newMesh.setVertices(vertices);
+    newMesh.setFaces(faces);
 
     console.log(mesh.getBound());
-    mesh.init(true);
-    mesh.initRender();
+
+    newMesh.setTransformData(mesh.getTransformData());
+    newMesh.getTransformData().mesh_ = newMesh;
+    newMesh.setRender(mesh.getRender());
+    newMesh.getRender().mesh_ = newMesh;
+
+    newMesh.init(true);
+    newMesh.initRender();
     console.log(mesh.getBound());
+
+    return newMesh;
   };
 
   Remesh.remesh = function (mesh) {
@@ -308,7 +310,7 @@ define([
     var res = SurfaceNets.computeSurface(voxels.data, voxels.dims, [min, max]);
     console.timeEnd('surfaceNet');
 
-    Remesh.applyGeometry(mesh, res.vertices, res.faces, voxels.dims);
+    return Remesh.createMesh(mesh, res.vertices, res.faces);
   };
 
   return Remesh;

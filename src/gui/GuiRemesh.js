@@ -1,7 +1,8 @@
 define([
   'gui/GuiTR',
-  'editor/Remesh'
-], function (TR, Remesh) {
+  'editor/Remesh',
+  'states/StateRemesh'
+], function (TR, Remesh, StateRemesh) {
 
   'use strict';
 
@@ -21,13 +22,15 @@ define([
     },
     /** Update information on mesh */
     remesh: function () {
-      var mesh = this.sculptgl_.mesh_;
+      var main = this.sculptgl_;
+      var mesh = main.mesh_;
       if (!mesh)
         return;
-      this.sculptgl_.states_.reset();
-      Remesh.remesh(mesh);
+      var newMesh = Remesh.remesh(mesh);
+      main.states_.pushState(new StateRemesh(main, mesh, newMesh));
+      main.replaceMesh(mesh, newMesh);
+      main.scene_.render();
       this.ctrlGui_.updateMesh();
-      this.sculptgl_.scene_.render();
     },
   };
 
