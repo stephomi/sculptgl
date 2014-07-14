@@ -1,4 +1,6 @@
-define([], function () {
+define([
+  'gui/GuiTR'
+], function (TR) {
 
   'use strict';
 
@@ -11,9 +13,9 @@ define([], function () {
     /** Initialize */
     init: function (guiParent) {
       // background fold
-      var backgroundFold = guiParent.addFolder('background');
-      backgroundFold.add(this, 'resetBackground').name('Reset');
-      backgroundFold.add(this, 'importBackground').name('Import (jpg, png...)');
+      var backgroundFold = guiParent.addFolder(TR('backgroundTitle'));
+      backgroundFold.add(this, 'resetBackground').name(TR('backgroundReset'));
+      backgroundFold.add(this, 'importBackground').name(TR('backgroundImport'));
       backgroundFold.close();
     },
     /** Reset background */

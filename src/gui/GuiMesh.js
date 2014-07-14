@@ -1,4 +1,6 @@
-define([], function () {
+define([
+  'gui/GuiTR'
+], function (TR) {
 
   'use strict';
 
@@ -21,15 +23,15 @@ define([], function () {
         }
       };
       // mesh fold
-      var foldMesh = guiParent.addFolder('Mesh');
-      this.ctrlNbVertices_ = foldMesh.add(dummy, 'func_').name('Ver : 0');
-      this.ctrlNbFaces_ = foldMesh.add(dummy, 'func_').name('Faces : 0');
+      var foldMesh = guiParent.addFolder(TR('meshTitle'));
+      this.ctrlNbVertices_ = foldMesh.add(dummy, 'func_').name(TR('meshNbVertices') + '0');
+      this.ctrlNbFaces_ = foldMesh.add(dummy, 'func_').name(TR('meshNbFaces') + '0');
       foldMesh.open();
     },
     /** Update number of vertices and faces */
     updateMeshInfo: function (mesh) {
-      this.ctrlNbVertices_.name('Ver : ' + mesh.getNbVertices());
-      this.ctrlNbFaces_.name('Faces : ' + mesh.getNbFaces());
+      this.ctrlNbVertices_.name(TR('meshNbVertices') + mesh.getNbVertices());
+      this.ctrlNbFaces_.name(TR('meshNbFaces') + mesh.getNbFaces());
     }
   };
 

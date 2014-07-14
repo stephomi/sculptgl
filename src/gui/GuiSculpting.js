@@ -1,7 +1,8 @@
 define([
+  'gui/GuiTR',
   'editor/Sculpt',
   'gui/GuiSculptingTools'
-], function (Sculpt, GuiSculptingTools) {
+], function (TR, Sculpt, GuiSculptingTools) {
 
   'use strict';
 
@@ -23,34 +24,33 @@ define([
       var self = this;
       var main = this.sculptgl_;
       // sculpt fold
-      var foldSculpt = guiParent.addFolder('Sculpt');
-      var optionsSculpt = {
-        'Brush (1)': Sculpt.tool.BRUSH,
-        'Inflate (2)': Sculpt.tool.INFLATE,
-        'Twist (3)': Sculpt.tool.TWIST,
-        'Smooth (4)': Sculpt.tool.SMOOTH,
-        'Flatten (5)': Sculpt.tool.FLATTEN,
-        'Pinch (6)': Sculpt.tool.PINCH,
-        'Crease (7)': Sculpt.tool.CREASE,
-        'Drag (8)': Sculpt.tool.DRAG,
-        'Paint (9)': Sculpt.tool.PAINT,
-        'Scale (0)': Sculpt.tool.SCALE,
-        'Translate': Sculpt.tool.TRANSLATE,
-        'Rotate': Sculpt.tool.ROTATE
-      };
+      var foldSculpt = guiParent.addFolder(TR('sculptTitle'));
+      var optionsSculpt = {};
+      optionsSculpt[TR('sculptBrush')] = Sculpt.tool.BRUSH;
+      optionsSculpt[TR('sculptInflate')] = Sculpt.tool.INFLATE;
+      optionsSculpt[TR('sculptTwist')] = Sculpt.tool.TWIST;
+      optionsSculpt[TR('sculptSmooth')] = Sculpt.tool.SMOOTH;
+      optionsSculpt[TR('sculptFlatten')] = Sculpt.tool.FLATTEN;
+      optionsSculpt[TR('sculptPinch')] = Sculpt.tool.PINCH;
+      optionsSculpt[TR('sculptCrease')] = Sculpt.tool.CREASE;
+      optionsSculpt[TR('sculptDrag')] = Sculpt.tool.DRAG;
+      optionsSculpt[TR('sculptPaint')] = Sculpt.tool.PAINT;
+      optionsSculpt[TR('sculptScale')] = Sculpt.tool.SCALE;
+      optionsSculpt[TR('sculptTranslate')] = Sculpt.tool.TRANSLATE;
+      optionsSculpt[TR('sculptRotate')] = Sculpt.tool.ROTATE;
       var dummy = {
         tool_: this.sculpt_.tool_
       };
-      this.ctrlSculpt_ = foldSculpt.add(dummy, 'tool_', optionsSculpt).name('Tool');
+      this.ctrlSculpt_ = foldSculpt.add(dummy, 'tool_', optionsSculpt).name(TR('sculptTool'));
       this.ctrlSculpt_.onChange(function (value) {
         self.onChangeTool(parseInt(value, 10));
       });
-      this.ctrlSymmetry_ = foldSculpt.add(this.sculpt_, 'symmetry_').name('Symmetry');
+      this.ctrlSymmetry_ = foldSculpt.add(this.sculpt_, 'symmetry_').name(TR('sculptSymmetry'));
       this.ctrlSymmetry_.onChange(function () {
         main.scene_.render();
       });
-      this.ctrlContinuous_ = foldSculpt.add(this.sculpt_, 'continuous_').name('Continuous');
-      this.ctrlRadius_ = foldSculpt.add(main.scene_.picking_, 'rDisplay_', 5, 200).name('Radius');
+      this.ctrlContinuous_ = foldSculpt.add(this.sculpt_, 'continuous_').name(TR('sculptContinuous'));
+      this.ctrlRadius_ = foldSculpt.add(main.scene_.picking_, 'rDisplay_', 5, 200).name(TR('sculptRadius'));
       foldSculpt.open();
 
       this.initTool(Sculpt.tool.BRUSH, foldSculpt);
@@ -67,12 +67,28 @@ define([
       this.initTool(Sculpt.tool.ROTATE, foldSculpt);
 
       GuiSculptingTools.show(this.sculpt_.tool_);
-
-      window.addEventListener('keydown', this.onKeyDown.bind(this), false);
-      window.addEventListener('keyup', this.onKeyUp.bind(this), false);
+      this.addEvents();
+    },
+    /** Add events */
+    addEvents: function () {
+      var cbKeyDown = this.onKeyDown.bind(this);
+      var cbKeyUp = this.onKeyUp.bind(this);
+      var cbMouseUp = this.onMouseUp.bind(this);
+      window.addEventListener('keydown', cbKeyDown, false);
+      window.addEventListener('keyup', cbKeyUp, false);
       var canvas = document.getElementById('canvas');
-      canvas.addEventListener('mouseup', this.onMouseUp.bind(this), false);
-      canvas.addEventListener('mouseout', this.onMouseUp.bind(this), false);
+      canvas.addEventListener('mouseup', cbMouseUp, false);
+      canvas.addEventListener('mouseout', cbMouseUp, false);
+      this.removeCallback = function () {
+        window.removeEventListener('keydown', cbKeyDown, false);
+        window.removeEventListener('keyup', cbKeyUp, false);
+        canvas.removeEventListener('mouseup', cbMouseUp, false);
+        canvas.removeEventListener('mouseout', cbMouseUp, false);
+      };
+    },
+    /** Remove events */
+    removeEvents: function () {
+      if (this.removeCallback) this.removeCallback();
     },
     /** Key pressed event */
     onKeyDown: function (event) {
@@ -87,10 +103,10 @@ define([
       if (this.sculptgl_.mouseButton_ !== 0)
         return;
       if (event.shiftKey && !event.altKey && !event.ctrlKey) {
-        if (this.ctrlSculpt_.getValue() === Sculpt.tool.SMOOTH)
+        if (ctrlSculpt.getValue() === Sculpt.tool.SMOOTH)
           return;
-        this.toolOnRelease_ = this.ctrlSculpt_.getValue();
-        this.ctrlSculpt_.setValue(Sculpt.tool.SMOOTH);
+        this.toolOnRelease_ = ctrlSculpt.getValue();
+        ctrlSculpt.setValue(Sculpt.tool.SMOOTH);
         return;
       }
       switch (key) {

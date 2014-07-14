@@ -1,6 +1,7 @@
 define([
+  'gui/GuiTR',
   'math3d/Camera',
-], function (Camera) {
+], function (TR, Camera) {
 
   'use strict';
 
@@ -18,27 +19,32 @@ define([
       var camera = scene.camera_;
 
       // Camera fold
-      var cameraFold = guiParent.addFolder('Camera');
+      var cameraFold = guiParent.addFolder(TR('cameraTitle'));
+
       // reset camera
-      cameraFold.add(this, 'resetCamera').name('Reset');
-      cameraFold.add(this, 'resetFront').name('Front view (F)');
-      cameraFold.add(this, 'resetLeft').name('Left view (L)');
-      cameraFold.add(this, 'resetTop').name('Top view (T)');
+      cameraFold.add(this, 'resetCamera').name(TR('cameraReset'));
+      cameraFold.add(this, 'resetFront').name(TR('cameraFront'));
+      cameraFold.add(this, 'resetLeft').name(TR('cameraLeft'));
+      cameraFold.add(this, 'resetTop').name(TR('cameraTop'));
+
       // camera mode
-      var ctrlCameraMode = cameraFold.add(camera, 'mode_', {
-        'Orbit': Camera.mode.ORBIT,
-        'Spherical': Camera.mode.SPHERICAL,
-        'Plane': Camera.mode.PLANE
-      }).name('Mode');
+      var optionsMode = {};
+      optionsMode[TR('cameraOrbit')] = Camera.mode.ORBIT;
+      optionsMode[TR('cameraSpherical')] = Camera.mode.SPHERICAL;
+      optionsMode[TR('cameraPlane')] = Camera.mode.PLANE;
+      var ctrlCameraMode = cameraFold.add(camera, 'mode_', optionsMode).name(TR('cameraMode'));
+
       // camera type
-      var ctrlCameraType = cameraFold.add(camera, 'type_', {
-        'Perspective': Camera.projType.PERSPECTIVE,
-        'Orthographic': Camera.projType.ORTHOGRAPHIC
-      }).name('Type');
+      var optionsType = {};
+      optionsType[TR('cameraPerspective')] = Camera.projType.PERSPECTIVE;
+      optionsType[TR('cameraOrthographic')] = Camera.projType.ORTHOGRAPHIC;
+      var ctrlCameraType = cameraFold.add(camera, 'type_', optionsType).name(TR('cameraType'));
+
       // camera fov
-      var ctrlFov = cameraFold.add(camera, 'fov_', 10, 150).name('Fov');
+      var ctrlFov = cameraFold.add(camera, 'fov_', 10, 150).name(TR('cameraFov'));
+
       // camera pivo
-      var ctrlPivot = cameraFold.add(camera, 'usePivot_').name('Picking pivot');
+      var ctrlPivot = cameraFold.add(camera, 'usePivot_').name(TR('cameraPivot'));
 
       ctrlCameraMode.onChange(function (value) {
         camera.mode_ = parseInt(value, 10);
@@ -64,8 +70,22 @@ define([
 
       cameraFold.close();
 
-      window.addEventListener('keydown', this.onKeyDown.bind(this), false);
-      window.addEventListener('keyup', this.onKeyUp.bind(this), false);
+      this.addEvents();
+    },
+    /** Add events */
+    addEvents: function () {
+      var cbKeyDown = this.onKeyDown.bind(this);
+      var cbKeyUp = this.onKeyUp.bind(this);
+      window.addEventListener('keydown', cbKeyDown, false);
+      window.addEventListener('keyup', cbKeyUp, false);
+      this.removeCallback = function () {
+        window.removeEventListener('keydown', cbKeyDown, false);
+        window.removeEventListener('keyup', cbKeyUp, false);
+      };
+    },
+    /** Remove events */
+    removeEvents: function () {
+      if (this.removeCallback) this.removeCallback();
     },
     /** Key pressed event */
     onKeyDown: function (event) {

@@ -1,7 +1,8 @@
 define([
+  'gui/GuiTR',
   'lib/FileSaver',
   'misc/Export'
-], function (saveAs, Export) {
+], function (TR, saveAs, Export) {
 
   'use strict';
 
@@ -16,17 +17,17 @@ define([
       var scene = this.sculptgl_.scene_;
 
       // file fold
-      var foldFiles = guiParent.addFolder('Files (import/export)');
-      foldFiles.add(scene, 'resetScene_').name('Reset scene');
-      foldFiles.add(this, 'openFile').name('Add (obj, ply, stl)');
-      foldFiles.add(this, 'saveFileAsOBJ').name('Export (obj)');
-      foldFiles.add(this, 'saveFileAsPLY').name('Export (ply)');
-      foldFiles.add(this, 'saveFileAsSTL').name('Export (stl)');
+      var foldFiles = guiParent.addFolder(TR('fileTitle'));
+      foldFiles.add(scene, 'resetScene_').name(TR('fileReset'));
+      foldFiles.add(this, 'openFile').name(TR('fileAdd'));
+      foldFiles.add(this, 'saveFileAsOBJ').name(TR('fileExportOBJ'));
+      foldFiles.add(this, 'saveFileAsPLY').name(TR('fileExportPLY'));
+      foldFiles.add(this, 'saveFileAsSTL').name(TR('fileExportSTL'));
       foldFiles.close();
 
       // Sketchfab fold
-      var foldSketchfab = guiParent.addFolder('Go to Sketchfab !');
-      foldSketchfab.add(this, 'exportSketchfab').name('Upload');
+      var foldSketchfab = guiParent.addFolder(TR('sketchfabTitle'));
+      foldSketchfab.add(this, 'exportSketchfab').name(TR('sketchfabUpload'));
       foldSketchfab.close();
     },
     /** Open file */
@@ -62,11 +63,10 @@ define([
       var mesh = this.sculptgl_.mesh_;
       if (!mesh)
         return;
-      var message = 'Please enter your sketchfab API Key.\n';
-      message += 'You can also leave an empty field to upload anonymously.\n';
-      message += '(a new window will pop up when the uploading and processing is finished)';
-      var api = window.prompt(message, '');
-      Export.exportSketchfab(mesh, api === '' ? 'babc9a5cd4f343f9be0c7bd9cf93600c' : api);
+      var api = window.prompt(TR('sketchfabUploadMessage'), 'guest');
+      if (!api)
+        return;
+      Export.exportSketchfab(mesh, api === 'guest' ? 'babc9a5cd4f343f9be0c7bd9cf93600c' : api);
     }
   };
 

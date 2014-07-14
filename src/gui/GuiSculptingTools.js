@@ -1,6 +1,7 @@
 define([
+  'gui/GuiTR',
   'editor/Sculpt'
-], function (Sculpt) {
+], function (TR, Sculpt) {
 
   'use strict';
 
@@ -18,13 +19,13 @@ define([
 
   // some helper functions
   var addCtrlIntensity = function (tool, fold) {
-    return fold.add(tool, 'intensity_', 0, 1).name('Intensity');
+    return fold.add(tool, 'intensity_', 0, 1).name(TR('sculptIntensity'));
   };
   var addCtrlCulling = function (tool, fold) {
-    return fold.add(tool, 'culling_').name('Sculpt culling');
+    return fold.add(tool, 'culling_').name(TR('sculptCulling'));
   };
   var addCtrlNegative = function (tool, fold, self) {
-    var ctrl = fold.add(tool, 'negative_').name('Negative (N)');
+    var ctrl = fold.add(tool, 'negative_').name(TR('sculptNegative'));
     if (self) {
       self.toggleNegative = function () {
         ctrl.setValue(!ctrl.getValue());
@@ -33,7 +34,7 @@ define([
     return ctrl;
   };
   var addCtrlColor = function (tool, fold) {
-    var ctrl = fold.addColor(tool, 'color_').name('Color');
+    var ctrl = fold.addColor(tool, 'color_').name(TR('sculptColor'));
     ctrl.onChange(function (value) {
       if (value.length === 3) { // rgb [255, 255, 255]
         tool.color_ = [value[0], value[1], value[2]];
@@ -54,8 +55,8 @@ define([
     init: function (tool, fold) {
       this.ctrls_.push(addCtrlIntensity(tool, fold));
       this.ctrls_.push(addCtrlNegative(tool, fold, this));
-      this.ctrls_.push(fold.add(tool, 'clay_').name('Clay'));
-      this.ctrls_.push(fold.add(tool, 'accumulate_').name('Accumulate'));
+      this.ctrls_.push(fold.add(tool, 'clay_').name(TR('sculptClay')));
+      this.ctrls_.push(fold.add(tool, 'accumulate_').name(TR('sculptAccumulate')));
       this.ctrls_.push(addCtrlCulling(tool, fold));
     }
   };
@@ -98,7 +99,7 @@ define([
       this.ctrls_.push(addCtrlIntensity(tool, fold));
       this.ctrls_.push(addCtrlCulling(tool, fold));
       this.ctrls_.push(addCtrlColor(tool, fold));
-      this.ctrls_.push(fold.add(tool, 'pickColor_').name('Pick color'));
+      this.ctrls_.push(fold.add(tool, 'pickColor_').name(TR('sculptPickColor')));
     }
   };
 
@@ -129,7 +130,7 @@ define([
     ctrls_: [],
     init: function (tool, fold) {
       this.ctrls_.push(addCtrlIntensity(tool, fold));
-      this.ctrls_.push(fold.add(tool, 'tangent_').name('No shrink'));
+      this.ctrls_.push(fold.add(tool, 'tangent_').name(TR('sculptTangentialSmoothing')));
       this.ctrls_.push(addCtrlCulling(tool, fold));
     }
   };

@@ -1,0 +1,136 @@
+define([], function () {
+
+  'use strict';
+
+  var TR = {
+    // config
+    configTitle: 'Config',
+
+    // background
+    backgroundTitle: 'Background',
+    backgroundReset: 'Reset',
+    backgroundImport: 'Import (jpg, png...)',
+
+    // camera
+    cameraTitle: 'Camera',
+    cameraReset: 'Reset view',
+    cameraFront: 'Front view (F)',
+    cameraLeft: 'Left view (L)',
+    cameraTop: 'Top view (T)',
+    cameraMode: 'Mode',
+    cameraOrbit: 'Orbit',
+    cameraSpherical: 'Spherical',
+    cameraPlane: 'Plane',
+    cameraType: 'Type',
+    cameraPerspective: 'Perspective',
+    cameraOrthographic: 'Orthographic',
+    cameraFov: 'Fov',
+    cameraPivot: 'Picking pivot',
+
+    // file
+    fileTitle: 'Files (import/export)',
+    fileReset: 'Reset scene',
+    fileAdd: 'Add (obj, ply, stl)',
+    fileExportOBJ: 'Export (obj)',
+    fileExportPLY: 'Export (ply)',
+    fileExportSTL: 'Export (stl)',
+
+    // mesh
+    meshTitle: 'Mesh',
+    meshNbVertices: 'Ver : ',
+    meshNbFaces: 'Faces : ',
+
+    // multires
+    multiresTitle: 'Multiresolution',
+    multiresSubdivide: 'Subdivide',
+    multiresReverse: 'Reverse',
+    multiresResolution: 'Resolution',
+    multiresNoLower: 'There is no lower resolution level.',
+    multiresNoHigher: 'There is no higher resolution level.',
+    multiresDelHigher: 'Delete higher',
+    multiresDelLower: 'Delete lower',
+    multiresSelectLowest: 'Select the lowest resolution before reversing.',
+    multiresSelectHighest: 'Select the highest resolution before subdividing.',
+    multiresWarnBigMesh: function (nbFacesNext) {
+      return 'The next subdivision level will reach ' + nbFacesNext + ' faces.\n' +
+        'If you know what you are doing, click again on "subdivide".';
+    },
+    multiresNotReversible: 'Sorry it is not possile to reverse this mesh.\n' +
+      'The mesh is not a product of a (loop-catmull) subdivision surface.',
+
+    // sculpt
+    sculptTitle: 'sculpt',
+    sculptBrush: 'Brush (1)',
+    sculptInflate: 'Inflate (2)',
+    sculptTwist: 'Twist (3)',
+    sculptSmooth: 'Smooth (4)',
+    sculptFlatten: 'Flatten (5)',
+    sculptPinch: 'Pinch (6)',
+    sculptCrease: 'Crease (7)',
+    sculptDrag: 'Drag (8)',
+    sculptPaint: 'Paint (9)',
+    sculptScale: 'Scale (0)',
+    sculptTranslate: 'Translate',
+    sculptRotate: 'Rotate',
+    sculptTool: 'Tool',
+    sculptSymmetry: 'Symmetry',
+    sculptContinuous: 'Continous',
+    sculptRadius: 'Radius',
+    sculptIntensity: 'Intensity',
+    sculptCulling: 'Sculpt culling',
+    sculptNegative: 'Negative (N)',
+    sculptColor: 'Color',
+    sculptClay: 'Clay',
+    sculptAccumulate: 'Accumulate',
+    sculptPickColor: 'Pick color',
+    sculptTangentialSmoothing: 'No shrink',
+
+    // states
+    stateTitle: 'History',
+    stateUndo: 'Undo (Ctrl+Z)',
+    stateRedo: 'Redo (Ctrl+Y)',
+
+    // wacom
+    wacomTitle: 'Wacom tablet',
+    wacomRadius: 'Pressure radius',
+    wacomIntensity: 'Pressure intensity',
+
+    // sketchfab
+    renderingTitle: 'Rendering',
+    renderingMatcap: 'Matcap',
+    renderingPhong: 'Phong',
+    renderingTransparency: 'Transparency',
+    renderingNormal: 'Normal shader',
+    renderingUV: 'UV shader',
+    renderingShader: 'Shader',
+    renderingMaterial: 'Material',
+    renderingImportUV: 'Import (jpg, png...)',
+    renderingFlat: 'flat (slower)',
+    renderingWireframe: 'wireframe',
+
+    // matcaps
+    matcapPearl: 'Pearl',
+    matcapClay: 'Clay',
+    matcapSkin: 'Skin',
+    matcapGreen: 'Green',
+    matcapWhite: 'White',
+    matcapBronze: 'Bronze',
+    matcapChavant: 'Chavant',
+    matcapDrink: 'Drink',
+    matcapRedVelvet: 'Red Velvet',
+    matcapOrange: 'Orange',
+
+    // sketchfab
+    sketchfabTitle: 'Go to Sketchfab !',
+    sketchfabUpload: 'Upload',
+    sketchfabUploadMessage: 'Please enter your sketchfab API Key.\n' +
+      'You can also leave "guest" to upload anonymously.\n' +
+      '(a new window will pop up when the uploading and processing is finished)',
+    sketchfabUploadError: function (error) {
+      return 'Sketchfab upload error :\n' + error;
+    },
+    sketchfabUploadSuccess: 'Upload success !\nHere"s your link :'
+  };
+
+  return TR;
+});

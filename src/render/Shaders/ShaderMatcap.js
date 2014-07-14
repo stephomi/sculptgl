@@ -1,7 +1,8 @@
 define([
+  'gui/GuiTR',
   'render/shaders/ShaderBase',
   'render/Attribute'
-], function (ShaderBase, Attribute) {
+], function (TR, ShaderBase, Attribute) {
 
   'use strict';
 
@@ -9,37 +10,41 @@ define([
 
   var ShaderMatcap = {};
 
-  ShaderMatcap.materials = [{
-    path: 'resources/pearl.jpg',
-    name: 'Pearl'
-  }, {
-    path: 'resources/clay.jpg',
-    name: 'Clay'
-  }, {
-    path: 'resources/skin.jpg',
-    name: 'Skin'
-  }, {
-    path: 'resources/green.jpg',
-    name: 'Green'
-  }, {
-    path: 'resources/white.jpg',
-    name: 'White'
-  }, {
-    path: 'resources/bronze.jpg',
-    name: 'Bronze'
-  }, {
-    path: 'resources/chavant.jpg',
-    name: 'Chavant'
-  }, {
-    path: 'resources/drink.jpg',
-    name: 'Drink'
-  }, {
-    path: 'resources/redvelvet.jpg',
-    name: 'Red velvet'
-  }, {
-    path: 'resources/orange.jpg',
-    name: 'Orange'
-  }];
+  ShaderMatcap.getMaterials = function () {
+    ShaderMatcap.materials = [{
+      path: 'resources/pearl.jpg',
+      name: TR('matcapPearl')
+    }, {
+      path: 'resources/clay.jpg',
+      name: TR('matcapClay')
+    }, {
+      path: 'resources/skin.jpg',
+      name: TR('matcapSkin')
+    }, {
+      path: 'resources/green.jpg',
+      name: TR('matcapGreen')
+    }, {
+      path: 'resources/white.jpg',
+      name: TR('matcapWhite')
+    }, {
+      path: 'resources/bronze.jpg',
+      name: TR('matcapBronze')
+    }, {
+      path: 'resources/chavant.jpg',
+      name: TR('matcapChavant')
+    }, {
+      path: 'resources/drink.jpg',
+      name: TR('matcapDrink')
+    }, {
+      path: 'resources/redvelvet.jpg',
+      name: TR('matcapRedVelvet')
+    }, {
+      path: 'resources/orange.jpg',
+      name: TR('matcapOrange')
+    }];
+    return ShaderMatcap.materials;
+  };
+  ShaderMatcap.materials = ShaderMatcap.getMaterials();
 
   ShaderMatcap.uniforms = {};
   ShaderMatcap.attributes = {};

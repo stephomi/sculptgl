@@ -1,8 +1,9 @@
 define([
+  'gui/GuiTR',
   'render/Shader',
   'render/shaders/ShaderMatcap',
   'render/Render'
-], function (Shader, ShaderMatcap, Render) {
+], function (TR, Shader, ShaderMatcap, Render) {
 
   'use strict';
 
@@ -30,15 +31,15 @@ define([
         material_: 0,
       };
       // render fold
-      var foldRender = guiParent.addFolder('Rendering');
-      var optionsShaders = {
-        'Matcap': Shader.mode.MATCAP,
-        'Phong': Shader.mode.PHONG,
-        'Transparency': Shader.mode.TRANSPARENCY,
-        'Normal shader': Shader.mode.NORMAL,
-        'UV shader': Shader.mode.UV
-      };
-      this.ctrlShaders_ = foldRender.add(dummy, 'type_', optionsShaders).name('Shader');
+      var foldRender = guiParent.addFolder(TR('renderingTitle'));
+
+      var optionsShaders = {};
+      optionsShaders[TR('renderingMatcap')] = Shader.mode.MATCAP;
+      optionsShaders[TR('renderingPhong')] = Shader.mode.PHONG;
+      optionsShaders[TR('renderingTransparency')] = Shader.mode.TRANSPARENCY;
+      optionsShaders[TR('renderingNormal')] = Shader.mode.NORMAL;
+      optionsShaders[TR('renderingUV')] = Shader.mode.UV;
+      this.ctrlShaders_ = foldRender.add(dummy, 'type_', optionsShaders).name(TR('renderingShader'));
       this.ctrlShaders_.onChange(function (value) {
         var val = parseInt(value, 10);
         if (main.mesh_) {
@@ -51,9 +52,9 @@ define([
 
       // matcap texture
       var optionMaterials = {};
-      for (var i = 0, mats = ShaderMatcap.materials, l = mats.length; i < l; ++i)
+      for (var i = 0, mats = ShaderMatcap.getMaterials(), l = mats.length; i < l; ++i)
         optionMaterials[mats[i].name] = i;
-      this.ctrlMatcap_ = foldRender.add(dummy, 'material_', optionMaterials).name('Material');
+      this.ctrlMatcap_ = foldRender.add(dummy, 'material_', optionMaterials).name(TR('renderingMaterial'));
       this.ctrlMatcap_.__li.hidden = dummy.type_ !== Shader.mode.MATCAP;
       this.ctrlMatcap_.onChange(function (value) {
         if (main.mesh_) {
@@ -63,9 +64,8 @@ define([
       });
 
       // uv texture
-      this.ctrlUV_ = foldRender.add(this, 'importTexture').name('Import (jpg, png...)');
+      this.ctrlUV_ = foldRender.add(this, 'importTexture').name(TR('renderingImportUV'));
       this.ctrlUV_.__li.hidden = dummy.type_ !== Shader.mode.UV;
-      document.getElementById('textureopen').addEventListener('change', this.loadTexture.bind(this), false);
 
       var dummyRender = {
         flatShading_: true,
@@ -73,7 +73,7 @@ define([
       };
 
       // flat shading
-      this.ctrlFlatShading_ = foldRender.add(dummyRender, 'flatShading_').name('flat (slower)');
+      this.ctrlFlatShading_ = foldRender.add(dummyRender, 'flatShading_').name(TR('renderingFlat'));
       this.ctrlFlatShading_.onChange(function (value) {
         if (main.mesh_) {
           main.mesh_.setFlatShading(value);
@@ -82,7 +82,7 @@ define([
       });
 
       // wireframe
-      this.ctrlShowWireframe_ = foldRender.add(dummyRender, 'showWireframe_').name('wireframe');
+      this.ctrlShowWireframe_ = foldRender.add(dummyRender, 'showWireframe_').name(TR('renderingWireframe'));
       this.ctrlShowWireframe_.onChange(function (value) {
         if (main.mesh_) {
           main.mesh_.setShowWireframe(value);
@@ -93,6 +93,20 @@ define([
         this.ctrlShowWireframe_.__li.hidden = true;
 
       foldRender.open();
+
+      this.addEvents();
+    },
+    /** Add events */
+    addEvents: function () {
+      var cbLoadTex = this.loadTexture.bind(this);
+      document.getElementById('textureopen').addEventListener('change', cbLoadTex, false);
+      this.removeCallback = function () {
+        document.getElementById('textureopen').removeEventListener('change', cbLoadTex, false);
+      };
+    },
+    /** Remove events */
+    removeEvents: function () {
+      if (this.removeCallback) this.removeCallback();
     },
     /** Update information on mesh */
     updateMesh: function (mesh) {

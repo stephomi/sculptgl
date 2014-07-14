@@ -1,6 +1,7 @@
 define([
+  'gui/GuiTR',
   'states/StateMultiresolution'
-], function (StateMultiresolution) {
+], function (TR, StateMultiresolution) {
 
   'use strict';
 
@@ -16,14 +17,14 @@ define([
     /** Initialize */
     init: function (guiParent) {
       // multires fold
-      var foldMultires = guiParent.addFolder('Multires');
-      foldMultires.add(this, 'subdivide').name('Subdivide');
-      foldMultires.add(this, 'reverse').name('Reverse');
+      var foldMultires = guiParent.addFolder(TR('multiresTitle'));
+      foldMultires.add(this, 'subdivide').name(TR('multiresSubdivide'));
+      foldMultires.add(this, 'reverse').name(TR('multiresReverse'));
       this.ctrlResolution_ = foldMultires.add({
         dummy: 1
-      }, 'dummy', 1, 1).step(1).name('Resolution');
-      foldMultires.add(this, 'deleteHigher').name('Delete higher');
-      foldMultires.add(this, 'deleteLower').name('Delete lower');
+      }, 'dummy', 1, 1).step(1).name(TR('multiresResolution'));
+      foldMultires.add(this, 'deleteHigher').name(TR('multiresDelHigher'));
+      foldMultires.add(this, 'deleteLower').name(TR('multiresDelLower'));
       this.ctrlResolution_.onChange(this.onResolutionChanged.bind(this));
       foldMultires.open();
     },
@@ -32,11 +33,11 @@ define([
       var main = this.sculptgl_;
       var mul = main.mesh_;
       if (mul.sel_ !== mul.meshes_.length - 1) {
-        window.alert('Select the highest resolution before subdividing.');
+        window.alert(TR('multiresSelectHighest'));
         return;
       }
       if (this.securityBelt_ && mul.getNbTriangles() > 400000) {
-        window.alert('The next subdivision level will reach ' + mul.getNbFaces() * 4 + ' faces.\nIf you know what you are doing, click again on "subdivide".');
+        window.alert(TR('multiresWarnBigMesh', mul.getNbFaces() * 4));
         this.securityBelt_ = false;
         return;
       }
@@ -51,13 +52,13 @@ define([
       var main = this.sculptgl_;
       var mul = main.mesh_;
       if (mul.sel_ !== 0) {
-        window.alert('Select the lowest resolution before reversing.');
+        window.alert(TR('multiresSelectLowest'));
         return;
       }
       var stateRes = new StateMultiresolution(mul, StateMultiresolution.REVERSION);
       var newMesh = mul.computeReverse();
       if (!newMesh) {
-        window.alert('Sorry it is not possile to revert this mesh.');
+        window.alert(TR('multiresNotReversible'));
         return;
       }
       main.states_.pushState(stateRes);
@@ -70,7 +71,7 @@ define([
       var main = this.sculptgl_;
       var mul = main.mesh_;
       if (mul.sel_ === 0) {
-        window.alert('There is no lower resolution level.');
+        window.alert(TR('multiresNoLower'));
         return;
       }
       main.states_.pushState(new StateMultiresolution(mul, StateMultiresolution.DELETE_LOWER));
@@ -82,7 +83,7 @@ define([
       var main = this.sculptgl_;
       var mul = main.mesh_;
       if (mul.sel_ === mul.meshes_.length - 1) {
-        window.alert('There is no higher resolution level.');
+        window.alert(TR('multiresNoHigher'));
         return;
       }
       main.states_.pushState(new StateMultiresolution(mul, StateMultiresolution.DELETE_HIGHER));

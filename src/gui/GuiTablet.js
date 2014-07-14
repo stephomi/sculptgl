@@ -1,6 +1,7 @@
 define([
+  'gui/GuiTR',
   'misc/Tablet'
-], function (Tablet) {
+], function (TR, Tablet) {
 
   'use strict';
 
@@ -12,9 +13,9 @@ define([
     /** Initialize */
     init: function (guiParent) {
       // Pen tablet ui stuffs
-      var foldPenTablet = guiParent.addFolder('Wacom tablet');
-      foldPenTablet.add(Tablet, 'useOnRadius').name('Pressure radius');
-      foldPenTablet.add(Tablet, 'useOnIntensity').name('Pressure intensity');
+      var foldPenTablet = guiParent.addFolder(TR('wacomTitle'));
+      foldPenTablet.add(Tablet, 'useOnRadius').name(TR('wacomRadius'));
+      foldPenTablet.add(Tablet, 'useOnIntensity').name(TR('wacomIntensity'));
       foldPenTablet.close();
     }
   };

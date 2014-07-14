@@ -1,6 +1,7 @@
 define([
+  'gui/GuiTR',
   'misc/Utils'
-], function (Utils) {
+], function (TR, Utils) {
 
   'use strict';
 
@@ -232,9 +233,9 @@ define([
       var res = JSON.parse(xhr.responseText);
       console.log(res);
       if (!res.success)
-        window.alert('Sketchfab upload error :\n' + res.error);
+        window.alert(TR('sketchfabUploadError', res.error));
       else
-        window.prompt('Upload success !\nHere"s your link :', 'https://sketchfab.com/models/' + res.result.id);
+        window.prompt(TR('sketchfabUploadSuccess'), 'https://sketchfab.com/models/' + res.result.id);
     };
     xhr.addEventListener('load', result, true);
     xhr.send(fd);

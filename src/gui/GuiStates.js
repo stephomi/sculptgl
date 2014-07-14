@@ -1,4 +1,6 @@
-define([], function () {
+define([
+  'gui/GuiTR'
+], function (TR) {
 
   'use strict';
 
@@ -11,15 +13,25 @@ define([], function () {
   GuiTablet.prototype = {
     /** Initialize */
     init: function (guiParent) {
-      var self = this;
-
       // history fold
-      var foldHistory = guiParent.addFolder('History');
-      foldHistory.add(this, 'onUndo').name('Undo (Ctrl+Z)');
-      foldHistory.add(this, 'onRedo').name('Redo (Ctrl+Y)');
+      var foldHistory = guiParent.addFolder(TR('stateTitle'));
+      foldHistory.add(this, 'onUndo').name(TR('stateUndo'));
+      foldHistory.add(this, 'onRedo').name(TR('stateRedo'));
       foldHistory.open();
 
-      window.addEventListener('keydown', this.onKeyDown.bind(this), false);
+      this.addEvents();
+    },
+    /** Add events */
+    addEvents: function () {
+      var cbKeyDown = this.onKeyDown.bind(this);
+      window.addEventListener('keydown', cbKeyDown, false);
+      this.removeCallback = function () {
+        window.removeEventListener('keydown', cbKeyDown, false);
+      };
+    },
+    /** Remove events */
+    removeEvents: function () {
+      if (this.removeCallback) this.removeCallback();
     },
     /** Key pressed event */
     onKeyDown: function (event) {
