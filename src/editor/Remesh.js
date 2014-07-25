@@ -9,8 +9,8 @@ define([
 
   var Remesh = {};
 
-  var DEBUG_HIGH = 5001.0;
-  var DEBUG_LOW = 5000.0;
+  var DEBUG_HIGH = 50001.0;
+  var DEBUG_LOW = 50000.0;
   Remesh.resolution = 150;
 
   Remesh.fillVoxels = function (data, res) {

@@ -47,7 +47,10 @@ define([
       var testEdge = tagEdges[ide] - 1;
       var ivMid = testEdge === -1 ? this.nbVertices_++ : testEdge;
       var idMid = ivMid * 3;
-      if (eAr[ide] === 1) { // mid edge vertex
+      var edgeValue = eAr[ide];
+      if (edgeValue === 1 || edgeValue >= 3) { // mid edge vertex or non manifold shit
+        if (testEdge !== -1) // no need to recompute weird non manifold stuffs
+          return ivMid;
         tagEdges[ide] = ivMid + 1;
         vArOut[idMid] = 0.5 * (vAr[id1] + vAr[id2]);
         vArOut[idMid + 1] = 0.5 * (vAr[id1 + 1] + vAr[id2 + 1]);
@@ -90,7 +93,10 @@ define([
       var testEdge = tagEdges[ide] - 1;
       var ivMid = testEdge === -1 ? this.nbVertices_++ : testEdge;
       var idMid = ivMid * 3;
-      if (eAr[ide] === 1) { // mid edge vertex
+      var edgeValue = eAr[ide];
+      if (edgeValue === 1 || edgeValue >= 3) { // mid edge vertex or non manifold shit
+        if (testEdge !== -1) // no need to recompute weird non manifold stuffs
+          return ivMid;
         tagEdges[ide] = ivMid + 1;
         vArOut[idMid] = 0.5 * (vAr[id1] + vAr[id2]);
         vArOut[idMid + 1] = 0.5 * (vAr[id1 + 1] + vAr[id2 + 1]);
@@ -316,6 +322,7 @@ define([
         ivMid3 = oddComputer.computeQuadEdgeVertex(iv3, iv4, iv1, iv2, feAr[id + 2]);
         ivMid4 = oddComputer.computeQuadEdgeVertex(iv4, iv1, iv2, iv3, feAr[id + 3]);
         ivCen = oddComputer.computeFaceVertex(iv1, iv2, iv3, iv4);
+        // 837322 418833
       } else {
         ivMid1 = oddComputer.computeTriangleEdgeVertex(iv1, iv2, iv3, feAr[id]);
         ivMid2 = oddComputer.computeTriangleEdgeVertex(iv2, iv3, iv1, feAr[id + 1]);

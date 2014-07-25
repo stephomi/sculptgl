@@ -56,7 +56,7 @@ define([], function () {
         'If you know what you are doing, click again on "subdivide".';
     },
     multiresNotReversible: 'Sorry it is not possile to reverse this mesh.\n' +
-      'The mesh is not a product of a (loop-catmull) subdivision surface.',
+      'The mesh is not a product of a (loop-catmull) subdivision surface on a manifold mesh.',
 
     // remesh
     remeshTitle: 'Remesh',
