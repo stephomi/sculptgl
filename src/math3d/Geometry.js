@@ -23,54 +23,66 @@ define([
     return vec3.normalize(sourisSphere, sourisSphere);
   };
 
-  /** Compute intersection vertex between a ray and a triangle. Returne false if it doesn't intersect. */
-  Geometry.intersectionRayTriangle = (function () {
-    var EPSILON = 1E-20;
-    var edge1 = [0.0, 0.0, 0.0];
-    var edge2 = [0.0, 0.0, 0.0];
+  /** Compute intersection between a ray and a triangle. Returne the distance to the triangle if a hit occurs. */
+  Geometry.intersectionRayTriangleEdges = (function () {
+    var EPSILON = 1E-15;
+    // hmm we favor false positive just in case...
+    // mainly because of the voxel-remesh that can do weird things
+    // if the ray casting fail on a border of a triangle 
+    var ONE_PLUS_EPSILON = 1.0 + EPSILON;
+    var ZERO_MINUS_EPSILON = 0.0 - EPSILON;
     var pvec = [0.0, 0.0, 0.0];
     var tvec = [0.0, 0.0, 0.0];
     var qvec = [0.0, 0.0, 0.0];
-    return function (orig, dir, v1, v2, v3, vertInter) {
+    return function (orig, dir, edge1, edge2, v1, vertInter) {
       // moller trumbore intersection algorithm
-      // http://www.scratchapixel.com/lessons/3d-basic-lessons/lesson-9-ray-triangle-intersection/m-ller-trumbore-algorithm/
-      vec3.sub(edge1, v2, v1);
-      vec3.sub(edge2, v3, v1);
       vec3.cross(pvec, dir, edge2);
       var det = vec3.dot(edge1, pvec);
       if (det > -EPSILON && det < EPSILON)
-        return false;
+        return -1.0;
       var invDet = 1.0 / det;
       vec3.sub(tvec, orig, v1);
       var u = vec3.dot(tvec, pvec) * invDet;
-      if (u < 0.0 || u > 1.0)
-        return false;
+      if (u < ZERO_MINUS_EPSILON || u > ONE_PLUS_EPSILON)
+        return -1.0;
       vec3.cross(qvec, tvec, edge1);
       var v = vec3.dot(dir, qvec) * invDet;
-      if (v < 0.0 || u + v > 1.0)
-        return false;
+      if (v < ZERO_MINUS_EPSILON || u + v > ONE_PLUS_EPSILON)
+        return -1.0;
       var t = vec3.dot(edge2, qvec) * invDet;
-      if (t < 0.0)
-        return false;
-      vec3.scaleAndAdd(vertInter, orig, dir, t);
-      return true;
+      if (t < ZERO_MINUS_EPSILON)
+        return -1.0;
+      if (vertInter)
+        vec3.scaleAndAdd(vertInter, orig, dir, t);
+      return t;
     };
   })();
 
-  /** Compute distance between a point and a triangle. */
-  Geometry.distance2PointTriangle = (function () {
-    var diff = [0.0, 0.0, 0.0];
+  /** Compute intersection between a ray and a triangle. Returne the distance to the triangle if a hit occurs. */
+  Geometry.intersectionRayTriangle = (function () {
     var edge1 = [0.0, 0.0, 0.0];
     var edge2 = [0.0, 0.0, 0.0];
-    return function (point, v1, v2, v3, closest) {
-
-      vec3.sub(diff, v1, point);
+    return function (orig, dir, v1, v2, v3, vertInter) {
       vec3.sub(edge1, v2, v1);
       vec3.sub(edge2, v3, v1);
+      return Geometry.intersectionRayTriangleEdges(orig, dir, edge1, edge2, v1, vertInter);
+    };
+  })();
 
-      var a00 = vec3.sqrLen(edge1);
-      var a01 = vec3.dot(edge1, edge2);
-      var a11 = vec3.sqrLen(edge2);
+  //
+  // \2|
+  //  \|
+  //   \
+  // 3 |\  1
+  //   |0\
+  // __|__\___
+  // 4 | 5 \ 6
+  /** Compute distance between a point and a triangle. */
+  Geometry.distance2PointTriangleEdges = (function () {
+    var diff = [0.0, 0.0, 0.0];
+    return function (point, edge1, edge2, v1, a00, a01, a11, closest) {
+
+      vec3.sub(diff, v1, point);
       var b0 = vec3.dot(diff, edge1);
       var b1 = vec3.dot(diff, edge2);
       var c = vec3.sqrLen(diff);
@@ -228,11 +240,27 @@ define([
       if (sqrDistance < 0.0)
         sqrDistance = 0.0;
 
-      closest[0] = v1[0] + s * edge1[0] + t * edge2[0];
-      closest[1] = v1[1] + s * edge1[1] + t * edge2[1];
-      closest[2] = v1[2] + s * edge1[2] + t * edge2[2];
-      closest[3] = zone;
+      if (closest) {
+        closest[0] = v1[0] + s * edge1[0] + t * edge2[0];
+        closest[1] = v1[1] + s * edge1[1] + t * edge2[1];
+        closest[2] = v1[2] + s * edge1[2] + t * edge2[2];
+        closest[3] = zone;
+      }
       return sqrDistance;
+    };
+  })();
+
+  /** Compute distance between a point and a triangle. */
+  Geometry.distance2PointTriangle = (function () {
+    var edge1 = [0.0, 0.0, 0.0];
+    var edge2 = [0.0, 0.0, 0.0];
+    return function (point, v1, v2, v3, closest) {
+      vec3.sub(edge1, v2, v1);
+      vec3.sub(edge2, v3, v1);
+      var a00 = vec3.sqrLen(edge1);
+      var a01 = vec3.dot(edge1, edge2);
+      var a11 = vec3.sqrLen(edge2);
+      return Geometry.distance2PointTriangleEdges(point, edge1, edge2, v1, a00, a01, a11, closest);
     };
   })();
 

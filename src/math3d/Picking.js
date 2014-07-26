@@ -142,23 +142,20 @@ define([
           v3[0] = vAr[ind3];
           v3[1] = vAr[ind3 + 1];
           v3[2] = vAr[ind3 + 2];
-          var hit = Geometry.intersectionRayTriangle(vNear, eyeDir, v1, v2, v3, vertInter);
-          if (hit === false) {
+          var hitDist = Geometry.intersectionRayTriangle(vNear, eyeDir, v1, v2, v3, vertInter);
+          if (hitDist < 0.0) {
             ind2 = fAr[indFace + 3] * 3;
             if (ind2 >= 0) {
               v2[0] = vAr[ind2];
               v2[1] = vAr[ind2 + 1];
               v2[2] = vAr[ind2 + 2];
-              hit = Geometry.intersectionRayTriangle(vNear, eyeDir, v1, v3, v2, vertInter);
+              hitDist = Geometry.intersectionRayTriangle(vNear, eyeDir, v1, v3, v2, vertInter);
             }
           }
-          if (hit) {
-            var testDistance = vec3.sqrDist(vNear, vertInter);
-            if (testDistance < distance) {
-              distance = testDistance;
-              vec3.copy(this.interPoint_, vertInter);
-              this.pickedFace_ = iFacesCandidates[i];
-            }
+          if (hitDist >= 0.0 && hitDist < distance) {
+            distance = hitDist;
+            vec3.copy(this.interPoint_, vertInter);
+            this.pickedFace_ = iFacesCandidates[i];
           }
         }
         if (this.pickedFace_ !== -1) {

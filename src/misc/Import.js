@@ -63,7 +63,7 @@ define([
     }
     mesh.setVertices(new Float32Array(vAr));
     mesh.setFaces(new Int32Array(fAr));
-    if (texAr.length > 0)
+    if (texAr.length > 0 && uvfAr.length > 0)
       mesh.initTexCoordsDataFromOBJData(texAr, uvfAr);
   };
 

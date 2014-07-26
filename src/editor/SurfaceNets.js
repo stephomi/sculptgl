@@ -1,6 +1,4 @@
-define([
-  'misc/Utils'
-], function (Utils) {
+define([], function () {
 
   'use strict';
 
@@ -148,7 +146,7 @@ define([
     var R = new Int32Array([1, (dims[0] + 1), (dims[0] + 1) * (dims[1] + 1)]);
     var grid = new Float32Array(8);
     var nbBuf = 1;
-    var buffer = new Int32Array(Utils.getMemory(4 * R[2] * 2), 0, R[2] * 2);
+    var buffer = new Int32Array(R[2] * 2);
 
     //March over the voxel grid
     for (x[2] = 0; x[2] < dims[2] - 1; ++x[2], n += dims[0], nbBuf ^= 1, R[2] = -R[2]) {
@@ -167,7 +165,7 @@ define([
             continue;
           //Sum up edge intersections
           var edgeMask = edgeTable[mask];
-          buffer[m] = (vertices.length / 3);
+          buffer[m] = vertices.length / 3;
           interpolateVertices(edgeMask, cubeEdges, grid, x, scale, shift, vertices);
           createFace(edgeMask, mask, buffer, R, m, x, faces);
         }
