@@ -172,6 +172,8 @@ define([
     colorOut.set(baseMesh.getColors());
     var vArOld = baseMesh.getVertices();
     var fArOld = baseMesh.getFaces();
+    var eArOld = baseMesh.getEdges();
+    var feArOld = baseMesh.getFaceEdges();
     var vertOnEdgeOld = baseMesh.getVerticesOnEdge();
     var vrvStartCount = baseMesh.getVerticesRingVertStartCount();
     var vertRingVert = baseMesh.getVerticesRingVert();
@@ -182,9 +184,6 @@ define([
 
     for (var i = 0; i < nbVerts; ++i) {
       var j = i * 3;
-      var start = vrvStartCount[i * 2];
-      var count = vrvStartCount[i * 2 + 1];
-      var end = start + count;
       var avx = 0.0;
       var avy = 0.0;
       var avz = 0.0;
@@ -194,23 +193,51 @@ define([
       var id = 0;
       // edge vertex
       if (vertOnEdgeOld[i]) {
-        for (k = start; k < end; ++k) {
-          id = vertRingVert[k];
-          if (vertOnEdgeOld[id]) {
-            id *= 3;
-            avx += vArOld[id];
-            avy += vArOld[id + 1];
-            avz += vArOld[id + 2];
-            beta++;
+        var startF = vrfStartCount[i * 2];
+        var endF = startF + vrfStartCount[i * 2 + 1];
+        for (k = startF; k < endF; ++k) {
+          var idFace = vertRingFace[k] * 4;
+          var i1 = fArOld[idFace];
+          var i2 = fArOld[idFace + 1];
+          var i3 = fArOld[idFace + 2];
+          var i4 = fArOld[idFace + 3];
+          id = -1;
+          if (i1 === i) {
+            if (eArOld[feArOld[idFace]] === 1) id = i2;
+            else if (eArOld[feArOld[i4 < 0 ? idFace + 2 : idFace + 3]] === 1) id = i4 < 0 ? i3 : i4;
+          } else if (i2 === i) {
+            if (eArOld[feArOld[idFace]] === 1) id = i1;
+            else if (eArOld[feArOld[idFace + 1]] === 1) id = i3;
+          } else if (i3 === i) {
+            if (eArOld[feArOld[idFace + 1]] === 1) id = i2;
+            else if (eArOld[feArOld[idFace + 2]] === 1) id = i4 < 0 ? i1 : i4;
+          } else if (i4 === i) {
+            if (eArOld[feArOld[idFace + 2]] === 1) id = i3;
+            else if (eArOld[feArOld[idFace + 3]] === 1) id = i1;
           }
+          if (id < 0) continue;
+          id *= 3;
+          avx += vArOld[id];
+          avy += vArOld[id + 1];
+          avz += vArOld[id + 2];
+          beta++;
         }
-        beta = 0.25 / beta;
-        alpha = 0.75;
-        even[j] = vArOld[j] * alpha + avx * beta;
-        even[j + 1] = vArOld[j + 1] * alpha + avy * beta;
-        even[j + 2] = vArOld[j + 2] * alpha + avz * beta;
+        if (beta < 2) { // non manifold boring stuffs
+          even[j] = vArOld[j];
+          even[j + 1] = vArOld[j + 1];
+          even[j + 2] = vArOld[j + 2];
+        } else {
+          beta = 0.25 / beta;
+          alpha = 0.75;
+          even[j] = vArOld[j] * alpha + avx * beta;
+          even[j + 1] = vArOld[j + 1] * alpha + avy * beta;
+          even[j + 2] = vArOld[j + 2] * alpha + avz * beta;
+        }
         continue;
       }
+      var start = vrvStartCount[i * 2];
+      var count = vrvStartCount[i * 2 + 1];
+      var end = start + count;
       // interior vertex
       for (k = start; k < end; ++k) {
         id = vertRingVert[k] * 3;
@@ -241,8 +268,7 @@ define([
       var gamma = 0.0;
 
       var startFace = vrfStartCount[i * 2];
-      var countFace = vrfStartCount[i * 2 + 1];
-      var endFace = startFace + countFace;
+      var endFace = startFace + vrfStartCount[i * 2 + 1];
       var nbQuad = 0;
       for (k = startFace; k < endFace; ++k) {
         id = vertRingFace[k] * 4;

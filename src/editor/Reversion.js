@@ -43,13 +43,27 @@ define([
 
   /** Return the first extraordinary vertex if it exists... or a random vertex otherwise */
   Reversion.getSeed = function (mesh, vEvenTags, vExtraTags) {
-    for (var i = 0, l = mesh.getNbVertices(); i < l; ++i) {
+    var i = 0;
+    var nbVertices = mesh.getNbVertices();
+    for (i = 0; i < nbVertices; ++i) {
       if (vEvenTags[i] !== 0)
         continue;
       if (vExtraTags[i] === 1)
         return i;
     }
-    return 0;
+    // no extraordinary vertices...
+    var onEdge = mesh.getVerticesOnEdge();
+    for (i = 0; i < nbVertices; ++i) {
+      if (vEvenTags[i] !== 0) continue; // skip already processed vertex
+      if (onEdge[i] !== 1) break;
+    }
+    // cancels reversion if there is no edge vertex
+    if (i === nbVertices) return -1;
+    // find the first non-already processed vertex
+    for (i = 0; i < nbVertices; ++i) {
+      if (vEvenTags[i] === 0) return i;
+    }
+    return -1;
   };
 
   /** Tag the even vertices */
@@ -61,10 +75,10 @@ define([
     var onEdge = mesh.getVerticesOnEdge();
 
     var vSeed = Reversion.getSeed(mesh, vEvenTags, vExtraTags);
+    if (vSeed < 0)
+      return;
     vEvenTags[vSeed] = 1;
     var stack = new Uint32Array(Utils.getMemory(mesh.getNbVertices() * 4), 0, mesh.getNbVertices());
-    if (stack.length === 0)
-      return;
     stack[0] = vSeed;
     var curStack = 1;
     while (curStack > 0) {
@@ -72,16 +86,16 @@ define([
       var start = vrvSC[idVert * 2];
       var end = start + vrvSC[idVert * 2 + 1];
       var i = 0;
-      var vBorder = onEdge[idVert];
       var stamp = ++tagFlag;
       // tag the odd vertices
       for (i = start; i < end; ++i) {
         var oddi = vrv[i];
         vFlags[oddi] = stamp;
-        var oddTag = vEvenTags[oddi];
         // already an even vertex
-        if (oddTag === 1)
+        if (vEvenTags[oddi] === 1) {
+          Utils.TAG_FLAG = tagFlag;
           return;
+        }
         vEvenTags[oddi] = -1; //odd vertex
         vFlags[oddi] = stamp;
       }
@@ -91,11 +105,10 @@ define([
       for (i = start; i < end; ++i) {
         var oddId = vrv[i];
         // extraordinary vertex marked as odd vertex
-        if (vExtraTags[oddId] !== 0)
+        if (vExtraTags[oddId] !== 0 && !onEdge[oddId]) {
+          Utils.TAG_FLAG = tagFlag;
           return;
-        // odd vertex on the boundary and even in the interior
-        if (onEdge[oddId] && !vBorder)
-          return;
+        }
         var oddStart = vrvSC[oddId * 2];
         var oddEnd = oddStart + vrvSC[oddId * 2 + 1];
         // find opposite vertex
@@ -243,11 +256,16 @@ define([
     nbFaces /= 4;
     for (i = 0; i < nbFaces; ++i) {
       var cen = triFaceOrQuadCenter[i];
-      if (cen < 0)
+      var idFace = i * 4;
+      if (cen < 0) { // quad
+        // Sometimes... the way we revert quads does not always work
+        // because of non-consistency clock wise order between neighbor quads
+        if (fArDown[idFace] < 0 || fArDown[idFace + 1] < 0 || fArDown[idFace + 2] < 0)
+          return false;
         continue;
+      }
       // tri
       var id = cen * 4;
-      var idFace = i * 4;
       fArDown[idFace] = tagEdges[feAr[id]] - 1;
       fArDown[idFace + 1] = tagEdges[feAr[id + 1]] - 1;
       fArDown[idFace + 2] = tagEdges[feAr[id + 2]] - 1;
@@ -521,6 +539,8 @@ define([
     if (!vEvenTags)
       return false;
     var triFaceOrQuadCenter = Reversion.createFaces(baseMesh, newMesh, vEvenTags);
+    if (!triFaceOrQuadCenter)
+      return false;
     Reversion.createVertices(baseMesh, newMesh, triFaceOrQuadCenter);
     Reversion.copyVerticesData(baseMesh, newMesh);
     Reversion.computeTexCoords(baseMesh, newMesh, triFaceOrQuadCenter);

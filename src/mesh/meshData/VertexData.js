@@ -187,7 +187,6 @@ define([
       var vertRingFace = this.getVerticesRingFace();
       var vertTagFlags = this.getVerticesTagFlags();
       var fAr = mesh.getFaces();
-      var vertOnEdge = this.getVerticesOnEdge();
       var vrvStart = 0;
       for (var i = 0, l = this.getNbVertices(); i < l; ++i) {
         var tagFlag = ++Utils.TAG_FLAG;
@@ -219,7 +218,7 @@ define([
         vrvStartCount[i * 2 + 1] = vrvCount;
         vrvStart += vrvCount;
         if ((vrfEnd - vrfStart) !== vrvCount)
-          vertOnEdge[i] = 1;
+          mesh.getVerticesOnEdge()[i] = 1;
       }
     },
     /** Get more vertices (n-ring) */
