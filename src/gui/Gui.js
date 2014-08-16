@@ -40,8 +40,10 @@ define([
       this.deleteGui();
 
       var guiGeneral = this.guiGeneral_ = new Dat.GUI();
-      guiGeneral.domElement.style.position = 'absolute';
-      guiGeneral.domElement.style.height = '650px';
+      // put it on the left
+      var style = guiGeneral.domElement.style;
+      if (style.float !== undefined) style.float = 'left';
+      else if (style.cssFloat !== undefined) style.cssFloat = 'left';
       this.initGeneralGui(guiGeneral);
 
       var guiEditing = this.guiEditing_ = new Dat.GUI();
