@@ -14,7 +14,7 @@ define([
     SculptBase.call(this, states);
     this.intensity_ = 0.75; // deformation intensity
     this.culling_ = false; // if we backface cull the vertices
-    this.color_ = [168.0, 66.0, 66.0]; // color painting
+    this.color_ = [0.66, 0.29, 0.29]; // color painting
     this.pickColor_ = false; // color picking
     this.pickCallback_ = null; // callback function after picking a color
   }
@@ -71,9 +71,9 @@ define([
       vec3.scaleAndAdd(color, color, cAr.subarray(iv2, iv2 + 3), (sum - len2) / sum);
       vec3.scaleAndAdd(color, color, cAr.subarray(iv3, iv3 + 3), (sum - len3) / sum);
       if (iv4 >= 0) vec3.scaleAndAdd(color, color, cAr.subarray(iv4, iv4 + 3), (sum - len4) / sum);
-      vec3.scale(color, color, 255.0 / (iv4 >= 0 ? 3 : 2));
+      vec3.scale(color, color, 1.0 / (iv4 >= 0 ? 3 : 2));
 
-      this.pickCallback_();
+      this.pickCallback_(color);
     },
     /** On stroke */
     stroke: function (picking) {
@@ -98,9 +98,9 @@ define([
       var cAr = mesh.getColors();
       var color = this.color_;
       var radius = Math.sqrt(radiusSquared);
-      var cr = color[0] / 255.0;
-      var cg = color[1] / 255.0;
-      var cb = color[2] / 255.0;
+      var cr = color[0];
+      var cg = color[1];
+      var cb = color[2];
       var cx = center[0];
       var cy = center[1];
       var cz = center[2];

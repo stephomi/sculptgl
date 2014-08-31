@@ -22,16 +22,16 @@ define([
     'uniform float uScale;'
   ].join('\n');
   ShaderBase.strings.pickingFunction = [
-    // should be 'void picking(inout vec3 frag) but ie11 don't support yet inout
+    'bool isInsideSphere(vec3 vTest, vec3 sphCenter) {',
+    '  vec3 vecDistance = vTest - sphCenter;',
+    '  float distSq = dot(vecDistance, vecDistance);',
+    '  return uRadius2 < 0.0 ? distSq < -uRadius2 : distSq < uRadius2 * 1.06 && distSq > uRadius2 * 0.94;',
+    '}',
     'vec3 picking(vec3 frag) {',
-    '  vec3 vecDistance = vVertex - uInter;',
-    '  float dotSquared = dot(vecDistance, vecDistance);',
-    '  if(dotSquared < uRadius2 * 1.06 && dotSquared > uRadius2 * 0.94)',
+    '  if(isInsideSphere(vVertex, uInter))',
     '    frag *= 0.5;',
     '  if(uScale > 0.0) {',
-    '    vecDistance = vVertex - uInterSym;',
-    '    dotSquared = dot(vecDistance, vecDistance);',
-    '    if(dotSquared < uRadius2 * 1.06 && dotSquared > uRadius2 * 0.94)',
+    '    if(isInsideSphere(vVertex, uInterSym))',
     '      frag *= 0.5;',
     '    if(abs(dot(uPlaneN, vVertex - uPlaneO)) < 0.15 / uScale) {',
     '      frag = min(frag * 1.3, 1.0);',
@@ -96,7 +96,10 @@ define([
       var nMat = mat3.normalFromMat4(mat3.create(), mvMatrix);
       gl.uniform3fv(uniforms.uPlaneN, vec3.transformMat3(tmp, mesh.getSymmetryNormal(), nMat));
       gl.uniform1f(uniforms.uScale, useSym ? mesh.getScale() : -1.0);
-      gl.uniform1f(uniforms.uRadius2, picking.mesh_ ? picking.getWorldRadius2() : -1.0);
+      if (sculptgl.mouseButton_ !== 0)
+        gl.uniform1f(uniforms.uRadius2, picking.mesh_ ? -0.05 : 0.0);
+      else
+        gl.uniform1f(uniforms.uRadius2, picking.mesh_ ? picking.getWorldRadius2() : 0.0);
     };
   })();
   /** Draw buffer */

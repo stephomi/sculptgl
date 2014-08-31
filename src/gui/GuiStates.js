@@ -14,11 +14,9 @@ define([
     /** Initialize */
     init: function (guiParent) {
       // history fold
-      var foldHistory = guiParent.addFolder(TR('stateTitle'));
-      foldHistory.add(this, 'onUndo').name(TR('stateUndo'));
-      foldHistory.add(this, 'onRedo').name(TR('stateRedo'));
-      foldHistory.open();
-
+      var foldHistory = guiParent.addMenu(TR('stateTitle'));
+      foldHistory.addButton(TR('stateUndo'), this, 'onUndo', 'CTRL+Z');
+      foldHistory.addButton(TR('stateRedo'), this, 'onRedo', 'CTRL+Y');
       this.addEvents();
     },
     /** Add events */

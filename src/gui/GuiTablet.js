@@ -13,10 +13,9 @@ define([
     /** Initialize */
     init: function (guiParent) {
       // Pen tablet ui stuffs
-      var foldPenTablet = guiParent.addFolder(TR('wacomTitle'));
-      foldPenTablet.add(Tablet, 'useOnRadius').name(TR('wacomRadius'));
-      foldPenTablet.add(Tablet, 'useOnIntensity').name(TR('wacomIntensity'));
-      foldPenTablet.close();
+      var foldPenTablet = guiParent.addMenu(TR('wacomTitle'));
+      foldPenTablet.addCheckbox(TR('wacomRadius'), Tablet, 'useOnRadius');
+      foldPenTablet.addCheckbox(TR('wacomIntensity'), Tablet, 'useOnIntensity');
     }
   };
 

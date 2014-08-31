@@ -21,53 +21,52 @@ define([
   GuiSculpting.prototype = {
     /** Initialisculze */
     init: function (guiParent) {
-      var self = this;
-      var main = this.sculptgl_;
-      // sculpt fold
-      var foldSculpt = guiParent.addFolder(TR('sculptTitle'));
-      var optionsSculpt = {};
-      optionsSculpt[TR('sculptBrush')] = Sculpt.tool.BRUSH;
-      optionsSculpt[TR('sculptInflate')] = Sculpt.tool.INFLATE;
-      optionsSculpt[TR('sculptTwist')] = Sculpt.tool.TWIST;
-      optionsSculpt[TR('sculptSmooth')] = Sculpt.tool.SMOOTH;
-      optionsSculpt[TR('sculptFlatten')] = Sculpt.tool.FLATTEN;
-      optionsSculpt[TR('sculptPinch')] = Sculpt.tool.PINCH;
-      optionsSculpt[TR('sculptCrease')] = Sculpt.tool.CREASE;
-      optionsSculpt[TR('sculptDrag')] = Sculpt.tool.DRAG;
-      optionsSculpt[TR('sculptPaint')] = Sculpt.tool.PAINT;
-      optionsSculpt[TR('sculptScale')] = Sculpt.tool.SCALE;
-      optionsSculpt[TR('sculptTranslate')] = Sculpt.tool.TRANSLATE;
-      optionsSculpt[TR('sculptRotate')] = Sculpt.tool.ROTATE;
-      var dummy = {
-        tool_: this.sculpt_.tool_
-      };
-      this.ctrlSculpt_ = foldSculpt.add(dummy, 'tool_', optionsSculpt).name(TR('sculptTool'));
-      this.ctrlSculpt_.onChange(function (value) {
-        self.onChangeTool(parseInt(value, 10));
-      });
-      this.ctrlSymmetry_ = foldSculpt.add(this.sculpt_, 'symmetry_').name(TR('sculptSymmetry'));
-      this.ctrlSymmetry_.onChange(function () {
-        main.scene_.render();
-      });
-      this.ctrlContinuous_ = foldSculpt.add(this.sculpt_, 'continuous_').name(TR('sculptContinuous'));
-      this.ctrlRadius_ = foldSculpt.add(main.scene_.picking_, 'rDisplay_', 5, 200).name(TR('sculptRadius'));
-      foldSculpt.open();
+      var menu = guiParent.addMenu(TR('sculptTitle'));
 
-      this.initTool(Sculpt.tool.BRUSH, foldSculpt);
-      this.initTool(Sculpt.tool.INFLATE, foldSculpt);
-      this.initTool(Sculpt.tool.TWIST, foldSculpt);
-      this.initTool(Sculpt.tool.SMOOTH, foldSculpt);
-      this.initTool(Sculpt.tool.FLATTEN, foldSculpt);
-      this.initTool(Sculpt.tool.PINCH, foldSculpt);
-      this.initTool(Sculpt.tool.CREASE, foldSculpt);
-      this.initTool(Sculpt.tool.DRAG, foldSculpt);
-      this.initTool(Sculpt.tool.PAINT, foldSculpt);
-      this.initTool(Sculpt.tool.SCALE, foldSculpt);
-      this.initTool(Sculpt.tool.TRANSLATE, foldSculpt);
-      this.initTool(Sculpt.tool.ROTATE, foldSculpt);
+      // sculpt tool
+      var optionsSculpt = {};
+      optionsSculpt[Sculpt.tool.BRUSH] = TR('sculptBrush');
+      optionsSculpt[Sculpt.tool.INFLATE] = TR('sculptInflate');
+      optionsSculpt[Sculpt.tool.TWIST] = TR('sculptTwist');
+      optionsSculpt[Sculpt.tool.SMOOTH] = TR('sculptSmooth');
+      optionsSculpt[Sculpt.tool.FLATTEN] = TR('sculptFlatten');
+      optionsSculpt[Sculpt.tool.PINCH] = TR('sculptPinch');
+      optionsSculpt[Sculpt.tool.CREASE] = TR('sculptCrease');
+      optionsSculpt[Sculpt.tool.DRAG] = TR('sculptDrag');
+      optionsSculpt[Sculpt.tool.PAINT] = TR('sculptPaint');
+      optionsSculpt[Sculpt.tool.SCALE] = TR('sculptScale');
+      optionsSculpt[Sculpt.tool.TRANSLATE] = TR('sculptTranslate');
+      optionsSculpt[Sculpt.tool.ROTATE] = TR('sculptRotate');
+      this.ctrlSculpt_ = menu.addCombobox(TR('sculptTool'), this.sculpt_.tool_, this.onChangeTool.bind(this), optionsSculpt);
+
+      // symmetry
+      this.ctrlSymmetry_ = menu.addCheckbox(TR('sculptSymmetry'), this.sculpt_.symmetry_, this.onSymmetryChange.bind(this));
+      // continuous
+      this.ctrlContinuous_ = menu.addCheckbox(TR('sculptContinuous'), this.sculpt_, 'continuous_');
+      // radius
+      var picking = this.sculptgl_.scene_.picking_;
+      this.ctrlRadius_ = menu.addSlider(TR('sculptRadius'), picking, 'rDisplay_', 5, 200, 1);
+
+      // init all the specific subtools ui
+      this.initTool(Sculpt.tool.BRUSH, menu);
+      this.initTool(Sculpt.tool.INFLATE, menu);
+      this.initTool(Sculpt.tool.TWIST, menu);
+      this.initTool(Sculpt.tool.SMOOTH, menu);
+      this.initTool(Sculpt.tool.FLATTEN, menu);
+      this.initTool(Sculpt.tool.PINCH, menu);
+      this.initTool(Sculpt.tool.CREASE, menu);
+      this.initTool(Sculpt.tool.DRAG, menu);
+      this.initTool(Sculpt.tool.PAINT, menu);
+      this.initTool(Sculpt.tool.SCALE, menu);
+      this.initTool(Sculpt.tool.TRANSLATE, menu);
+      this.initTool(Sculpt.tool.ROTATE, menu);
 
       GuiSculptingTools.show(this.sculpt_.tool_);
       this.addEvents();
+    },
+    onSymmetryChange: function (value) {
+      this.sculpt_.symmetry_ = value;
+      this.sculptgl_.scene_.render();
     },
     /** Add events */
     addEvents: function () {
@@ -90,6 +89,10 @@ define([
     removeEvents: function () {
       if (this.removeCallback) this.removeCallback();
     },
+    /** Return selected tool */
+    getSelectedTool: function () {
+      return parseInt(this.ctrlSculpt_.getValue(), 10);
+    },
     /** Key pressed event */
     onKeyDown: function (event) {
       if (event.handled === true)
@@ -103,9 +106,10 @@ define([
       if (this.sculptgl_.mouseButton_ !== 0)
         return;
       if (event.shiftKey && !event.altKey && !event.ctrlKey) {
-        if (ctrlSculpt.getValue() === Sculpt.tool.SMOOTH)
+        var selectedTool = this.getSelectedTool();
+        if (selectedTool === Sculpt.tool.SMOOTH)
           return;
-        this.toolOnRelease_ = ctrlSculpt.getValue();
+        this.toolOnRelease_ = selectedTool;
         ctrlSculpt.setValue(Sculpt.tool.SMOOTH);
         return;
       }
@@ -151,7 +155,7 @@ define([
         ctrlSculpt.setValue(Sculpt.tool.PAINT);
         break;
       case 78: // N
-        var cur = GuiSculptingTools[ctrlSculpt.getValue()];
+        var cur = GuiSculptingTools[this.getSelectedTool()];
         if (cur.toggleNegative)
           cur.toggleNegative();
         break;
@@ -180,12 +184,13 @@ define([
     },
     /** When the sculpting tool is changed */
     onChangeTool: function (newValue) {
+      newValue = parseInt(newValue, 10);
       var sculpt = this.sculptgl_.sculpt_;
       GuiSculptingTools.hide(sculpt.tool_);
       sculpt.tool_ = newValue;
       GuiSculptingTools.show(newValue);
-      this.ctrlContinuous_.__li.hidden = this.sculpt_.allowPicking() === false;
-      this.ctrlSymmetry_.__li.hidden = newValue === Sculpt.tool.TRANSLATE || newValue === Sculpt.tool.ROTATE;
+      this.ctrlContinuous_.setVisibility(this.sculpt_.allowPicking() === true);
+      this.ctrlSymmetry_.setVisibility(newValue !== Sculpt.tool.TRANSLATE && newValue !== Sculpt.tool.ROTATE);
     }
   };
 

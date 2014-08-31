@@ -15,7 +15,7 @@ module.exports = function (grunt) {
         baseUrl: 'src',
         name: '../tools/almond',
         include: 'Sculptgl',
-        out: 'build/multiresgl.min.js'
+        out: 'build/sculptgl.min.js'
       }
     }
   };
@@ -77,7 +77,7 @@ module.exports = function (grunt) {
   grunt.loadNpmTasks('grunt-contrib-copy');
 
   grunt.registerTask('test', 'jshint');
-  grunt.registerTask('build', ['clean', 'jshint', 'copy', 'requirejs', 'manifest']);
+  grunt.registerTask('build', ['clean', 'jshint', 'copy', 'requirejs' /*, 'manifest'*/ ]);
 
   grunt.registerTask('default', 'build');
 };

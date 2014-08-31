@@ -23,7 +23,7 @@ define([
     this.pickingSym_ = new Picking(this.camera_); // the symmetrical picking
 
     // renderable stuffs
-    this.background_ = null; // the background
+    this.background_ = new Background(this.gl_); // the background
     this.meshes_ = []; // the meshes
 
     // datas
@@ -51,24 +51,21 @@ define([
     },
     init: function () {
       this.loadTextures();
-      this.onWindowResize();
       this.initEvents();
     },
     /** Initialize */
     initEvents: function () {
       document.getElementById('fileopen').addEventListener('change', this.loadFile.bind(this), false);
       document.getElementById('backgroundopen').addEventListener('change', this.loadBackground.bind(this), false);
-      window.addEventListener('resize', this.onWindowResize.bind(this), false);
     },
     /** Called when the window is resized */
-    onWindowResize: function () {
-      var newWidth = window.innerWidth;
-      var newHeight = window.innerHeight;
-      var canvas = document.getElementById('canvas');
+    onCanvasResize: function () {
+      var canvas = this.sculptgl_.canvas_;
       var camera = this.camera_;
       var gl = this.gl_;
-      gl.viewportWidth = canvas.width = camera.width_ = newWidth;
-      gl.viewportHeight = canvas.height = camera.height_ = newHeight;
+      var newWidth = gl.viewportWidth = camera.width_ = canvas.width;
+      var newHeight = gl.viewportHeight = camera.height_ = canvas.height;
+      this.background_.onResize(newWidth, newHeight);
       gl.viewport(0, 0, newWidth, newHeight);
       camera.updateProjection();
       this.render();
@@ -86,8 +83,7 @@ define([
       var gl = this.gl_;
       gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
       this.camera_.updateView();
-      if (this.background_)
-        this.background_.render();
+      this.background_.render();
       this.computeMatricesAndSort();
       for (var i = 0, meshes = this.meshes_, nb = meshes.length; i < nb; ++i)
         meshes[i].render(this.sculptgl_);
@@ -126,14 +122,13 @@ define([
       var file = event.target.files[0];
       if (!file.type.match('image.*'))
         return;
-      if (!this.background_)
-        this.background_ = new Background(this.gl_);
       var reader = new FileReader();
       var self = this;
       reader.onload = function (evt) {
         var bg = new Image();
         bg.src = evt.target.result;
         self.background_.loadBackgroundTexture(bg);
+        self.background_.onResize(self.sculptgl_.canvas_.width, self.sculptgl_.canvas_.height);
         self.render();
         document.getElementById('backgroundopen').value = '';
       };
@@ -241,9 +236,9 @@ define([
     resetScene: function () {
       this.meshes_.length = 0;
       this.loadScene();
-      var ctrlMulti = this.sculptgl_.gui_.ctrlMultiresolution_;
+      var ctrlTopo = this.sculptgl_.gui_.ctrlTopology_;
       while (this.meshes_[0].getNbFaces() < 20000)
-        ctrlMulti.subdivide();
+        ctrlTopo.subdivide();
       this.sculptgl_.states_.reset();
     }
   };

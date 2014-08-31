@@ -10,18 +10,20 @@ define([], function () {
     backgroundTitle: 'Background',
     backgroundReset: 'Reset',
     backgroundImport: 'Import (jpg, png...)',
+    backgroundFill: 'Fill',
 
     // camera
     cameraTitle: 'Camera',
-    cameraReset: 'Reset view',
-    cameraFront: 'Front view (F)',
-    cameraLeft: 'Left view (L)',
-    cameraTop: 'Top view (T)',
+    cameraReset: 'Reset',
+    cameraCenter: 'Center',
+    cameraFront: 'Front (F)',
+    cameraLeft: 'Left (L)',
+    cameraTop: 'Top (T)',
     cameraMode: 'Mode',
     cameraOrbit: 'Orbit',
     cameraSpherical: 'Spherical',
     cameraPlane: 'Plane',
-    cameraType: 'Type',
+    cameraProjection: 'Projection',
     cameraPerspective: 'Perspective',
     cameraOrthographic: 'Orthographic',
     cameraFov: 'Fov',
@@ -37,10 +39,13 @@ define([], function () {
 
     // mesh
     meshTitle: 'Mesh',
-    meshNbVertices: 'Ver : ',
+    meshNbVertices: 'Vertex : ',
     meshNbFaces: 'Faces : ',
 
-    // multires
+    // topology
+    topologyTitle: 'Topology',
+
+    //multires
     multiresTitle: 'Multiresolution',
     multiresSubdivide: 'Subdivide',
     multiresReverse: 'Reverse',
@@ -59,12 +64,12 @@ define([], function () {
       'The mesh is not a product of a (loop-catmull) subdivision surface on a manifold mesh.',
 
     // remesh
-    remeshTitle: 'Remesh',
+    remeshTitle: 'Voxel Remeshing',
     remeshRemesh: 'Remesh',
     remeshResolution: 'Resolution',
 
     // sculpt
-    sculptTitle: 'sculpt',
+    sculptTitle: 'Sculpting',
     sculptBrush: 'Brush (1)',
     sculptInflate: 'Inflate (2)',
     sculptTwist: 'Twist (3)',
@@ -79,7 +84,7 @@ define([], function () {
     sculptRotate: 'Rotate',
     sculptTool: 'Tool',
     sculptSymmetry: 'Symmetry',
-    sculptContinuous: 'Continous',
+    sculptContinuous: 'Continuous',
     sculptRadius: 'Radius',
     sculptIntensity: 'Intensity',
     sculptCulling: 'Sculpt culling',
@@ -92,8 +97,8 @@ define([], function () {
 
     // states
     stateTitle: 'History',
-    stateUndo: 'Undo (Ctrl+Z)',
-    stateRedo: 'Redo (Ctrl+Y)',
+    stateUndo: 'Undo',
+    stateRedo: 'Redo',
 
     // wacom
     wacomTitle: 'Wacom tablet',

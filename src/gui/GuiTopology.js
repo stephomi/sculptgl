@@ -1,8 +1,10 @@
 define([
   'gui/GuiTR',
+  'editor/Remesh',
   'mesh/multiresolution/Multimesh',
-  'states/StateMultiresolution'
-], function (TR, Multimesh, StateMultiresolution) {
+  'states/StateMultiresolution',
+  'states/StateRemesh'
+], function (TR, Remesh, Multimesh, StateMultiresolution, StateRemesh) {
 
   'use strict';
 
@@ -17,21 +19,35 @@ define([
   GuiMultiresolution.prototype = {
     /** Initialize */
     init: function (guiParent) {
-      // multires fold
-      var foldMultires = guiParent.addFolder(TR('multiresTitle'));
-      foldMultires.add(this, 'subdivide').name(TR('multiresSubdivide'));
-      foldMultires.add(this, 'reverse').name(TR('multiresReverse'));
-      this.ctrlResolution_ = foldMultires.add({
-        dummy: 1
-      }, 'dummy', 1, 1).step(1).name(TR('multiresResolution'));
-      foldMultires.add(this, 'deleteHigher').name(TR('multiresDelHigher'));
-      foldMultires.add(this, 'deleteLower').name(TR('multiresDelLower'));
-      this.ctrlResolution_.onChange(this.onResolutionChanged.bind(this));
-      foldMultires.close();
+      var menu = guiParent.addMenu(TR('topologyTitle'));
+
+      // multires
+      menu.addTitle(TR('multiresTitle'));
+      this.ctrlResolution_ = menu.addSlider(TR('multiresResolution'), 1, this.onResolutionChanged.bind(this), 1, 1, 1);
+      menu.addDualButton(TR('multiresReverse'), TR('multiresSubdivide'), this, this, 'reverse', 'subdivide');
+      var res = menu.addDualButton(TR('multiresDelLower'), TR('multiresDelHigher'), this, this, 'deleteLower', 'deleteHigher');
+      res[0].domButton.style.background = res[1].domButton.style.background = 'rgba(230,53,59,0.35)';
+
+      // remeshing
+      menu.addTitle(TR('remeshTitle'));
+      menu.addSlider(TR('remeshResolution'), Remesh, 'resolution', 8, 400, 1);
+      menu.addButton(TR('remeshRemesh'), this, 'remesh');
+    },
+    /** Update information on mesh */
+    remesh: function () {
+      var main = this.sculptgl_;
+      var mesh = main.mesh_;
+      if (!mesh)
+        return;
+      var newMesh = Remesh.remesh(mesh);
+      main.states_.pushState(new StateRemesh(main, mesh, newMesh));
+      main.replaceMesh(mesh, newMesh);
+      main.scene_.render();
+      this.ctrlGui_.updateMesh();
     },
     /** Check if the mesh is a multiresolution one */
     isMultimesh: function (mesh) {
-      return mesh.meshes_ !== undefined;
+      return mesh && mesh.meshes_ !== undefined;
     },
     /** Convert a mesh into a multiresolution one */
     convertToMultimesh: function (mesh) {
@@ -120,11 +136,11 @@ define([
     /** Update the mesh resolution slider */
     updateMeshResolution: function (multimesh) {
       if (!this.isMultimesh(multimesh)) {
-        this.ctrlResolution_.max(1);
+        this.ctrlResolution_.setMax(1);
         this.ctrlResolution_.setValue(0);
         return;
       }
-      this.ctrlResolution_.max(multimesh.meshes_.length);
+      this.ctrlResolution_.setMax(multimesh.meshes_.length);
       this.ctrlResolution_.setValue(multimesh.sel_ + 1);
     }
   };

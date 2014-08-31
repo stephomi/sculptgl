@@ -19,58 +19,64 @@ define([
       var camera = scene.camera_;
 
       // Camera fold
-      var cameraFold = guiParent.addFolder(TR('cameraTitle'));
+      var menu = guiParent.addMenu(TR('cameraTitle'));
 
       // reset camera
-      cameraFold.add(this, 'resetCamera').name(TR('cameraReset'));
-      cameraFold.add(this, 'resetFront').name(TR('cameraFront'));
-      cameraFold.add(this, 'resetLeft').name(TR('cameraLeft'));
-      cameraFold.add(this, 'resetTop').name(TR('cameraTop'));
-
-      // camera mode
-      var optionsMode = {};
-      optionsMode[TR('cameraOrbit')] = Camera.mode.ORBIT;
-      optionsMode[TR('cameraSpherical')] = Camera.mode.SPHERICAL;
-      optionsMode[TR('cameraPlane')] = Camera.mode.PLANE;
-      var ctrlCameraMode = cameraFold.add(camera, 'mode_', optionsMode).name(TR('cameraMode'));
+      menu.addTitle(TR('Reset'));
+      menu.addDualButton(TR('cameraCenter'), TR('cameraFront'), this.resetCamera.bind(this), this.resetFront.bind(this));
+      menu.addDualButton(TR('cameraLeft'), TR('cameraTop'), this.resetLeft.bind(this), this.resetTop.bind(this));
 
       // camera type
       var optionsType = {};
-      optionsType[TR('cameraPerspective')] = Camera.projType.PERSPECTIVE;
-      optionsType[TR('cameraOrthographic')] = Camera.projType.ORTHOGRAPHIC;
-      var ctrlCameraType = cameraFold.add(camera, 'type_', optionsType).name(TR('cameraType'));
+      menu.addTitle(TR('cameraProjection'));
+      optionsType[Camera.projType.PERSPECTIVE] = TR('cameraPerspective');
+      optionsType[Camera.projType.ORTHOGRAPHIC] = TR('cameraOrthographic');
+      menu.addCombobox('', camera.type_, this.onCameraTypeChange.bind(this), optionsType);
+
+      // camera mode
+      var optionsMode = {};
+      menu.addTitle(TR('cameraMode'));
+      optionsMode[Camera.mode.ORBIT] = TR('cameraOrbit');
+      optionsMode[Camera.mode.SPHERICAL] = TR('cameraSpherical');
+      optionsMode[Camera.mode.PLANE] = TR('cameraPlane');
+      menu.addCombobox('', camera.mode_, this.onCameraModeChange.bind(this), optionsMode);
+      menu.addCheckbox(TR('cameraPivot'), camera.usePivot_, this.onPivotChange.bind(this));
 
       // camera fov
-      var ctrlFov = cameraFold.add(camera, 'fov_', 10, 150).name(TR('cameraFov'));
-
-      // camera pivo
-      var ctrlPivot = cameraFold.add(camera, 'usePivot_').name(TR('cameraPivot'));
-
-      ctrlCameraMode.onChange(function (value) {
-        camera.mode_ = parseInt(value, 10);
-        if (camera.mode_ === Camera.mode.ORBIT) {
-          camera.resetViewFront();
-          scene.render();
-        }
-      });
-      ctrlCameraType.onChange(function (value) {
-        camera.type_ = parseInt(value, 10);
-        ctrlFov.__li.hidden = camera.type_ === Camera.projType.ORTHOGRAPHIC;
-        camera.updateProjection();
-        scene.render();
-      });
-      ctrlFov.onChange(function () {
-        camera.updateProjection();
-        scene.render();
-      });
-      ctrlPivot.onChange(function () {
-        camera.toggleUsePivot();
-        scene.render();
-      });
-
-      cameraFold.close();
+      this.fovTitle_ = menu.addTitle(TR('cameraFov'));
+      this.ctrlFov_ = menu.addSlider('', camera.fov_, this.onFovChange.bind(this), 10, 150, 1);
 
       this.addEvents();
+    },
+    /** On camera mode change */
+    onCameraModeChange: function (value) {
+      var camera = this.scene_.camera_;
+      camera.mode_ = parseInt(value, 10);
+      if (camera.mode_ === Camera.mode.ORBIT) {
+        camera.resetViewFront();
+        this.scene_.render();
+      }
+    },
+    /** On camera type change */
+    onCameraTypeChange: function (value) {
+      var camera = this.scene_.camera_;
+      camera.type_ = parseInt(value, 10);
+      this.ctrlFov_.setVisibility(camera.type_ === Camera.projType.PERSPECTIVE);
+      this.fovTitle_.setVisibility(camera.type_ === Camera.projType.PERSPECTIVE);
+      camera.updateProjection();
+      this.scene_.render();
+    },
+    /** On fov change */
+    onFovChange: function (value) {
+      this.scene_.camera_.fov_ = value;
+      this.scene_.camera_.updateProjection();
+      this.scene_.render();
+    },
+    /** On pivot change */
+    onPivotChange: function (value) {
+      this.scene_.camera_.usePivot_ = value;
+      this.scene_.camera_.toggleUsePivot();
+      this.scene_.render();
     },
     /** Add events */
     addEvents: function () {

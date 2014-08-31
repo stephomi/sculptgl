@@ -14,21 +14,13 @@ define([
   GuiFiles.prototype = {
     /** Initialize */
     init: function (guiParent) {
-      var scene = this.sculptgl_.scene_;
-
-      // file fold
-      var foldFiles = guiParent.addFolder(TR('fileTitle'));
-      foldFiles.add(scene, 'resetScene_').name(TR('fileReset'));
-      foldFiles.add(this, 'openFile').name(TR('fileAdd'));
-      foldFiles.add(this, 'saveFileAsOBJ').name(TR('fileExportOBJ'));
-      foldFiles.add(this, 'saveFileAsPLY').name(TR('fileExportPLY'));
-      foldFiles.add(this, 'saveFileAsSTL').name(TR('fileExportSTL'));
-      foldFiles.close();
-
-      // Sketchfab fold
-      var foldSketchfab = guiParent.addFolder(TR('sketchfabTitle'));
-      foldSketchfab.add(this, 'exportSketchfab').name(TR('sketchfabUpload'));
-      foldSketchfab.close();
+      var foldFiles = guiParent.addMenu(TR('fileTitle'));
+      foldFiles.addButton(TR('fileReset'), this.sculptgl_.scene_, 'resetScene_');
+      foldFiles.addButton(TR('fileAdd'), this, 'openFile');
+      foldFiles.addButton(TR('fileExportOBJ'), this, 'saveFileAsOBJ');
+      foldFiles.addButton(TR('fileExportPLY'), this, 'saveFileAsPLY');
+      foldFiles.addButton(TR('fileExportSTL'), this, 'saveFileAsSTL');
+      foldFiles.addButton(TR('sketchfabTitle'), this, 'exportSketchfab');
     },
     /** Open file */
     openFile: function () {

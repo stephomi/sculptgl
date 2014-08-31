@@ -9,23 +9,27 @@ define([
 
   GuiSculptingTools.hide = function (toolKey) {
     for (var i = 0, ctrls = GuiSculptingTools[toolKey].ctrls_, nbCtrl = ctrls.length; i < nbCtrl; ++i)
-      ctrls[i].__li.hidden = true;
+      ctrls[i].setVisibility(false);
   };
 
   GuiSculptingTools.show = function (toolKey) {
     for (var i = 0, ctrls = GuiSculptingTools[toolKey].ctrls_, nbCtrl = ctrls.length; i < nbCtrl; ++i)
-      ctrls[i].__li.hidden = false;
+      ctrls[i].setVisibility(true);
+  };
+
+  var setOnChange = function (key, val, factor) {
+    this[key] = factor ? val * factor : val;
   };
 
   // some helper functions
   var addCtrlIntensity = function (tool, fold) {
-    return fold.add(tool, 'intensity_', 0, 1).name(TR('sculptIntensity'));
+    return fold.addSlider(TR('sculptIntensity'), tool.intensity_ * 100, setOnChange.bind(tool, 'intensity_', 0.01), 0, 100, 1);
   };
   var addCtrlCulling = function (tool, fold) {
-    return fold.add(tool, 'culling_').name(TR('sculptCulling'));
+    return fold.addCheckbox(TR('sculptCulling'), tool, 'culling_');
   };
   var addCtrlNegative = function (tool, fold, self) {
-    var ctrl = fold.add(tool, 'negative_').name(TR('sculptNegative'));
+    var ctrl = fold.addCheckbox(TR('sculptNegative'), tool, 'negative_');
     if (self) {
       self.toggleNegative = function () {
         ctrl.setValue(!ctrl.getValue());
@@ -34,18 +38,9 @@ define([
     return ctrl;
   };
   var addCtrlColor = function (tool, fold) {
-    var ctrl = fold.addColor(tool, 'color_').name(TR('sculptColor'));
-    ctrl.onChange(function (value) {
-      if (value.length === 3) { // rgb [255, 255, 255]
-        tool.color_ = [value[0], value[1], value[2]];
-      } else if (value.length === 7) { // hex (24 bits style) '#ffaabb'
-        var intVal = parseInt(value.slice(1), 16);
-        tool.color_ = [(intVal >> 16), (intVal >> 8 & 0xff), (intVal & 0xff)];
-      } else // fuck it
-        tool.color_ = [168, 66, 66];
-    });
-    tool.setPickCallback(function () {
-      ctrl.updateDisplay();
+    var ctrl = fold.addColor(TR('sculptColor'), tool, 'color_');
+    tool.setPickCallback(function (color) {
+      ctrl.setValue(color);
     });
     return ctrl;
   };
@@ -55,8 +50,8 @@ define([
     init: function (tool, fold) {
       this.ctrls_.push(addCtrlIntensity(tool, fold));
       this.ctrls_.push(addCtrlNegative(tool, fold, this));
-      this.ctrls_.push(fold.add(tool, 'clay_').name(TR('sculptClay')));
-      this.ctrls_.push(fold.add(tool, 'accumulate_').name(TR('sculptAccumulate')));
+      this.ctrls_.push(fold.addCheckbox(TR('sculptClay'), tool, 'clay_'));
+      this.ctrls_.push(fold.addCheckbox(TR('sculptAccumulate'), tool, 'accumulate_'));
       this.ctrls_.push(addCtrlCulling(tool, fold));
     }
   };
@@ -99,7 +94,7 @@ define([
       this.ctrls_.push(addCtrlIntensity(tool, fold));
       this.ctrls_.push(addCtrlCulling(tool, fold));
       this.ctrls_.push(addCtrlColor(tool, fold));
-      this.ctrls_.push(fold.add(tool, 'pickColor_').name(TR('sculptPickColor')));
+      this.ctrls_.push(fold.addCheckbox(TR('sculptPickColor'), tool, 'pickColor_'));
     }
   };
 
@@ -130,7 +125,7 @@ define([
     ctrls_: [],
     init: function (tool, fold) {
       this.ctrls_.push(addCtrlIntensity(tool, fold));
-      this.ctrls_.push(fold.add(tool, 'tangent_').name(TR('sculptTangentialSmoothing')));
+      this.ctrls_.push(fold.addCheckbox(TR('sculptTangentialSmoothing'), tool, 'tangent_'));
       this.ctrls_.push(addCtrlCulling(tool, fold));
     }
   };

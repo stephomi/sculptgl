@@ -10,18 +10,20 @@ define([], function () {
     backgroundTitle: 'バックグラウンド',
     backgroundReset: 'リセット',
     backgroundImport: 'インポート  (jpg, png...)',
+    backgroundFill: 'Fill',
 
     // camera
     cameraTitle: 'カメラ',
-    cameraReset: 'リセット',
-    cameraFront: 'Front view (F)',
-    cameraLeft: 'Left view (L)',
-    cameraTop: 'Top view (T)',
+    cameraReset: 'Reset',
+    cameraCenter: 'Center',
+    cameraFront: 'Front (F)',
+    cameraLeft: 'Left (L)',
+    cameraTop: 'Top (T)',
     cameraMode: 'モード',
     cameraOrbit: 'Orbit',
     cameraSpherical: '球体',
     cameraPlane: '平面',
-    cameraType: 'タイプ',
+    cameraProjection: 'タイプ',
     cameraPerspective: '透視投影',
     cameraOrthographic: '平行投影',
     cameraFov: '視野',
@@ -37,8 +39,11 @@ define([], function () {
 
     // mesh
     meshTitle: 'メッシュ',
-    meshNbVertices: 'Ver : ',
+    meshNbVertices: 'Vertex : ',
     meshNbFaces: 'Faces : ',
+
+    // topology
+    topologyTitle: 'Topology',
 
     // multires
     multiresTitle: 'Multiresolution',
@@ -59,7 +64,7 @@ define([], function () {
       'The mesh is not a product of a (loop-catmull) subdivision surface on a manifold mesh.',
 
     // remesh
-    remeshTitle: 'Remesh',
+    remeshTitle: 'Voxel Remeshing',
     remeshRemesh: 'Remesh',
     remeshResolution: 'Resolution',
 
@@ -92,8 +97,8 @@ define([], function () {
 
     // states
     stateTitle: '履歴',
-    stateUndo: 'アンドゥ (Ctrl+Z)',
-    stateRedo: 'リドゥ (Ctrl+Y)',
+    stateUndo: 'アンドゥ',
+    stateRedo: 'リドゥ',
 
     // wacom
     wacomTitle: 'ワコムタブレット',

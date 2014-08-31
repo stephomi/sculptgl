@@ -13,19 +13,20 @@ define([
     /** Initialize */
     init: function (guiParent) {
       // background fold
-      var backgroundFold = guiParent.addFolder(TR('backgroundTitle'));
-      backgroundFold.add(this, 'resetBackground').name(TR('backgroundReset'));
-      backgroundFold.add(this, 'importBackground').name(TR('backgroundImport'));
-      backgroundFold.close();
+      var backgroundFold = guiParent.addMenu(TR('backgroundTitle'));
+      backgroundFold.addButton(TR('backgroundReset'), this, 'resetBackground');
+      backgroundFold.addButton(TR('backgroundImport'), this, 'importBackground');
+      backgroundFold.addCheckbox(TR('backgroundFill'), this.scene_.background_.fill_, this.updateFill.bind(this));
+    },
+    /** Reset background */
+    updateFill: function (val) {
+      this.scene_.background_.fill_ = val;
+      this.scene_.onCanvasResize();
     },
     /** Reset background */
     resetBackground: function () {
-      var bg = this.scene_.background_;
-      if (bg) {
-        bg.release();
-        this.scene_.background_ = null;
-        this.scene_.render();
-      }
+      this.scene_.background_.tex_ = null;
+      this.scene_.render();
     },
     /** Immort background */
     importBackground: function () {

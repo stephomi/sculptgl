@@ -1,22 +1,25 @@
 define([
-  'lib/Dat',
+  'gui/widgets/GuiMain',
   'gui/GuiBackground',
   'gui/GuiCamera',
   'gui/GuiConfig',
   'gui/GuiFiles',
   'gui/GuiMesh',
-  'gui/GuiMultiresolution',
+  'gui/GuiTopology',
   'gui/GuiRendering',
-  'gui/GuiRemesh',
   'gui/GuiSculpting',
   'gui/GuiStates',
   'gui/GuiTablet'
-], function (Dat, GuiBackground, GuiCamera, GuiConfig, GuiFiles, GuiMesh, GuiMultiresolution, GuiRendering, GuiRemesh, GuiSculpting, GuiStates, GuiTablet) {
+], function (GuiMain, GuiBackground, GuiCamera, GuiConfig, GuiFiles, GuiMesh, GuiTopology, GuiRendering, GuiSculpting, GuiStates, GuiTablet) {
 
   'use strict';
 
   function Gui(sculptgl) {
     this.sculptgl_ = sculptgl; // main application
+
+    this.guiMain_ = null; // the main gui
+    this.sidebar_ = null; // the side bar
+    this.topbar_ = null; // the top bar
 
     this.ctrlTablet_ = null; // tablet controller
     this.ctrlFiles_ = null; // files controller
@@ -24,14 +27,9 @@ define([
     this.ctrlCamera_ = null; // camera controller
     this.ctrlBackground_ = null; // background controller
 
-    this.ctrlMesh_ = null; // mesh controller
     this.ctrlSculpting_ = null; // sculpting controller
-    this.ctrlRemesh_ = null; // remesh controller
-    this.ctrlMultiresolution_ = null; // multiresolution controller
+    this.ctrlTopology_ = null; // topology controller
     this.ctrlRendering_ = null; // rendering controller
-
-    this.guiGeneral_ = null; // gui general
-    this.guiEditing_ = null; // gui editing
   }
 
   Gui.prototype = {
@@ -39,47 +37,50 @@ define([
     initGui: function () {
       this.deleteGui();
 
-      var guiGeneral = this.guiGeneral_ = new Dat.GUI();
-      // put it on the left
-      var style = guiGeneral.domElement.style;
-      if (style.float !== undefined) style.float = 'left';
-      else if (style.cssFloat !== undefined) style.cssFloat = 'left';
-      this.initGeneralGui(guiGeneral);
+      this.guiMain_ = new GuiMain(this.sculptgl_.canvas_, this.sculptgl_.setCanvasPosition.bind(this.sculptgl_));
 
-      var guiEditing = this.guiEditing_ = new Dat.GUI();
-      this.initEditingGui(guiEditing);
+      // Initialize the topbar
+      this.topbar_ = this.guiMain_.addTopbar();
+      this.ctrlFiles_ = new GuiFiles(this.topbar_, this);
+      this.ctrlStates_ = new GuiStates(this.topbar_, this);
+      this.ctrlBackground_ = new GuiBackground(this.topbar_, this);
+      this.ctrlCamera_ = new GuiCamera(this.topbar_, this);
+      this.ctrlTablet_ = new GuiTablet(this.topbar_, this);
+      this.ctrlConfig_ = new GuiConfig(this.topbar_, this);
+      this.ctrlMesh_ = new GuiMesh(this.topbar_, this);
 
-      var main = this.sculptgl_;
-      guiGeneral.domElement.addEventListener('mouseout', function () {
-        main.focusGui_ = false;
-      }, true);
-      guiEditing.domElement.addEventListener('mouseout', function () {
-        main.focusGui_ = false;
-      }, true);
-      guiGeneral.domElement.addEventListener('mouseover', function () {
-        main.focusGui_ = true;
-      }, true);
-      guiEditing.domElement.addEventListener('mouseover', function () {
-        main.focusGui_ = true;
-      }, true);
+      // Initialize the sidebar
+      this.sidebar_ = this.guiMain_.addRightSidebar();
+      this.ctrlTopology_ = new GuiTopology(this.sidebar_, this);
+      this.ctrlSculpting_ = new GuiSculpting(this.sidebar_, this);
+      this.ctrlRendering_ = new GuiRendering(this.sidebar_, this);
+
+      // gui extra
+      this.topbar_.addExtra();
+
+      this.addEvents();
       this.updateMesh();
     },
-    /** Initialize the general gui (on the left) */
-    initGeneralGui: function (gui) {
-      this.ctrlConfig_ = new GuiConfig(gui, this);
-      this.ctrlTablet_ = new GuiTablet(gui);
-      this.ctrlFiles_ = new GuiFiles(gui, this);
-      this.ctrlStates_ = new GuiStates(gui, this);
-      this.ctrlCamera_ = new GuiCamera(gui, this);
-      this.ctrlBackground_ = new GuiBackground(gui, this);
-      this.ctrlMesh_ = new GuiMesh(gui, this);
+    /** Add events */
+    addEvents: function () {
+      var main = this.sculptgl_;
+      var domSidebar = this.sidebar_.domSidebar;
+      var cbDisableFocus = function () {
+        main.focusGui_ = false;
+      };
+      var cbEnableFocus = function () {
+        main.focusGui_ = true;
+      };
+      domSidebar.addEventListener('mouseout', cbDisableFocus, true);
+      domSidebar.addEventListener('mouseover', cbEnableFocus, true);
+      this.removeCallback = function () {
+        domSidebar.removeEventListener('mouseout', cbDisableFocus, false);
+        domSidebar.removeEventListener('mouseover', cbEnableFocus, false);
+      };
     },
-    /** Initialize the mesh editing gui (on the right) */
-    initEditingGui: function (gui) {
-      this.ctrlRemesh_ = new GuiRemesh(gui, this);
-      this.ctrlMultiresolution_ = new GuiMultiresolution(gui, this);
-      this.ctrlSculpting_ = new GuiSculpting(gui, this);
-      this.ctrlRendering_ = new GuiRendering(gui, this);
+    /** Remove events */
+    removeEvents: function () {
+      if (this.removeCallback) this.removeCallback();
     },
     /** Update information on mesh */
     updateMesh: function () {
@@ -87,7 +88,7 @@ define([
       if (!mesh)
         return;
       this.ctrlRendering_.updateMesh(mesh);
-      this.ctrlMultiresolution_.updateMeshResolution(mesh);
+      this.ctrlTopology_.updateMeshResolution(mesh);
       this.updateMeshInfo(mesh);
     },
     /** Update number of vertices and triangles */
@@ -108,10 +109,10 @@ define([
     },
     /** Delete the old gui */
     deleteGui: function () {
-      if (!this.guiGeneral_ && !this.guiEditing_)
+      if (!this.guiMain_)
         return;
-      if (this.guiGeneral_) this.guiGeneral_.destroy();
-      if (this.guiEditing_) this.guiEditing_.destroy();
+      this.guiMain_.domMain.parentNode.removeChild(this.guiMain_.domMain);
+      this.removeEvents();
 
       if (this.ctrlTablet_ && this.ctrlTablet_.removeEvents) this.ctrlTablet_.removeEvents();
       if (this.ctrlFiles_ && this.ctrlFiles_.removeEvents) this.ctrlFiles_.removeEvents();
@@ -119,10 +120,8 @@ define([
       if (this.ctrlCamera_ && this.ctrlCamera_.removeEvents) this.ctrlCamera_.removeEvents();
       if (this.ctrlBackground_ && this.ctrlBackground_.removeEvents) this.ctrlBackground_.removeEvents();
 
-      if (this.ctrlMesh_ && this.ctrlMesh_.removeEvents) this.ctrlMesh_.removeEvents();
       if (this.ctrlSculpting_ && this.ctrlSculpting_.removeEvents) this.ctrlSculpting_.removeEvents();
-      if (this.ctrlRemesh_ && this.ctrlRemesh_.removeEvents) this.ctrlRemesh_.removeEvents();
-      if (this.ctrlMultiresolution_ && this.ctrlMultiresolution_.removeEvents) this.ctrlMultiresolution_.removeEvents();
+      if (this.ctrlTopology_ && this.ctrlTopology_.removeEvents) this.ctrlTopology_.removeEvents();
       if (this.ctrlRendering_ && this.ctrlRendering_.removeEvents) this.ctrlRendering_.removeEvents();
     }
   };

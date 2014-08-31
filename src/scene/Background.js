@@ -12,6 +12,11 @@ define([
     this.vertexBuffer_ = new Buffer(gl, gl.ARRAY_BUFFER, gl.STATIC_DRAW); // vertices buffer
     this.texCoordBuffer_ = new Buffer(gl, gl.ARRAY_BUFFER, gl.STATIC_DRAW); // tex coord buffer
     this.backgroundLoc_ = null; // texture background
+    this.tex_ = null; // the texture
+    this.fill_ = true; // if the canvas should be fille by the background
+
+    this.vertCoords = new Float32Array([-1.0, -1.0, -1.0, 1.0, 1.0, -1.0, -1.0, 1.0, 1.0, 1.0, 1.0, -1.0]);
+    this.texCoords = new Float32Array([0.0, 0.0, 0.0, 1.0, 1.0, 0.0, 0.0, 1.0, 1.0, 1.0, 1.0, 0.0]);
 
     this.shader_ = null; // the shader
     this.init();
@@ -44,17 +49,25 @@ define([
     },
     /** Initialize Vertex Buffer Object (VBO) */
     initBuffer: function () {
-      var vertCoords = [-1.0, -1.0, -1.0, 1.0, 1.0, -1.0, -1.0, 1.0, 1.0, 1.0, 1.0, -1.0];
-      this.getVertexBuffer().update(new Float32Array(vertCoords));
-
-      var texCoords = [0.0, 1.0, 0.0, 0.0, 1.0, 1.0, 0.0, 0.0, 1.0, 0.0, 1.0, 1.0];
-      this.getTexCoordBuffer().update(new Float32Array(texCoords));
+      this.getVertexBuffer().update(this.vertCoords);
+      this.getTexCoordBuffer().update(this.texCoords);
+    },
+    /** On resize */
+    onResize: function (width, height) {
+      if (!this.tex_) return;
+      var ratio = (width / height) / (this.tex_.width / this.tex_.height);
+      var comp = this.fill_ ? 1.0 / ratio : ratio;
+      var x = comp < 1.0 ? 1.0 : 1.0 / ratio;
+      var y = comp < 1.0 ? ratio : 1.0;
+      this.vertCoords.set([-x, -y, -x, y, x, -y, -x, y, x, y, x, -y]);
+      this.getVertexBuffer().update(this.vertCoords);
     },
     /** Load background texture */
     loadBackgroundTexture: function (tex) {
       var gl = this.gl_;
       if (this.backgroundLoc_)
         gl.deleteTexture(this.backgroundLoc_);
+      this.tex_ = tex;
       this.backgroundLoc_ = gl.createTexture();
       gl.bindTexture(gl.TEXTURE_2D, this.backgroundLoc_);
       gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, tex);
@@ -65,6 +78,7 @@ define([
     },
     /** Render the background */
     render: function () {
+      if (!this.tex_) return;
       this.shader_.draw(this);
     }
   };

@@ -12,14 +12,14 @@ define([
   GuiConfig.prototype = {
     /** Initialize */
     init: function (guiParent) {
-      var self = this;
       // config stuffs
-      var foldConfig = guiParent.addFolder(TR('configTitle'));
-      var ctrlLang = foldConfig.add(TR, 'select', Object.keys(TR.languages)).name('Language');
-      ctrlLang.onChange(function () {
-        self.ctrlGui_.initGui();
-      });
-      foldConfig.open();
+      this.langs_ = Object.keys(TR.languages);
+      var foldConfig = guiParent.addMenu('Language');
+      foldConfig.addCombobox('', this.langs_.indexOf(TR.select), this.onLangChange.bind(this), this.langs_);
+    },
+    onLangChange: function (value) {
+      TR.select = this.langs_[parseInt(value, 10)];
+      this.ctrlGui_.initGui();
     }
   };
 

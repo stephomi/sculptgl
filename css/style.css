@@ -1,23 +1,414 @@
-* { margin:0; padding:0; }
-
-html, body{
-  height: 100%;
-  width: 100%;
-  padding: 0;
+* {
+  font: 13px 'Open Sans', sans-serif;
+  color: #bbb;
+  font-weight: 400;
+  box-sizing: border-box;
+  border: 0;
   margin: 0;
-  font-family: Helvetica, Arial, sans-serif;
-}
-
-#canvas {
-  position: absolute;
-  top: 0;
-  bottom: 0;
-  height: 100%;
-  width: 100%;
-  display: block;
+  padding: 0;
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  -khtml-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
 }
 
 #tablet-plugin {
   position: absolute;
   top: -1000px;
+}
+
+#canvas {
+  position: absolute;
+  display: block;
+}
+
+/****** SIDE BAR ******/
+.gui-sidebar {
+  position: absolute;
+  bottom: 0;
+  top: 0;
+  padding-bottom: 20px;
+  width: 310px;
+  background: #3c3c3c;
+  overflow-x: hidden;
+  overflow-y: auto;
+  border-right: double;
+  border-width: 4px;
+  border-color: rgba(255,255,255,0.3);
+}
+
+.gui-sidebar::-webkit-scrollbar {
+  width: 7px;
+  background: rgba(0,0,0,0.3);
+}
+
+.gui-sidebar::-webkit-scrollbar-thumb {
+  border-radius: 2px;
+  background: rgba(255,255,255,0.2);
+}
+
+.gui-sidebar::-webkit-scrollbar-corner {
+  height: 0;
+  display: none;
+}
+
+.gui-resize {
+  cursor: ew-resize;
+  position: absolute;
+  left: 310px;
+  top: 0;
+  bottom: 0;
+  width: 10px;
+  margin-left: -3px;
+  margin-right: -3px;
+  opacity: 0;
+}
+
+/****** folder ******/
+.gui-sidebar > ul > label{
+  font-size: 15px;
+  font-weight: 600;
+  color: #999;
+  position: relative;
+  display: block;
+  line-height: 30px;
+  margin: 5px 0 5px 0;
+  text-transform: uppercase;
+  cursor: pointer;
+  vertical-align: middle;
+  text-align: center;
+  background: rgba(0,0,0,0.3);
+}
+
+.gui-sidebar > ul{
+  display: block;
+  list-style: none;
+  overflow: hidden;
+  -webkit-transition: max-height 0.3s ease;
+  -moz-transition: max-height 0.3s ease;
+  -ms-transition: max-height 0.3s ease;
+  -o-transition: max-height 0.3s ease;
+  transition: max-height 0.3s ease;
+}
+
+.gui-sidebar > ul[opened=true] {
+  max-height: 500px;
+}
+
+.gui-sidebar > ul[opened=false] {
+  height: 35px;
+  max-height: 35px;
+}
+
+.gui-sidebar > ul > li {
+  height: 22px;
+  margin: 4px 5px 4px 5px;
+}
+
+.gui-glowOnHover:hover {
+  background: rgba(0,0,0,0.2);
+}
+
+.gui-pointerOnHover:hover {
+  cursor: pointer;
+}
+
+/****** label ******/
+.gui-label-side {
+  position: relative;
+  display: inline-block;
+  height: 100%;
+  width: 36%;
+  overflow: hidden;
+  text-overflow:ellipsis;
+  white-space: nowrap;
+}
+
+/****** checkbox ******/
+.gui-input-checkbox {
+  display: none;
+}
+
+.gui-input-checkbox + label {
+  float: right;
+  cursor: pointer;
+  position: relative;
+  border: 1px solid;
+  border-radius: 4px;
+  margin-top: 2px;
+  width: 18px;
+  height: 18px;
+}
+
+.gui-input-checkbox + label::before {
+  position: absolute;
+  top: -5px;
+  left: 5px;
+  height: 14px;
+  width: 6px;
+  border-right: 2px solid;
+  border-bottom: 2px solid;
+  -webkit-transform: rotate(60deg) skew(25deg, 0);
+  -ms-transform: rotate(60deg) skew(25deg, 0);
+  transform: rotate(60deg) skew(25deg, 0);
+}
+
+.gui-input-checkbox:checked + label::before {
+  content: '';
+}
+
+/****** input number ******/
+.gui-input-number {
+  -moz-appearance: textfield;
+  float: right;
+  position: relative;
+  width: 10%;
+  height: 100%;
+  margin-left: 2%;
+  text-align: center;
+  outline: none;
+  font-size: 10px;
+  border-radius: 4px;
+  background: rgba(0,0,0,0.3);
+}
+
+.gui-widget-color > input::-webkit-inner-spin-button,
+.gui-widget-color > input::-webkit-outer-spin-button,
+.gui-input-number::-webkit-inner-spin-button,
+.gui-input-number::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+/****** input on hover ******/
+.gui-slider:hover,
+.gui-input-number:hover {
+  background: rgba(0,0,0,0.4);
+}
+
+/****** slider ******/
+.gui-slider {
+  -webkit-appearance: none;
+  cursor: ew-resize;
+  float: right;
+  width: 52%;
+  height: 100%;
+  overflow: hidden;
+  border-radius: 4px;
+  background: rgba(0,0,0,0.3);
+}
+
+.gui-slider > div {
+  height: 100%;
+  background: #525f63;
+}
+
+/****** button ******/
+.gui-button {
+  -webkit-appearance: none;
+  float: right;
+  cursor: pointer;
+  position: relative;
+  display: inline-block;
+  text-align: center;
+  width: 100%;
+  height: 100%;
+  outline: none;
+  border-radius: 4px;
+  background: #525f63;
+}
+
+.gui-button::-moz-focus-inner {
+  padding: 0 !important;
+  border: 0 none !important;
+}
+
+.gui-button:hover {
+  color: #fff;
+}
+
+.gui-button:active {
+  box-shadow: 0 1px 0 hsla(0,0%,100%,.1), inset 0 1px 4px hsla(0,0%,0%,.8);
+}
+
+/****** widget color ******/
+.gui-widget-color {
+  float: right;
+  display: block;
+  width: 64%;
+  height: 100%;
+}
+.gui-widget-color > input {
+  -moz-appearance: textfield;
+  position: relative;
+  display: inline;
+  width: 100%;
+  height: 100%;
+  text-align: center;
+  outline: none;
+  border-radius: 4px;
+  font-size: 13px;
+  background: #f00;
+}
+
+.gui-widget-color > input + div:hover,
+.gui-widget-color > input:hover + div {
+  display: block;
+  pointer-events: auto;
+}
+
+.gui-widget-color > input + div {
+  display: none;
+  position: absolute;
+  pointer-events: none;
+  padding: 3px;
+  width: 125px;
+  height: 105px;
+  z-index: 2;
+  background: #111;
+}
+
+.gui-color-saturation {
+  display: inline-block;
+  width: 100px;
+  height: 100px;
+  border: 1px solid #555;
+  margin-right: 3px;
+  cursor: pointer;
+}
+.gui-color-saturation > div {
+  display: inline-block;
+  width: 100%;
+  height: 100%;
+  pointer-events:none;
+  border: none;
+  background: none;
+}
+.gui-knob-saturation {
+  position: absolute;
+  pointer-events:none;
+  width: 10px;
+  height: 10px;
+  z-index: 4;
+  border: #fff;
+  border-radius: 10px;
+  border:2px solid white;
+}
+
+.gui-color-hue {
+  display: inline-block;
+  width: 15px;
+  height: 100px;
+  border: 1px solid #555;
+  cursor: ns-resize;
+}
+.gui-knob-hue {
+  pointer-events:none;
+  position: absolute;
+  width: 15px;
+  height: 2px;
+  border-right: 4px solid #fff;
+}
+
+/****** select ******/
+.gui-select {
+  float: right;
+  cursor: pointer;
+  position: relative;
+  display: inline-block;
+  width: 64%;
+  height: 100%;
+  padding-left: 1%;
+  outline: none;
+  background: #525f63;
+  border-radius: 4px;
+}
+
+.gui-select:hover {
+  color: #fff;
+}
+
+/****** TOP BAR ******/
+.gui-topbar {
+  position: absolute;
+  background: #20211d;
+  height: 40px;
+  width: 100%;
+  padding: 0 10px;
+  float: left;
+}
+
+.gui-topbar ul {
+  list-style-type: none;
+  padding: 0;
+  margin: 0;
+}
+
+.gui-topbar ul > li {
+  float: left;
+  height: 40px;
+  line-height: 40px;
+  padding-left: 30px;
+  position: relative;
+  cursor: pointer;
+}
+
+.gui-topbar ul > li .shortcut {
+  float: right;
+  font-style: oblique;
+  margin-right: 11px;
+}
+
+.gui-topbar ul > li:hover {
+  color: #fff;
+}
+
+.gui-topbar ul > li:hover > ul {
+  display: block;
+  opacity: 1;
+  pointer-events: auto;
+  top: 30px;
+}
+
+.gui-topbar ul > li > ul {
+  position: absolute;
+  top: 20px;
+  left: 10px;
+  background: #222;
+  width: 160px;
+  padding: 8px;
+  border-radius: 0 4px 4px 0;
+  pointer-events: none;
+  opacity: 0;
+  -webkit-transition: 0.15s all ease;
+  -ms-transition: 0.15s all ease;
+  -moz-transition: 0.15s all ease;
+  -o-transition: 0.15s all ease;
+  transition: 0.15s all ease;
+}
+
+.gui-topbar ul > li > ul > li {
+  float: none;
+  height: 22px;
+  line-height: 22px;
+  margin: 6px 0 6px 0;
+  padding-left: 5px;
+}
+
+.group-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: #999 !important; 
+  cursor:default !important;
+  text-align: center;
+  padding-left: 10px;
+  border-bottom: 1px solid #444444;
+  padding-bottom: 5px;
+  margin: 10px 0 10px 0;
+}
+
+.group-title:hover {
+  color: #999 !important;
 }

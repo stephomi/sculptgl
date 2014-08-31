@@ -23,78 +23,71 @@ define([
   GuiRendering.prototype = {
     /** Initialize */
     init: function (guiParent) {
-      var self = this;
-      var main = this.sculptgl_;
-      // dummy object with empty function or startup mockup
-      var dummy = {
-        type_: Shader.mode.MATCAP,
-        material_: 0,
-      };
-      // render fold
-      var foldRender = guiParent.addFolder(TR('renderingTitle'));
+      var menu = guiParent.addMenu(TR('renderingTitle'));
 
+      // shader
       var optionsShaders = {};
-      optionsShaders[TR('renderingMatcap')] = Shader.mode.MATCAP;
-      optionsShaders[TR('renderingPhong')] = Shader.mode.PHONG;
-      optionsShaders[TR('renderingTransparency')] = Shader.mode.TRANSPARENCY;
-      optionsShaders[TR('renderingNormal')] = Shader.mode.NORMAL;
-      optionsShaders[TR('renderingUV')] = Shader.mode.UV;
-      this.ctrlShaders_ = foldRender.add(dummy, 'type_', optionsShaders).name(TR('renderingShader'));
-      this.ctrlShaders_.onChange(function (value) {
-        var val = parseInt(value, 10);
-        if (main.mesh_) {
-          main.mesh_.setShader(val);
-          main.scene_.render();
-        }
-        self.ctrlMatcap_.__li.hidden = val !== Shader.mode.MATCAP;
-        self.ctrlUV_.__li.hidden = val !== Shader.mode.UV;
-      });
+      optionsShaders[Shader.mode.MATCAP] = TR('renderingMatcap');
+      optionsShaders[Shader.mode.PHONG] = TR('renderingPhong');
+      optionsShaders[Shader.mode.TRANSPARENCY] = TR('renderingTransparency');
+      optionsShaders[Shader.mode.NORMAL] = TR('renderingNormal');
+      optionsShaders[Shader.mode.UV] = TR('renderingUV');
+      this.ctrlShaders_ = menu.addCombobox(TR('renderingShader'), Shader.mode.MATCAP, this.onShaderChange.bind(this), optionsShaders);
 
       // matcap texture
       var optionMaterials = {};
       for (var i = 0, mats = ShaderMatcap.getMaterials(), l = mats.length; i < l; ++i)
-        optionMaterials[mats[i].name] = i;
-      this.ctrlMatcap_ = foldRender.add(dummy, 'material_', optionMaterials).name(TR('renderingMaterial'));
-      this.ctrlMatcap_.__li.hidden = dummy.type_ !== Shader.mode.MATCAP;
-      this.ctrlMatcap_.onChange(function (value) {
-        if (main.mesh_) {
-          main.mesh_.setMaterial(value);
-          main.scene_.render();
-        }
-      });
-
-      // uv texture
-      this.ctrlUV_ = foldRender.add(this, 'importTexture').name(TR('renderingImportUV'));
-      this.ctrlUV_.__li.hidden = dummy.type_ !== Shader.mode.UV;
-
-      var dummyRender = {
-        flatShading_: true,
-        showWireframe_: true
-      };
+        optionMaterials[i] = mats[i].name;
+      this.ctrlMatcap_ = menu.addCombobox(TR('renderingMaterial'), 0, this.onMaterialChange.bind(this), optionMaterials);
 
       // flat shading
-      this.ctrlFlatShading_ = foldRender.add(dummyRender, 'flatShading_').name(TR('renderingFlat'));
-      this.ctrlFlatShading_.onChange(function (value) {
-        if (main.mesh_) {
-          main.mesh_.setFlatShading(value);
-          main.scene_.render();
-        }
-      });
+      this.ctrlFlatShading_ = menu.addCheckbox(TR('renderingFlat'), false, this.onFlatChange.bind(this));
 
       // wireframe
-      this.ctrlShowWireframe_ = foldRender.add(dummyRender, 'showWireframe_').name(TR('renderingWireframe'));
-      this.ctrlShowWireframe_.onChange(function (value) {
-        if (main.mesh_) {
-          main.mesh_.setShowWireframe(value);
-          main.scene_.render();
-        }
-      });
+      this.ctrlShowWireframe_ = menu.addCheckbox(TR('renderingWireframe'), false, this.onWireframeChange.bind(this));
       if (Render.ONLY_DRAW_ARRAYS)
-        this.ctrlShowWireframe_.__li.hidden = true;
+        this.ctrlShowWireframe_.setVisibility(false);
 
-      foldRender.open();
+      // uv texture
+      this.ctrlUV_ = menu.addButton(TR('renderingImportUV'), this, 'importTexture');
+      this.ctrlUV_.setVisibility(false);
 
       this.addEvents();
+    },
+    /** On shader change */
+    onShaderChange: function (value) {
+      var main = this.sculptgl_;
+      var val = parseInt(value, 10);
+      if (main.mesh_) {
+        main.mesh_.setShader(val);
+        main.scene_.render();
+      }
+      this.ctrlMatcap_.setVisibility(val === Shader.mode.MATCAP);
+      this.ctrlUV_.setVisibility(val === Shader.mode.UV);
+    },
+    /** On material change */
+    onMaterialChange: function (value) {
+      var main = this.sculptgl_;
+      if (main.mesh_) {
+        main.mesh_.setMaterial(value);
+        main.scene_.render();
+      }
+    },
+    /** On flat shading change */
+    onFlatChange: function (value) {
+      var main = this.sculptgl_;
+      if (main.mesh_) {
+        main.mesh_.setFlatShading(value);
+        main.scene_.render();
+      }
+    },
+    /** On wireframe change */
+    onWireframeChange: function (value) {
+      var main = this.sculptgl_;
+      if (main.mesh_) {
+        main.mesh_.setShowWireframe(value);
+        main.scene_.render();
+      }
     },
     /** Add events */
     addEvents: function () {
@@ -111,21 +104,13 @@ define([
     /** Update information on mesh */
     updateMesh: function (mesh) {
       var render = mesh.getRender();
-      this.ctrlShaders_.object = render.shader_;
-      this.ctrlFlatShading_.object = render;
-      this.ctrlShowWireframe_.object = render;
-      this.ctrlMatcap_.object = render;
-      this.updateDisplay(mesh);
-    },
-    /** Update display of widgets */
-    updateDisplay: function (mesh) {
-      this.ctrlShaders_.updateDisplay();
-      this.ctrlFlatShading_.updateDisplay();
-      this.ctrlShowWireframe_.updateDisplay();
-      this.ctrlMatcap_.updateDisplay();
+      this.ctrlShaders_.setValue(render.shader_.type_, true);
+      this.ctrlFlatShading_.setValue(render.flatShading_, true);
+      this.ctrlShowWireframe_.setValue(render.showWireframe_, true);
+      this.ctrlMatcap_.setValue(render.material_, true);
       var val = mesh.getRender().shader_.type_;
-      this.ctrlMatcap_.__li.hidden = val !== Shader.mode.MATCAP;
-      this.ctrlUV_.__li.hidden = val !== Shader.mode.UV;
+      this.ctrlMatcap_.setVisibility(val === Shader.mode.MATCAP);
+      this.ctrlUV_.setVisibility(val === Shader.mode.UV);
     },
     /** Return true if flat shading is enabled */
     getFlatShading: function () {

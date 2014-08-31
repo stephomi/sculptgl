@@ -12,6 +12,7 @@ define([
 
   function SculptGL() {
     this.gl_ = null; // webgl context
+    this.canvas_ = document.getElementById('canvas');
 
     // controllers stuffs
     this.mouseX_ = 0; // the x position
@@ -38,7 +39,12 @@ define([
       this.initWebGL();
       this.scene_ = new Scene(this, this.gl_);
       this.gui_.initGui();
+      this.scene_.onCanvasResize();
       this.initEvents();
+    },
+    /** Set the canvas position */
+    setCanvasPosition: function () {
+      if (this.scene_) this.scene_.onCanvasResize();
     },
     /** Initialize */
     initEvents: function () {
@@ -91,6 +97,7 @@ define([
     onMouseUp: function (event) {
       event.stopPropagation();
       event.preventDefault();
+      this.canvas_.style.cursor = 'default';
       this.mouseButton_ = 0;
       Multimesh.RENDER_HINT = Multimesh.NONE;
       this.scene_.render();
@@ -104,12 +111,18 @@ define([
       Multimesh.RENDER_HINT = Multimesh.CAMERA;
       this.scene_.render();
     },
+    /** Set mouse position from event */
+    setMousePosition: function (event) {
+      this.mouseX_ = event.offsetX === undefined ? event.layerX : event.offsetX;
+      this.mouseY_ = event.offsetY === undefined ? event.layerY : event.offsetY;
+    },
     /** Mouse pressed event */
     onMouseDown: function (event) {
       event.stopPropagation();
       event.preventDefault();
-      var mouseX = this.mouseX_ = event.pageX;
-      var mouseY = this.mouseY_ = event.pageY;
+      this.setMousePosition(event);
+      var mouseX = this.mouseX_;
+      var mouseY = this.mouseY_;
       var button = this.mouseButton_ = event.which;
       if (button === 1 && !event.altKey) {
         if (this.mesh_) {
@@ -119,6 +132,8 @@ define([
       }
       var scene = this.scene_;
       var picking = scene.getPicking();
+      if (button === 1 && picking.mesh_)
+        this.canvas_.style.cursor = 'none';
       if (button === 3 || (button === 1 && picking.mesh_ === null) || (event.altKey && button !== 0)) {
         this.mouseButton_ = 3;
         var camera = scene.getCamera();
@@ -131,8 +146,9 @@ define([
     onMouseMove: function (event) {
       event.stopPropagation();
       event.preventDefault();
-      var mouseX = this.mouseX_ = event.pageX;
-      var mouseY = this.mouseY_ = event.pageY;
+      this.setMousePosition(event);
+      var mouseX = this.mouseX_;
+      var mouseY = this.mouseY_;
       var button = this.mouseButton_;
       var scene = this.scene_;
       var sculpt = this.sculpt_;
