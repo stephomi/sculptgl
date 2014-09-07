@@ -56,7 +56,7 @@ define([
     '  }',
     '  float dotLN = dot(normal, vecLight);',
     '  vec3 vecR = normalize(2.0 * dotLN * normal - vecLight);',
-    '  float dotRVpow = pow(dot(vecR, vecLight), shininess);',
+    '  float dotRVpow = pow(abs(dot(vecR, vecLight)), shininess);',
     '  vec3 ambiant = fragColor * 0.3;',
     '  vec3 diffuse = fragColor * 0.7 * max(0.0, dotLN);',
     '  vec3 specular = fragColor * 0.8 * max(0.0, dotRVpow);',
