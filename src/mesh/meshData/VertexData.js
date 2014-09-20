@@ -82,7 +82,7 @@ define([
       var nbVertices = this.getNbVertices();
 
       this.normalsXYZ_ = new Float32Array(nbVertices * 3);
-      this.colorsRGB_ = this.colorsRGB_ === null ? new Float32Array(nbVertices * 3) : this.colorsRGB_;
+      this.colorsRGB_ = this.colorsRGB_ ? this.colorsRGB_ : new Float32Array(nbVertices * 3);
 
       this.vertOnEdge_ = new Uint8Array(nbVertices);
 

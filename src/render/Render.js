@@ -36,6 +36,12 @@ define([
     getMesh: function () {
       return this.mesh_;
     },
+    getShader: function () {
+      return this.shader_;
+    },
+    getShaderType: function () {
+      return this.getShader().getType();
+    },
     /** Return vertex buffer */
     getVertexBuffer: function () {
       return this.vertexBuffer_;
@@ -121,17 +127,17 @@ define([
     /** Initialize rendering */
     initRender: function () {
       this.shaderWireframe_.setType(Shader.mode.WIREFRAME);
-      if (this.shader_.type_ === Shader.mode.MATCAP && !this.texture0_)
+      if (this.shader_.getType() === Shader.mode.MATCAP && !this.texture0_)
         this.setMaterial(0);
       this.setShader(this.shader_.type_);
       this.setShowWireframe(this.getShowWireframe());
       this.updateBuffers();
     },
     /** Render the mesh */
-    render: function (sculptgl) {
-      this.shader_.draw(this, sculptgl);
+    render: function (main) {
+      this.shader_.draw(this, main);
       if (this.getShowWireframe())
-        this.shaderWireframe_.draw(this, sculptgl);
+        this.shaderWireframe_.draw(this, main);
     },
     /** Updates color buffer */
     updateVertexBuffer: function () {
@@ -176,7 +182,7 @@ define([
     /** Free gl memory */
     release: function () {
       if (this.getTexture0())
-        this.gl_.deleteTexture(this.getTexture0());
+        this.getGL().deleteTexture(this.getTexture0());
       this.getVertexBuffer().release();
       this.getNormalBuffer().release();
       this.getColorBuffer().release();

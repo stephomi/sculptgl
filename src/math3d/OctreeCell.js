@@ -335,7 +335,7 @@ define([], function () {
     /** Expand aabb loose */
     expandsAabbLoose: function (bxmin, bymin, bzmin, bxmax, bymax, bzmax) {
       var parent = this;
-      while (parent !== null) {
+      while (parent) {
         var pLoose = parent.aabbLoose_;
         var proceed = false;
         if (bxmin < pLoose[0]) {

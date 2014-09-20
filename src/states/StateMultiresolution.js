@@ -2,7 +2,8 @@ define([], function () {
 
   'use strict';
 
-  function StateMultiresolution(multimesh, type, isRedo) {
+  function StateMultiresolution(main, multimesh, type, isRedo) {
+    this.main_ = main; // main application
     this.multimesh_ = multimesh; // the multires mesh
     this.mesh_ = multimesh.getCurrent(); // the sub multimesh
     this.type_ = type; // the type of action
@@ -42,11 +43,11 @@ define([], function () {
         mul.selectMesh(this.mesh_);
         break;
       case StateMultiresolution.DELETE_LOWER:
-        [].unshift.apply(mul.meshes_, this.deletedMeshes_);
+        Array.prototype.unshift.apply(mul.meshes_, this.deletedMeshes_);
         mul.sel_ = this.deletedMeshes_.length;
         break;
       case StateMultiresolution.DELETE_HIGHER:
-        [].push.apply(mul.meshes_, this.deletedMeshes_);
+        Array.prototype.push.apply(mul.meshes_, this.deletedMeshes_);
         this.mesh_.setVerticesMapping(this.vMappingState_);
         break;
       case StateMultiresolution.SUBDIVISION:
@@ -60,6 +61,7 @@ define([], function () {
         mul.shiftMesh();
         break;
       }
+      this.main_.setMesh(mul);
     },
     /** On redo */
     redo: function () {
@@ -81,10 +83,11 @@ define([], function () {
         mul.unshiftMesh(this.mesh_);
         break;
       }
+      this.main_.setMesh(mul);
     },
     /** Push the redo state */
     createRedo: function () {
-      return new StateMultiresolution(this.multimesh_, this.type_, true);
+      return new StateMultiresolution(this.main_, this.multimesh_, this.type_, true);
     }
   };
 

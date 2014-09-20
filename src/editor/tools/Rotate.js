@@ -2,9 +2,8 @@ define([
   'lib/glMatrix',
   'misc/Utils',
   'math3d/Geometry',
-  'states/StateTransform',
   'editor/tools/SculptBase'
-], function (glm, Utils, Geometry, StateTransform, SculptBase) {
+], function (glm, Utils, Geometry, SculptBase) {
 
   'use strict';
 
@@ -24,16 +23,16 @@ define([
   Rotate.prototype = {
     /** Push undo operation */
     pushState: function () {
-      this.states_.pushState(new StateTransform(this.mesh_));
+      this.states_.pushStateTransform(this.mesh_);
     },
     /** Start sculpting operation */
     startSculpt: (function () {
       var tmp = [0.0, 0.0, 0.0];
       var rot = mat3.create();
       var qu = [0.0, 0.0, 0.0, 1.0];
-      return function (sculptgl) {
-        var camera = sculptgl.scene_.getCamera();
-        this.lastNormalizedMouseXY_ = Geometry.normalizedMouse(sculptgl.mouseX_, sculptgl.mouseY_, camera.width_, camera.height_);
+      return function (main) {
+        var camera = main.getCamera();
+        this.lastNormalizedMouseXY_ = Geometry.normalizedMouse(main.mouseX_, main.mouseY_, camera.width_, camera.height_);
 
         var matrix = this.mesh_.getMatrix();
         vec3.transformMat3(tmp, this.mesh_.getCenter(), mat3.fromMat4(rot, matrix));
@@ -47,12 +46,12 @@ define([
       var qu = [0.0, 0.0, 0.0, 1.0];
       var axis = [0.0, 0.0, 0.0];
       var matRot = mat4.create();
-      return function (sculptgl) {
+      return function (main) {
         var mesh = this.mesh_;
-        var camera = sculptgl.scene_.getCamera();
+        var camera = main.getCamera();
         var lastNormalized = this.lastNormalizedMouseXY_;
 
-        var normalizedMouseXY = Geometry.normalizedMouse(sculptgl.mouseX_, sculptgl.mouseY_, camera.width_, camera.height_);
+        var normalizedMouseXY = Geometry.normalizedMouse(main.mouseX_, main.mouseY_, camera.width_, camera.height_);
         var length = vec2.dist(this.lastNormalizedMouseXY_, normalizedMouseXY);
         vec3.set(axis, lastNormalized[1] - normalizedMouseXY[1], normalizedMouseXY[0] - this.lastNormalizedMouseXY_[0], 0.0);
         vec3.normalize(axis, axis);

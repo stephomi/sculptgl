@@ -6,7 +6,8 @@ define([
 
   var mat4 = glm.mat4;
 
-  function StateTransform(mesh) {
+  function StateTransform(main, mesh) {
+    this.main_ = main; // main application
     this.mesh_ = mesh; // the mesh
     this.matrixState_ = mat4.create(); // the matrix transform
     mat4.copy(this.matrixState_, this.mesh_.getMatrix());
@@ -16,6 +17,7 @@ define([
     /** On undo */
     undo: function () {
       mat4.copy(this.mesh_.getMatrix(), this.matrixState_);
+      this.main_.setMesh(this.mesh_);
     },
     /** On redo */
     redo: function () {
@@ -23,7 +25,7 @@ define([
     },
     /** Push the redo state */
     createRedo: function () {
-      return new StateTransform(this.mesh_);
+      return new StateTransform(this.main_, this.mesh_);
     }
   };
 

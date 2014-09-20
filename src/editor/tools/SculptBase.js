@@ -1,9 +1,6 @@
 define([
-  'misc/Utils',
-  'misc/Tablet',
-  'math3d/Geometry',
-  'states/StateGeometry'
-], function (Utils, Tablet, Geometry, StateGeometry) {
+  'misc/Utils'
+], function (Utils) {
 
   'use strict';
 
@@ -14,69 +11,69 @@ define([
 
   SculptBase.prototype = {
     /** Start sculpting */
-    start: function (sculptgl) {
-      var picking = sculptgl.scene_.getPicking();
-      picking.intersectionMouseMeshes(sculptgl.scene_.meshes_, sculptgl.mouseX_, sculptgl.mouseY_);
-      var mesh = picking.mesh_;
-      if (mesh === null)
+    start: function (main) {
+      var picking = main.getPicking();
+      picking.intersectionMouseMeshes(main.getMeshes(), main.mouseX_, main.mouseY_);
+      var mesh = picking.getMesh();
+      if (!mesh)
         return;
-      if (sculptgl.mesh_ !== mesh) {
-        sculptgl.mesh_ = mesh;
-        sculptgl.gui_.updateMesh();
+      if (main.getMesh() !== mesh) {
+        main.mesh_ = mesh;
+        main.getGui().updateMesh();
       }
       this.mesh_ = mesh;
       this.pushState();
-      this.startSculpt(sculptgl);
+      this.startSculpt(main);
     },
     /** Push undo operation */
     pushState: function () {
-      this.states_.pushState(new StateGeometry(this.mesh_));
+      this.states_.pushStateGeometry(this.mesh_);
     },
     /** Start sculpting operation */
-    startSculpt: function (sculptgl) {
-      this.sculptStroke(sculptgl);
+    startSculpt: function (main) {
+      this.sculptStroke(main);
     },
     /** Update sculpting operation */
-    update: function (sculptgl) {
-      this.sculptStroke(sculptgl);
+    update: function (main) {
+      this.sculptStroke(main);
     },
     /** Make a brush stroke */
-    sculptStroke: function (sculptgl, colorState) {
+    sculptStroke: function (main, colorState) {
       var mesh = this.mesh_;
-      var mouseX = sculptgl.mouseX_;
-      var mouseY = sculptgl.mouseY_;
-      var picking = sculptgl.scene_.getPicking();
-      var pickingSym = sculptgl.scene_.getSymmetryPicking();
-      var lx = sculptgl.lastMouseX_;
-      var ly = sculptgl.lastMouseY_;
+      var mouseX = main.mouseX_;
+      var mouseY = main.mouseY_;
+      var picking = main.getPicking();
+      var pickingSym = main.getPickingSymmetry();
+      var lx = main.lastMouseX_;
+      var ly = main.lastMouseY_;
       var dx = mouseX - lx;
       var dy = mouseY - ly;
       var dist = Math.sqrt(dx * dx + dy * dy);
-      sculptgl.sumDisplacement_ += dist;
-      var sumDisp = sculptgl.sumDisplacement_;
+      main.sumDisplacement_ += dist;
+      var sumDisp = main.sumDisplacement_;
       var minSpacing = 0.15 * picking.getScreenRadius();
       var step = dist / Math.floor(dist / minSpacing);
       dx /= dist;
       dy /= dist;
-      if (!sculptgl.continuous_) {
+      if (!main.continuous_) {
         mouseX = lx;
         mouseY = ly;
       } else {
         sumDisp = 0.0;
         dist = 0.0;
       }
-      var sym = sculptgl.sculpt_.getSymmetry();
+      var sym = main.getSculpt().getSymmetry();
       if (sumDisp > minSpacing || sumDisp === 0.0) {
         sumDisp = 0.0;
         for (var i = 0; i <= dist; i += step) {
           picking.intersectionMouseMesh(mesh, mouseX, mouseY);
-          if (!picking.mesh_)
+          if (!picking.getMesh())
             break;
           picking.pickVerticesInSphere(picking.getLocalRadius2());
           this.stroke(picking);
           if (sym) {
             pickingSym.intersectionMouseMesh(mesh, mouseX, mouseY, true);
-            if (!pickingSym.mesh_)
+            if (!pickingSym.getMesh())
               break;
             pickingSym.setLocalRadius2(picking.getLocalRadius2());
             pickingSym.pickVerticesInSphere(pickingSym.getLocalRadius2());
@@ -86,11 +83,11 @@ define([
           mouseY += dy * step;
         }
         if (colorState)
-          sculptgl.mesh_.updateColorBuffer();
+          main.getMesh().updateColorBuffer();
         else
-          sculptgl.mesh_.updateGeometryBuffers();
+          main.getMesh().updateGeometryBuffers();
       }
-      sculptgl.sumDisplacement_ = sumDisp;
+      main.sumDisplacement_ = sumDisp;
     },
     /** Return the vertices that point toward the camera */
     getFrontVertices: function (iVertsInRadius, eyeDir) {
@@ -123,7 +120,7 @@ define([
       }
       var len = Math.sqrt(anx * anx + any * any + anz * anz);
       if (len === 0.0)
-        return null;
+        return;
       len = 1.0 / len;
       return [anx * len, any * len, anz * len];
     },
@@ -190,16 +187,21 @@ define([
               ++nbVertEdge;
             }
           }
-          j = nbVertEdge;
-        } else {
-          for (j = start; j < end; ++j) {
-            ind = vertRingVert[j] * 3;
-            avx += vAr[ind];
-            avy += vAr[ind + 1];
-            avz += vAr[ind + 2];
+          if (nbVertEdge >= 2) {
+            smoothVerts[i3] = avx / nbVertEdge;
+            smoothVerts[i3 + 1] = avy / nbVertEdge;
+            smoothVerts[i3 + 2] = avz / nbVertEdge;
+            continue;
           }
-          j = end - start;
+          avx = avy = avz = 0.0;
         }
+        for (j = start; j < end; ++j) {
+          ind = vertRingVert[j] * 3;
+          avx += vAr[ind];
+          avy += vAr[ind + 1];
+          avz += vAr[ind + 2];
+        }
+        j = end - start;
         smoothVerts[i3] = avx / j;
         smoothVerts[i3 + 1] = avy / j;
         smoothVerts[i3 + 2] = avz / j;

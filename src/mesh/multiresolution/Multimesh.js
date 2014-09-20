@@ -156,26 +156,26 @@ define([
       return 0;
     },
     /** Render the at a lower resolution */
-    lowRender: function (sculptgl) {
+    lowRender: function (main) {
       var lowSel = this.getLowIndexRender();
       if (lowSel === this.sel_)
-        return this.getCurrent().render(sculptgl);
+        return this.getCurrent().render(main);
       var tmpSel = this.sel_;
       this.sel_ = lowSel;
-      this.lowRender_.render(sculptgl);
+      this.lowRender_.render(main);
       this.sel_ = tmpSel;
     },
     /** Render the mesh */
-    render: function (sculptgl) {
+    render: function (main) {
       if (this.getCurrent().isUsingTexCoords())
-        return this.getCurrent().render(sculptgl);
+        return this.getCurrent().render(main);
       if (Multimesh.RENDER_HINT === Multimesh.PICKING || Multimesh.RENDER_HINT === Multimesh.NONE)
-        return this.getCurrent().render(sculptgl);
+        return this.getCurrent().render(main);
       if (this.isUsingDrawArrays())
-        return this.getCurrent().render(sculptgl);
-      if (sculptgl.mesh_ === this && Multimesh.RENDER_HINT !== Multimesh.CAMERA)
-        return this.getCurrent().render(sculptgl);
-      this.lowRender(sculptgl);
+        return this.getCurrent().render(main);
+      if (main.getMesh() === this && Multimesh.RENDER_HINT !== Multimesh.CAMERA)
+        return this.getCurrent().render(main);
+      this.lowRender(main);
     }
   };
 

@@ -13,7 +13,7 @@ define([
   ShaderNormal.program = undefined;
 
   ShaderNormal.uniformNames = ['uMV', 'uMVP'];
-  [].push.apply(ShaderNormal.uniformNames, ShaderBase.uniformNames.picking);
+  Array.prototype.push.apply(ShaderNormal.uniformNames, ShaderBase.uniformNames.picking);
 
   ShaderNormal.vertex = [
     'attribute vec3 aVertex;',
@@ -43,10 +43,10 @@ define([
     '}'
   ].join('\n');
   /** Draw */
-  ShaderNormal.draw = function (render, sculptgl) {
-    render.gl_.useProgram(this.program);
+  ShaderNormal.draw = function (render, main) {
+    render.getGL().useProgram(this.program);
     this.bindAttributes(render);
-    this.updateUniforms(render, sculptgl);
+    this.updateUniforms(render, main);
     ShaderBase.drawBuffer(render);
   };
   /** Get or create the shader */
@@ -67,15 +67,15 @@ define([
     attrs.aNormal.bindToBuffer(render.getNormalBuffer());
   };
   /** Updates uniforms */
-  ShaderNormal.updateUniforms = function (render, sculptgl) {
-    var gl = render.gl_;
+  ShaderNormal.updateUniforms = function (render, main) {
+    var gl = render.getGL();
     var uniforms = this.uniforms;
     var mesh = render.getMesh();
 
     gl.uniformMatrix4fv(uniforms.uMV, false, mesh.getMV());
     gl.uniformMatrix4fv(uniforms.uMVP, false, mesh.getMVP());
 
-    ShaderBase.updateUniforms.call(this, render, sculptgl);
+    ShaderBase.updateUniforms.call(this, render, main);
   };
 
   return ShaderNormal;

@@ -35,7 +35,7 @@ define([
 
   /** Draw */
   ShaderBackground.draw = function (bg) {
-    var gl = bg.gl_;
+    var gl = bg.getGL();
     gl.useProgram(this.program);
     this.bindAttributes(bg);
     this.updateUniforms(bg);
@@ -62,7 +62,7 @@ define([
   };
   /** Updates uniforms */
   ShaderBackground.updateUniforms = function (bg) {
-    var gl = bg.gl_;
+    var gl = bg.getGL();
     gl.activeTexture(gl.TEXTURE0);
     gl.bindTexture(gl.TEXTURE_2D, bg.backgroundLoc_);
     gl.uniform1i(this.uniforms.uTexture0, 0);

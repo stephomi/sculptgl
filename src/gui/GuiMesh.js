@@ -5,7 +5,7 @@ define([
   'use strict';
 
   function GuiMesh(guiParent, ctrlGui) {
-    this.sculptgl_ = ctrlGui.sculptgl_; // main application
+    this.main_ = ctrlGui.main_; // main application
 
     this.domVerts = document.createElement('ul');
     this.domVerts.innerHTML = TR('meshNbVertices');
@@ -26,9 +26,10 @@ define([
 
   GuiMesh.prototype = {
     /** Update number of vertices and faces */
-    updateMeshInfo: function (mesh) {
-      this.domVerts.innerHTML = TR('meshNbVertices') + mesh.getNbVertices();
-      this.domFaces.innerHTML = TR('meshNbFaces') + mesh.getNbFaces();
+    updateMeshInfo: function () {
+      var mesh = this.main_.getMesh();
+      this.domVerts.innerHTML = TR('meshNbVertices') + (mesh ? mesh.getNbVertices() : 0);
+      this.domFaces.innerHTML = TR('meshNbFaces') + (mesh ? mesh.getNbFaces() : 0);
     }
   };
 

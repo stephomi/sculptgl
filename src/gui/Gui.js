@@ -14,8 +14,8 @@ define([
 
   'use strict';
 
-  function Gui(sculptgl) {
-    this.sculptgl_ = sculptgl; // main application
+  function Gui(main) {
+    this.main_ = main; // main application
 
     this.guiMain_ = null; // the main gui
     this.sidebar_ = null; // the side bar
@@ -37,7 +37,7 @@ define([
     initGui: function () {
       this.deleteGui();
 
-      this.guiMain_ = new GuiMain(this.sculptgl_.canvas_, this.sculptgl_.setCanvasPosition.bind(this.sculptgl_));
+      this.guiMain_ = new GuiMain(this.main_.getCanvas(), this.main_.onCanvasResize.bind(this.main_));
 
       // Initialize the topbar
       this.topbar_ = this.guiMain_.addTopbar();
@@ -45,6 +45,7 @@ define([
       this.ctrlStates_ = new GuiStates(this.topbar_, this);
       this.ctrlBackground_ = new GuiBackground(this.topbar_, this);
       this.ctrlCamera_ = new GuiCamera(this.topbar_, this);
+      this.ctrlRendering_ = new GuiRendering(this.topbar_, this);
       this.ctrlTablet_ = new GuiTablet(this.topbar_, this);
       this.ctrlConfig_ = new GuiConfig(this.topbar_, this);
       this.ctrlMesh_ = new GuiMesh(this.topbar_, this);
@@ -53,47 +54,21 @@ define([
       this.sidebar_ = this.guiMain_.addRightSidebar();
       this.ctrlTopology_ = new GuiTopology(this.sidebar_, this);
       this.ctrlSculpting_ = new GuiSculpting(this.sidebar_, this);
-      this.ctrlRendering_ = new GuiRendering(this.sidebar_, this);
 
       // gui extra
       this.topbar_.addExtra();
 
-      this.addEvents();
       this.updateMesh();
-    },
-    /** Add events */
-    addEvents: function () {
-      var main = this.sculptgl_;
-      var domSidebar = this.sidebar_.domSidebar;
-      var cbDisableFocus = function () {
-        main.focusGui_ = false;
-      };
-      var cbEnableFocus = function () {
-        main.focusGui_ = true;
-      };
-      domSidebar.addEventListener('mouseout', cbDisableFocus, true);
-      domSidebar.addEventListener('mouseover', cbEnableFocus, true);
-      this.removeCallback = function () {
-        domSidebar.removeEventListener('mouseout', cbDisableFocus, false);
-        domSidebar.removeEventListener('mouseover', cbEnableFocus, false);
-      };
-    },
-    /** Remove events */
-    removeEvents: function () {
-      if (this.removeCallback) this.removeCallback();
     },
     /** Update information on mesh */
     updateMesh: function () {
-      var mesh = this.sculptgl_.mesh_;
-      if (!mesh)
-        return;
-      this.ctrlRendering_.updateMesh(mesh);
-      this.ctrlTopology_.updateMeshResolution(mesh);
-      this.updateMeshInfo(mesh);
+      this.ctrlRendering_.updateMesh();
+      this.ctrlTopology_.updateMeshResolution();
+      this.updateMeshInfo();
     },
     /** Update number of vertices and triangles */
-    updateMeshInfo: function (mesh) {
-      this.ctrlMesh_.updateMeshInfo(mesh);
+    updateMeshInfo: function () {
+      this.ctrlMesh_.updateMeshInfo();
     },
     /** Return true if flat shading is enabled */
     getFlatShading: function () {
@@ -112,7 +87,6 @@ define([
       if (!this.guiMain_)
         return;
       this.guiMain_.domMain.parentNode.removeChild(this.guiMain_.domMain);
-      this.removeEvents();
 
       if (this.ctrlTablet_ && this.ctrlTablet_.removeEvents) this.ctrlTablet_.removeEvents();
       if (this.ctrlFiles_ && this.ctrlFiles_.removeEvents) this.ctrlFiles_.removeEvents();

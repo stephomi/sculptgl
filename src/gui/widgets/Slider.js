@@ -31,7 +31,7 @@ define([
     this.domInputText.addEventListener('change', this._onInputText.bind(this));
     this.domInputText.addEventListener('blur', this._onInputText.bind(this));
     this.domSlider.addEventListener('mousedown', this._onMouseDown.bind(this));
-    window.addEventListener('mouseup', this._onMouseUp.bind(this));
+    window.addEventListener('mouseup', this._onMouseUp.bind(this), true);
     window.addEventListener('mousemove', this._onMouseMove.bind(this));
 
     this.lastValue = value;

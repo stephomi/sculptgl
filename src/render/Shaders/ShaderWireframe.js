@@ -34,11 +34,11 @@ define([
   ].join('\n');
 
   /** Draw */
-  ShaderWireframe.draw = function (render, sculptgl) {
-    var gl = render.gl_;
+  ShaderWireframe.draw = function (render, main) {
+    var gl = render.getGL();
     gl.useProgram(this.program);
     this.bindAttributes(render);
-    this.updateUniforms(render, sculptgl);
+    this.updateUniforms(render, main);
     render.getWireframeBuffer().bind();
     gl.enable(gl.BLEND);
     gl.drawElements(gl.LINES, render.getMesh().getRenderNbEdges() * 2, gl.UNSIGNED_INT, 0);
@@ -57,8 +57,8 @@ define([
     ShaderWireframe.attributes.aVertex.bindToBuffer(render.getVertexBuffer());
   };
   /** Updates uniforms */
-  ShaderWireframe.updateUniforms = function (render /*, sculptgl*/ ) {
-    render.gl_.uniformMatrix4fv(this.uniforms.uMVP, false, render.getMesh().getMVP());
+  ShaderWireframe.updateUniforms = function (render) {
+    render.getGL().uniformMatrix4fv(this.uniforms.uMVP, false, render.getMesh().getMVP());
   };
 
   return ShaderWireframe;

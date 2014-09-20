@@ -72,12 +72,17 @@ define([
       var diag = vec3.dist([box[0], box[1], box[2]], [box[3], box[4], box[5]]);
       var scale = this.scale_ = Utils.SCALE / diag;
       mat4.scale(this.matrix_, this.matrix_, [scale, scale, scale]);
-      this.moveTo([0.0, 0.0, 0.0]);
+    },
+    translate: function (trans) {
+      mat4.translate(this.matrix_, this.matrix_, trans);
     },
     /** Move the mesh center to a certain point */
-    moveTo: function (destination) {
-      mat4.translate(this.matrix_, this.matrix_, vec3.sub(destination, destination, this.center_));
-    }
+    moveTo: (function () {
+      var dummy = [0.0, 0.0, 0.0];
+      return function (destination) {
+        mat4.translate(this.matrix_, this.matrix_, vec3.sub(dummy, destination, this.center_));
+      };
+    })()
   };
 
   return TransformData;

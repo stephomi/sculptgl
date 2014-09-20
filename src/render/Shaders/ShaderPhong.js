@@ -13,7 +13,7 @@ define([
   ShaderPhong.program = undefined;
 
   ShaderPhong.uniformNames = ['uMV', 'uMVP', 'uN'];
-  [].push.apply(ShaderPhong.uniformNames, ShaderBase.uniformNames.picking);
+  Array.prototype.push.apply(ShaderPhong.uniformNames, ShaderBase.uniformNames.picking);
 
   ShaderPhong.vertex = [
     'attribute vec3 aVertex;',
@@ -67,10 +67,10 @@ define([
   ].join('\n');
 
   /** Draw */
-  ShaderPhong.draw = function (render, sculptgl) {
-    render.gl_.useProgram(this.program);
+  ShaderPhong.draw = function (render, main) {
+    render.getGL().useProgram(this.program);
     this.bindAttributes(render);
-    this.updateUniforms(render, sculptgl);
+    this.updateUniforms(render, main);
     ShaderBase.drawBuffer(render);
   };
   /** Get or create the shader */
@@ -93,8 +93,8 @@ define([
     attrs.aColor.bindToBuffer(render.getColorBuffer());
   };
   /** Updates uniforms */
-  ShaderPhong.updateUniforms = function (render, sculptgl) {
-    var gl = render.gl_;
+  ShaderPhong.updateUniforms = function (render, main) {
+    var gl = render.getGL();
     var uniforms = this.uniforms;
     var mesh = render.getMesh();
 
@@ -102,7 +102,7 @@ define([
     gl.uniformMatrix4fv(uniforms.uMVP, false, mesh.getMVP());
     gl.uniformMatrix3fv(uniforms.uN, false, mesh.getN());
 
-    ShaderBase.updateUniforms.call(this, render, sculptgl);
+    ShaderBase.updateUniforms.call(this, render, main);
   };
 
   return ShaderPhong;

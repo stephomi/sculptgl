@@ -2,9 +2,8 @@ define([
   'lib/glMatrix',
   'misc/Utils',
   'math3d/Geometry',
-  'states/StateTransform',
   'editor/tools/SculptBase'
-], function (glm, Utils, Geometry, StateTransform, SculptBase) {
+], function (glm, Utils, Geometry, SculptBase) {
 
   'use strict';
 
@@ -22,12 +21,12 @@ define([
   Translate.prototype = {
     /** Push undo operation */
     pushState: function () {
-      this.states_.pushState(new StateTransform(this.mesh_));
+      this.states_.pushStateTransform(this.mesh_);
     },
     /** Start sculpting operation */
-    startSculpt: function (sculptgl) {
-      var picking = sculptgl.scene_.getPicking();
-      var camera = sculptgl.scene_.getCamera();
+    startSculpt: function (main) {
+      var picking = main.getPicking();
+      var camera = main.getCamera();
       var matrix = this.matrix_;
       var matrixInv = this.matrixInv_;
 
@@ -45,11 +44,11 @@ define([
     /** Update sculpting operation */
     update: (function () {
       var inter = [0.0, 0.0, 0.0];
-      return function (sculptgl) {
+      return function (main) {
         var mesh = this.mesh_;
-        var mouseX = sculptgl.mouseX_;
-        var mouseY = sculptgl.mouseY_;
-        var camera = sculptgl.scene_.getCamera();
+        var mouseX = main.mouseX_;
+        var mouseY = main.mouseY_;
+        var camera = main.getCamera();
         var vNear = camera.unproject(mouseX, mouseY, 0.0);
         var vFar = camera.unproject(mouseX, mouseY, 1.0);
 

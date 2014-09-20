@@ -31,11 +31,16 @@ define([], function () {
 
     // file
     fileTitle: 'Files (import/export)',
-    fileReset: 'Reset scene',
+    fileResetTitle: 'Scene',
+    fileResetScene: 'Clear scene',
+    fileResetSphere: 'Reset sphere',
+    fileImportTitle: 'Import',
     fileAdd: 'Add (obj, ply, stl)',
-    fileExportOBJ: 'Export (obj)',
-    fileExportPLY: 'Export (ply)',
-    fileExportSTL: 'Export (stl)',
+    fileExportMeshTitle: 'Export Mesh',
+    fileExportSceneTitle: 'Export Scene',
+    fileExportOBJ: 'OBJ (color,quad,uv)',
+    fileExportPLY: 'PLY (color,quad)',
+    fileExportSTL: 'STL (tri)',
 
     // mesh
     meshTitle: 'Mesh',
@@ -93,12 +98,13 @@ define([], function () {
     sculptClay: 'Clay',
     sculptAccumulate: 'Accumulate',
     sculptPickColor: 'Pick color',
-    sculptTangentialSmoothing: 'No shrink',
+    sculptTangentialSmoothing: 'Relax only',
 
     // states
     stateTitle: 'History',
     stateUndo: 'Undo',
     stateRedo: 'Redo',
+    stateMaxStack: 'Max Stack',
 
     // wacom
     wacomTitle: 'Wacom tablet',
@@ -115,6 +121,7 @@ define([], function () {
     renderingShader: 'Shader',
     renderingMaterial: 'Material',
     renderingImportUV: 'Import (jpg, png...)',
+    renderingExtra: 'Extra',
     renderingFlat: 'flat (slower)',
     renderingWireframe: 'wireframe',
 

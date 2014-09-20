@@ -13,7 +13,7 @@ define([
   ShaderTransparency.program = undefined;
 
   ShaderTransparency.uniformNames = ['uMV', 'uMVP', 'uN'];
-  [].push.apply(ShaderTransparency.uniformNames, ShaderBase.uniformNames.picking);
+  Array.prototype.push.apply(ShaderTransparency.uniformNames, ShaderBase.uniformNames.picking);
 
   ShaderTransparency.vertex = [
     'attribute vec3 aVertex;',
@@ -56,11 +56,11 @@ define([
   ].join('\n');
 
   /** Draw */
-  ShaderTransparency.draw = function (render, sculptgl) {
-    var gl = render.gl_;
+  ShaderTransparency.draw = function (render, main) {
+    var gl = render.getGL();
     gl.useProgram(this.program);
     this.bindAttributes(render);
-    this.updateUniforms(render, sculptgl);
+    this.updateUniforms(render, main);
     gl.depthMask(false);
     gl.enable(gl.BLEND);
     ShaderBase.drawBuffer(render);
@@ -87,8 +87,8 @@ define([
     attrs.aColor.bindToBuffer(render.getColorBuffer());
   };
   /** Updates uniforms */
-  ShaderTransparency.updateUniforms = function (render, sculptgl) {
-    var gl = render.gl_;
+  ShaderTransparency.updateUniforms = function (render, main) {
+    var gl = render.getGL();
     var uniforms = this.uniforms;
     var mesh = render.getMesh();
 
@@ -96,7 +96,7 @@ define([
     gl.uniformMatrix4fv(uniforms.uMVP, false, mesh.getMVP());
     gl.uniformMatrix3fv(uniforms.uN, false, mesh.getN());
 
-    ShaderBase.updateUniforms.call(this, render, sculptgl);
+    ShaderBase.updateUniforms.call(this, render, main);
   };
 
   return ShaderTransparency;

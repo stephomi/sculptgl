@@ -14,7 +14,7 @@ define([
   var quat = glm.quat;
 
   function Camera() {
-    this.mode_ = Camera.mode.ORBIT; // camera mode
+    this.mode_ = Camera.mode.PLANE; // camera mode
     this.type_ = Camera.projType.PERSPECTIVE; // the projection type
 
     this.quatRot_ = quat.create(); // quaternion rotation
@@ -64,10 +64,10 @@ define([
     /** Start camera (store mouse coordinates) */
     start: function (mouseX, mouseY, picking) {
       this.lastNormalizedMouseXY_ = Geometry.normalizedMouse(mouseX, mouseY, this.width_, this.height_);
-      if (this.usePivot_ && picking.mesh_) {
+      if (this.usePivot_ && picking.getMesh()) {
         this.stepCount_ = 10;
         // target center
-        vec3.transformMat4(this.stepCenter_, picking.getIntersectionPoint(), picking.mesh_.getMatrix());
+        vec3.transformMat4(this.stepCenter_, picking.getIntersectionPoint(), picking.getMesh().getMatrix());
         // target zoom
         var targetZoom = vec3.dist(this.stepCenter_, this.computePosition());
         if (this.type_ === Camera.projType.PERSPECTIVE)

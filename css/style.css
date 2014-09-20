@@ -401,14 +401,9 @@
   font-size: 14px;
   font-weight: 600;
   color: #999 !important; 
-  cursor:default !important;
+  cursor: default !important;
   text-align: center;
-  padding-left: 10px;
   border-bottom: 1px solid #444444;
   padding-bottom: 5px;
   margin: 10px 0 10px 0;
-}
-
-.group-title:hover {
-  color: #999 !important;
 }

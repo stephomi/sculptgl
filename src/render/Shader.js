@@ -36,6 +36,10 @@ define([
   Shader[Shader.mode.WIREFRAME] = Swireframe;
 
   Shader.prototype = {
+    /** Return the type of shader */
+    getType: function () {
+      return this.type_;
+    },
     /** Return true if the shader is using UVs */
     isUsingTexCoords: function () {
       return this.type_ === Shader.mode.UV;
@@ -54,8 +58,8 @@ define([
       this.init();
     },
     /** Draw */
-    draw: function (render, sculptgl) {
-      this.shaderObject_.draw(render, sculptgl);
+    draw: function (render, main) {
+      this.shaderObject_.draw(render, main);
     }
   };
 

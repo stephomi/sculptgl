@@ -4,7 +4,8 @@ define([
 
   'use strict';
 
-  function StateGeometry(mesh) {
+  function StateGeometry(main, mesh) {
+    this.main_ = main; // main application
     this.mesh_ = mesh; // the mesh
     this.vArState_ = []; // copies of vertices coordinates
     this.idVertState_ = []; // ids of vertices
@@ -17,6 +18,7 @@ define([
       var mesh = this.mesh_;
       mesh.updateGeometry(mesh.getFacesFromVertices(this.idVertState_), this.idVertState_);
       mesh.updateGeometryBuffers();
+      this.main_.setMesh(mesh);
     },
     /** On redo */
     redo: function () {
@@ -24,7 +26,7 @@ define([
     },
     /** Push the redo state */
     createRedo: function () {
-      var redo = new StateGeometry(this.mesh_);
+      var redo = new StateGeometry(this.main_, this.mesh_);
       this.pushRedoVertices(redo);
       return redo;
     },

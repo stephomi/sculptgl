@@ -31,11 +31,16 @@ define([], function () {
 
     // file
     fileTitle: 'ファイル (インポート/エクスポート)',
-    fileReset: 'ボールの初期化',
-    fileAdd: 'インポート (obj,ply,stl)',
-    fileExportOBJ: 'エクスポート (obj形式)',
-    fileExportPLY: 'エクスポート (ply形式)',
-    fileExportSTL: 'エクスポート (stl形式)',
+    fileResetTitle: 'Scene',
+    fileResetScene: 'Clear scene',
+    fileResetSphere: 'Reset sphere',
+    fileImportTitle: 'Import',
+    fileAdd: 'Add (obj,ply,stl)',
+    fileExportMeshTitle: 'Export Mesh',
+    fileExportSceneTitle: 'Export Scene',
+    fileExportOBJ: 'obj形式 (color,quad,uv)',
+    fileExportPLY: 'ply形式 (color,quad)',
+    fileExportSTL: 'stl形式 (tri)',
 
     // mesh
     meshTitle: 'メッシュ',
@@ -93,12 +98,13 @@ define([], function () {
     sculptClay: 'クレイ',
     sculptAccumulate: 'Accumulate',
     sculptPickColor: 'Pick color',
-    sculptTangentialSmoothing: 'No shrink',
+    sculptTangentialSmoothing: 'Relax only',
 
     // states
     stateTitle: '履歴',
     stateUndo: 'アンドゥ',
     stateRedo: 'リドゥ',
+    stateMaxStack: 'Max Stack',
 
     // wacom
     wacomTitle: 'ワコムタブレット',
@@ -115,6 +121,7 @@ define([], function () {
     renderingShader: 'シェーダー',
     renderingMaterial: 'Material',
     renderingImportUV: 'Import (jpg, png...)',
+    renderingExtra: 'Extra',
     renderingFlat: 'フラットシェーディング',
     renderingWireframe: 'ワイヤーフレーム',
 

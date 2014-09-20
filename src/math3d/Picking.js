@@ -24,6 +24,9 @@ define([
   }
 
   Picking.prototype = {
+    getMesh: function () {
+      return this.mesh_;
+    },
     setLocalRadius2: function (radius) {
       this.rLocal2_ = radius;
     },
@@ -69,7 +72,7 @@ define([
           vec3.transformMat4(vNearTransform, vNear, matInverse);
           vec3.transformMat4(vFarTransform, vFar, matInverse);
           this.intersectionRayMesh(mesh, vNearTransform, vFarTransform, mouseX, mouseY);
-          if (this.mesh_ === null)
+          if (!this.mesh_)
             continue;
           var interTest = this.getIntersectionPoint();
           var testDistance = vec3.dist(vNearTransform, interTest) * mesh.getScale();

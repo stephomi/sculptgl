@@ -98,21 +98,21 @@ define([
       return this.continuous_ && this.allowPicking();
     },
     /** Start sculpting */
-    start: function (sculptgl) {
-      this.getCurrent().start(sculptgl);
+    start: function (main) {
+      this.getCurrent().start(main);
       if (this.getCurrent().mesh_ && this.isUsingContinuous()) {
         var self = this;
         this.sculptTimer_ = setInterval(function () {
-          self.getCurrent().update(sculptgl);
-          sculptgl.scene_.render();
+          self.getCurrent().update(main);
+          main.render();
         }, 20);
       }
     },
     /** Update sculpting */
-    update: function (sculptgl) {
+    update: function (main) {
       if (this.isUsingContinuous())
         return;
-      this.getCurrent().update(sculptgl);
+      this.getCurrent().update(main);
     }
   };
 

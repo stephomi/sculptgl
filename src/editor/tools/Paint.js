@@ -2,9 +2,8 @@ define([
   'lib/glMatrix',
   'misc/Utils',
   'misc/Tablet',
-  'states/StateColor',
   'editor/tools/SculptBase'
-], function (glm, Utils, Tablet, StateColor, SculptBase) {
+], function (glm, Utils, Tablet, SculptBase) {
 
   'use strict';
 
@@ -23,25 +22,25 @@ define([
     /** Push undo operation */
     pushState: function () {
       if (!this.pickColor_)
-        this.states_.pushState(new StateColor(this.mesh_));
+        this.states_.pushStateColor(this.mesh_);
     },
     /** Start sculpting operation */
-    startSculpt: function (sculptgl) {
-      var picking = sculptgl.scene_.getPicking();
+    startSculpt: function (main) {
+      var picking = main.getPicking();
       if (this.pickColor_)
         return this.pickColor(picking.getPickedFace(), picking.getIntersectionPoint());
-      this.update(sculptgl, true);
+      this.update(main, true);
     },
     /** Update sculpting operation */
-    update: function (sculptgl) {
+    update: function (main) {
       if (this.pickColor_ === true) {
-        var picking = sculptgl.scene_.getPicking();
-        picking.intersectionMouseMesh(this.mesh_, sculptgl.mouseX_, sculptgl.mouseY_);
-        if (picking.mesh_ !== null)
+        var picking = main.getPicking();
+        picking.intersectionMouseMesh(this.mesh_, main.mouseX_, main.mouseY_);
+        if (picking.getMesh())
           this.pickColor(picking.getPickedFace(), picking.getIntersectionPoint());
         return;
       }
-      this.sculptStroke(sculptgl, true);
+      this.sculptStroke(main, true);
     },
     /** Pick the color under the mouse */
     setPickCallback: function (cb) {

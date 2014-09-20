@@ -223,7 +223,7 @@ define([
       var maxDepth = OctreeCell.MAX_DEPTH;
       for (var i = 0; i < nbLeaves; ++i) {
         var leaf = leavesUpdate[i];
-        if (leaf === null)
+        if (!leaf)
           break;
         if (!leaf.iFaces_.length)
           leaf.checkEmptiness(cutLeaves);

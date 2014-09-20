@@ -19,28 +19,28 @@ define([
 
   Drag.prototype = {
     /** Update sculpting operation */
-    sculptStroke: function (sculptgl) {
+    sculptStroke: function (main) {
       var mesh = this.mesh_;
-      var mouseX = sculptgl.mouseX_;
-      var mouseY = sculptgl.mouseY_;
-      var picking = sculptgl.scene_.getPicking();
-      var pickingSym = sculptgl.scene_.getSymmetryPicking();
-      var lx = sculptgl.lastMouseX_;
-      var ly = sculptgl.lastMouseY_;
+      var mouseX = main.mouseX_;
+      var mouseY = main.mouseY_;
+      var picking = main.getPicking();
+      var pickingSym = main.getPickingSymmetry();
+      var lx = main.lastMouseX_;
+      var ly = main.lastMouseY_;
       var dx = mouseX - lx;
       var dy = mouseY - ly;
       var dist = Math.sqrt(dx * dx + dy * dy);
-      sculptgl.sumDisplacement_ += dist;
-      var sumDisp = sculptgl.sumDisplacement_;
+      main.sumDisplacement_ += dist;
+      var sumDisp = main.sumDisplacement_;
       var minSpacing = 0.15 * picking.getScreenRadius();
       var step = dist / Math.floor(dist / minSpacing);
       dx /= dist;
       dy /= dist;
       mouseX = lx;
       mouseY = ly;
-      var sym = sculptgl.sculpt_.getSymmetry();
+      var sym = main.getSculpt().getSymmetry();
       minSpacing = 0.0;
-      if (picking.mesh_ === null)
+      if (!picking.getMesh())
         return;
       picking.mesh_ = pickingSym.mesh_ = mesh;
       vec3.copy(pickingSym.getIntersectionPoint(), picking.getIntersectionPoint());
@@ -63,7 +63,7 @@ define([
         }
         this.mesh_.updateGeometryBuffers();
       }
-      sculptgl.sumDisplacement_ = sumDisp;
+      main.sumDisplacement_ = sumDisp;
     },
     /** On stroke */
     stroke: function (picking, sym) {

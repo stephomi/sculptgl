@@ -2,15 +2,14 @@ define([
   'gui/GuiTR',
   'editor/Remesh',
   'mesh/multiresolution/Multimesh',
-  'states/StateMultiresolution',
-  'states/StateRemesh'
-], function (TR, Remesh, Multimesh, StateMultiresolution, StateRemesh) {
+  'states/StateMultiresolution'
+], function (TR, Remesh, Multimesh, StateMultiresolution) {
 
   'use strict';
 
   function GuiMultiresolution(guiParent, ctrlGui) {
     this.ctrlGui_ = ctrlGui;
-    this.sculptgl_ = ctrlGui.sculptgl_; // main application
+    this.main_ = ctrlGui.main_; // main application
     this.ctrlResolution_ = null; // multiresolution controller
     this.securityBelt_ = true; // security belt
     this.init(guiParent);
@@ -35,15 +34,15 @@ define([
     },
     /** Update information on mesh */
     remesh: function () {
-      var main = this.sculptgl_;
-      var mesh = main.mesh_;
+      var main = this.main_;
+      var mesh = main.getMesh();
       if (!mesh)
         return;
-      var newMesh = Remesh.remesh(mesh);
-      main.states_.pushState(new StateRemesh(main, mesh, newMesh));
-      main.replaceMesh(mesh, newMesh);
-      main.scene_.render();
-      this.ctrlGui_.updateMesh();
+      var newMesh = Remesh.remesh(main, mesh, main.getMeshes());
+      main.getStates().pushStateAddRemove(newMesh, main.getMeshes().slice());
+      main.meshes_.length = 0;
+      main.meshes_.push(newMesh);
+      main.setMesh(newMesh);
     },
     /** Check if the mesh is a multiresolution one */
     isMultimesh: function (mesh) {
@@ -52,13 +51,14 @@ define([
     /** Convert a mesh into a multiresolution one */
     convertToMultimesh: function (mesh) {
       var multimesh = new Multimesh(mesh);
-      this.sculptgl_.replaceMesh(mesh, multimesh);
+      this.main_.replaceMesh(mesh, multimesh);
       return multimesh;
     },
     /** Subdivide the mesh */
     subdivide: function () {
-      var main = this.sculptgl_;
-      var mul = main.mesh_;
+      var main = this.main_;
+      var mul = main.getMesh();
+      if (!mul) return;
       if (!this.isMultimesh(mul))
         mul = this.convertToMultimesh(mul);
       if (mul.sel_ !== mul.meshes_.length - 1) {
@@ -71,71 +71,74 @@ define([
         return;
       }
       this.securityBelt_ = true;
-      main.states_.pushState(new StateMultiresolution(mul, StateMultiresolution.SUBDIVISION));
-      this.ctrlGui_.updateMeshInfo(mul.addLevel());
-      this.updateMeshResolution(mul);
-      main.scene_.render();
+      main.getStates().pushState(new StateMultiresolution(main, mul, StateMultiresolution.SUBDIVISION));
+      mul.addLevel();
+      this.ctrlGui_.updateMeshInfo();
+      this.updateMeshResolution();
+      main.render();
     },
     /** Inverse subdivision */
     reverse: function () {
-      var main = this.sculptgl_;
-      var mul = main.mesh_;
+      var main = this.main_;
+      var mul = main.getMesh();
+      if (!mul) return;
       if (!this.isMultimesh(mul))
-        mul = main.mesh_ = this.convertToMultimesh(mul);
+        mul = this.convertToMultimesh(mul);
       if (mul.sel_ !== 0) {
         window.alert(TR('multiresSelectLowest'));
         return;
       }
-      var stateRes = new StateMultiresolution(mul, StateMultiresolution.REVERSION);
+      var stateRes = new StateMultiresolution(main, mul, StateMultiresolution.REVERSION);
       var newMesh = mul.computeReverse();
       if (!newMesh) {
         window.alert(TR('multiresNotReversible'));
         return;
       }
-      main.states_.pushState(stateRes);
-      this.ctrlGui_.updateMeshInfo(newMesh);
-      this.updateMeshResolution(mul);
-      main.scene_.render();
+      main.getStates().pushState(stateRes);
+      this.ctrlGui_.updateMeshInfo();
+      this.updateMeshResolution();
+      main.render();
     },
     /** Delete the lower meshes */
     deleteLower: function () {
-      var main = this.sculptgl_;
+      var main = this.main_;
       var mul = main.mesh_;
       if (!this.isMultimesh(mul) || mul.sel_ === 0) {
         window.alert(TR('multiresNoLower'));
         return;
       }
-      main.states_.pushState(new StateMultiresolution(mul, StateMultiresolution.DELETE_LOWER));
+      main.getStates().pushState(new StateMultiresolution(main, mul, StateMultiresolution.DELETE_LOWER));
       mul.deleteLower();
-      this.updateMeshResolution(mul);
+      this.updateMeshResolution();
     },
     /** Delete the higher meshes */
     deleteHigher: function () {
-      var main = this.sculptgl_;
-      var mul = main.mesh_;
+      var main = this.main_;
+      var mul = main.getMesh();
       if (!this.isMultimesh(mul) || mul.sel_ === mul.meshes_.length - 1) {
         window.alert(TR('multiresNoHigher'));
         return;
       }
-      main.states_.pushState(new StateMultiresolution(mul, StateMultiresolution.DELETE_HIGHER));
+      main.getStates().pushState(new StateMultiresolution(main, mul, StateMultiresolution.DELETE_HIGHER));
       mul.deleteHigher();
-      this.updateMeshResolution(mul);
+      this.updateMeshResolution();
     },
     /** Change resoltuion */
     onResolutionChanged: function (value) {
       var uiRes = value - 1;
-      var main = this.sculptgl_;
-      var multimesh = main.mesh_;
+      var main = this.main_;
+      var multimesh = main.getMesh();
       if (!this.isMultimesh(multimesh) || multimesh.sel_ === uiRes)
         return;
-      main.states_.pushState(new StateMultiresolution(multimesh, StateMultiresolution.SELECTION));
+      main.getStates().pushState(new StateMultiresolution(main, multimesh, StateMultiresolution.SELECTION));
       multimesh.selectResolution(uiRes);
-      this.ctrlGui_.updateMeshInfo(multimesh);
-      main.scene_.render();
+      this.ctrlGui_.updateMeshInfo();
+      main.render();
     },
     /** Update the mesh resolution slider */
-    updateMeshResolution: function (multimesh) {
-      if (!this.isMultimesh(multimesh)) {
+    updateMeshResolution: function () {
+      var multimesh = this.main_.getMesh();
+      if (!multimesh || !this.isMultimesh(multimesh)) {
         this.ctrlResolution_.setMax(1);
         this.ctrlResolution_.setValue(0);
         return;

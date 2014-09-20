@@ -7,8 +7,8 @@ define([
   'use strict';
 
   function GuiSculpting(guiParent, ctrlGui) {
-    this.sculptgl_ = ctrlGui.sculptgl_; // main application
-    this.sculpt_ = ctrlGui.sculptgl_.sculpt_; // sculpting management
+    this.main_ = ctrlGui.main_; // main application
+    this.sculpt_ = ctrlGui.main_.getSculpt(); // sculpting management
     this.toolOnRelease_ = -1; // tool to apply when the mouse or the key is released
 
     this.ctrlSculpt_ = null; // sculpt controller
@@ -44,7 +44,7 @@ define([
       // continuous
       this.ctrlContinuous_ = menu.addCheckbox(TR('sculptContinuous'), this.sculpt_, 'continuous_');
       // radius
-      var picking = this.sculptgl_.scene_.picking_;
+      var picking = this.main_.getPicking();
       this.ctrlRadius_ = menu.addSlider(TR('sculptRadius'), picking, 'rDisplay_', 5, 200, 1);
 
       // init all the specific subtools ui
@@ -66,7 +66,7 @@ define([
     },
     onSymmetryChange: function (value) {
       this.sculpt_.symmetry_ = value;
-      this.sculptgl_.scene_.render();
+      this.main_.render();
     },
     /** Add events */
     addEvents: function () {
@@ -98,12 +98,12 @@ define([
       if (event.handled === true)
         return;
       event.stopPropagation();
-      if (!this.sculptgl_.focusGui_)
+      if (!this.main_.focusGui_)
         event.preventDefault();
       var key = event.which;
       var ctrlSculpt = this.ctrlSculpt_;
       event.handled = true;
-      if (this.sculptgl_.mouseButton_ !== 0)
+      if (this.main_.mouseButton_ !== 0)
         return;
       if (event.shiftKey && !event.altKey && !event.ctrlKey) {
         var selectedTool = this.getSelectedTool();
@@ -114,6 +114,9 @@ define([
         return;
       }
       switch (key) {
+      case 46: // DEL
+        this.main_.deleteCurrentMesh();
+        break;
       case 48: // 0
       case 96: // NUMPAD 0
         ctrlSculpt.setValue(Sculpt.tool.SCALE);
@@ -165,7 +168,7 @@ define([
     },
     /** Key released event */
     onKeyUp: function () {
-      if (this.sculptgl_.mouseButton_ === 0 && this.toolOnRelease_ !== -1) {
+      if (this.main_.mouseButton_ === 0 && this.toolOnRelease_ !== -1) {
         this.ctrlSculpt_.setValue(this.toolOnRelease_);
         this.toolOnRelease_ = -1;
       }
@@ -185,9 +188,8 @@ define([
     /** When the sculpting tool is changed */
     onChangeTool: function (newValue) {
       newValue = parseInt(newValue, 10);
-      var sculpt = this.sculptgl_.sculpt_;
-      GuiSculptingTools.hide(sculpt.tool_);
-      sculpt.tool_ = newValue;
+      GuiSculptingTools.hide(this.sculpt_.tool_);
+      this.sculpt_.tool_ = newValue;
       GuiSculptingTools.show(newValue);
       this.ctrlContinuous_.setVisibility(this.sculpt_.allowPicking() === true);
       this.ctrlSymmetry_.setVisibility(newValue !== Sculpt.tool.TRANSLATE && newValue !== Sculpt.tool.ROTATE);

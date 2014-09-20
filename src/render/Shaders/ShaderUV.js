@@ -16,7 +16,7 @@ define([
   ShaderUV.program = undefined;
 
   ShaderUV.uniformNames = ['uMV', 'uMVP', 'uN', 'uTexture0'];
-  [].push.apply(ShaderUV.uniformNames, ShaderBase.uniformNames.picking);
+  Array.prototype.push.apply(ShaderUV.uniformNames, ShaderBase.uniformNames.picking);
 
   ShaderUV.vertex = [
     'attribute vec3 aVertex;',
@@ -57,10 +57,10 @@ define([
   ].join('\n');
 
   /** Draw */
-  ShaderUV.draw = function (render, sculptgl) {
-    render.gl_.useProgram(this.program);
+  ShaderUV.draw = function (render, main) {
+    render.getGL().useProgram(this.program);
     this.bindAttributes(render);
-    this.updateUniforms(render, sculptgl);
+    this.updateUniforms(render, main);
     ShaderBase.drawBuffer(render);
   };
   /** Get or create the shader */
@@ -106,13 +106,13 @@ define([
         gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
       }
       gl.bindTexture(gl.TEXTURE_2D, null);
-      sculptgl.scene_.render();
+      sculptgl.render();
     };
     return false;
   };
   /** Updates uniforms */
-  ShaderUV.updateUniforms = function (render, sculptgl) {
-    var gl = render.gl_;
+  ShaderUV.updateUniforms = function (render, main) {
+    var gl = render.getGL();
     var uniforms = this.uniforms;
     var mesh = render.getMesh();
 
@@ -121,12 +121,12 @@ define([
     gl.uniformMatrix3fv(uniforms.uN, false, mesh.getN());
 
     gl.activeTexture(gl.TEXTURE0);
-    var tex = this.getOrCreateTexture0(gl, sculptgl);
+    var tex = this.getOrCreateTexture0(gl, main);
     if (tex)
       gl.bindTexture(gl.TEXTURE_2D, tex);
     gl.uniform1i(uniforms.uTexture0, 0);
 
-    ShaderBase.updateUniforms.call(this, render, sculptgl);
+    ShaderBase.updateUniforms.call(this, render, main);
   };
 
   return ShaderUV;

@@ -7,10 +7,9 @@ define([
   'use strict';
 
   function LowRender(render) {
-    this.gl_ = render.getGL(); // webgl context
     this.renderOrigin_ = render; // the base render
 
-    var gl = this.gl_;
+    var gl = render.getGL(); // webgl context
     this.indexBuffer_ = new Buffer(gl, gl.ELEMENT_ARRAY_BUFFER, gl.STATIC_DRAW); // index buffer
     this.wireframeBuffer_ = new Buffer(gl, gl.ELEMENT_ARRAY_BUFFER, gl.STATIC_DRAW); // wireframe buffer
   }
@@ -38,11 +37,11 @@ define([
       this.getWireframeBuffer().update(mesh.getWireframe());
     },
     /** Render the mesh */
-    render: function (sculptgl) {
+    render: function (main) {
       var ro = this.getRenderOrigin();
-      ro.shader_.draw(this, sculptgl);
+      ro.shader_.draw(this, main);
       if (ro.getShowWireframe())
-        ro.shaderWireframe_.draw(this, sculptgl);
+        ro.shaderWireframe_.draw(this, main);
     },
     /** Free gl memory */
     release: function () {

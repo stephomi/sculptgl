@@ -125,6 +125,11 @@ define([
       for (var i = 0; i < nbVertsUp; ++i) {
         var j = i * 3;
 
+        // color delta vec
+        cArUp[j] += dColorAr[j];
+        cArUp[j + 1] += dColorAr[j + 1];
+        cArUp[j + 2] += dColorAr[j + 2];
+
         // vertex coord
         var vx = vArTemp[j];
         var vy = vArTemp[j + 1];
@@ -152,7 +157,9 @@ define([
         ty -= ny * len;
         tz -= nz * len;
         // normalize vector
-        len = 1.0 / Math.sqrt(tx * tx + ty * ty + tz * tz);
+        len = Math.sqrt(tx * tx + ty * ty + tz * tz);
+        if (len === 0.0)
+          continue;
         tx *= len;
         ty *= len;
         tz *= len;
@@ -171,10 +178,6 @@ define([
         vArUp[j] = vx + nx * dx + tx * dy + bix * dz;
         vArUp[j + 1] = vy + ny * dx + ty * dy + biy * dz;
         vArUp[j + 2] = vz + nz * dx + tz * dy + biz * dz;
-
-        cArUp[j] += dColorAr[j];
-        cArUp[j + 1] += dColorAr[j + 1];
-        cArUp[j + 2] += dColorAr[j + 2];
       }
     },
     /** Compute the detail vectors */
@@ -193,6 +196,11 @@ define([
 
       for (var i = 0; i < nbVertices; ++i) {
         var j = i * 3;
+
+        // color delta vec
+        dColorAr[j] = cArUp[j] - subdColors[j];
+        dColorAr[j + 1] = cArUp[j + 1] - subdColors[j + 1];
+        dColorAr[j + 2] = cArUp[j + 2] - subdColors[j + 2];
 
         // normal vec
         var nx = nArUp[j];
@@ -216,7 +224,10 @@ define([
         ty -= ny * len;
         tz -= nz * len;
         // normalize vector
-        len = 1.0 / Math.sqrt(tx * tx + ty * ty + tz * tz);
+        len = Math.sqrt(tx * tx + ty * ty + tz * tz);
+        if (len === 0.0)
+          continue;
+        len = 1.0 / len;
         tx *= len;
         ty *= len;
         tz *= len;
@@ -235,10 +246,6 @@ define([
         dAr[j] = nx * dx + ny * dy + nz * dz;
         dAr[j + 1] = tx * dx + ty * dy + tz * dz;
         dAr[j + 2] = bix * dx + biy * dy + biz * dz;
-
-        dColorAr[j] = cArUp[j] - subdColors[j];
-        dColorAr[j + 1] = cArUp[j + 1] - subdColors[j + 1];
-        dColorAr[j + 2] = cArUp[j + 2] - subdColors[j + 2];
       }
     }
   };

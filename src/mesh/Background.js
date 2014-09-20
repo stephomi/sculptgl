@@ -23,6 +23,10 @@ define([
   }
 
   Background.prototype = {
+    /** Return webgl context */
+    getGL: function () {
+      return this.gl_;
+    },
     /** Return vertex buffer */
     getVertexBuffer: function () {
       return this.vertexBuffer_;

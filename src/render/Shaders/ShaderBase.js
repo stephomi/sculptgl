@@ -80,14 +80,13 @@ define([
   /** Updates uniforms */
   ShaderBase.updateUniforms = (function () {
     var tmp = [0.0, 0.0, 0.0];
-    return function (render, sculptgl) {
-      var gl = render.gl_;
-      var scene = sculptgl.scene_;
-      var picking = scene.getPicking();
-      var pickingSym = scene.getSymmetryPicking();
+    return function (render, main) {
+      var gl = render.getGL();
+      var picking = main.getPicking();
+      var pickingSym = main.getPickingSymmetry();
       var mesh = render.getMesh();
       var mvMatrix = mesh.getMV();
-      var useSym = (mesh === sculptgl.mesh_) && sculptgl.sculpt_.getSymmetry();
+      var useSym = (mesh === main.getMesh()) && main.getSculpt().getSymmetry();
 
       var uniforms = this.uniforms;
       gl.uniform3fv(uniforms.uInter, vec3.transformMat4(tmp, picking.getIntersectionPoint(), mvMatrix));
@@ -96,16 +95,14 @@ define([
       var nMat = mat3.normalFromMat4(mat3.create(), mvMatrix);
       gl.uniform3fv(uniforms.uPlaneN, vec3.transformMat3(tmp, mesh.getSymmetryNormal(), nMat));
       gl.uniform1f(uniforms.uScale, useSym ? mesh.getScale() : -1.0);
-      if (sculptgl.mouseButton_ !== 0)
-        gl.uniform1f(uniforms.uRadius2, picking.mesh_ ? -0.05 : 0.0);
-      else
-        gl.uniform1f(uniforms.uRadius2, picking.mesh_ ? picking.getWorldRadius2() : 0.0);
+      if (main.mouseButton_ !== 0) gl.uniform1f(uniforms.uRadius2, picking.getMesh() ? -0.05 : 0.0);
+      else gl.uniform1f(uniforms.uRadius2, picking.getMesh() ? picking.getWorldRadius2() : 0.0);
     };
   })();
   /** Draw buffer */
   ShaderBase.drawBuffer = function (render) {
     var lengthIndexArray = render.getMesh().getRenderNbTriangles() * 3;
-    var gl = render.gl_;
+    var gl = render.getGL();
     if (render.isUsingDrawArrays())
       gl.drawArrays(gl.TRIANGLES, 0, lengthIndexArray);
     else {

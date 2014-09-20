@@ -28,7 +28,7 @@ define([
         iVertsInRadius = iVertsFront;
 
       var aNormal = this.areaNormal(iVertsFront);
-      if (aNormal === null)
+      if (!aNormal)
         return;
       this.crease(iVertsInRadius, aNormal, picking.getIntersectionPoint(), picking.getLocalRadius2(), intensity);
 

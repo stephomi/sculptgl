@@ -27,10 +27,10 @@ define([
 
   Twist.prototype = {
     /** Start a twist sculpt stroke */
-    startSculpt: function (sculptgl) {
-      var mouseX = sculptgl.mouseX_;
-      var mouseY = sculptgl.mouseY_;
-      var picking = sculptgl.scene_.getPicking();
+    startSculpt: function (main) {
+      var mouseX = main.mouseX_;
+      var mouseY = main.mouseY_;
+      var picking = main.getPicking();
       var vNear = picking.camera_.unproject(mouseX, mouseY, 0.0);
       var vFar = picking.camera_.unproject(mouseX, mouseY, 1.0);
       var matInverse = mat4.create();
@@ -38,8 +38,8 @@ define([
       vec3.transformMat4(vNear, vNear, matInverse);
       vec3.transformMat4(vFar, vFar, matInverse);
       this.initTwistData(picking, mouseX, mouseY, this.twistData_);
-      if (sculptgl.sculpt_.getSymmetry()) {
-        var pickingSym = sculptgl.scene_.getSymmetryPicking();
+      if (main.getSculpt().getSymmetry()) {
+        var pickingSym = main.getPickingSymmetry();
         pickingSym.intersectionRayMesh(this.mesh_, vNear, vFar, mouseX, mouseY, true);
         if (!pickingSym.mesh_)
           return;
@@ -55,17 +55,17 @@ define([
       twistData.center[1] = mouseY;
     },
     /** Make a brush twist stroke */
-    sculptStroke: function (sculptgl) {
-      var mx = sculptgl.mouseX_;
-      var my = sculptgl.mouseY_;
-      var lx = sculptgl.lastMouseX_;
-      var ly = sculptgl.lastMouseY_;
-      var picking = sculptgl.scene_.getPicking();
+    sculptStroke: function (main) {
+      var mx = main.mouseX_;
+      var my = main.mouseY_;
+      var lx = main.lastMouseX_;
+      var ly = main.lastMouseY_;
+      var picking = main.getPicking();
       var rLocal2 = picking.getLocalRadius2();
       picking.pickVerticesInSphere(rLocal2);
       this.stroke(picking, mx, my, lx, ly, this.twistData_);
-      if (sculptgl.sculpt_.getSymmetry()) {
-        var pickingSym = sculptgl.scene_.getSymmetryPicking();
+      if (main.getSculpt().getSymmetry()) {
+        var pickingSym = main.getPickingSymmetry();
         pickingSym.pickVerticesInSphere(rLocal2);
         this.stroke(pickingSym, lx, ly, mx, my, this.twistDataSym_);
       }

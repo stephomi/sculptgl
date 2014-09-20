@@ -51,7 +51,7 @@ define([
   ShaderMatcap.program = undefined;
 
   ShaderMatcap.uniformNames = ['uMV', 'uMVP', 'uN', 'uTexture0'];
-  [].push.apply(ShaderMatcap.uniformNames, ShaderBase.uniformNames.picking);
+  Array.prototype.push.apply(ShaderMatcap.uniformNames, ShaderBase.uniformNames.picking);
 
   ShaderMatcap.vertex = [
     'attribute vec3 aVertex;',
@@ -92,10 +92,10 @@ define([
   ].join('\n');
 
   /** Draw */
-  ShaderMatcap.draw = function (render, sculptgl) {
-    render.gl_.useProgram(this.program);
+  ShaderMatcap.draw = function (render, main) {
+    render.getGL().useProgram(this.program);
     this.bindAttributes(render);
-    this.updateUniforms(render, sculptgl);
+    this.updateUniforms(render, main);
     ShaderBase.drawBuffer(render);
   };
   /** Get or create the shader */
@@ -118,8 +118,8 @@ define([
     attrs.aColor.bindToBuffer(render.getColorBuffer());
   };
   /** Updates uniforms */
-  ShaderMatcap.updateUniforms = function (render, sculptgl) {
-    var gl = render.gl_;
+  ShaderMatcap.updateUniforms = function (render, main) {
+    var gl = render.getGL();
     var uniforms = this.uniforms;
     var mesh = render.getMesh();
 
@@ -131,7 +131,7 @@ define([
     gl.bindTexture(gl.TEXTURE_2D, render.getTexture0());
     gl.uniform1i(uniforms.uTexture0, 0);
 
-    ShaderBase.updateUniforms.call(this, render, sculptgl);
+    ShaderBase.updateUniforms.call(this, render, main);
   };
 
   return ShaderMatcap;

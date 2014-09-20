@@ -8,7 +8,7 @@ define([
   'use strict';
 
   function GuiRendering(guiParent, ctrlGui) {
-    this.sculptgl_ = ctrlGui.sculptgl_; // main application
+    this.main_ = ctrlGui.main_; // main application
 
     // ui shading
     this.ctrlFlatShading_ = null; // flat shading controller
@@ -25,21 +25,28 @@ define([
     init: function (guiParent) {
       var menu = guiParent.addMenu(TR('renderingTitle'));
 
-      // shader
+      // shader selection
       var optionsShaders = {};
       optionsShaders[Shader.mode.MATCAP] = TR('renderingMatcap');
       optionsShaders[Shader.mode.PHONG] = TR('renderingPhong');
       optionsShaders[Shader.mode.TRANSPARENCY] = TR('renderingTransparency');
       optionsShaders[Shader.mode.NORMAL] = TR('renderingNormal');
       optionsShaders[Shader.mode.UV] = TR('renderingUV');
-      this.ctrlShaders_ = menu.addCombobox(TR('renderingShader'), Shader.mode.MATCAP, this.onShaderChange.bind(this), optionsShaders);
+      menu.addTitle(TR('renderingShader'));
+      this.ctrlShaders_ = menu.addCombobox('', Shader.mode.MATCAP, this.onShaderChange.bind(this), optionsShaders);
 
       // matcap texture
       var optionMaterials = {};
       for (var i = 0, mats = ShaderMatcap.getMaterials(), l = mats.length; i < l; ++i)
         optionMaterials[i] = mats[i].name;
-      this.ctrlMatcap_ = menu.addCombobox(TR('renderingMaterial'), 0, this.onMaterialChange.bind(this), optionMaterials);
+      this.ctrlMatcapTitle_ = menu.addTitle(TR('renderingMaterial'));
+      this.ctrlMatcap_ = menu.addCombobox('', 0, this.onMaterialChange.bind(this), optionMaterials);
 
+      // uv texture
+      this.ctrlUV_ = menu.addButton(TR('renderingImportUV'), this, 'importTexture');
+      this.ctrlUV_.setVisibility(false);
+
+      menu.addTitle(TR('renderingExtra'));
       // flat shading
       this.ctrlFlatShading_ = menu.addCheckbox(TR('renderingFlat'), false, this.onFlatChange.bind(this));
 
@@ -48,45 +55,42 @@ define([
       if (Render.ONLY_DRAW_ARRAYS)
         this.ctrlShowWireframe_.setVisibility(false);
 
-      // uv texture
-      this.ctrlUV_ = menu.addButton(TR('renderingImportUV'), this, 'importTexture');
-      this.ctrlUV_.setVisibility(false);
-
       this.addEvents();
     },
     /** On shader change */
     onShaderChange: function (value) {
-      var main = this.sculptgl_;
       var val = parseInt(value, 10);
-      if (main.mesh_) {
-        main.mesh_.setShader(val);
-        main.scene_.render();
+      var mesh = this.main_.getMesh();
+      if (mesh) {
+        mesh.setShader(val);
+        this.main_.render();
       }
+      this.ctrlMatcapTitle_.setVisibility(val === Shader.mode.MATCAP);
       this.ctrlMatcap_.setVisibility(val === Shader.mode.MATCAP);
       this.ctrlUV_.setVisibility(val === Shader.mode.UV);
     },
     /** On material change */
     onMaterialChange: function (value) {
-      var main = this.sculptgl_;
-      if (main.mesh_) {
-        main.mesh_.setMaterial(value);
-        main.scene_.render();
+      var mesh = this.main_.getMesh();
+      if (mesh) {
+        mesh.setMaterial(value);
+        this.main_.render();
       }
     },
     /** On flat shading change */
     onFlatChange: function (value) {
-      var main = this.sculptgl_;
-      if (main.mesh_) {
-        main.mesh_.setFlatShading(value);
-        main.scene_.render();
+      var mesh = this.main_.getMesh();
+      if (mesh) {
+        mesh.setFlatShading(value);
+        this.main_.render();
       }
     },
     /** On wireframe change */
     onWireframeChange: function (value) {
-      var main = this.sculptgl_;
-      if (main.mesh_) {
-        main.mesh_.setShowWireframe(value);
-        main.scene_.render();
+      var mesh = this.main_.getMesh();
+      if (mesh) {
+        mesh.setShowWireframe(value);
+        this.main_.render();
       }
     },
     /** Add events */
@@ -102,7 +106,9 @@ define([
       if (this.removeCallback) this.removeCallback();
     },
     /** Update information on mesh */
-    updateMesh: function (mesh) {
+    updateMesh: function () {
+      var mesh = this.main_.getMesh();
+      if (!mesh) return;
       var render = mesh.getRender();
       this.ctrlShaders_.setValue(render.shader_.type_, true);
       this.ctrlFlatShading_.setValue(render.flatShading_, true);
@@ -136,13 +142,13 @@ define([
       if (!file.type.match('image.*'))
         return;
       var reader = new FileReader();
-      var main = this.sculptgl_;
+      var main = this.main_;
       reader.onload = function (evt) {
         // urk...
         var shaderUV = Shader[Shader.mode.UV];
         shaderUV.texture0 = undefined;
         shaderUV.texPath = evt.target.result;
-        main.scene_.render();
+        main.render();
         document.getElementById('textureopen').value = '';
       };
       reader.readAsDataURL(file);

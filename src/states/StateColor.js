@@ -4,7 +4,8 @@ define([
 
   'use strict';
 
-  function StateColor(mesh) {
+  function StateColor(main, mesh) {
+    this.main_ = main; // main application
     this.mesh_ = mesh; // the mesh
     this.idVertState_ = []; // ids of vertices
     this.cArState_ = []; // copies of color vertices
@@ -17,6 +18,7 @@ define([
       this.mesh_.updateDuplicateColors();
       this.mesh_.updateFlatShading();
       this.mesh_.updateColorBuffer();
+      this.main_.setMesh(this.mesh_);
     },
     /** On redo */
     redo: function () {
@@ -24,7 +26,7 @@ define([
     },
     /** Push the redo state */
     createRedo: function () {
-      var redo = new StateColor(this.mesh_);
+      var redo = new StateColor(this.main_, this.mesh_);
       this.pushRedoVertices(redo);
       return redo;
     },

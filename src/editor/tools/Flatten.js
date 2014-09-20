@@ -27,7 +27,7 @@ define([
         iVertsInRadius = iVertsFront;
 
       var aNormal = this.areaNormal(iVertsFront);
-      if (aNormal === null)
+      if (!aNormal)
         return;
       var aCenter = this.areaCenter(iVertsFront);
       this.flatten(iVertsInRadius, aNormal, aCenter, picking.getIntersectionPoint(), picking.getLocalRadius2(), intensity);

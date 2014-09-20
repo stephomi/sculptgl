@@ -67,11 +67,9 @@ define([
   };
 
   EditStyle.changeTextColor = function (color) {
-    editStyle('*', 'color', GuiUtils.getStrColor(color));
-    var colBright = GuiUtils.getStrColor(GuiUtils.getColorAdd(color, -0.14));
-    editStyle('.gui-sidebar > ul > label', 'color', colBright);
-    editStyle('.group-title', 'color', colBright);
-    editStyle('.group-title:hover', 'color', colBright);
+    var strColor = GuiUtils.getStrColor(color);
+    editStyle('*', 'color', strColor);
+    editStyle('.gui-sidebar > ul > label', 'color', strColor);
     EditStyle._curTextColor = color;
   };
 
@@ -80,8 +78,8 @@ define([
     var bgCol = GuiUtils.getColorMult(color, 0.5);
     EditStyle.changeBackgroundColor(bgCol);
 
-    var texCol = GuiUtils.getColorAdd(color, 0.47);
-    for (var i = 0; i < 3; ++i) texCol[i] = Math.min(0.78, texCol[i]);
+    var texCol = GuiUtils.getColorAdd(color, 0.5);
+    for (var i = 0; i < 3; ++i) texCol[i] = Math.min(0.8, texCol[i]);
     EditStyle.changeTextColor(texCol);
 
     EditStyle._curWidgetColor = color;
@@ -95,6 +93,6 @@ define([
   EditStyle._curBackgroundColor = [0.24, 0.24, 0.24];
   EditStyle._curShowBorder = false;
 
-  EditStyle.changeOverallColor([0.47, 0.39, 0.35]);
+  EditStyle.changeOverallColor([0.3, 0.34, 0.4]);
   return EditStyle;
 });

@@ -6,8 +6,8 @@ define([
   'use strict';
 
   function GuiCamera(guiParent, ctrlGui) {
-    this.sculptgl_ = ctrlGui.sculptgl_; // main application
-    this.scene_ = ctrlGui.sculptgl_.scene_; // the scene
+    this.main_ = ctrlGui.main_; // main application
+    this.camera_ = this.main_.getCamera(); // the camera
     this.cameraTimer_ = -1; // interval id (used for zqsd/wasd/arrow moves)
     this.init(guiParent);
   }
@@ -15,14 +15,13 @@ define([
   GuiCamera.prototype = {
     /** Initialize */
     init: function (guiParent) {
-      var scene = this.scene_;
-      var camera = scene.camera_;
+      var camera = this.camera_;
 
       // Camera fold
       var menu = guiParent.addMenu(TR('cameraTitle'));
 
       // reset camera
-      menu.addTitle(TR('Reset'));
+      menu.addTitle(TR('cameraReset'));
       menu.addDualButton(TR('cameraCenter'), TR('cameraFront'), this.resetCamera.bind(this), this.resetFront.bind(this));
       menu.addDualButton(TR('cameraLeft'), TR('cameraTop'), this.resetLeft.bind(this), this.resetTop.bind(this));
 
@@ -33,6 +32,9 @@ define([
       optionsType[Camera.projType.ORTHOGRAPHIC] = TR('cameraOrthographic');
       menu.addCombobox('', camera.type_, this.onCameraTypeChange.bind(this), optionsType);
 
+      // camera fov
+      this.ctrlFov_ = menu.addSlider(TR('cameraFov'), camera.fov_, this.onFovChange.bind(this), 10, 150, 1);
+
       // camera mode
       var optionsMode = {};
       menu.addTitle(TR('cameraMode'));
@@ -42,41 +44,36 @@ define([
       menu.addCombobox('', camera.mode_, this.onCameraModeChange.bind(this), optionsMode);
       menu.addCheckbox(TR('cameraPivot'), camera.usePivot_, this.onPivotChange.bind(this));
 
-      // camera fov
-      this.fovTitle_ = menu.addTitle(TR('cameraFov'));
-      this.ctrlFov_ = menu.addSlider('', camera.fov_, this.onFovChange.bind(this), 10, 150, 1);
-
       this.addEvents();
     },
     /** On camera mode change */
     onCameraModeChange: function (value) {
-      var camera = this.scene_.camera_;
+      var camera = this.camera_;
       camera.mode_ = parseInt(value, 10);
       if (camera.mode_ === Camera.mode.ORBIT) {
         camera.resetViewFront();
-        this.scene_.render();
+        this.main_.render();
       }
     },
     /** On camera type change */
     onCameraTypeChange: function (value) {
-      var camera = this.scene_.camera_;
+      var camera = this.camera_;
       camera.type_ = parseInt(value, 10);
       this.ctrlFov_.setVisibility(camera.type_ === Camera.projType.PERSPECTIVE);
-      this.fovTitle_.setVisibility(camera.type_ === Camera.projType.PERSPECTIVE);
       camera.updateProjection();
-      this.scene_.render();
+      this.main_.render();
     },
     /** On fov change */
     onFovChange: function (value) {
-      this.scene_.camera_.fov_ = value;
-      this.scene_.camera_.updateProjection();
-      this.scene_.render();
+      this.camera_.fov_ = value;
+      this.camera_.updateProjection();
+      this.main_.render();
     },
     /** On pivot change */
     onPivotChange: function (value) {
-      this.scene_.camera_.usePivot_ = value;
-      this.scene_.camera_.toggleUsePivot();
-      this.scene_.render();
+      this.camera_.usePivot_ = value;
+      this.camera_.toggleUsePivot();
+      this.main_.render();
     },
     /** Add events */
     addEvents: function () {
@@ -98,11 +95,11 @@ define([
       if (event.handled === true)
         return;
       event.stopPropagation();
-      if (!this.sculptgl_.focusGui_)
+      if (!this.main_.focusGui_)
         event.preventDefault();
       var key = event.which;
-      var scene = this.scene_;
-      var camera = scene.camera_;
+      var main = this.main_;
+      var camera = main.getCamera();
       event.handled = true;
       switch (key) {
       case 37: // LEFT
@@ -129,7 +126,7 @@ define([
       if (this.cameraTimer_ === -1) {
         this.cameraTimer_ = setInterval(function () {
           camera.updateTranslation();
-          scene.render();
+          main.render();
         }, 20);
       }
     },
@@ -138,7 +135,7 @@ define([
       event.stopPropagation();
       event.preventDefault();
       var key = event.which;
-      var camera = this.scene_.camera_;
+      var camera = this.camera_;
       switch (key) {
       case 37: // LEFT
       case 81: // Q
@@ -171,23 +168,23 @@ define([
     },
     /** Reset camera */
     resetCamera: function () {
-      this.scene_.camera_.reset();
-      this.scene_.render();
+      this.camera_.reset();
+      this.main_.render();
     },
     /** Reset to front view */
     resetFront: function () {
-      this.scene_.camera_.resetViewFront();
-      this.scene_.render();
+      this.camera_.resetViewFront();
+      this.main_.render();
     },
     /** Reset to left view */
     resetLeft: function () {
-      this.scene_.camera_.resetViewLeft();
-      this.scene_.render();
+      this.camera_.resetViewLeft();
+      this.main_.render();
     },
     /** Reset to top view */
     resetTop: function () {
-      this.scene_.camera_.resetViewTop();
-      this.scene_.render();
+      this.camera_.resetViewTop();
+      this.main_.render();
     }
   };
 
