@@ -30,20 +30,29 @@ define([
     setLocalRadius2: function (radius) {
       this.rLocal2_ = radius;
     },
-    setIntersectionPoint: function (inter) {
-      this.interPoint_ = inter;
+    getLocalRadius2: function () {
+      return this.rLocal2_;
+    },
+    getLocalRadius: function () {
+      return Math.sqrt(this.rLocal2_);
+    },
+    getWorldRadius2: function () {
+      return this.rWorld2_;
+    },
+    getWorldRadius: function () {
+      return Math.sqrt(this.rWorld2_);
+    },
+    getScreenRadius2: function () {
+      return this.rDisplay_ * this.rDisplay_;
     },
     getScreenRadius: function () {
       return this.rDisplay_;
     },
+    setIntersectionPoint: function (inter) {
+      this.interPoint_ = inter;
+    },
     getEyeDirection: function () {
       return this.eyeDir_;
-    },
-    getLocalRadius2: function () {
-      return this.rLocal2_;
-    },
-    getWorldRadius2: function () {
-      return this.rWorld2_;
     },
     getIntersectionPoint: function () {
       return this.interPoint_;

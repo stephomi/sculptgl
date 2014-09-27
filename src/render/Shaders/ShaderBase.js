@@ -95,8 +95,10 @@ define([
       var nMat = mat3.normalFromMat4(mat3.create(), mvMatrix);
       gl.uniform3fv(uniforms.uPlaneN, vec3.transformMat3(tmp, mesh.getSymmetryNormal(), nMat));
       gl.uniform1f(uniforms.uScale, useSym ? mesh.getScale() : -1.0);
-      if (main.mouseButton_ !== 0) gl.uniform1f(uniforms.uRadius2, picking.getMesh() ? -0.05 : 0.0);
-      else gl.uniform1f(uniforms.uRadius2, picking.getMesh() ? picking.getWorldRadius2() : 0.0);
+
+      var worldPixel2 = picking.getWorldRadius2() / picking.getScreenRadius2();
+      if (main.mouseButton_ !== 0) gl.uniform1f(uniforms.uRadius2, picking.getMesh() ? -10 * worldPixel2 : 0.0);
+      else gl.uniform1f(uniforms.uRadius2, picking.getMesh() === mesh ? picking.getWorldRadius2() : 0.0);
     };
   })();
   /** Draw buffer */
