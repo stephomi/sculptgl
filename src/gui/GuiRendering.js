@@ -25,6 +25,9 @@ define([
     init: function (guiParent) {
       var menu = guiParent.addMenu(TR('renderingTitle'));
 
+      // display grid
+      menu.addCheckbox(TR('renderingGrid'), this.main_.showGrid_, this.onShowGridChange.bind(this));
+
       // shader selection
       var optionsShaders = {};
       optionsShaders[Shader.mode.MATCAP] = TR('renderingMatcap');
@@ -56,6 +59,10 @@ define([
         this.ctrlShowWireframe_.setVisibility(false);
 
       this.addEvents();
+    },
+    onShowGridChange: function (val) {
+      this.main_.showGrid_ = val;
+      this.main_.render();
     },
     /** On shader change */
     onShaderChange: function (value) {

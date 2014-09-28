@@ -17,8 +17,7 @@ define([
   ShaderWireframe.vertex = [
     'attribute vec3 aVertex;',
     'uniform mat4 uMVP;',
-    'void main()',
-    '{',
+    'void main() {',
     '  vec4 pos = uMVP * vec4(aVertex, 1.0);',
     '  pos[3] += 0.0001;',
     '  gl_Position = pos;',
@@ -27,18 +26,17 @@ define([
 
   ShaderWireframe.fragment = [
     'precision mediump float;',
-    'void main()',
-    '{',
+    'void main() {',
     '  gl_FragColor = vec4(1.0, 1.0, 1.0, 0.1);',
     '}'
   ].join('\n');
 
   /** Draw */
-  ShaderWireframe.draw = function (render, main) {
+  ShaderWireframe.draw = function (render /*, main*/ ) {
     var gl = render.getGL();
     gl.useProgram(this.program);
     this.bindAttributes(render);
-    this.updateUniforms(render, main);
+    this.updateUniforms(render);
     render.getWireframeBuffer().bind();
     gl.enable(gl.BLEND);
     gl.drawElements(gl.LINES, render.getMesh().getRenderNbEdges() * 2, gl.UNSIGNED_INT, 0);

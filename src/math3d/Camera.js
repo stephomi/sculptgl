@@ -14,7 +14,7 @@ define([
   var quat = glm.quat;
 
   function Camera() {
-    this.mode_ = Camera.mode.PLANE; // camera mode
+    this.mode_ = Camera.mode.ORBIT; // camera mode
     this.type_ = Camera.projType.PERSPECTIVE; // the projection type
 
     this.quatRot_ = quat.create(); // quaternion rotation

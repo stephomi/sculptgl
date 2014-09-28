@@ -1,12 +1,13 @@
 define([
   'render/shaders/ShaderBackground',
+  'render/shaders/ShaderGrid',
   'render/shaders/ShaderMatcap',
   'render/shaders/ShaderNormal',
   'render/shaders/ShaderPhong',
   'render/shaders/ShaderTransparency',
   'render/shaders/ShaderUV',
   'render/shaders/ShaderWireframe'
-], function (Sbackground, Smatcap, Snormal, Sphong, Stransparency, Suv, Swireframe) {
+], function (Sbackground, Sgrid, Smatcap, Snormal, Sphong, Stransparency, Suv, Swireframe) {
 
   'use strict';
 
@@ -24,10 +25,12 @@ define([
     NORMAL: 3,
     BACKGROUND: 4,
     UV: 5,
-    MATCAP: 6
+    MATCAP: 6,
+    GRID: 7,
   };
 
   Shader[Shader.mode.BACKGROUND] = Sbackground;
+  Shader[Shader.mode.GRID] = Sgrid;
   Shader[Shader.mode.PHONG] = Sphong;
   Shader[Shader.mode.MATCAP] = Smatcap;
   Shader[Shader.mode.NORMAL] = Snormal;

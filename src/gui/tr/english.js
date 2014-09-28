@@ -113,6 +113,7 @@ define([], function () {
 
     // sketchfab
     renderingTitle: 'Rendering',
+    renderingGrid: 'Show grid',
     renderingMatcap: 'Matcap',
     renderingPhong: 'Phong',
     renderingTransparency: 'Transparency',

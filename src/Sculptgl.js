@@ -6,13 +6,14 @@ define([
   'math3d/Camera',
   'math3d/Picking',
   'mesh/Background',
+  'mesh/Grid',
   'mesh/Mesh',
   'mesh/multiresolution/Multimesh',
   'states/States',
   'render/Render',
   'render/Shader',
   'render/shaders/ShaderMatcap'
-], function (Utils, Import, Sculpt, Gui, Camera, Picking, Background, Mesh, Multimesh, States, Render, Shader, ShaderMatcap) {
+], function (Utils, Import, Sculpt, Gui, Camera, Picking, Background, Grid, Mesh, Multimesh, States, Render, Shader, ShaderMatcap) {
 
   'use strict';
 
@@ -36,6 +37,8 @@ define([
     this.pickingSym_ = new Picking(this.camera_); // the symmetrical picking
 
     // renderable stuffs
+    this.showGrid_ = true;
+    this.grid_ = null; // the grid
     this.background_ = null; // the background
     this.meshes_ = []; // the meshes
     this.mesh_ = null; // the selected mesh
@@ -103,6 +106,7 @@ define([
       this.camera_.updateView();
       this.background_.render();
       this.computeMatricesAndSort();
+      if (this.showGrid_) this.grid_.render();
       for (var i = 0, meshes = this.meshes_, nb = meshes.length; i < nb; ++i)
         meshes[i].render(this);
     },
@@ -110,6 +114,7 @@ define([
     computeMatricesAndSort: function () {
       var meshes = this.meshes_;
       var cam = this.camera_;
+      this.grid_.computeMatrices(cam);
       for (var i = 0, nb = meshes.length; i < nb; ++i)
         meshes[i].computeMatrices(cam);
       meshes.sort(this.sortFunction.bind(this));
@@ -137,6 +142,7 @@ define([
     start: function () {
       this.initWebGL();
       this.background_ = new Background(this.gl_);
+      this.grid_ = new Grid(this.gl_);
       this.loadTextures();
       this.gui_.initGui();
       this.onCanvasResize();
