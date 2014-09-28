@@ -25,11 +25,11 @@ define([
     this.width_ = 0.0; // viewport width
     this.height_ = 0.0; // viewport height
 
-    this.speed_ = 1.0; // solve scale issue
+    this.speed_ = 0.0; // solve scale issue
     this.fov_ = 45.0; // vertical field of view
 
     // translation stuffs
-    this.zoom_ = 20.0; // zoom value
+    this.zoom_ = 0.0; // zoom value
     this.transX_ = 0.0; // translation in x
     this.transY_ = 0.0; // translation in y
     this.moveX_ = 0; // free look (strafe), possible values : -1, 0, 1
@@ -45,6 +45,7 @@ define([
     // orbit camera
     this.rotX_ = 0.0; // x rot for orbit camera
     this.rotY_ = 0.0; // y rot for orbit camera
+    this.reset();
   }
 
   // the camera modes

@@ -16,7 +16,8 @@ define([
     this.vertexBuffer_ = new Buffer(gl, gl.ARRAY_BUFFER, gl.STATIC_DRAW); // vertices buffer
     this.vertCoords = null;
 
-    this.mvp_ = mat4.create();
+    this.matrix_ = mat4.create();
+    this.cacheMVP_ = mat4.create();
 
     this.shader_ = null; // the shader
     this.init();
@@ -33,14 +34,19 @@ define([
     },
     /** Return model view projection */
     getMVP: function () {
-      return this.mvp_;
+      return this.cacheMVP_;
     },
     /** Compute mvp matrix */
-    computeMatrices: function (camera) {
-      mat4.mul(this.mvp_, camera.proj_, camera.view_);
-    },
+    computeMatrices: (function () {
+      var tmp = mat4.create();
+      return function (camera) {
+        mat4.mul(tmp, camera.view_, this.matrix_);
+        mat4.mul(this.cacheMVP_, camera.proj_, tmp);
+      };
+    })(),
     /** Initialize Vertex Buffer Object (VBO) */
     init: function () {
+      mat4.translate(this.matrix_, this.matrix_, [0.0, -20.0, 0.0]);
       this.vertCoords = this.getGridVertices();
       this.initBuffer();
       this.shader_ = Shader[Shader.mode.GRID].getOrCreate(this.gl_);
