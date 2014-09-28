@@ -151,6 +151,9 @@ define([
       case 83: // S
         camera.moveZ_ = 0;
         break;
+      case 32: // SPACE
+        this.resetCamera();
+        break;
       case 70: // F
         this.resetFront();
         break;

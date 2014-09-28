@@ -14,8 +14,8 @@ define([], function () {
 
     // camera
     cameraTitle: 'カメラ',
-    cameraReset: 'Reset',
-    cameraCenter: 'Center',
+    cameraReset: 'View',
+    cameraCenter: 'Reset (bar)',
     cameraFront: 'Front (F)',
     cameraLeft: 'Left (L)',
     cameraTop: 'Top (T)',
