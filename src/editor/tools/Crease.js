@@ -60,7 +60,7 @@ define([
           continue;
         var fallOff = dist * dist;
         fallOff = 3.0 * fallOff * fallOff - 4.0 * fallOff * dist + 1.0;
-        var brushModifier = Math.pow(2.0 - fallOff, -5) * brushFactor;
+        var brushModifier = Math.pow(fallOff, 5) * brushFactor;
         fallOff = fallOff * deformIntensity;
         vAr[ind] += dx * fallOff + anx * brushModifier;
         vAr[ind + 1] += dy * fallOff + any * brushModifier;
