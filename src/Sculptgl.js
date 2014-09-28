@@ -398,7 +398,7 @@ define([
       var mouseX = this.mouseX_;
       var mouseY = this.mouseY_;
       var button = this.mouseButton_ = event.which;
-      if (button === 1 && !event.altKey) {
+      if (button === 1 && !event.altKey && !event.ctrlKey) {
         this.sumDisplacement_ = 0;
         this.sculpt_.start(this);
       }
@@ -406,7 +406,7 @@ define([
       var pickedMesh = picking.getMesh();
       if (button === 1 && pickedMesh)
         this.canvas_.style.cursor = 'none';
-      if (button === 3 || (button === 1 && !pickedMesh) || (event.altKey && button !== 0)) {
+      if (button === 3 || (button === 1 && !pickedMesh)) {
         this.mouseButton_ = 3;
         if (this.camera_.usePivot_)
           picking.intersectionMouseMeshes(this.meshes_, mouseX, mouseY);
@@ -430,19 +430,19 @@ define([
         if (this.sculpt_.getSymmetry() && this.mesh_)
           this.pickingSym_.intersectionMouseMesh(this.mesh_, mouseX, mouseY, true);
       }
-      if (button === 1 && !event.altKey) {
-        Multimesh.RENDER_HINT = Multimesh.SCULPT;
-        this.sculpt_.update(this);
-      } else {
-        if (button === 2 || (event.altKey && event.shiftKey && button !== 0)) {
+      if (button !== 0) {
+        if (button === 2 || event.altKey) {
           this.camera_.translate((mouseX - this.lastMouseX_) / 3000, (mouseY - this.lastMouseY_) / 3000);
           Multimesh.RENDER_HINT = Multimesh.CAMERA;
-        } else if (event.altKey && event.ctrlKey && button !== 0) {
-          this.camera_.zoom((mouseY - this.lastMouseY_) / 3000);
+        } else if (event.ctrlKey) {
+          this.camera_.zoom((mouseX - this.lastMouseX_) / 3000);
           Multimesh.RENDER_HINT = Multimesh.CAMERA;
-        } else if (button === 3 || (event.altKey && !event.shiftKey && !event.ctrlKey && button !== 0)) {
+        } else if (button === 3) {
           this.camera_.rotate(mouseX, mouseY);
           Multimesh.RENDER_HINT = Multimesh.CAMERA;
+        } else if (button === 1) {
+          Multimesh.RENDER_HINT = Multimesh.SCULPT;
+          this.sculpt_.update(this);
         }
       }
       this.lastMouseX_ = mouseX;
