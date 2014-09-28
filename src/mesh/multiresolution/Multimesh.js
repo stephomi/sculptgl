@@ -25,14 +25,14 @@ define([
 
   Multimesh.prototype = {
     /** Return the current mesh */
-    getCurrent: function () {
+    getCurrentMesh: function () {
       return this.meshes_[this.sel_];
     },
     /** Add an extra level to the mesh (subdivision) */
     addLevel: function () {
       if ((this.meshes_.length - 1) !== this.sel_)
-        return this.getCurrent();
-      var baseMesh = this.getCurrent();
+        return this.getCurrentMesh();
+      var baseMesh = this.getCurrentMesh();
       var newMesh = new MeshResolution(baseMesh.getTransformData(), baseMesh.getRender());
       baseMesh.setVerticesMapping(undefined);
 
@@ -46,8 +46,8 @@ define([
     /** Reverse the mesh (reverse subdivision) */
     computeReverse: function () {
       if (this.sel_ !== 0)
-        return this.getCurrent();
-      var baseMesh = this.getCurrent();
+        return this.getCurrentMesh();
+      var baseMesh = this.getCurrentMesh();
       var newMesh = new MeshResolution(baseMesh.getTransformData(), baseMesh.getRender());
 
       var status = Reversion.computeReverse(baseMesh, newMesh);
@@ -63,19 +63,19 @@ define([
     lowerLevel: function () {
       if (this.sel_ === 0)
         return this.meshes_[0];
-      this.meshes_[this.sel_ - 1].lowerAnalysis(this.getCurrent());
+      this.meshes_[this.sel_ - 1].lowerAnalysis(this.getCurrentMesh());
       --this.sel_;
       this.updateResolution();
-      return this.getCurrent();
+      return this.getCurrentMesh();
     },
     /** Go to one level higher in mesh resolution, if available */
     higherLevel: function () {
       if (this.sel_ === this.meshes_.length - 1)
-        return this.getCurrent();
-      this.meshes_[this.sel_ + 1].higherSynthesis(this.getCurrent());
+        return this.getCurrentMesh();
+      this.meshes_[this.sel_ + 1].higherSynthesis(this.getCurrentMesh());
       ++this.sel_;
       this.updateResolution();
-      return this.getCurrent();
+      return this.getCurrentMesh();
     },
     /** Update the mesh after a change in resolution */
     updateResolution: function () {
@@ -159,7 +159,7 @@ define([
     lowRender: function (main) {
       var lowSel = this.getLowIndexRender();
       if (lowSel === this.sel_)
-        return this.getCurrent().render(main);
+        return this.getCurrentMesh().render(main);
       var tmpSel = this.sel_;
       this.sel_ = lowSel;
       this.lowRender_.render(main);
@@ -167,21 +167,21 @@ define([
     },
     /** Render the mesh */
     render: function (main) {
-      if (this.getCurrent().isUsingTexCoords())
-        return this.getCurrent().render(main);
+      if (this.getCurrentMesh().isUsingTexCoords())
+        return this.getCurrentMesh().render(main);
       if (Multimesh.RENDER_HINT === Multimesh.PICKING || Multimesh.RENDER_HINT === Multimesh.NONE)
-        return this.getCurrent().render(main);
+        return this.getCurrentMesh().render(main);
       if (this.isUsingDrawArrays())
-        return this.getCurrent().render(main);
+        return this.getCurrentMesh().render(main);
       if (main.getMesh() === this && Multimesh.RENDER_HINT !== Multimesh.CAMERA)
-        return this.getCurrent().render(main);
+        return this.getCurrentMesh().render(main);
       this.lowRender(main);
     }
   };
 
   Utils.makeProxy(MeshResolution, Multimesh, function (proto) {
     return function () {
-      return proto.apply(this.getCurrent(), arguments);
+      return proto.apply(this.getCurrentMesh(), arguments);
     };
   });
 

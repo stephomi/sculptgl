@@ -5,7 +5,7 @@ define([], function () {
   function StateMultiresolution(main, multimesh, type, isRedo) {
     this.main_ = main; // main application
     this.multimesh_ = multimesh; // the multires mesh
-    this.mesh_ = multimesh.getCurrent(); // the sub multimesh
+    this.mesh_ = multimesh.getCurrentMesh(); // the sub multimesh
     this.type_ = type; // the type of action
     this.sel_ = multimesh.sel_; // the selected mesh
 

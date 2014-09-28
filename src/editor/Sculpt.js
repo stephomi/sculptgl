@@ -49,7 +49,7 @@ define([
 
   Sculpt.prototype = {
     /** Get current tool */
-    getCurrent: function () {
+    getCurrentTool: function () {
       return this.tools_[this.tool_];
     },
     getSymmetry: function () {
@@ -79,7 +79,7 @@ define([
     onMouseUp: function (event) {
       event.stopPropagation();
       event.preventDefault();
-      var tool = this.getCurrent();
+      var tool = this.getCurrentTool();
       if (tool.mesh_)
         tool.mesh_.checkLeavesUpdate();
       if (this.sculptTimer_ !== -1) {
@@ -99,11 +99,11 @@ define([
     },
     /** Start sculpting */
     start: function (main) {
-      this.getCurrent().start(main);
-      if (this.getCurrent().mesh_ && this.isUsingContinuous()) {
-        var self = this;
+      var tool = this.getCurrentTool();
+      tool.start(main);
+      if (main.getPicking().getMesh() && this.isUsingContinuous()) {
         this.sculptTimer_ = setInterval(function () {
-          self.getCurrent().update(main);
+          tool.update(main);
           main.render();
         }, 20);
       }
@@ -112,7 +112,7 @@ define([
     update: function (main) {
       if (this.isUsingContinuous())
         return;
-      this.getCurrent().update(main);
+      this.getCurrentTool().update(main);
     }
   };
 
