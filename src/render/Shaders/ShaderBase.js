@@ -1,6 +1,7 @@
 define([
   'lib/glMatrix',
-], function (glm) {
+  'misc/Utils'
+], function (glm, Utils) {
 
   'use strict';
 
@@ -113,6 +114,34 @@ define([
     }
     gl.bindBuffer(gl.ARRAY_BUFFER, null);
     gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, null);
+  };
+  ShaderBase.onLoadTexture0 = function (gl, tex, main) {
+    gl.bindTexture(gl.TEXTURE_2D, this.texture0);
+    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, tex);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+    if (Utils.isPowerOfTwo(tex.width) && Utils.isPowerOfTwo(tex.height)) {
+      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_LINEAR);
+      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.REPEAT);
+      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.REPEAT);
+      gl.generateMipmap(gl.TEXTURE_2D);
+    } else {
+      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+    }
+    gl.bindTexture(gl.TEXTURE_2D, null);
+    if (main)
+      main.render();
+  };
+  /** Return or create texture0 */
+  ShaderBase.getOrCreateTexture0 = function (gl, texPath, main) {
+    if (this.texture0)
+      return this.texture0;
+    this.texture0 = gl.createTexture();
+    var tex = new Image();
+    tex.src = texPath;
+    tex.onload = ShaderBase.onLoadTexture0.bind(this, gl, tex, main);
+    return false;
   };
 
   return ShaderBase;

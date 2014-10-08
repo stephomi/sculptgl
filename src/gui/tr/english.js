@@ -115,7 +115,7 @@ define([], function () {
     renderingTitle: 'Rendering',
     renderingGrid: 'Show grid',
     renderingMatcap: 'Matcap',
-    renderingPhong: 'Phong',
+    renderingPBR: 'PBR',
     renderingTransparency: 'Transparency',
     renderingNormal: 'Normal shader',
     renderingUV: 'UV shader',
