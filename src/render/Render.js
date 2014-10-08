@@ -23,11 +23,33 @@ define([
     this.wireframeBuffer_ = new Buffer(gl, gl.ELEMENT_ARRAY_BUFFER, gl.STATIC_DRAW); // wireframe buffer
     this.texture0_ = null; // a texture
     this.material_ = 0; // the chosen material index (texture)
+
+    this.roughness_ = 0.8;
+    this.metallic_ = 0.4;
+    this.exposure_ = 1.0;
   }
 
   Render.ONLY_DRAW_ARRAYS = false;
 
   Render.prototype = {
+    getRoughness: function () {
+      return this.roughness_;
+    },
+    getMetallic: function () {
+      return this.metallic_;
+    },
+    getExposure: function () {
+      return this.exposure_;
+    },
+    setRoughness: function (val) {
+      this.roughness_ = val;
+    },
+    setMetallic: function (val) {
+      this.metallic_ = val;
+    },
+    setExposure: function (val) {
+      this.exposure_ = val;
+    },
     /** Return webgl context */
     getGL: function () {
       return this.gl_;

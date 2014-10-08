@@ -3,11 +3,11 @@ define([
   'render/shaders/ShaderGrid',
   'render/shaders/ShaderMatcap',
   'render/shaders/ShaderNormal',
-  'render/shaders/ShaderPhong',
+  'render/shaders/ShaderPBR',
   'render/shaders/ShaderTransparency',
   'render/shaders/ShaderUV',
   'render/shaders/ShaderWireframe'
-], function (Sbackground, Sgrid, Smatcap, Snormal, Sphong, Stransparency, Suv, Swireframe) {
+], function (Sbackground, Sgrid, Smatcap, Snormal, SPBR, Stransparency, Suv, Swireframe) {
 
   'use strict';
 
@@ -19,7 +19,7 @@ define([
 
   Shader.textures = {};
   Shader.mode = {
-    PHONG: 0,
+    PBR: 0,
     TRANSPARENCY: 1,
     WIREFRAME: 2,
     NORMAL: 3,
@@ -31,7 +31,7 @@ define([
 
   Shader[Shader.mode.BACKGROUND] = Sbackground;
   Shader[Shader.mode.GRID] = Sgrid;
-  Shader[Shader.mode.PHONG] = Sphong;
+  Shader[Shader.mode.PBR] = SPBR;
   Shader[Shader.mode.MATCAP] = Smatcap;
   Shader[Shader.mode.NORMAL] = Snormal;
   Shader[Shader.mode.TRANSPARENCY] = Stransparency;

@@ -45,7 +45,6 @@ define([
       this.ctrlStates_ = new GuiStates(this.topbar_, this);
       this.ctrlBackground_ = new GuiBackground(this.topbar_, this);
       this.ctrlCamera_ = new GuiCamera(this.topbar_, this);
-      this.ctrlRendering_ = new GuiRendering(this.topbar_, this);
       this.ctrlTablet_ = new GuiTablet(this.topbar_, this);
       this.ctrlConfig_ = new GuiConfig(this.topbar_, this);
       this.ctrlMesh_ = new GuiMesh(this.topbar_, this);
@@ -54,6 +53,7 @@ define([
       this.sidebar_ = this.guiMain_.addRightSidebar();
       this.ctrlTopology_ = new GuiTopology(this.sidebar_, this);
       this.ctrlSculpting_ = new GuiSculpting(this.sidebar_, this);
+      this.ctrlRendering_ = new GuiRendering(this.sidebar_, this);
 
       // gui extra
       this.topbar_.addExtra();

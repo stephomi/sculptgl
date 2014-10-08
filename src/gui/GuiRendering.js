@@ -31,7 +31,7 @@ define([
       // shader selection
       var optionsShaders = {};
       optionsShaders[Shader.mode.MATCAP] = TR('renderingMatcap');
-      optionsShaders[Shader.mode.PHONG] = TR('renderingPhong');
+      optionsShaders[Shader.mode.PBR] = TR('renderingPBR');
       optionsShaders[Shader.mode.TRANSPARENCY] = TR('renderingTransparency');
       optionsShaders[Shader.mode.NORMAL] = TR('renderingNormal');
       optionsShaders[Shader.mode.UV] = TR('renderingUV');
@@ -49,6 +49,14 @@ define([
       this.ctrlUV_ = menu.addButton(TR('renderingImportUV'), this, 'importTexture');
       this.ctrlUV_.setVisibility(false);
 
+      // pbr settings
+      this.ctrlRoughness_ = menu.addSlider('Roughness', 0.0, this.onRoughnessChanged.bind(this), 0.0, 1.0, 0.01);
+      this.ctrlRoughness_.setVisibility(false);
+      this.ctrlMetallic_ = menu.addSlider('Metallic', 0.0, this.onMetallicChanged.bind(this), 0.0, 1.0, 0.01);
+      this.ctrlMetallic_.setVisibility(false);
+      this.ctrlExposure_ = menu.addSlider('Exposure', 0.0, this.onExposureChanged.bind(this), 0.0, 5.0, 0.01);
+      this.ctrlExposure_.setVisibility(false);
+
       menu.addTitle(TR('renderingExtra'));
       // flat shading
       this.ctrlFlatShading_ = menu.addCheckbox(TR('renderingFlat'), false, this.onFlatChange.bind(this));
@@ -59,6 +67,21 @@ define([
         this.ctrlShowWireframe_.setVisibility(false);
 
       this.addEvents();
+    },
+    onRoughnessChanged: function (val) {
+      var mesh = this.main_.getMesh();
+      if (mesh) mesh.getRender().setRoughness(val);
+      this.main_.render();
+    },
+    onMetallicChanged: function (val) {
+      var mesh = this.main_.getMesh();
+      if (mesh) mesh.getRender().setMetallic(val);
+      this.main_.render();
+    },
+    onExposureChanged: function (val) {
+      var mesh = this.main_.getMesh();
+      if (mesh) mesh.getRender().setExposure(val);
+      this.main_.render();
     },
     onShowGridChange: function (val) {
       this.main_.showGrid_ = val;
@@ -72,9 +95,7 @@ define([
         mesh.setShader(val);
         this.main_.render();
       }
-      this.ctrlMatcapTitle_.setVisibility(val === Shader.mode.MATCAP);
-      this.ctrlMatcap_.setVisibility(val === Shader.mode.MATCAP);
-      this.ctrlUV_.setVisibility(val === Shader.mode.UV);
+      this.updateVisibility();
     },
     /** On material change */
     onMaterialChange: function (value) {
@@ -121,9 +142,21 @@ define([
       this.ctrlFlatShading_.setValue(render.flatShading_, true);
       this.ctrlShowWireframe_.setValue(render.showWireframe_, true);
       this.ctrlMatcap_.setValue(render.material_, true);
+      this.ctrlRoughness_.setValue(render.roughness_, true);
+      this.ctrlMetallic_.setValue(render.metallic_, true);
+      this.ctrlExposure_.setValue(render.exposure_, true);
+      this.updateVisibility();
+    },
+    updateVisibility: function () {
+      var mesh = this.main_.getMesh();
+      if (!mesh) return;
       var val = mesh.getRender().shader_.type_;
+      this.ctrlMatcapTitle_.setVisibility(val === Shader.mode.MATCAP);
       this.ctrlMatcap_.setVisibility(val === Shader.mode.MATCAP);
       this.ctrlUV_.setVisibility(val === Shader.mode.UV);
+      this.ctrlRoughness_.setVisibility(val === Shader.mode.PBR);
+      this.ctrlMetallic_.setVisibility(val === Shader.mode.PBR);
+      this.ctrlExposure_.setVisibility(val === Shader.mode.PBR);
     },
     /** Return true if flat shading is enabled */
     getFlatShading: function () {

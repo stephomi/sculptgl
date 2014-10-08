@@ -1,8 +1,7 @@
 define([
-  'misc/Utils',
   'render/shaders/ShaderBase',
   'render/Attribute'
-], function (Utils, ShaderBase, Attribute) {
+], function (ShaderBase, Attribute) {
 
   'use strict';
 
@@ -84,32 +83,6 @@ define([
     attrs.aColor.bindToBuffer(render.getColorBuffer());
     attrs.aTexCoord.bindToBuffer(render.getTexCoordBuffer());
   };
-  /** Return or create texture0 */
-  ShaderUV.getOrCreateTexture0 = function (gl, sculptgl) {
-    if (ShaderUV.texture0)
-      return ShaderUV.texture0;
-    ShaderUV.texture0 = gl.createTexture();
-    var tex = new Image();
-    tex.src = ShaderUV.texPath;
-    tex.onload = function () {
-      gl.bindTexture(gl.TEXTURE_2D, ShaderUV.texture0);
-      gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, tex);
-      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
-      if (Utils.isPowerOfTwo(tex.width) && Utils.isPowerOfTwo(tex.height)) {
-        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_LINEAR);
-        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.REPEAT);
-        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.REPEAT);
-        gl.generateMipmap(gl.TEXTURE_2D);
-      } else {
-        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
-        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
-        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
-      }
-      gl.bindTexture(gl.TEXTURE_2D, null);
-      sculptgl.render();
-    };
-    return false;
-  };
   /** Updates uniforms */
   ShaderUV.updateUniforms = function (render, main) {
     var gl = render.getGL();
@@ -121,7 +94,7 @@ define([
     gl.uniformMatrix3fv(uniforms.uN, false, mesh.getN());
 
     gl.activeTexture(gl.TEXTURE0);
-    var tex = this.getOrCreateTexture0(gl, main);
+    var tex = ShaderBase.getOrCreateTexture0.call(this, gl, ShaderUV.texPath, main);
     if (tex)
       gl.bindTexture(gl.TEXTURE_2D, tex);
     gl.uniform1i(uniforms.uTexture0, 0);

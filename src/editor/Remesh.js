@@ -208,6 +208,9 @@ define([
     newMesh.setFlatShading(mesh.getFlatShading());
     newMesh.setShader(mesh.getShader().getType());
     newMesh.setTexture0(mesh.getTexture0());
+    newMesh.setRoughness(mesh.getRoughness());
+    newMesh.setMetallic(mesh.getMetallic());
+    newMesh.setExposure(mesh.getExposure());
     newMesh.initRender();
     return newMesh;
   };
