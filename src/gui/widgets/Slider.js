@@ -46,12 +46,13 @@ define([
       if (val !== val || val === this.lastValue) return;
       this.setValue(val);
     },
-    _onKeyDown: function (event) {
-      event.stopPropagation();
-      if (event.which === 13) // enter
+    _onKeyDown: function (ev) {
+      ev.stopPropagation();
+      if (ev.which === 13) // enter
         this.domInputText.blur();
     },
     _onMouseMove: function (ev) {
+      ev.preventDefault();
       if (!this.isDown)
         return;
       var rect = this.domSlider.getBoundingClientRect();

@@ -74,7 +74,7 @@ define([], function () {
     remeshResolution: 'Resolution',
 
     // sculpt
-    sculptTitle: 'ボールの加工',
+    sculptTitle: 'Sculpting & Painting',
     sculptBrush: 'ブラシ (1)',
     sculptInflate: '膨張 (2)',
     sculptTwist: '回転 (3)',
@@ -92,13 +92,14 @@ define([], function () {
     sculptContinuous: '連続加工',
     sculptRadius: '半径',
     sculptIntensity: '明るさ',
-    sculptCulling: '不要造形除去？',
+    sculptCulling: 'Thin surface (front vertex only)',
     sculptNegative: 'ネガティブ (N)',
     sculptColor: 'カラー',
     sculptClay: 'クレイ',
-    sculptAccumulate: 'Accumulate',
+    sculptAccumulate: 'Accumulate (no limit per stroke)',
     sculptPickColor: 'Pick color',
     sculptTangentialSmoothing: 'Relax only',
+    sculptDeleteMesh: 'Delete the mesh ?',
 
     // states
     stateTitle: '履歴',

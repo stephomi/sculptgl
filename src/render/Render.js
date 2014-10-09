@@ -1,7 +1,8 @@
 define([
   'render/Shader',
-  'render/Buffer'
-], function (Shader, Buffer) {
+  'render/Buffer',
+  'render/shaders/ShaderMatcap'
+], function (Shader, Buffer, ShaderMatcap) {
 
   'use strict';
 
@@ -22,10 +23,10 @@ define([
     this.indexBuffer_ = new Buffer(gl, gl.ELEMENT_ARRAY_BUFFER, gl.STATIC_DRAW); // indices buffer
     this.wireframeBuffer_ = new Buffer(gl, gl.ELEMENT_ARRAY_BUFFER, gl.STATIC_DRAW); // wireframe buffer
     this.texture0_ = null; // a texture
-    this.material_ = 0; // the chosen material index (texture)
+    this.matcap_ = 0; // the chosen matcap texture index
 
-    this.roughness_ = 0.8;
-    this.metallic_ = 0.4;
+    this.roughness_ = 0.18;
+    this.metallic_ = 0.08;
     this.exposure_ = 1.0;
   }
 
@@ -116,10 +117,10 @@ define([
     setTexture0: function (tex) {
       this.texture0_ = tex;
     },
-    /** Set show wireframe */
-    setMaterial: function (idMat) {
-      this.material_ = idMat;
-      this.setTexture0(Shader.textures[idMat]);
+    /** Set matcap texture */
+    setMatcap: function (idMat) {
+      this.matcap_ = idMat;
+      this.setTexture0(ShaderMatcap.textures[idMat]);
     },
     /** Set show wireframe */
     setShowWireframe: function (showWireframe) {
@@ -150,7 +151,7 @@ define([
     initRender: function () {
       this.shaderWireframe_.setType(Shader.mode.WIREFRAME);
       if (this.shader_.getType() === Shader.mode.MATCAP && !this.texture0_)
-        this.setMaterial(0);
+        this.setMatcap(0);
       this.setShader(this.shader_.type_);
       this.setShowWireframe(this.getShowWireframe());
       this.updateBuffers();

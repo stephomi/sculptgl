@@ -7,6 +7,7 @@ define([
 
   function GuiCamera(guiParent, ctrlGui) {
     this.main_ = ctrlGui.main_; // main application
+    this.menu_ = null; // ui menu
     this.camera_ = this.main_.getCamera(); // the camera
     this.cameraTimer_ = -1; // interval id (used for zqsd/wasd/arrow moves)
     this.init(guiParent);
@@ -18,7 +19,7 @@ define([
       var camera = this.camera_;
 
       // Camera fold
-      var menu = guiParent.addMenu(TR('cameraTitle'));
+      var menu = this.menu_ = guiParent.addMenu(TR('cameraTitle'));
 
       // reset camera
       menu.addTitle(TR('cameraReset'));
@@ -97,6 +98,8 @@ define([
       event.stopPropagation();
       if (!this.main_.focusGui_)
         event.preventDefault();
+      else
+        return;
       var key = event.which;
       var main = this.main_;
       var camera = main.getCamera();

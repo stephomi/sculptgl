@@ -11,9 +11,8 @@ define([
   'mesh/multiresolution/Multimesh',
   'states/States',
   'render/Render',
-  'render/Shader',
   'render/shaders/ShaderMatcap'
-], function (Utils, Import, Sculpt, Gui, Camera, Picking, Background, Grid, Mesh, Multimesh, States, Render, Shader, ShaderMatcap) {
+], function (Utils, Import, Sculpt, Gui, Camera, Picking, Background, Grid, Mesh, Multimesh, States, Render, ShaderMatcap) {
 
   'use strict';
 
@@ -191,12 +190,12 @@ define([
           gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.REPEAT);
           gl.generateMipmap(gl.TEXTURE_2D);
           gl.bindTexture(gl.TEXTURE_2D, null);
-          Shader.textures[idMaterial] = idTex;
+          ShaderMatcap.textures[idMaterial] = idTex;
           if (idMaterial === 0)
             self.loadSphere();
         };
       };
-      for (var i = 0, mats = ShaderMatcap.materials, l = mats.length; i < l; ++i)
+      for (var i = 0, mats = ShaderMatcap.matcaps, l = mats.length; i < l; ++i)
         loadTex(mats[i].path, i);
     },
     /** Called when the window is resized */
