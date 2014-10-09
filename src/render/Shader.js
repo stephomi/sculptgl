@@ -13,11 +13,10 @@ define([
 
   function Shader(gl) {
     this.gl_ = gl; // webgl context
-    this.type_ = Shader.mode.MATCAP; // type of shader
+    this.type_ = Shader.mode.PBR; // type of shader
     this.shaderObject_ = null; // the shader
   }
 
-  Shader.textures = {};
   Shader.mode = {
     PBR: 0,
     TRANSPARENCY: 1,

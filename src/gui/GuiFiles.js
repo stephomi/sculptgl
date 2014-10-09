@@ -8,30 +8,31 @@ define([
 
   function GuiFiles(guiParent, ctrlGui) {
     this.main_ = ctrlGui.main_; // main application
+    this.menu_ = null; // ui menu
     this.init(guiParent);
   }
 
   GuiFiles.prototype = {
     /** Initialize */
     init: function (guiParent) {
-      var foldFiles = guiParent.addMenu(TR('fileTitle'));
+      var menu = this.menu_ = guiParent.addMenu(TR('fileTitle'));
 
       // scene
-      foldFiles.addTitle(TR('fileResetTitle'));
-      foldFiles.addButton(TR('fileResetSphere'), this.main_, 'resetScene');
-      foldFiles.addButton(TR('fileResetScene'), this.main_, 'clearScene');
+      menu.addTitle(TR('fileResetTitle'));
+      menu.addButton(TR('fileResetSphere'), this.main_, 'resetScene');
+      menu.addButton(TR('fileResetScene'), this.main_, 'clearScene');
 
       // import
-      foldFiles.addTitle(TR('fileImportTitle'));
-      foldFiles.addButton(TR('fileAdd'), this, 'addFile');
+      menu.addTitle(TR('fileImportTitle'));
+      menu.addButton(TR('fileAdd'), this, 'addFile');
 
       // export
-      foldFiles.addTitle(TR('fileExportSceneTitle'));
-      foldFiles.addButton(TR('fileExportOBJ'), this, 'saveFileAsOBJ');
-      foldFiles.addButton(TR('sketchfabTitle'), this, 'exportSketchfab');
-      foldFiles.addTitle(TR('fileExportMeshTitle'));
-      foldFiles.addButton(TR('fileExportPLY'), this, 'saveFileAsPLY');
-      foldFiles.addButton(TR('fileExportSTL'), this, 'saveFileAsSTL');
+      menu.addTitle(TR('fileExportSceneTitle'));
+      menu.addButton(TR('fileExportOBJ'), this, 'saveFileAsOBJ');
+      menu.addButton(TR('sketchfabTitle'), this, 'exportSketchfab');
+      menu.addTitle(TR('fileExportMeshTitle'));
+      menu.addButton(TR('fileExportPLY'), this, 'saveFileAsPLY');
+      menu.addButton(TR('fileExportSTL'), this, 'saveFileAsSTL');
     },
     /** Load file */
     addFile: function () {

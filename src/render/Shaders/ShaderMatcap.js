@@ -9,9 +9,10 @@ define([
   var glfloat = 0x1406;
 
   var ShaderMatcap = {};
+  ShaderMatcap.textures = {};
 
-  ShaderMatcap.getMaterials = function () {
-    ShaderMatcap.materials = [{
+  ShaderMatcap.getMatcaps = function () {
+    ShaderMatcap.matcaps = [{
       path: 'resources/pearl.jpg',
       name: TR('matcapPearl')
     }, {
@@ -42,9 +43,9 @@ define([
       path: 'resources/orange.jpg',
       name: TR('matcapOrange')
     }];
-    return ShaderMatcap.materials;
+    return ShaderMatcap.matcaps;
   };
-  ShaderMatcap.materials = ShaderMatcap.getMaterials();
+  ShaderMatcap.matcaps = ShaderMatcap.getMatcaps();
 
   ShaderMatcap.uniforms = {};
   ShaderMatcap.attributes = {};
@@ -128,7 +129,7 @@ define([
     gl.uniformMatrix3fv(uniforms.uN, false, mesh.getN());
 
     gl.activeTexture(gl.TEXTURE0);
-    gl.bindTexture(gl.TEXTURE_2D, render.getTexture0());
+    gl.bindTexture(gl.TEXTURE_2D, render.getTexture0() || ShaderMatcap.textures[0]);
     gl.uniform1i(uniforms.uTexture0, 0);
 
     ShaderBase.updateUniforms.call(this, render, main);

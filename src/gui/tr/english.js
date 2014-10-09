@@ -74,7 +74,7 @@ define([], function () {
     remeshResolution: 'Resolution',
 
     // sculpt
-    sculptTitle: 'Sculpting',
+    sculptTitle: 'Sculpting & Painting',
     sculptBrush: 'Brush (1)',
     sculptInflate: 'Inflate (2)',
     sculptTwist: 'Twist (3)',
@@ -92,13 +92,14 @@ define([], function () {
     sculptContinuous: 'Continuous',
     sculptRadius: 'Radius',
     sculptIntensity: 'Intensity',
-    sculptCulling: 'Sculpt culling',
+    sculptCulling: 'Thin surface (front vertex only)',
     sculptNegative: 'Negative (N)',
     sculptColor: 'Color',
     sculptClay: 'Clay',
-    sculptAccumulate: 'Accumulate',
+    sculptAccumulate: 'Accumulate (no limit per stroke)',
     sculptPickColor: 'Pick color',
     sculptTangentialSmoothing: 'Relax only',
+    sculptDeleteMesh: 'Delete the mesh ?',
 
     // states
     stateTitle: 'History',

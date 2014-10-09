@@ -10,7 +10,8 @@ define([
   function GuiRendering(guiParent, ctrlGui) {
     this.main_ = ctrlGui.main_; // main application
 
-    // ui shading
+    // ui rendering
+    this.menu_ = null; // ui menu
     this.ctrlFlatShading_ = null; // flat shading controller
     this.ctrlShowWireframe_ = null; // wireframe controller
     this.ctrlShaders_ = null; // shaders controller
@@ -23,10 +24,8 @@ define([
   GuiRendering.prototype = {
     /** Initialize */
     init: function (guiParent) {
-      var menu = guiParent.addMenu(TR('renderingTitle'));
-
-      // display grid
-      menu.addCheckbox(TR('renderingGrid'), this.main_.showGrid_, this.onShowGridChange.bind(this));
+      var menu = this.menu_ = guiParent.addMenu(TR('renderingTitle'));
+      menu.close();
 
       // shader selection
       var optionsShaders = {};
@@ -39,11 +38,11 @@ define([
       this.ctrlShaders_ = menu.addCombobox('', Shader.mode.MATCAP, this.onShaderChange.bind(this), optionsShaders);
 
       // matcap texture
-      var optionMaterials = {};
-      for (var i = 0, mats = ShaderMatcap.getMaterials(), l = mats.length; i < l; ++i)
-        optionMaterials[i] = mats[i].name;
+      var optionMatcaps = {};
+      for (var i = 0, mats = ShaderMatcap.getMatcaps(), l = mats.length; i < l; ++i)
+        optionMatcaps[i] = mats[i].name;
       this.ctrlMatcapTitle_ = menu.addTitle(TR('renderingMaterial'));
-      this.ctrlMatcap_ = menu.addCombobox('', 0, this.onMaterialChange.bind(this), optionMaterials);
+      this.ctrlMatcap_ = menu.addCombobox('', 0, this.onMatcapChange.bind(this), optionMatcaps);
 
       // uv texture
       this.ctrlUV_ = menu.addButton(TR('renderingImportUV'), this, 'importTexture');
@@ -65,6 +64,9 @@ define([
       this.ctrlShowWireframe_ = menu.addCheckbox(TR('renderingWireframe'), false, this.onWireframeChange.bind(this));
       if (Render.ONLY_DRAW_ARRAYS)
         this.ctrlShowWireframe_.setVisibility(false);
+
+      // display grid
+      menu.addCheckbox(TR('renderingGrid'), this.main_.showGrid_, this.onShowGridChange.bind(this));
 
       this.addEvents();
     },
@@ -97,11 +99,11 @@ define([
       }
       this.updateVisibility();
     },
-    /** On material change */
-    onMaterialChange: function (value) {
+    /** On matcap change */
+    onMatcapChange: function (value) {
       var mesh = this.main_.getMesh();
       if (mesh) {
-        mesh.setMaterial(value);
+        mesh.setMatcap(value);
         this.main_.render();
       }
     },
@@ -141,7 +143,7 @@ define([
       this.ctrlShaders_.setValue(render.shader_.type_, true);
       this.ctrlFlatShading_.setValue(render.flatShading_, true);
       this.ctrlShowWireframe_.setValue(render.showWireframe_, true);
-      this.ctrlMatcap_.setValue(render.material_, true);
+      this.ctrlMatcap_.setValue(render.matcap_, true);
       this.ctrlRoughness_.setValue(render.roughness_, true);
       this.ctrlMetallic_.setValue(render.metallic_, true);
       this.ctrlExposure_.setValue(render.exposure_, true);

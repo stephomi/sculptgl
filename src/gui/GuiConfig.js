@@ -6,6 +6,7 @@ define([
 
   function GuiConfig(guiParent, ctrlGui) {
     this.ctrlGui_ = ctrlGui;
+    this.menu_ = null; // ui menu
     this.init(guiParent);
   }
 
@@ -14,8 +15,8 @@ define([
     init: function (guiParent) {
       // config stuffs
       this.langs_ = Object.keys(TR.languages);
-      var foldConfig = guiParent.addMenu('Language');
-      foldConfig.addCombobox('', this.langs_.indexOf(TR.select), this.onLangChange.bind(this), this.langs_);
+      this.menu_ = guiParent.addMenu('Language');
+      this.menu_.addCombobox('', this.langs_.indexOf(TR.select), this.onLangChange.bind(this), this.langs_);
     },
     onLangChange: function (value) {
       TR.select = this.langs_[parseInt(value, 10)];

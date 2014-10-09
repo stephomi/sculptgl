@@ -471,6 +471,8 @@ define([
   /** Updates uniforms */
   ShaderPBR.updateUniforms = (function () {
     var tmpMat = mat4.create();
+    mat4.rotateZ(tmpMat, tmpMat, Math.PI);
+    mat4.rotateY(tmpMat, tmpMat, Math.PI);
     return function (render, main) {
       var gl = render.getGL();
       var uniforms = this.uniforms;

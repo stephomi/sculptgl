@@ -10,15 +10,16 @@ define([
   function GuiMultiresolution(guiParent, ctrlGui) {
     this.ctrlGui_ = ctrlGui;
     this.main_ = ctrlGui.main_; // main application
+    this.menu_ = null; // ui menu
     this.ctrlResolution_ = null; // multiresolution controller
-    this.securityBelt_ = true; // security belt
     this.init(guiParent);
   }
 
   GuiMultiresolution.prototype = {
     /** Initialize */
     init: function (guiParent) {
-      var menu = guiParent.addMenu(TR('topologyTitle'));
+      var menu = this.menu_ = guiParent.addMenu(TR('topologyTitle'));
+      menu.close();
 
       // multires
       menu.addTitle(TR('multiresTitle'));
@@ -65,12 +66,10 @@ define([
         window.alert(TR('multiresSelectHighest'));
         return;
       }
-      if (this.securityBelt_ && mul.getNbTriangles() > 400000) {
-        window.alert(TR('multiresWarnBigMesh', mul.getNbFaces() * 4));
-        this.securityBelt_ = false;
-        return;
+      if (mul.getNbTriangles() > 400000) {
+        if (!window.confirm(TR('multiresWarnBigMesh', mul.getNbFaces() * 4)))
+          return;
       }
-      this.securityBelt_ = true;
       main.getStates().pushState(new StateMultiresolution(main, mul, StateMultiresolution.SUBDIVISION));
       mul.addLevel();
       this.ctrlGui_.updateMeshInfo();

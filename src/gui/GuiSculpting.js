@@ -11,6 +11,7 @@ define([
     this.sculpt_ = ctrlGui.main_.getSculpt(); // sculpting management
     this.toolOnRelease_ = -1; // tool to apply when the mouse or the key is released
 
+    this.menu_ = null; // ui menu
     this.ctrlSculpt_ = null; // sculpt controller
     this.ctrlSymmetry_ = null; // symmetry controller
     this.ctrlContinuous_ = null; // continuous controller
@@ -21,7 +22,9 @@ define([
   GuiSculpting.prototype = {
     /** Initialisculze */
     init: function (guiParent) {
-      var menu = guiParent.addMenu(TR('sculptTitle'));
+      var menu = this.menu_ = guiParent.addMenu(TR('sculptTitle'));
+
+      menu.addTitle(TR('sculptTool'));
 
       // sculpt tool
       var optionsSculpt = {};
@@ -39,10 +42,6 @@ define([
       optionsSculpt[Sculpt.tool.ROTATE] = TR('sculptRotate');
       this.ctrlSculpt_ = menu.addCombobox(TR('sculptTool'), this.sculpt_.tool_, this.onChangeTool.bind(this), optionsSculpt);
 
-      // symmetry
-      this.ctrlSymmetry_ = menu.addCheckbox(TR('sculptSymmetry'), this.sculpt_.symmetry_, this.onSymmetryChange.bind(this));
-      // continuous
-      this.ctrlContinuous_ = menu.addCheckbox(TR('sculptContinuous'), this.sculpt_, 'continuous_');
       // radius
       var picking = this.main_.getPicking();
       this.ctrlRadius_ = menu.addSlider(TR('sculptRadius'), picking, 'rDisplay_', 5, 200, 1);
@@ -60,6 +59,13 @@ define([
       this.initTool(Sculpt.tool.SCALE, menu);
       this.initTool(Sculpt.tool.TRANSLATE, menu);
       this.initTool(Sculpt.tool.ROTATE, menu);
+
+      menu.addTitle(TR('Extra'));
+      // symmetry
+      this.ctrlSymmetry_ = menu.addCheckbox(TR('sculptSymmetry'), this.sculpt_.symmetry_, this.onSymmetryChange.bind(this));
+      // continuous
+      this.ctrlContinuous_ = menu.addCheckbox(TR('sculptContinuous'), this.sculpt_, 'continuous_');
+
 
       GuiSculptingTools.show(this.sculpt_.tool_);
       this.addEvents();
@@ -115,7 +121,8 @@ define([
       }
       switch (key) {
       case 46: // DEL
-        this.main_.deleteCurrentMesh();
+        if (window.confirm(TR('sculptDeleteMesh')))
+          this.main_.deleteCurrentMesh();
         break;
       case 48: // 0
       case 96: // NUMPAD 0

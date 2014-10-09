@@ -6,6 +6,7 @@ define([
 
   function GuiBackground(guiParent, ctrlGui) {
     this.main_ = ctrlGui.main_; // main application
+    this.menu_ = null; // ui menu
     this.init(guiParent);
   }
 
@@ -13,10 +14,10 @@ define([
     /** Initialize */
     init: function (guiParent) {
       // background fold
-      var backgroundFold = guiParent.addMenu(TR('backgroundTitle'));
-      backgroundFold.addButton(TR('backgroundReset'), this, 'resetBackground');
-      backgroundFold.addButton(TR('backgroundImport'), this, 'importBackground');
-      backgroundFold.addCheckbox(TR('backgroundFill'), this.main_.getBackground().fill_, this.updateFill.bind(this));
+      var menu = this.menu_ = guiParent.addMenu(TR('backgroundTitle'));
+      menu.addButton(TR('backgroundReset'), this, 'resetBackground');
+      menu.addButton(TR('backgroundImport'), this, 'importBackground');
+      menu.addCheckbox(TR('backgroundFill'), this.main_.getBackground().fill_, this.updateFill.bind(this));
     },
     /** Reset background */
     updateFill: function (val) {

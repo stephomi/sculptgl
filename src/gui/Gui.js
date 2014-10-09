@@ -51,9 +51,9 @@ define([
 
       // Initialize the sidebar
       this.sidebar_ = this.guiMain_.addRightSidebar();
+      this.ctrlRendering_ = new GuiRendering(this.sidebar_, this);
       this.ctrlTopology_ = new GuiTopology(this.sidebar_, this);
       this.ctrlSculpting_ = new GuiSculpting(this.sidebar_, this);
-      this.ctrlRendering_ = new GuiRendering(this.sidebar_, this);
 
       // gui extra
       this.topbar_.addExtra();

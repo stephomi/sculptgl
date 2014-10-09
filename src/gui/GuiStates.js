@@ -8,6 +8,7 @@ define([
   function GuiTablet(guiParent, ctrlGui) {
     this.ctrlGui_ = ctrlGui; // main gui controller
     this.main_ = ctrlGui.main_; // main application
+    this.menu_ = null; // ui menu
     this.init(guiParent);
   }
 
@@ -15,12 +16,12 @@ define([
     /** Initialize */
     init: function (guiParent) {
       // history fold
-      var foldHistory = guiParent.addMenu(TR('stateTitle'));
-      foldHistory.addButton(TR('stateUndo'), this, 'onUndo', 'CTRL+Z');
-      foldHistory.addButton(TR('stateRedo'), this, 'onRedo', 'CTRL+Y');
-      foldHistory.addTitle(TR('stateMaxStack'));
+      var menu = this.menu_ = guiParent.addMenu(TR('stateTitle'));
+      menu.addButton(TR('stateUndo'), this, 'onUndo', 'CTRL+Z');
+      menu.addButton(TR('stateRedo'), this, 'onRedo', 'CTRL+Y');
+      menu.addTitle(TR('stateMaxStack'));
       var states = this.main_.getStates();
-      foldHistory.addSlider('', States.STACK_LENGTH, states.setNewMaxStack.bind(states), 1, 50, 1);
+      menu.addSlider('', States.STACK_LENGTH, states.setNewMaxStack.bind(states), 1, 50, 1);
       this.addEvents();
     },
     /** Add events */
