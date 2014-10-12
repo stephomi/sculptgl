@@ -104,22 +104,27 @@ define([
         main.render();
       }
     },
+    onPickedMaterial: function (materials, tool, color, roughness, metallic) {
+      materials[0].setValue(color, true);
+      materials[1].setValue(roughness, true);
+      materials[2].setValue(metallic, true);
+      tool.color_ = color;
+      tool.roughness_ = roughness;
+      tool.metallic_ = metallic;
+    },
     init: function (tool, fold, main) {
       this.ctrls_.push(addCtrlIntensity(tool, fold));
       this.ctrls_.push(addCtrlCulling(tool, fold));
 
       var materials = [];
-      var ctrlColor = fold.addColor(TR('sculptColor'), tool.color_, this.onMaterialChanged.bind(this, main, tool, materials));
-      var ctrlRoughness = fold.addSlider(TR('sculptRoughness'), tool.roughness_, this.onMaterialChanged.bind(this, main, tool, materials), 0.0, 1.0, 0.01);
-      var ctrlMetallic = fold.addSlider(TR('sculptMetallic'), tool.metallic_, this.onMaterialChanged.bind(this, main, tool, materials), 0.0, 1.0, 0.01);
+      var cbMatChanged = this.onMaterialChanged.bind(this, main, tool, materials);
+      var ctrlColor = fold.addColor(TR('sculptColor'), tool.color_, cbMatChanged);
+      var ctrlRoughness = fold.addSlider(TR('sculptRoughness'), tool.roughness_, cbMatChanged, 0.0, 1.0, 0.01);
+      var ctrlMetallic = fold.addSlider(TR('sculptMetallic'), tool.metallic_, cbMatChanged, 0.0, 1.0, 0.01);
       materials.push(ctrlColor, ctrlRoughness, ctrlMetallic);
       window.addEventListener('mouseup', this.resetMaterialOverride.bind(this, main));
 
-      tool.setPickCallback(function (color, roughness, metallic) {
-        ctrlColor.setValue(color);
-        ctrlRoughness.setValue(roughness);
-        ctrlMetallic.setValue(metallic);
-      });
+      tool.setPickCallback(this.onPickedMaterial.bind(this, materials, tool));
 
       this.ctrls_.push(ctrlColor, ctrlRoughness, ctrlMetallic);
       this.ctrls_.push(fold.addCheckbox(TR('sculptPickColor'), tool, 'pickColor_'));
