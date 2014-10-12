@@ -1,14 +1,14 @@
-MultiresGL
-========
+SculptGL - WebGL sculpting
+==========================
 
-#### A WebGL sculpting <applet></applet>
+You can try it [**here**](http://stephaneginier.com/sculptgl).
 
-[MultiresGL demo](http://stephaneginier.com/test/multiresgl) 
+Additional information can be found on the [website](http://stephaneginier.com/).
 
 Tools
-======
+=====
 
-#### Development
+#### Dev
 
 Nothing to do.
 Simply open `index.html`.
@@ -17,5 +17,5 @@ Simply open `index.html`.
 
 Use grunt :
 
-    npm install
-    grunt
+  npm install
+  grunt
