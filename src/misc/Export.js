@@ -14,22 +14,40 @@ define([
   Export.exportSketchfab = function (meshes, key) {
     var fd = new FormData();
 
+    fd.append('modelFile', Export.exportOBJ(meshes, true), 'sculptglModel.obj');
+    fd.append('name', 'My SculptGL model');
+    fd.append('tags', 'sculptgl');
     fd.append('token', key);
-    fd.append('fileModel', Export.exportOBJ(meshes, true));
-    fd.append('filenameModel', 'model.obj');
 
     var xhr = new XMLHttpRequest();
-    xhr.open('POST', 'https://api.sketchfab.com/v1/models', true);
+    xhr.open('POST', 'https://api.sketchfab.com/v2/models', true);
 
-    var result = function () {
+    xhr.onload = function () {
       var res = JSON.parse(xhr.responseText);
-      console.log(res);
-      if (!res.success)
-        window.alert(TR('sketchfabUploadError', res.error));
-      else
-        window.prompt(TR('sketchfabUploadSuccess'), 'https://sketchfab.com/models/' + res.result.id);
+      var uid = res.uid;
+      if (!uid) {
+        window.alert(TR('sketchfabUploadError', res.detail));
+        return;
+      }
+      window.prompt(TR('Processing...'), uid);
+      var check = function () {
+        var xhrPoll = new XMLHttpRequest();
+        xhrPoll.open('GET', 'https://api.sketchfab.com/v2/models/' + uid + '/status', true);
+        xhrPoll.onload = function () {
+          var resPoll = JSON.parse(xhrPoll.responseText);
+          if (resPoll.error)
+            window.alert(TR('sketchfabUploadError', resPoll.error));
+          else if (resPoll.processing === 'FAILURE')
+            window.alert(TR('sketchfabUploadError', resPoll.processing));
+          else if (resPoll.processing === 'SUCCEEDED')
+            window.prompt(TR('sketchfabUploadSuccess'), 'https://sketchfab.com/models/' + uid);
+          else
+            window.setTimeout(check, 5000);
+        };
+        xhrPoll.send();
+      };
+      check();
     };
-    xhr.addEventListener('load', result, true);
     xhr.send(fd);
   };
 
