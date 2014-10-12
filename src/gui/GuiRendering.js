@@ -48,11 +48,6 @@ define([
       this.ctrlUV_ = menu.addButton(TR('renderingImportUV'), this, 'importTexture');
       this.ctrlUV_.setVisibility(false);
 
-      // pbr settings
-      // this.ctrlRoughness_ = menu.addSlider(TR('Roughness'), 0.0, this.onRoughnessChanged.bind(this), 0.0, 1.0, 0.01);
-      // this.ctrlRoughness_.setVisibility(false);
-      // this.ctrlMetallic_ = menu.addSlider(TR('Metallic'), 0.0, this.onMetallicChanged.bind(this), 0.0, 1.0, 0.01);
-      // this.ctrlMetallic_.setVisibility(false);
       this.ctrlExposure_ = menu.addSlider('Exposure', 0.0, this.onExposureChanged.bind(this), 0.0, 5.0, 0.01);
       this.ctrlExposure_.setVisibility(false);
 
@@ -70,16 +65,6 @@ define([
 
       this.addEvents();
     },
-    // onRoughnessChanged: function (val) {
-    //   var mesh = this.main_.getMesh();
-    //   if (mesh) mesh.getRender().setRoughness(val);
-    //   this.main_.render();
-    // },
-    // onMetallicChanged: function (val) {
-    //   var mesh = this.main_.getMesh();
-    //   if (mesh) mesh.getRender().setMetallic(val);
-    //   this.main_.render();
-    // },
     onExposureChanged: function (val) {
       var mesh = this.main_.getMesh();
       if (mesh) mesh.getRender().setExposure(val);
@@ -144,8 +129,6 @@ define([
       this.ctrlFlatShading_.setValue(render.flatShading_, true);
       this.ctrlShowWireframe_.setValue(render.showWireframe_, true);
       this.ctrlMatcap_.setValue(render.matcap_, true);
-      // this.ctrlRoughness_.setValue(render.roughness_, true);
-      // this.ctrlMetallic_.setValue(render.metallic_, true);
       this.ctrlExposure_.setValue(render.exposure_, true);
       this.updateVisibility();
     },
@@ -156,8 +139,6 @@ define([
       this.ctrlMatcapTitle_.setVisibility(val === Shader.mode.MATCAP);
       this.ctrlMatcap_.setVisibility(val === Shader.mode.MATCAP);
       this.ctrlUV_.setVisibility(val === Shader.mode.UV);
-      // this.ctrlRoughness_.setVisibility(val === Shader.mode.PBR);
-      // this.ctrlMetallic_.setVisibility(val === Shader.mode.PBR);
       this.ctrlExposure_.setVisibility(val === Shader.mode.PBR);
     },
     /** Return true if flat shading is enabled */

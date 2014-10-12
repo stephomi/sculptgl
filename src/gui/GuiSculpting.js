@@ -1,8 +1,9 @@
 define([
   'gui/GuiTR',
   'editor/Sculpt',
+  'render/Shader',
   'gui/GuiSculptingTools'
-], function (TR, Sculpt, GuiSculptingTools) {
+], function (TR, Sculpt, Shader, GuiSculptingTools) {
 
   'use strict';
 
@@ -195,6 +196,11 @@ define([
     onChangeTool: function (newValue) {
       newValue = parseInt(newValue, 10);
       GuiSculptingTools.hide(this.sculpt_.tool_);
+      if (newValue === Sculpt.tool.PAINT) {
+        var mesh = this.main_.getMesh();
+        if (mesh)
+          mesh.setShader(Shader.mode.PBR);
+      }
       this.sculpt_.tool_ = newValue;
       GuiSculptingTools.show(newValue);
       this.ctrlContinuous_.setVisibility(this.sculpt_.allowPicking() === true);
