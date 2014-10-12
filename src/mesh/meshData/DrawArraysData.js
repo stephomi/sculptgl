@@ -8,6 +8,7 @@ define([], function () {
     this.verticesXYZ_ = null; // vertices (Float32Array)
     this.normalsXYZ_ = null; // normals (Float32Array)
     this.colorsRGB_ = null; // color vertices (Float32Array)
+    this.materialsPBR_ = null; // material vertices (Float32Array)
     this.texCoordsST_ = null; // texCoords (Float32Array)
   }
 
@@ -21,6 +22,9 @@ define([], function () {
     getColorsDrawArrays: function () {
       return this.colorsRGB_;
     },
+    getMaterialsDrawArrays: function () {
+      return this.materialsPBR_;
+    },
     getTexCoordsDrawArrays: function () {
       return this.texCoordsST_;
     },
@@ -31,6 +35,7 @@ define([], function () {
       var vAr = mesh.getVertices();
       var nAr = mesh.getNormals();
       var cAr = mesh.getColors();
+      var mAr = mesh.getMaterials();
 
       var fAr = mesh.getFaces();
 
@@ -42,6 +47,7 @@ define([], function () {
       var cdv = this.verticesXYZ_;
       var cdn = this.normalsXYZ_;
       var cdc = this.colorsRGB_;
+      var cdm = this.materialsPBR_;
 
       if (!cdv || cdv.length !== nbTriangles * 9)
         cdv = this.verticesXYZ_ = new Float32Array(nbTriangles * 9);
@@ -49,6 +55,8 @@ define([], function () {
         cdn = this.normalsXYZ_ = new Float32Array(nbTriangles * 9);
       if (!cdc || cdc.length !== nbTriangles * 9)
         cdc = this.colorsRGB_ = new Float32Array(nbTriangles * 9);
+      if (!cdm || cdm.length !== nbTriangles * 9)
+        cdm = this.materialsPBR_ = new Float32Array(nbTriangles * 9);
 
       var nbFaces = full ? mesh.getNbFaces() : iFaces.length;
       for (var i = 0; i < nbFaces; ++i) {
@@ -84,6 +92,17 @@ define([], function () {
         cdc[vId + 6] = cAr[id3];
         cdc[vId + 7] = cAr[id3 + 1];
         cdc[vId + 8] = cAr[id3 + 2];
+
+        // material
+        cdm[vId] = mAr[id1];
+        cdm[vId + 1] = mAr[id1 + 1];
+        cdm[vId + 2] = mAr[id1 + 2];
+        cdm[vId + 3] = mAr[id2];
+        cdm[vId + 4] = mAr[id2 + 1];
+        cdm[vId + 5] = mAr[id2 + 2];
+        cdm[vId + 6] = mAr[id3];
+        cdm[vId + 7] = mAr[id3 + 1];
+        cdm[vId + 8] = mAr[id3 + 2];
 
         // normals
         if (flat) {
@@ -128,6 +147,17 @@ define([], function () {
         cdc[vId + 7] = cAr[id4 + 1];
         cdc[vId + 8] = cAr[id4 + 2];
 
+        // materials
+        cdm[vId] = mAr[id1];
+        cdm[vId + 1] = mAr[id1 + 1];
+        cdm[vId + 2] = mAr[id1 + 2];
+        cdm[vId + 3] = mAr[id3];
+        cdm[vId + 4] = mAr[id3 + 1];
+        cdm[vId + 5] = mAr[id3 + 2];
+        cdm[vId + 6] = mAr[id4];
+        cdm[vId + 7] = mAr[id4 + 1];
+        cdm[vId + 8] = mAr[id4 + 2];
+
         // normals
         if (flat) {
           cdn[vId] = cdn[vId + 3] = cdn[vId + 6] = faceNormals[idTri];
@@ -158,7 +188,7 @@ define([], function () {
       var cdt = this.texCoordsST_;
       if (!cdt || cdt.length !== nbTriangles * 6)
         cdt = this.texCoordsST_ = new Float32Array(nbTriangles * 6);
-      
+
       var tAr = mesh.getTexCoords();
       var fArUV = mesh.getFacesTexCoord();
 

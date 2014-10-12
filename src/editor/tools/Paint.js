@@ -13,8 +13,11 @@ define([
     SculptBase.call(this, states);
     this.intensity_ = 0.75; // deformation intensity
     this.culling_ = false; // if we backface cull the vertices
-    this.color_ = [0.66, 0.29, 0.29]; // color painting
+    this.color_ = [1.0, 0.766, 0.336]; // albedo
+    this.roughness_ = 0.3; // roughness
+    this.metallic_ = 0.95; // metallic
     this.pickColor_ = false; // color picking
+    this.global_ = false; // global material
     this.pickCallback_ = null; // callback function after picking a color
   }
 
@@ -22,7 +25,7 @@ define([
     /** Push undo operation */
     pushState: function () {
       if (!this.pickColor_)
-        this.states_.pushStateColor(this.mesh_);
+        this.states_.pushStateColorAndMaterial(this.mesh_);
     },
     /** Start sculpting operation */
     startSculpt: function (main) {
@@ -46,12 +49,19 @@ define([
     setPickCallback: function (cb) {
       this.pickCallback_ = cb;
     },
+    triMean: function (color, ar, iv1, iv2, iv3, iv4, len1, len2, len3, len4) {
+      var sum = len1 + len2 + len3 + len4;
+      vec3.scaleAndAdd(color, color, ar.subarray(iv1, iv1 + 3), (sum - len1) / sum);
+      vec3.scaleAndAdd(color, color, ar.subarray(iv2, iv2 + 3), (sum - len2) / sum);
+      vec3.scaleAndAdd(color, color, ar.subarray(iv3, iv3 + 3), (sum - len3) / sum);
+      if (iv4 >= 0) vec3.scaleAndAdd(color, color, ar.subarray(iv4, iv4 + 3), (sum - len4) / sum);
+      vec3.scale(color, color, 1.0 / (iv4 >= 0 ? 3 : 2));
+    },
     /** Pick the color under the mouse */
     pickColor: function (idFace, inter) {
       var mesh = this.mesh_;
       var color = this.color_;
       var fAr = mesh.getFaces();
-      var cAr = mesh.getColors();
       var vAr = mesh.getVertices();
 
       var id = idFace * 4;
@@ -64,15 +74,16 @@ define([
       var len2 = vec3.len(vec3.sub(color, inter, vAr.subarray(iv2, iv2 + 3)));
       var len3 = vec3.len(vec3.sub(color, inter, vAr.subarray(iv3, iv3 + 3)));
       var len4 = iv4 >= 0 ? vec3.len(vec3.sub(color, inter, vAr.subarray(iv4, iv4 + 3))) : 0;
-      var sum = len1 + len2 + len3 + len4;
-      vec3.set(color, 0.0, 0.0, 0.0);
-      vec3.scaleAndAdd(color, color, cAr.subarray(iv1, iv1 + 3), (sum - len1) / sum);
-      vec3.scaleAndAdd(color, color, cAr.subarray(iv2, iv2 + 3), (sum - len2) / sum);
-      vec3.scaleAndAdd(color, color, cAr.subarray(iv3, iv3 + 3), (sum - len3) / sum);
-      if (iv4 >= 0) vec3.scaleAndAdd(color, color, cAr.subarray(iv4, iv4 + 3), (sum - len4) / sum);
-      vec3.scale(color, color, 1.0 / (iv4 >= 0 ? 3 : 2));
 
-      this.pickCallback_(color);
+      vec3.set(color, 0.0, 0.0, 0.0);
+      this.triMean(color, mesh.getMaterials(), iv1, iv2, iv3, iv4, len1, len2, len3, len4);
+      var roughness = color[0];
+      var metallic = color[1];
+
+      vec3.set(color, 0.0, 0.0, 0.0);
+      this.triMean(color, mesh.getColors(), iv1, iv2, iv3, iv4, len1, len2, len3, len4);
+
+      this.pickCallback_(color, roughness, metallic);
     },
     /** On stroke */
     stroke: function (picking) {
@@ -87,7 +98,7 @@ define([
 
       this.paint(iVertsInRadius, picking.getIntersectionPoint(), picking.getLocalRadius2(), intensity);
 
-      this.mesh_.updateDuplicateColors(iVertsInRadius);
+      this.mesh_.updateDuplicateColorsAndMaterials(iVertsInRadius);
       this.mesh_.updateFlatShading(this.mesh_.getFacesFromVertices(iVertsInRadius));
     },
     /** Paint color vertices */
@@ -95,7 +106,10 @@ define([
       var mesh = this.mesh_;
       var vAr = mesh.getVertices();
       var cAr = mesh.getColors();
+      var mAr = mesh.getMaterials();
       var color = this.color_;
+      var roughness = this.roughness_;
+      var metallic = this.metallic_;
       var radius = Math.sqrt(radiusSquared);
       var cr = color[0];
       var cg = color[1];
@@ -116,6 +130,8 @@ define([
         cAr[ind] = cAr[ind] * fallOffCompl + cr * fallOff;
         cAr[ind + 1] = cAr[ind + 1] * fallOffCompl + cg * fallOff;
         cAr[ind + 2] = cAr[ind + 2] * fallOffCompl + cb * fallOff;
+        mAr[ind] = mAr[ind] * fallOffCompl + roughness * fallOff;
+        mAr[ind + 1] = mAr[ind + 1] * fallOffCompl + metallic * fallOff;
       }
     }
   };

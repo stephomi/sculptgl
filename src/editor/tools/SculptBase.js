@@ -82,9 +82,10 @@ define([
           mouseX += dx * step;
           mouseY += dy * step;
         }
-        if (colorState)
+        if (colorState) {
           main.getMesh().updateColorBuffer();
-        else
+          main.getMesh().updateMaterialBuffer();
+        } else
           main.getMesh().updateGeometryBuffers();
       }
       main.sumDisplacement_ = sumDisp;

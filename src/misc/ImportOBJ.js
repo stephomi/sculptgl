@@ -12,6 +12,8 @@ define([
     var vAr = [];
     var cAr = [];
     var cArMrgb = [];
+    var mAr = [];
+    var mArMat = [];
     var texAr = [];
     var fAr = [];
     var uvfAr = [];
@@ -27,7 +29,7 @@ define([
       var line = lines[i].trim();
       if (line.startsWith('o ')) {
         if (meshes.length > 0) {
-          Import.initMeshOBJ(meshes[meshes.length - 1], vAr, fAr, cAr, texAr, uvfAr, cArMrgb);
+          Import.initMeshOBJ(meshes[meshes.length - 1], vAr, fAr, cAr, mAr, texAr, uvfAr, cArMrgb, mArMat);
           offsetVertices = nbVertices;
           offsetTexCoords = nbTexCoords;
         }
@@ -45,6 +47,14 @@ define([
         for (var m = 2, mlen = blockMRGB.length; m < mlen; m += 8) {
           var hex = parseInt(blockMRGB.substr(m, 6), 16);
           cArMrgb.push((hex >> 16) * inv255, (hex >> 8 & 0xff) * inv255, (hex & 0xff) * inv255);
+        }
+      } else if (line.startsWith('#MAT ')) {
+        // zbrush-like vertex material
+        split = line.split(/\s+/);
+        var blockMAT = split[1];
+        for (var n = 0, nlen = blockMAT.length; n < nlen; n += 6) {
+          var hex2 = parseInt(blockMAT.substr(n, 6), 16);
+          mArMat.push((hex2 >> 16) * inv255, (hex2 >> 8 & 0xff) * inv255, (hex2 & 0xff) * inv255);
         }
       } else if (line.startsWith('vt ')) {
         split = line.split(/\s+/);
@@ -85,15 +95,19 @@ define([
       }
     }
     if (meshes.length === 0) meshes[0] = new Mesh(gl);
-    Import.initMeshOBJ(meshes[meshes.length - 1], vAr, fAr, cAr, texAr, uvfAr, cArMrgb);
+    Import.initMeshOBJ(meshes[meshes.length - 1], vAr, fAr, cAr, mAr, texAr, uvfAr, cArMrgb, mArMat);
     return meshes;
   };
 
-  Import.initMeshOBJ = function (mesh, vAr, fAr, cAr, texAr, uvfAr, cArMrgb) {
+  Import.initMeshOBJ = function (mesh, vAr, fAr, cAr, mAr, texAr, uvfAr, cArMrgb, mArMat) {
     mesh.setVertices(new Float32Array(vAr));
     mesh.setFaces(new Int32Array(fAr));
     if (cArMrgb.length > 0) mesh.setColors(new Float32Array(cArMrgb));
     else if (cAr.length > 0) mesh.setColors(new Float32Array(cAr));
+
+    if (mArMat.length > 0) mesh.setMaterials(new Float32Array(mArMat));
+    else if (mAr.length > 0) mesh.setMaterials(new Float32Array(mAr));
+
     if (texAr.length > 0 && uvfAr.length > 0) mesh.initTexCoordsDataFromOBJData(texAr, uvfAr);
     vAr.length = texAr.length = fAr.length = uvfAr.length = 0;
   };

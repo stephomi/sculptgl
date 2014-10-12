@@ -278,10 +278,12 @@ define([], function () {
   // Utils.optimizePreTransform = function (newMesh) {
   //   var vArOld = newMesh.getVertices();
   //   var cArOld = newMesh.getColors();
+  //   var mArOld = newMesh.getMaterials();
   //   var iArOld = newMesh.getIndices();
 
   //   var vArNew = new Float32Array(vArOld.length);
   //   var cArNew = new Float32Array(cArOld.length);
+  //   var mArNew = new Float32Array(mArOld.length);
   //   var iArNew = new Uint32Array(iArOld.length);
 
   //   var idvPos = new Int32Array(newMesh.getNbVertices());
@@ -298,6 +300,9 @@ define([], function () {
   //       cArNew[idNew] = cArOld[idOld];
   //       cArNew[idNew + 1] = cArOld[idOld + 1];
   //       cArNew[idNew + 2] = cArOld[idOld + 2];
+  //       mArNew[idNew] = mArOld[idOld];
+  //       mArNew[idNew + 1] = mArOld[idOld + 1];
+  //       mArNew[idNew + 2] = mArOld[idOld + 2];
   //       tag = acc++;
   //       idvPos[iv] = tag + 1;
   //     }
@@ -305,6 +310,7 @@ define([], function () {
   //   }
   //   newMesh.setVertices(vArNew);
   //   newMesh.setColors(cArNew);
+  //   newMesh.setMaterials(mArNew);
   //   newMesh.setIndices(iArNew);
   // };
 

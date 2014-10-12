@@ -16,7 +16,7 @@ define([
   ShaderPBR.attributes = {};
   ShaderPBR.program = undefined;
 
-  ShaderPBR.uniformNames = ['uMV', 'uMVP', 'uN', 'uIblTransform', 'uTexture0', 'uRoughness', 'uMetallic', 'uExposure'];
+  ShaderPBR.uniformNames = ['uMV', 'uMVP', 'uN', 'uIblTransform', 'uTexture0', 'uAlbedo', 'uRoughness', 'uMetallic', 'uExposure'];
   Array.prototype.push.apply(ShaderPBR.uniformNames, ShaderBase.uniformNames.picking);
 
   ShaderPBR.vertex = [
@@ -24,16 +24,24 @@ define([
     'attribute vec3 aVertex;',
     'attribute vec3 aNormal;',
     'attribute vec3 aColor;',
+    'attribute vec3 aMaterial;',
     'uniform mat4 uMV;',
     'uniform mat4 uMVP;',
     'uniform mat3 uN;',
+    'uniform float uRoughness;',
+    'uniform float uMetallic;',
+    'uniform vec3 uAlbedo;',
     'varying vec3 vVertex;',
     'varying vec3 vNormal;',
     'varying vec3 vAlbedo;',
+    'varying float vRoughness;',
+    'varying float vMetallic;',
     'void main() {',
     '  vec4 vertex4 = vec4(aVertex, 1.0);',
     '  vNormal = normalize(uN * aNormal);',
-    '  vAlbedo = aColor;',
+    '  vAlbedo = uAlbedo.x >= 0.0 ? uAlbedo : aColor;',
+    '  vRoughness = uRoughness >= 0.0 ? uRoughness : aMaterial.x;',
+    '  vMetallic = uMetallic >= 0.0 ? uMetallic : aMaterial.y;',
     '  vVertex = vec3(uMV * vertex4);',
     '  gl_Position = uMVP * vertex4;',
     '}'
@@ -44,6 +52,8 @@ define([
     'varying vec3 vVertex;',
     'varying vec3 vNormal;',
     'varying vec3 vAlbedo;',
+    'varying float vRoughness;',
+    'varying float vMetallic;',
     ShaderBase.strings.pickingUniforms,
     ShaderBase.strings.pickingFunction,
     '',
@@ -56,8 +66,6 @@ define([
     'uniform mat4 uIblTransform;',
     'uniform sampler2D uTexture0;',
     'uniform float uExposure;',
-    'uniform float uRoughness;',
-    'uniform float uMetallic;',
     '',
     '// uniform vec2 environmentSize;',
     'vec2 environmentSize = vec2(512, 512);',
@@ -269,9 +277,9 @@ define([
     'void main() {',
     '  vec3 fragNormal = normalize(vNormal);',
     '  vec3 fragEye = normalize(vVertex);',
-    '  MaterialRoughness = max( 0.05 , uRoughness );',
-    '  MaterialAlbedo = vAlbedo * (1.0 - uMetallic);',
-    '  MaterialSpecular = mix( vec3(0.04), vAlbedo, uMetallic);',
+    '  MaterialRoughness = max( 0.05 , vRoughness );',
+    '  MaterialAlbedo = vAlbedo * (1.0 - vMetallic);',
+    '  MaterialSpecular = mix( vec3(0.04), vAlbedo, vMetallic);',
     '  vec3 fragColor = picking(solid2( getIBLTransfrom( uIblTransform ), fragNormal, -fragEye ));',
     '  gl_FragColor = vec4( fragColor, 1.0);',
     '}'
@@ -295,6 +303,7 @@ define([
     attrs.aVertex = new Attribute(gl, program, 'aVertex', 3, glfloat);
     attrs.aNormal = new Attribute(gl, program, 'aNormal', 3, glfloat);
     attrs.aColor = new Attribute(gl, program, 'aColor', 3, glfloat);
+    attrs.aMaterial = new Attribute(gl, program, 'aMaterial', 3, glfloat);
   };
   /** Bind attributes */
   ShaderPBR.bindAttributes = function (render) {
@@ -302,6 +311,7 @@ define([
     attrs.aVertex.bindToBuffer(render.getVertexBuffer());
     attrs.aNormal.bindToBuffer(render.getNormalBuffer());
     attrs.aColor.bindToBuffer(render.getColorBuffer());
+    attrs.aMaterial.bindToBuffer(render.getMaterialBuffer());
   };
 
   /** Get or create hammerSequence */
@@ -361,6 +371,7 @@ define([
 
       gl.uniformMatrix4fv(uniforms.uIblTransform, false, tmpMat);
 
+      gl.uniform3fv(uniforms.uAlbedo, render.getAlbedo());
       gl.uniform1f(uniforms.uRoughness, render.getRoughness());
       gl.uniform1f(uniforms.uMetallic, render.getMetallic());
       gl.uniform1f(uniforms.uExposure, render.getExposure());

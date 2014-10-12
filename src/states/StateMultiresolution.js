@@ -22,7 +22,8 @@ define([], function () {
     case StateMultiresolution.REVERSION:
       if (!isRedo) {
         this.vArState_ = new Float32Array(this.mesh_.getVertices()); // copies of vertices coordinates
-        this.cArState_ = new Float32Array(this.mesh_.getColors()); // copies of colors coordinates
+        this.cArState_ = new Float32Array(this.mesh_.getColors()); // copies of colors
+        this.mArState_ = new Float32Array(this.mesh_.getMaterials()); // copies of materials
       }
       break;
     }
@@ -53,11 +54,13 @@ define([], function () {
       case StateMultiresolution.SUBDIVISION:
         this.mesh_.setVertices(new Float32Array(this.vArState_));
         this.mesh_.setColors(new Float32Array(this.cArState_));
+        this.mesh_.setMaterials(new Float32Array(this.mArState_));
         mul.popMesh();
         break;
       case StateMultiresolution.REVERSION:
         this.mesh_.setVertices(new Float32Array(this.vArState_));
         this.mesh_.setColors(new Float32Array(this.cArState_));
+        this.mesh_.setMaterials(new Float32Array(this.mArState_));
         mul.shiftMesh();
         break;
       }

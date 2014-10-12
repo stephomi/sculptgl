@@ -21,6 +21,7 @@ define([
   Export.addMesh = function (mesh, data, offsets, saveColor) {
     var vAr = mesh.getVertices();
     var cAr = mesh.getColors();
+    var mAr = mesh.getMaterials();
     var fAr = mesh.getFaces();
     var nbVertices = mesh.getNbVertices();
     var nbFaces = mesh.getNbFaces();
@@ -53,6 +54,23 @@ define([
           data += r.length === 1 ? '0' + r : r;
           data += g.length === 1 ? '0' + g : g;
           data += b.length === 1 ? '0' + b : b;
+        }
+        data += '\n';
+      }
+      // zbrush-like vertex material
+      nbChunck = Math.ceil(nbVertices / 46);
+      for (i = 0; i < nbChunck; ++i) {
+        data += '#MAT ';
+        j = i * 46;
+        var nbMat = j + (i === nbChunck - 1 ? nbVertices % 46 : 46);
+        for (; j < nbMat; ++j) {
+          var mId = j * 3;
+          var ro = Math.round(mAr[mId] * 255).toString(16);
+          var m = Math.round(mAr[mId + 1] * 255).toString(16);
+          var a = Math.round(mAr[mId + 2] * 255).toString(16);
+          data += ro.length === 1 ? '0' + ro : ro;
+          data += m.length === 1 ? '0' + m : m;
+          data += a.length === 1 ? '0' + a : a;
         }
         data += '\n';
       }

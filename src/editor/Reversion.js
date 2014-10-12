@@ -382,9 +382,12 @@ define([
   Reversion.copyVerticesData = function (baseMesh, newMesh) {
     var vArUp = baseMesh.getVertices();
     var cArUp = baseMesh.getColors();
+    var mArUp = baseMesh.getMaterials();
     var vArDown = newMesh.getVertices();
-    var cArDown = new Float32Array(vArDown);
+    var cArDown = new Float32Array(vArDown.length);
+    var mArDown = new Float32Array(vArDown.length);
     newMesh.setColors(cArDown);
+    newMesh.setMaterials(mArDown);
     var vertexMapUp = newMesh.getVerticesMapping();
     var i = 0;
     var nbVertices = newMesh.getNbVertices();
@@ -406,6 +409,7 @@ define([
         vertexMapUp[i] = i;
       vArDown.set(vArUp.subarray(0, nbVertices * 3));
       cArDown.set(cArUp.subarray(0, nbVertices * 3));
+      mArDown.set(mArUp.subarray(0, nbVertices * 3));
     } else {
       // we keep the vertex mapping
       newMesh.setEvenMapping(true);
@@ -418,6 +422,9 @@ define([
         cArDown[id] = cArUp[idUp];
         cArDown[id + 1] = cArUp[idUp + 1];
         cArDown[id + 2] = cArUp[idUp + 2];
+        mArDown[id] = mArUp[idUp];
+        mArDown[id + 1] = mArUp[idUp + 1];
+        mArDown[id + 2] = mArUp[idUp + 2];
       }
     }
   };

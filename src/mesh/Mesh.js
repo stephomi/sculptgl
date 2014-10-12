@@ -44,6 +44,10 @@ define([
       if (this.isUsingDrawArrays()) return this.getColorsDrawArrays();
       return this.isUsingTexCoords() ? this.getColorsTexCoord() : this.getColors();
     },
+    getRenderMaterials: function () {
+      if (this.isUsingDrawArrays()) return this.getMaterialsDrawArrays();
+      return this.isUsingTexCoords() ? this.getMaterialsTexCoord() : this.getMaterials();
+    },
     getRenderTexCoords: function () {
       return this.isUsingDrawArrays() ? this.getTexCoordsDrawArrays() : this.getTexCoords();
     },
@@ -58,11 +62,11 @@ define([
     },
     /** Initialize stuffs for the mesh */
     init: function (ignoreTransform) {
-      this.initColors();
+      this.initColorsAndMaterials();
       this.allocateArrays();
       this.initTopology();
       this.updateGeometry();
-      this.updateDuplicateColors();
+      this.updateDuplicateColorsAndMaterials();
       if (!ignoreTransform)
         this.scaleAndCenter();
     },
