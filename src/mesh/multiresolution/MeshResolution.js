@@ -144,18 +144,20 @@ define([
       var dColorAr = this.getDetailsColors();
       var dMaterialAr = this.getDetailsMaterials();
 
+      var min = Math.min;
+      var max = Math.max;
       for (var i = 0; i < nbVertsUp; ++i) {
         var j = i * 3;
 
         // color delta vec
-        cArUp[j] += dColorAr[j];
-        cArUp[j + 1] += dColorAr[j + 1];
-        cArUp[j + 2] += dColorAr[j + 2];
+        cArUp[j] = min(1.0, max(0.0, cArUp[j] + dColorAr[j]));
+        cArUp[j + 1] = min(1.0, max(0.0, cArUp[j + 1] + dColorAr[j + 1]));
+        cArUp[j + 2] = min(1.0, max(0.0, cArUp[j + 2] + dColorAr[j + 2]));
 
         // material delta vec
-        mArUp[j] += dMaterialAr[j];
-        mArUp[j + 1] += dMaterialAr[j + 1];
-        mArUp[j + 2] += dMaterialAr[j + 2];
+        mArUp[j] = min(1.0, max(0.0, mArUp[j] + dMaterialAr[j]));
+        mArUp[j + 1] = min(1.0, max(0.0, mArUp[j + 1] + dMaterialAr[j + 1]));
+        mArUp[j + 2] = min(1.0, max(0.0, mArUp[j + 2] + dMaterialAr[j + 2]));
 
         // vertex coord
         var vx = vArTemp[j];
@@ -224,18 +226,20 @@ define([
       var dMaterialAr = new Float32Array(subdVerts.length);
       this.setDetailsMaterials(dMaterialAr);
 
+      var min = Math.min;
+      var max = Math.max;
       for (var i = 0; i < nbVertices; ++i) {
         var j = i * 3;
 
         // color delta vec
-        dColorAr[j] = cArUp[j] - subdColors[j];
-        dColorAr[j + 1] = cArUp[j + 1] - subdColors[j + 1];
-        dColorAr[j + 2] = cArUp[j + 2] - subdColors[j + 2];
+        dColorAr[j] = min(1.0, max(0.0, cArUp[j] - subdColors[j]));
+        dColorAr[j + 1] = min(1.0, max(0.0, cArUp[j + 1] - subdColors[j + 1]));
+        dColorAr[j + 2] = min(1.0, max(0.0, cArUp[j + 2] - subdColors[j + 2]));
 
         // material delta vec
-        dMaterialAr[j] = mArUp[j] - subdMaterials[j];
-        dMaterialAr[j + 1] = mArUp[j + 1] - subdMaterials[j + 1];
-        dMaterialAr[j + 2] = mArUp[j + 2] - subdMaterials[j + 2];
+        dMaterialAr[j] = min(1.0, max(0.0, mArUp[j] - subdMaterials[j]));
+        dMaterialAr[j + 1] = min(1.0, max(0.0, mArUp[j + 1] - subdMaterials[j + 1]));
+        dMaterialAr[j + 2] = min(1.0, max(0.0, mArUp[j + 2] - subdMaterials[j + 2]));
 
         // normal vec
         var nx = nArUp[j];
