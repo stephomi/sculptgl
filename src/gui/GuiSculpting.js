@@ -55,7 +55,7 @@ define([
       this.initTool(Sculpt.tool.PINCH, menu);
       this.initTool(Sculpt.tool.CREASE, menu);
       this.initTool(Sculpt.tool.DRAG, menu);
-      this.initTool(Sculpt.tool.PAINT, menu);
+      this.initTool(Sculpt.tool.PAINT, menu, this.main_);
       this.initTool(Sculpt.tool.SCALE, menu);
       this.initTool(Sculpt.tool.TRANSLATE, menu);
       this.initTool(Sculpt.tool.ROTATE, menu);
@@ -65,7 +65,6 @@ define([
       this.ctrlSymmetry_ = menu.addCheckbox(TR('sculptSymmetry'), this.sculpt_.symmetry_, this.onSymmetryChange.bind(this));
       // continuous
       this.ctrlContinuous_ = menu.addCheckbox(TR('sculptContinuous'), this.sculpt_, 'continuous_');
-
 
       GuiSculptingTools.show(this.sculpt_.tool_);
       this.addEvents();
@@ -188,8 +187,8 @@ define([
       }
     },
     /** Initialize tool */
-    initTool: function (toolKey, foldSculpt) {
-      GuiSculptingTools[toolKey].init(this.sculpt_.tools_[toolKey], foldSculpt);
+    initTool: function (toolKey, foldSculpt, main) {
+      GuiSculptingTools[toolKey].init(this.sculpt_.tools_[toolKey], foldSculpt, main);
       GuiSculptingTools.hide(toolKey);
     },
     /** When the sculpting tool is changed */

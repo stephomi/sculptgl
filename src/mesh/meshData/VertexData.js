@@ -10,6 +10,7 @@ define([
     // attributes vertex ( no duplicates )
     this.verticesXYZ_ = null; // vertices (Float32Array)
     this.colorsRGB_ = null; // color vertices (Float32Array)
+    this.materialsPBR_ = null; // pbr vertex data (Float32Array) roughness/metallic/alpha
     this.normalsXYZ_ = null; // normals (Float32Array)
 
     // topology stuffs
@@ -39,6 +40,9 @@ define([
     setColors: function (cAr) {
       this.colorsRGB_ = cAr;
     },
+    setMaterials: function (mAr) {
+      this.materialsPBR_ = mAr;
+    },
     getVertices: function () {
       return this.verticesXYZ_;
     },
@@ -47,6 +51,9 @@ define([
     },
     getNormals: function () {
       return this.normalsXYZ_;
+    },
+    getMaterials: function () {
+      return this.materialsPBR_;
     },
     getVerticesTagFlags: function () {
       return this.vertTagFlags_;
@@ -83,6 +90,7 @@ define([
 
       this.normalsXYZ_ = new Float32Array(nbVertices * 3);
       this.colorsRGB_ = this.colorsRGB_ ? this.colorsRGB_ : new Float32Array(nbVertices * 3);
+      this.materialsPBR_ = this.materialsPBR_ ? this.materialsPBR_ : new Float32Array(nbVertices * 3);
 
       this.vertOnEdge_ = new Uint8Array(nbVertices);
 
@@ -95,14 +103,25 @@ define([
 
       this.vertProxy_ = new Float32Array(nbVertices * 3);
     },
-    /** Init color array */
-    initColors: function () {
-      var len = this.getNbVertices() * 3;
-      if (this.colorsRGB_ && this.colorsRGB_.length === len)
-        return;
-      var cAr = this.colorsRGB_ = new Float32Array(len);
-      for (var i = 0; i < len; ++i)
-        cAr[i] = 1.0;
+    /** Init color and material array */
+    initColorsAndMaterials: function () {
+      var nbVertices = this.getNbVertices();
+      var i = 0;
+      var len = nbVertices * 3;
+      if (!this.colorsRGB_ || this.colorsRGB_.length !== len) {
+        var cAr = this.colorsRGB_ = new Float32Array(len);
+        for (i = 0; i < len; ++i)
+          cAr[i] = 1.0;
+      }
+      if (!this.materialsPBR_ || this.materialsPBR_.length !== len) {
+        var mAr = this.materialsPBR_ = new Float32Array(len);
+        for (i = 0; i < len; ++i) {
+          var j = i * 3;
+          mAr[j] = 0.18;
+          mAr[j + 1] = 0.08;
+          mAr[j + 2] = 1.0;
+        }
+      }
     },
     /** Computes faces ring around vertices */
     initFaceRings: function () {

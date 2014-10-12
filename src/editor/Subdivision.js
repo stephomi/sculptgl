@@ -23,11 +23,13 @@ define([
   // v1   m1     v2
 
   // Helper class
-  var OddVertexComputer = function (mesh, vArOut, cArOut) {
+  var OddVertexComputer = function (mesh, vArOut, cArOut, mArOut) {
     this.vArOut_ = vArOut;
     this.cArOut_ = cArOut;
+    this.mArOut_ = mArOut;
     this.vAr_ = mesh.getVertices();
     this.cAr_ = mesh.getColors();
+    this.mAr_ = mesh.getMaterials();
     this.eAr_ = mesh.getEdges();
     this.nbVertices_ = mesh.getNbVertices();
     this.tagEdges_ = new Int32Array(mesh.getNbEdges());
@@ -37,9 +39,11 @@ define([
     computeTriangleEdgeVertex: function (iv1, iv2, iv3, ide) {
       var vAr = this.vAr_;
       var cAr = this.cAr_;
+      var mAr = this.mAr_;
       var eAr = this.eAr_;
       var vArOut = this.vArOut_;
       var cArOut = this.cArOut_;
+      var mArOut = this.mArOut_;
       var tagEdges = this.tagEdges_;
       var id1 = iv1 * 3;
       var id2 = iv2 * 3;
@@ -59,6 +63,10 @@ define([
         cArOut[idMid] = 0.5 * (cAr[id1] + cAr[id2]);
         cArOut[idMid + 1] = 0.5 * (cAr[id1 + 1] + cAr[id2 + 1]);
         cArOut[idMid + 2] = 0.5 * (cAr[id1 + 2] + cAr[id2 + 2]);
+
+        mArOut[idMid] = 0.5 * (mAr[id1] + mAr[id2]);
+        mArOut[idMid + 1] = 0.5 * (mAr[id1 + 1] + mAr[id2 + 1]);
+        mArOut[idMid + 2] = 0.5 * (mAr[id1 + 2] + mAr[id2 + 2]);
       } else if (testEdge === -1) { // new mid vertex
         tagEdges[ide] = ivMid + 1;
         vArOut[idMid] = 0.125 * vAr[idOpp] + 0.375 * (vAr[id1] + vAr[id2]);
@@ -68,6 +76,10 @@ define([
         cArOut[idMid] = 0.125 * cAr[idOpp] + 0.375 * (cAr[id1] + cAr[id2]);
         cArOut[idMid + 1] = 0.125 * cAr[idOpp + 1] + 0.375 * (cAr[id1 + 1] + cAr[id2 + 1]);
         cArOut[idMid + 2] = 0.125 * cAr[idOpp + 2] + 0.375 * (cAr[id1 + 2] + cAr[id2 + 2]);
+
+        mArOut[idMid] = 0.125 * mAr[idOpp] + 0.375 * (mAr[id1] + mAr[id2]);
+        mArOut[idMid + 1] = 0.125 * mAr[idOpp + 1] + 0.375 * (mAr[id1 + 1] + mAr[id2 + 1]);
+        mArOut[idMid + 2] = 0.125 * mAr[idOpp + 2] + 0.375 * (mAr[id1 + 2] + mAr[id2 + 2]);
       } else { // mid vertex already exists
         vArOut[idMid] += 0.125 * vAr[idOpp];
         vArOut[idMid + 1] += 0.125 * vAr[idOpp + 1];
@@ -76,15 +88,21 @@ define([
         cArOut[idMid] += 0.125 * cAr[idOpp];
         cArOut[idMid + 1] += 0.125 * cAr[idOpp + 1];
         cArOut[idMid + 2] += 0.125 * cAr[idOpp + 2];
+
+        mArOut[idMid] += 0.125 * mAr[idOpp];
+        mArOut[idMid + 1] += 0.125 * mAr[idOpp + 1];
+        mArOut[idMid + 2] += 0.125 * mAr[idOpp + 2];
       }
       return ivMid;
     },
     computeQuadEdgeVertex: function (iv1, iv2, iv3, iv4, ide) {
       var vAr = this.vAr_;
       var cAr = this.cAr_;
+      var mAr = this.mAr_;
       var eAr = this.eAr_;
       var vArOut = this.vArOut_;
       var cArOut = this.cArOut_;
+      var mArOut = this.mArOut_;
       var tagEdges = this.tagEdges_;
       var id1 = iv1 * 3;
       var id2 = iv2 * 3;
@@ -105,6 +123,10 @@ define([
         cArOut[idMid] = 0.5 * (cAr[id1] + cAr[id2]);
         cArOut[idMid + 1] = 0.5 * (cAr[id1 + 1] + cAr[id2 + 1]);
         cArOut[idMid + 2] = 0.5 * (cAr[id1 + 2] + cAr[id2 + 2]);
+
+        mArOut[idMid] = 0.5 * (mAr[id1] + mAr[id2]);
+        mArOut[idMid + 1] = 0.5 * (mAr[id1 + 1] + mAr[id2 + 1]);
+        mArOut[idMid + 2] = 0.5 * (mAr[id1 + 2] + mAr[id2 + 2]);
       } else if (testEdge === -1) { // new mid vertex
         tagEdges[ide] = ivMid + 1;
         vArOut[idMid] = 0.0625 * (vAr[idOpp] + vAr[idOpp2]) + 0.375 * (vAr[id1] + vAr[id2]);
@@ -114,6 +136,10 @@ define([
         cArOut[idMid] = 0.0625 * (cAr[idOpp] + cAr[idOpp2]) + 0.375 * (cAr[id1] + cAr[id2]);
         cArOut[idMid + 1] = 0.0625 * (cAr[idOpp + 1] + cAr[idOpp2 + 1]) + 0.375 * (cAr[id1 + 1] + cAr[id2 + 1]);
         cArOut[idMid + 2] = 0.0625 * (cAr[idOpp + 2] + cAr[idOpp2 + 2]) + 0.375 * (cAr[id1 + 2] + cAr[id2 + 2]);
+
+        mArOut[idMid] = 0.0625 * (mAr[idOpp] + mAr[idOpp2]) + 0.375 * (mAr[id1] + mAr[id2]);
+        mArOut[idMid + 1] = 0.0625 * (mAr[idOpp + 1] + mAr[idOpp2 + 1]) + 0.375 * (mAr[id1 + 1] + mAr[id2 + 1]);
+        mArOut[idMid + 2] = 0.0625 * (mAr[idOpp + 2] + mAr[idOpp2 + 2]) + 0.375 * (mAr[id1 + 2] + mAr[id2 + 2]);
       } else { // mid vertex already exists
         vArOut[idMid] += 0.0625 * (vAr[idOpp] + vAr[idOpp2]);
         vArOut[idMid + 1] += 0.0625 * (vAr[idOpp + 1] + vAr[idOpp2 + 1]);
@@ -122,6 +148,10 @@ define([
         cArOut[idMid] += 0.0625 * (cAr[idOpp] + cAr[idOpp2]);
         cArOut[idMid + 1] += 0.0625 * (cAr[idOpp + 1] + cAr[idOpp2 + 1]);
         cArOut[idMid + 2] += 0.0625 * (cAr[idOpp + 2] + cAr[idOpp2 + 2]);
+
+        mArOut[idMid] += 0.0625 * (mAr[idOpp] + mAr[idOpp2]);
+        mArOut[idMid + 1] += 0.0625 * (mAr[idOpp + 1] + mAr[idOpp2 + 1]);
+        mArOut[idMid + 2] += 0.0625 * (mAr[idOpp + 2] + mAr[idOpp2 + 2]);
       }
       return ivMid;
     },
@@ -132,8 +162,10 @@ define([
       var id4 = iv4 * 3;
       var vAr = this.vAr_;
       var cAr = this.cAr_;
+      var mAr = this.mAr_;
       var vArOut = this.vArOut_;
       var cArOut = this.cArOut_;
+      var mArOut = this.mArOut_;
       var ivCen = this.nbVertices_++;
       var idCen = ivCen * 3;
       vArOut[idCen] = 0.25 * (vAr[id1] + vAr[id2] + vAr[id3] + vAr[id4]);
@@ -143,6 +175,10 @@ define([
       cArOut[idCen] = 0.25 * (cAr[id1] + cAr[id2] + cAr[id3] + cAr[id4]);
       cArOut[idCen + 1] = 0.25 * (cAr[id1 + 1] + cAr[id2 + 1] + cAr[id3 + 1] + cAr[id4 + 1]);
       cArOut[idCen + 2] = 0.25 * (cAr[id1 + 2] + cAr[id2 + 2] + cAr[id3 + 2] + cAr[id4 + 2]);
+
+      mArOut[idCen] = 0.25 * (mAr[id1] + mAr[id2] + mAr[id3] + mAr[id4]);
+      mArOut[idCen + 1] = 0.25 * (mAr[id1 + 1] + mAr[id2 + 1] + mAr[id3 + 1] + mAr[id4 + 1]);
+      mArOut[idCen + 2] = 0.25 * (mAr[id1 + 2] + mAr[id2 + 2] + mAr[id3 + 2] + mAr[id4 + 2]);
       return ivCen;
     }
   };
@@ -154,22 +190,24 @@ define([
     var nbVertices = baseMesh.getNbVertices() + baseMesh.getNbEdges() + baseMesh.getNbQuads();
     newMesh.setVertices(new Float32Array(nbVertices * 3));
     newMesh.setColors(new Float32Array(nbVertices * 3));
+    newMesh.setMaterials(new Float32Array(nbVertices * 3));
     newMesh.setFaces(new Int32Array(baseMesh.getNbFaces() * 4 * 4));
-    Subdivision.applyEvenSmooth(baseMesh, newMesh.getVertices(), newMesh.getColors());
-    var tags = Subdivision.applyOddSmooth(baseMesh, newMesh.getVertices(), newMesh.getColors(), newMesh.getFaces());
+    Subdivision.applyEvenSmooth(baseMesh, newMesh.getVertices(), newMesh.getColors(), newMesh.getMaterials());
+    var tags = Subdivision.applyOddSmooth(baseMesh, newMesh.getVertices(), newMesh.getColors(), newMesh.getMaterials(), newMesh.getFaces());
     Subdivision.computeTexCoords(baseMesh, newMesh, tags);
     newMesh.allocateArrays();
   };
 
   /** Apply subdivision without topology computation */
-  Subdivision.partialSubdivision = function (baseMesh, vertOut, colorOut) {
-    Subdivision.applyEvenSmooth(baseMesh, vertOut, colorOut);
-    Subdivision.applyOddSmooth(baseMesh, vertOut, colorOut);
+  Subdivision.partialSubdivision = function (baseMesh, vertOut, colorOut, materialOut) {
+    Subdivision.applyEvenSmooth(baseMesh, vertOut, colorOut, materialOut);
+    Subdivision.applyOddSmooth(baseMesh, vertOut, colorOut, materialOut);
   };
 
   /** Even vertices smoothing */
-  Subdivision.applyEvenSmooth = function (baseMesh, even, colorOut) {
+  Subdivision.applyEvenSmooth = function (baseMesh, even, colorOut, materialOut) {
     colorOut.set(baseMesh.getColors());
+    materialOut.set(baseMesh.getMaterials());
     var vArOld = baseMesh.getVertices();
     var fArOld = baseMesh.getFaces();
     var eArOld = baseMesh.getEdges();
@@ -331,10 +369,10 @@ define([
   };
 
   /** Odd vertices smoothing */
-  Subdivision.applyOddSmooth = function (mesh, odds, colorOut, fArOut) {
+  Subdivision.applyOddSmooth = function (mesh, odds, colorOut, materialOut, fArOut) {
     var fAr = mesh.getFaces();
     var feAr = mesh.getFaceEdges();
-    var oddComputer = new OddVertexComputer(mesh, odds, colorOut);
+    var oddComputer = new OddVertexComputer(mesh, odds, colorOut, materialOut);
     for (var i = 0, len = mesh.getNbFaces(); i < len; ++i) {
       var id = i * 4;
       var iv1 = fAr[id];

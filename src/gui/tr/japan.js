@@ -38,9 +38,9 @@ define([], function () {
     fileAdd: 'Add (obj,ply,stl)',
     fileExportMeshTitle: 'Export Mesh',
     fileExportSceneTitle: 'Export Scene',
-    fileExportOBJ: 'obj形式 (color,quad,uv)',
-    fileExportPLY: 'ply形式 (color,quad)',
-    fileExportSTL: 'stl形式 (tri)',
+    fileExportOBJ: 'OBJ形式 (paint,quad,uv)',
+    fileExportPLY: 'PLY形式 (color,quad)',
+    fileExportSTL: 'STL形式 (tri)',
 
     // mesh
     meshTitle: 'メッシュ',
@@ -94,10 +94,13 @@ define([], function () {
     sculptIntensity: '明るさ',
     sculptCulling: 'Thin surface (front vertex only)',
     sculptNegative: 'ネガティブ (N)',
-    sculptColor: 'カラー',
+    sculptColor: 'Albedo',
+    sculptRoughness: 'Roughness',
+    sculptMetallic: 'Metallic',
     sculptClay: 'クレイ',
     sculptAccumulate: 'Accumulate (no limit per stroke)',
-    sculptPickColor: 'Pick color',
+    sculptColorGlobal: 'Global',
+    sculptPickColor: 'Picking Material',
     sculptTangentialSmoothing: 'Relax only',
     sculptDeleteMesh: 'Delete the mesh ?',
 

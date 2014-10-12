@@ -19,20 +19,27 @@ define([
     this.vertexBuffer_ = new Buffer(gl, gl.ARRAY_BUFFER, gl.DYNAMIC_DRAW); // vertices buffer
     this.normalBuffer_ = new Buffer(gl, gl.ARRAY_BUFFER, gl.DYNAMIC_DRAW); // normals buffer
     this.colorBuffer_ = new Buffer(gl, gl.ARRAY_BUFFER, gl.DYNAMIC_DRAW); // colors buffer
+    this.materialBuffer_ = new Buffer(gl, gl.ARRAY_BUFFER, gl.DYNAMIC_DRAW); // materials buffer
     this.texCoordBuffer_ = new Buffer(gl, gl.ARRAY_BUFFER, gl.STATIC_DRAW); // texCoords buffer
     this.indexBuffer_ = new Buffer(gl, gl.ELEMENT_ARRAY_BUFFER, gl.STATIC_DRAW); // indices buffer
     this.wireframeBuffer_ = new Buffer(gl, gl.ELEMENT_ARRAY_BUFFER, gl.STATIC_DRAW); // wireframe buffer
     this.texture0_ = null; // a texture
     this.matcap_ = 0; // the chosen matcap texture index
 
-    this.roughness_ = 0.18;
-    this.metallic_ = 0.08;
     this.exposure_ = 1.0;
+    // these material values overrides the vertex attributes
+    // it's here for debug or preview
+    this.albedo_ = [-1.0, -1.0, -1.0];
+    this.roughness_ = -0.18;
+    this.metallic_ = -0.78;
   }
 
   Render.ONLY_DRAW_ARRAYS = false;
 
   Render.prototype = {
+    getAlbedo: function () {
+      return this.albedo_;
+    },
     getRoughness: function () {
       return this.roughness_;
     },
@@ -41,6 +48,11 @@ define([
     },
     getExposure: function () {
       return this.exposure_;
+    },
+    setAlbedo: function (val) {
+      this.albedo_[0] = val[0];
+      this.albedo_[1] = val[1];
+      this.albedo_[2] = val[2];
     },
     setRoughness: function (val) {
       this.roughness_ = val;
@@ -76,6 +88,10 @@ define([
     /** Return color buffer */
     getColorBuffer: function () {
       return this.colorBuffer_;
+    },
+    /** Return material buffer */
+    getMaterialBuffer: function () {
+      return this.materialBuffer_;
     },
     /** Return texCoord buffer */
     getTexCoordBuffer: function () {
@@ -137,7 +153,7 @@ define([
     setShader: function (shaderType) {
       this.shader_.setType(shaderType);
       this.mesh_.updateDuplicateGeometry();
-      this.mesh_.updateDuplicateColors();
+      this.mesh_.updateDuplicateColorsAndMaterials();
       if (this.isUsingTexCoords())
         this.updateFlatShading();
       this.updateBuffers();
@@ -154,7 +170,6 @@ define([
         this.setMatcap(0);
       this.setShader(this.shader_.type_);
       this.setShowWireframe(this.getShowWireframe());
-      this.updateBuffers();
     },
     /** Render the mesh */
     render: function (main) {
@@ -173,6 +188,10 @@ define([
     /** Updates color buffer */
     updateColorBuffer: function () {
       this.getColorBuffer().update(this.mesh_.getRenderColors(this.isUsingDrawArrays()));
+    },
+    /** Updates material buffer */
+    updateMaterialBuffer: function () {
+      this.getMaterialBuffer().update(this.mesh_.getRenderMaterials(this.isUsingDrawArrays()));
     },
     /** Updates texCoord buffer */
     updateTexCoordBuffer: function () {
@@ -198,6 +217,7 @@ define([
     updateBuffers: function () {
       this.updateGeometryBuffers();
       this.updateColorBuffer();
+      this.updateMaterialBuffer();
       this.updateTexCoordBuffer();
       this.updateIndexBuffer();
       this.updateWireframeBuffer();
@@ -209,6 +229,7 @@ define([
       this.getVertexBuffer().release();
       this.getNormalBuffer().release();
       this.getColorBuffer().release();
+      this.getMaterialBuffer().release();
       this.getIndexBuffer().release();
       this.getWireframeBuffer().release();
     },

@@ -80,7 +80,7 @@ define([
     /** Update the mesh after a change in resolution */
     updateResolution: function () {
       this.updateGeometry();
-      this.updateDuplicateColors();
+      this.updateDuplicateColorsAndMaterials();
       this.updateBuffers();
       this.lowRender_.updateBuffers(this.meshes_[this.getLowIndexRender()]);
     },

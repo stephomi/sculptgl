@@ -1,11 +1,11 @@
 define([
   'misc/Utils',
   'states/StateAddRemove',
-  'states/StateColor',
+  'states/StateColorAndMaterial',
   'states/StateGeometry',
   'states/StateMultiresolution',
   'states/StateTransform'
-], function (Utils, StAddRemove, StColor, StGeometry, StMultiresolution, StTransform) {
+], function (Utils, StAddRemove, StColorAndMaterial, StGeometry, StMultiresolution, StTransform) {
 
   'use strict';
 
@@ -28,8 +28,8 @@ define([
     pushStateAdd: function (addMesh) {
       this.pushState(new StAddRemove(this.main_, addMesh, []));
     },
-    pushStateColor: function (mesh) {
-      this.pushState(new StColor(this.main_, mesh));
+    pushStateColorAndMaterial: function (mesh) {
+      this.pushState(new StColorAndMaterial(this.main_, mesh));
     },
     pushStateGeometry: function (mesh) {
       this.pushState(new StGeometry(this.main_, mesh));

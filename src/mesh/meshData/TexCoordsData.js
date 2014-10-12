@@ -14,6 +14,7 @@ define([
     // attributes vertex (duplicated for rendering because of tex coords)
     this.UVverticesXYZ_ = null; // vertices + duplicates (Float32Array)
     this.UVcolorsRGB_ = null; // color vertices + duplicates (Float32Array)
+    this.UVmaterialsPBR_ = null; // materials vertices + duplicates (Float32Array)
     this.UVnormalsXYZ_ = null; // normals + duplicates (Float32Array)
   }
 
@@ -32,6 +33,9 @@ define([
     },
     getColorsTexCoord: function () {
       return this.UVcolorsRGB_;
+    },
+    getMaterialsTexCoord: function () {
+      return this.UVmaterialsPBR_;
     },
     getNormalsTexCoord: function () {
       return this.UVnormalsXYZ_;
@@ -59,6 +63,7 @@ define([
         this.UVverticesXYZ_ = mesh.getVertices();
         this.UVnormalsXYZ_ = mesh.getNormals();
         this.UVcolorsRGB_ = mesh.getColors();
+        this.UVmaterialsPBR_ = mesh.getMaterials();
         this.UVfacesABCD_ = mesh.getFaces();
         return;
       }
@@ -75,6 +80,10 @@ define([
       var colors = this.UVcolorsRGB_ = new Float32Array(nbTexCoords * 3);
       colors.set(mesh.getColors());
       mesh.setColors(colors.subarray(0, nbVertices * 3));
+
+      var materials = this.UVmaterialsPBR_ = new Float32Array(nbTexCoords * 3);
+      materials.set(mesh.getMaterials());
+      mesh.setMaterials(materials.subarray(0, nbVertices * 3));
     },
     updateDuplicateGeometry: function (iVerts) {
       var mesh = this.mesh_;
@@ -83,6 +92,7 @@ define([
         return;
 
       var cAr = this.getColorsTexCoord();
+      var mAr = this.getMaterialsTexCoord();
       var nAr = this.getNormalsTexCoord();
       var startCount = this.getVerticesDuplicateStartCount();
 
@@ -104,6 +114,9 @@ define([
         var cx = cAr[idOrig];
         var cy = cAr[idOrig + 1];
         var cz = cAr[idOrig + 2];
+        var mx = mAr[idOrig];
+        var my = mAr[idOrig + 1];
+        var mz = mAr[idOrig + 2];
         for (var j = start; j < end; ++j) {
           var idDup = j * 3;
           vAr[idDup] = vx;
@@ -115,15 +128,19 @@ define([
           cAr[idDup] = cx;
           cAr[idDup + 1] = cy;
           cAr[idDup + 2] = cz;
+          mAr[idDup] = mx;
+          mAr[idDup + 1] = my;
+          mAr[idDup + 2] = mz;
         }
       }
     },
-    updateDuplicateColors: function (iVerts) {
+    updateDuplicateColorsAndMaterials: function (iVerts) {
       var mesh = this.mesh_;
       if (!mesh.isUsingTexCoords() || this.getVerticesTexCoord() === mesh.getVertices())
         return;
 
       var cAr = this.getColorsTexCoord();
+      var mAr = this.getMaterialsTexCoord();
       var startCount = this.getVerticesDuplicateStartCount();
 
       var full = iVerts === undefined;
@@ -138,11 +155,17 @@ define([
         var cx = cAr[idOrig];
         var cy = cAr[idOrig + 1];
         var cz = cAr[idOrig + 2];
+        var mx = mAr[idOrig];
+        var my = mAr[idOrig + 1];
+        var mz = mAr[idOrig + 2];
         for (var j = start; j < end; ++j) {
           var idDup = j * 3;
           cAr[idDup] = cx;
           cAr[idDup + 1] = cy;
           cAr[idDup + 2] = cz;
+          mAr[idDup] = mx;
+          mAr[idDup + 1] = my;
+          mAr[idDup + 2] = mz;
         }
       }
     },

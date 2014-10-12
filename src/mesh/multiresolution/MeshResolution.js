@@ -12,6 +12,7 @@ define([
     this.meshOrigin_.setRender(render);
     this.detailsXYZ_ = null; // details vectors (Float32Array)
     this.detailsRGB_ = null; // details vectors (Float32Array)
+    this.detailsPBR_ = null; // details vectors (Float32Array)
     this.vertMapping_ = null; // vertex mapping to higher res (Uint32Array)
     this.evenMapping_ = false; // if the even vertices are not aligned with higher res
   };
@@ -26,6 +27,9 @@ define([
     getDetailsColors: function () {
       return this.detailsRGB_;
     },
+    getDetailsMaterials: function () {
+      return this.detailsPBR_;
+    },
     getEvenMapping: function () {
       return this.evenMapping_;
     },
@@ -38,6 +42,9 @@ define([
     setDetailsColors: function (dcAr) {
       this.detailsRGB_ = dcAr;
     },
+    setDetailsMaterials: function (dmAr) {
+      this.detailsPBR_ = dmAr;
+    },
     setVerticesMapping: function (vmAr) {
       this.vertMapping_ = vmAr;
     },
@@ -46,7 +53,7 @@ define([
     },
     /** Go to one level above (down to up) */
     higherSynthesis: function (meshDown) {
-      meshDown.computePartialSubdivision(this.getVertices(), this.getColors());
+      meshDown.computePartialSubdivision(this.getVertices(), this.getColors(), this.getMaterials());
       this.applyDetails();
     },
     /** Go to one level below (up to down) */
@@ -54,18 +61,22 @@ define([
       this.copyDataFromHigherRes(meshUp);
       var subdVerts = new Float32Array(meshUp.getNbVertices() * 3);
       var subdColors = new Float32Array(meshUp.getNbVertices() * 3);
-      this.computePartialSubdivision(subdVerts, subdColors);
-      meshUp.computeDetails(subdVerts, subdColors);
+      var subdMaterials = new Float32Array(meshUp.getNbVertices() * 3);
+      this.computePartialSubdivision(subdVerts, subdColors, subdMaterials);
+      meshUp.computeDetails(subdVerts, subdColors, subdMaterials);
     },
     copyDataFromHigherRes: function (meshUp) {
       var vArDown = this.getVertices();
       var cArDown = this.getColors();
+      var mArDown = this.getMaterials();
       var nbVertices = this.getNbVertices();
       var vArUp = meshUp.getVertices();
       var cArUp = meshUp.getColors();
+      var mArUp = meshUp.getMaterials();
       if (this.getEvenMapping() === false) {
         vArDown.set(vArUp.subarray(0, nbVertices * 3));
         cArDown.set(cArUp.subarray(0, nbVertices * 3));
+        mArDown.set(mArUp.subarray(0, nbVertices * 3));
       } else {
         var vertMap = this.getVerticesMapping();
         for (var i = 0; i < nbVertices; ++i) {
@@ -77,23 +88,29 @@ define([
           cArDown[id] = cArUp[idUp];
           cArDown[id + 1] = cArUp[idUp + 1];
           cArDown[id + 2] = cArUp[idUp + 2];
+          mArDown[id] = mArUp[idUp];
+          mArDown[id + 1] = mArUp[idUp + 1];
+          mArDown[id + 2] = mArUp[idUp + 2];
         }
       }
     },
-    computePartialSubdivision: function (subdVerts, subdColors) {
+    computePartialSubdivision: function (subdVerts, subdColors, subdMaterials) {
       var verts = subdVerts;
       var colors = subdColors;
+      var materials = subdMaterials;
       var vertMap = this.getVerticesMapping();
       if (vertMap) {
         verts = new Float32Array(subdVerts.length);
         colors = new Float32Array(subdColors.length);
+        materials = new Float32Array(subdMaterials.length);
       }
-      Subdivision.partialSubdivision(this, verts, colors);
+      Subdivision.partialSubdivision(this, verts, colors, materials);
       if (vertMap) {
         var startMapping = this.getEvenMapping() === true ? 0 : this.getNbVertices();
         if (startMapping > 0) {
           subdVerts.set(verts.subarray(0, startMapping * 3));
           subdColors.set(colors.subarray(0, startMapping * 3));
+          subdMaterials.set(materials.subarray(0, startMapping * 3));
         }
         for (var i = startMapping, l = subdVerts.length / 3; i < l; ++i) {
           var id = i * 3;
@@ -104,6 +121,9 @@ define([
           subdColors[idUp] = colors[id];
           subdColors[idUp + 1] = colors[id + 1];
           subdColors[idUp + 2] = colors[id + 2];
+          subdMaterials[idUp] = materials[id];
+          subdMaterials[idUp + 1] = materials[id + 1];
+          subdMaterials[idUp + 2] = materials[id + 2];
         }
       }
     },
@@ -114,6 +134,7 @@ define([
       var vArUp = this.getVertices();
       var nArUp = this.getNormals();
       var cArUp = this.getColors();
+      var mArUp = this.getMaterials();
       var nbVertsUp = this.getNbVertices();
 
       var vArTemp = new Float32Array(Utils.getMemory(vArUp.length * 4), 0, vArUp.length);
@@ -121,6 +142,7 @@ define([
 
       var dAr = this.getDetailsVertices();
       var dColorAr = this.getDetailsColors();
+      var dMaterialAr = this.getDetailsMaterials();
 
       for (var i = 0; i < nbVertsUp; ++i) {
         var j = i * 3;
@@ -129,6 +151,11 @@ define([
         cArUp[j] += dColorAr[j];
         cArUp[j + 1] += dColorAr[j + 1];
         cArUp[j + 2] += dColorAr[j + 2];
+
+        // material delta vec
+        mArUp[j] += dMaterialAr[j];
+        mArUp[j + 1] += dMaterialAr[j + 1];
+        mArUp[j + 2] += dMaterialAr[j + 2];
 
         // vertex coord
         var vx = vArTemp[j];
@@ -181,18 +208,21 @@ define([
       }
     },
     /** Compute the detail vectors */
-    computeDetails: function (subdVerts, subdColors) {
+    computeDetails: function (subdVerts, subdColors, subdMaterials) {
       var vrvStartCountUp = this.getVerticesRingVertStartCount();
       var vertRingVertUp = this.getVerticesRingVert();
       var vArUp = this.getVertices();
       var nArUp = this.getNormals();
       var cArUp = this.getColors();
+      var mArUp = this.getMaterials();
       var nbVertices = this.getNbVertices();
 
       var dAr = new Float32Array(subdVerts.length);
       this.setDetailsVertices(dAr);
       var dColorAr = new Float32Array(subdVerts.length);
       this.setDetailsColors(dColorAr);
+      var dMaterialAr = new Float32Array(subdVerts.length);
+      this.setDetailsMaterials(dMaterialAr);
 
       for (var i = 0; i < nbVertices; ++i) {
         var j = i * 3;
@@ -201,6 +231,11 @@ define([
         dColorAr[j] = cArUp[j] - subdColors[j];
         dColorAr[j + 1] = cArUp[j + 1] - subdColors[j + 1];
         dColorAr[j + 2] = cArUp[j + 2] - subdColors[j + 2];
+
+        // material delta vec
+        dMaterialAr[j] = mArUp[j] - subdMaterials[j];
+        dMaterialAr[j + 1] = mArUp[j + 1] - subdMaterials[j + 1];
+        dMaterialAr[j + 2] = mArUp[j + 2] - subdMaterials[j + 2];
 
         // normal vec
         var nx = nArUp[j];

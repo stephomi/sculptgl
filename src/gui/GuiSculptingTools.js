@@ -37,13 +37,6 @@ define([
     }
     return ctrl;
   };
-  var addCtrlColor = function (tool, fold) {
-    var ctrl = fold.addColor(TR('sculptColor'), tool, 'color_');
-    tool.setPickCallback(function (color) {
-      ctrl.setValue(color);
-    });
-    return ctrl;
-  };
 
   GuiSculptingTools[Sculpt.tool.BRUSH] = {
     ctrls_: [],
@@ -90,10 +83,45 @@ define([
 
   GuiSculptingTools[Sculpt.tool.PAINT] = {
     ctrls_: [],
-    init: function (tool, fold) {
+    onMaterialChanged: function (main, tool, materials) {
+      tool.color_ = materials[0].getValue();
+      tool.roughness_ = materials[1].getValue();
+      tool.metallic_ = materials[2].getValue();
+      var mesh = main.getMesh();
+      if (mesh) {
+        mesh.setAlbedo(tool.color_);
+        mesh.setRoughness(tool.roughness_);
+        mesh.setMetallic(tool.metallic_);
+        main.render();
+      }
+    },
+    resetMaterialOverride: function (main) {
+      var mesh = main.getMesh();
+      if (mesh) {
+        mesh.getAlbedo()[0] = -1.0;
+        mesh.setRoughness(-0.18);
+        mesh.setMetallic(-0.78);
+        main.render();
+      }
+    },
+    init: function (tool, fold, main) {
       this.ctrls_.push(addCtrlIntensity(tool, fold));
       this.ctrls_.push(addCtrlCulling(tool, fold));
-      this.ctrls_.push(addCtrlColor(tool, fold));
+
+      var materials = [];
+      var ctrlColor = fold.addColor(TR('sculptColor'), tool.color_, this.onMaterialChanged.bind(this, main, tool, materials));
+      var ctrlRoughness = fold.addSlider(TR('sculptRoughness'), tool.roughness_, this.onMaterialChanged.bind(this, main, tool, materials), 0.0, 1.0, 0.01);
+      var ctrlMetallic = fold.addSlider(TR('sculptMetallic'), tool.metallic_, this.onMaterialChanged.bind(this, main, tool, materials), 0.0, 1.0, 0.01);
+      materials.push(ctrlColor, ctrlRoughness, ctrlMetallic);
+      window.addEventListener('mouseup', this.resetMaterialOverride.bind(this, main));
+
+      tool.setPickCallback(function (color, roughness, metallic) {
+        ctrlColor.setValue(color);
+        ctrlRoughness.setValue(roughness);
+        ctrlMetallic.setValue(metallic);
+      });
+
+      this.ctrls_.push(ctrlColor, ctrlRoughness, ctrlMetallic);
       this.ctrls_.push(fold.addCheckbox(TR('sculptPickColor'), tool, 'pickColor_'));
     }
   };
