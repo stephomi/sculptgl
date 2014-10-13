@@ -1,8 +1,8 @@
 {
-  "name": "multiresGL",
+  "name": "SculptGL",
   "version": "0.0.5",
   "description": "A WebGL digital sculpting app",
-  "main": "index.js",
+  "main": "main.js",
   "dependencies": {
     "grunt": "*",
     "grunt-manifest": "*",

@@ -1,5 +1,5 @@
 define([
-  'gui/widgets/GuiMain',
+  'lib/yagui',
   'gui/GuiBackground',
   'gui/GuiCamera',
   'gui/GuiConfig',
@@ -10,7 +10,7 @@ define([
   'gui/GuiSculpting',
   'gui/GuiStates',
   'gui/GuiTablet'
-], function (GuiMain, GuiBackground, GuiCamera, GuiConfig, GuiFiles, GuiMesh, GuiTopology, GuiRendering, GuiSculpting, GuiStates, GuiTablet) {
+], function (yagui, GuiBackground, GuiCamera, GuiConfig, GuiFiles, GuiMesh, GuiTopology, GuiRendering, GuiSculpting, GuiStates, GuiTablet) {
 
   'use strict';
 
@@ -37,7 +37,7 @@ define([
     initGui: function () {
       this.deleteGui();
 
-      this.guiMain_ = new GuiMain(this.main_.getCanvas(), this.main_.onCanvasResize.bind(this.main_));
+      this.guiMain_ = new yagui.GuiMain(this.main_.getCanvas(), this.main_.onCanvasResize.bind(this.main_));
 
       // Initialize the topbar
       this.topbar_ = this.guiMain_.addTopbar();
