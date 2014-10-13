@@ -17,5 +17,5 @@ Simply open `index.html`.
 
 Use grunt :
 
-  npm install
-  grunt
+    npm install
+    grunt
