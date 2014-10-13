@@ -11,13 +11,13 @@ define([
   Export.exportOBJ = ExportOBJ.exportOBJ;
   Export.exportPLY = ExportPLY.exportPLY;
   Export.exportSTL = ExportSTL.exportSTL;
-  Export.exportSketchfab = function (meshes, key) {
+  Export.exportSketchfab = function (meshes, mesh, key) {
     var fd = new FormData();
 
+    fd.append('token', key);
     fd.append('modelFile', Export.exportOBJ(meshes, true), 'sculptglModel.obj');
     fd.append('name', 'My SculptGL model');
     fd.append('tags', 'sculptgl');
-    fd.append('token', key);
 
     var xhr = new XMLHttpRequest();
     xhr.open('POST', 'https://api.sketchfab.com/v2/models', true);
@@ -29,10 +29,10 @@ define([
         window.alert(TR('sketchfabUploadError', res.detail));
         return;
       }
-      window.prompt(TR('Processing...'), uid);
+      window.prompt(TR('Processing...\nYour model will be available at :'), 'https://sketchfab.com/models/' + uid);
       var check = function () {
         var xhrPoll = new XMLHttpRequest();
-        xhrPoll.open('GET', 'https://api.sketchfab.com/v2/models/' + uid + '/status', true);
+        xhrPoll.open('GET', 'https://api.sketchfab.com/v2/models/' + uid + '/status?token=' + key, true);
         xhrPoll.onload = function () {
           var resPoll = JSON.parse(xhrPoll.responseText);
           if (resPoll.error)

@@ -41,7 +41,7 @@ define([
     /** Save file as OBJ*/
     saveFileAsOBJ: function () {
       if (this.main_.getMeshes().length === 0) return;
-      var blob = Export.exportOBJ(this.main_.meshes_);
+      var blob = Export.exportOBJ(this.main_.getMeshes());
       saveAs(blob, 'yourMesh.obj');
     },
     /** Save file as PLY */
@@ -64,7 +64,7 @@ define([
       if (!mesh) return;
       var api = window.prompt(TR('sketchfabUploadMessage'), 'guest');
       if (!api) return;
-      Export.exportSketchfab(mesh, api === 'guest' ? 'babc9a5cd4f343f9be0c7bd9cf93600c' : api);
+      Export.exportSketchfab(this.main_.getMeshes(), mesh, api === 'guest' ? 'babc9a5cd4f343f9be0c7bd9cf93600c' : api);
     }
   };
 
