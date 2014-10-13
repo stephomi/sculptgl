@@ -9,6 +9,7 @@ define([
 
   function GuiSculpting(guiParent, ctrlGui) {
     this.main_ = ctrlGui.main_; // main application
+    this.ctrlGui_ = ctrlGui; // main gui
     this.sculpt_ = ctrlGui.main_.getSculpt(); // sculpting management
     this.toolOnRelease_ = -1; // tool to apply when the mouse or the key is released
 
@@ -196,11 +197,8 @@ define([
     onChangeTool: function (newValue) {
       newValue = parseInt(newValue, 10);
       GuiSculptingTools.hide(this.sculpt_.tool_);
-      if (newValue === Sculpt.tool.PAINT) {
-        var mesh = this.main_.getMesh();
-        if (mesh)
-          mesh.setShader(Shader.mode.PBR);
-      }
+      if (newValue === Sculpt.tool.PAINT)
+        this.ctrlGui_.ctrlRendering_.ctrlShaders_.setValue(Shader.mode.PBR);
       this.sculpt_.tool_ = newValue;
       GuiSculptingTools.show(newValue);
       this.ctrlContinuous_.setVisibility(this.sculpt_.allowPicking() === true);
