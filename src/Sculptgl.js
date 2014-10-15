@@ -220,9 +220,16 @@ define([
       canvas.addEventListener('DOMMouseScroll', this.onMouseWheel.bind(this), false);
       canvas.addEventListener('webglcontextlost', this.onContextLost, false);
       canvas.addEventListener('webglcontextrestored', this.onContextRestored, false);
+      // multi touch
+      canvas.addEventListener('touchstart', this.onTouchStart.bind(this), false);
+      canvas.addEventListener('touchmove', this.onTouchMove.bind(this), false);
+      canvas.addEventListener('touchend', this.onMouseUp.bind(this), false);
+      canvas.addEventListener('touchcancel', this.onMouseUp.bind(this), false);
+      canvas.addEventListener('touchleave', this.onMouseUp.bind(this), false);
       document.getElementById('fileopen').addEventListener('change', this.loadFile.bind(this), false);
       document.getElementById('backgroundopen').addEventListener('change', this.loadBackground.bind(this), false);
     },
+
     /** Load background */
     loadBackground: function (event) {
       if (event.target.files.length === 0)
@@ -392,13 +399,46 @@ define([
     },
     /** Set mouse position from event */
     setMousePosition: function (event) {
-      this.mouseX_ = event.offsetX === undefined ? event.layerX : event.offsetX;
-      this.mouseY_ = event.offsetY === undefined ? event.layerY : event.offsetY;
+      this.mouseX_ = event.pageX - this.canvas_.offsetLeft;
+      this.mouseY_ = event.pageY - this.canvas_.offsetTop;
     },
-    /** Mouse pressed event */
+    /** Touch start event */
+    onTouchStart: function (event) {
+      event.stopPropagation();
+      event.preventDefault();
+      var touches = event.targetTouches;
+      var evProxy = {};
+      evProxy.pageX = touches[0].pageX;
+      evProxy.pageY = touches[0].pageY;
+      if (touches.length === 1) evProxy.which = 1;
+      else if (touches.length === 2) evProxy.which = 4;
+      else evProxy.which = 2;
+      this.onDeviceDown(evProxy);
+    },
+    /** Touch move event */
+    onTouchMove: function (event) {
+      event.stopPropagation();
+      event.preventDefault();
+      var touches = event.targetTouches;
+      var evProxy = {};
+      evProxy.pageX = touches[0].pageX;
+      evProxy.pageY = touches[0].pageY;
+      this.onDeviceMove(evProxy);
+    },
+    /** Mouse down event */
     onMouseDown: function (event) {
       event.stopPropagation();
       event.preventDefault();
+      this.onDeviceDown(event);
+    },
+    /** Mouse move event */
+    onMouseMove: function (event) {
+      event.stopPropagation();
+      event.preventDefault();
+      this.onDeviceMove(event);
+    },
+    /** Device down event */
+    onDeviceDown: function (event) {
       this.setMousePosition(event);
       var mouseX = this.mouseX_;
       var mouseY = this.mouseY_;
@@ -422,10 +462,8 @@ define([
         this.camera_.start(mouseX, mouseY, picking);
       }
     },
-    /** Mouse move event */
-    onMouseMove: function (event) {
-      event.stopPropagation();
-      event.preventDefault();
+    /** Device move event */
+    onDeviceMove: function (event) {
       this.setMousePosition(event);
       var mouseX = this.mouseX_;
       var mouseY = this.mouseY_;
