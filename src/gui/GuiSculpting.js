@@ -133,6 +133,14 @@ define([
       }
 
       switch (key) {
+      case 107: // +
+        this.ctrlRadius_.setValue(this.ctrlRadius_.getValue() + 3);
+        this.main_.getPicking().computeRadiusWorld2(this.main_.mouseX_, this.main_.mouseY_);
+        break;
+      case 109: // -
+        this.ctrlRadius_.setValue(this.ctrlRadius_.getValue() - 3);
+        this.main_.getPicking().computeRadiusWorld2(this.main_.mouseX_, this.main_.mouseY_);
+        break;
       case 46: // DEL
         if (window.confirm(TR('sculptDeleteMesh')))
           this.main_.deleteCurrentMesh();
