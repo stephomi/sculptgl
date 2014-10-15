@@ -93,7 +93,7 @@ define([], function () {
     sculptRadius: 'Radius',
     sculptIntensity: 'Intensity',
     sculptCulling: 'Thin surface (front vertex only)',
-    sculptNegative: 'Negative (N)',
+    sculptNegative: 'Negative (N/Alt)',
     sculptColor: 'Albedo',
     sculptRoughness: 'Roughness',
     sculptMetallic: 'Metallic',

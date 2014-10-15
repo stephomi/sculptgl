@@ -403,7 +403,7 @@ define([
       var mouseX = this.mouseX_;
       var mouseY = this.mouseY_;
       var button = this.mouseButton_ = event.which;
-      if (button === 1 && !event.altKey && !event.ctrlKey) {
+      if (button === 1) {
         this.sumDisplacement_ = 0;
         this.sculpt_.start(this);
       }
@@ -411,8 +411,12 @@ define([
       var pickedMesh = picking.getMesh();
       if (button === 1 && pickedMesh)
         this.canvas_.style.cursor = 'none';
-      if (button === 3 || (button === 1 && !pickedMesh)) {
-        this.mouseButton_ = 3;
+      if (!pickedMesh && event.ctrlKey)
+        this.mouseButton_ = 4; // zoom camera if no picking
+      else if (!pickedMesh && event.altKey)
+        this.mouseButton_ = 2; // pan camera if no picking
+      else if (button === 3 || (button === 1 && !pickedMesh)) {
+        this.mouseButton_ = 3; // rotate camera
         if (this.camera_.usePivot_)
           picking.intersectionMouseMeshes(this.meshes_, mouseX, mouseY);
         this.camera_.start(mouseX, mouseY, picking);
@@ -436,10 +440,10 @@ define([
           this.pickingSym_.intersectionMouseMesh(this.mesh_, mouseX, mouseY, true);
       }
       if (button !== 0) {
-        if (button === 2 || event.altKey) {
+        if (button === 2) {
           this.camera_.translate((mouseX - this.lastMouseX_) / 3000, (mouseY - this.lastMouseY_) / 3000);
           Multimesh.RENDER_HINT = Multimesh.CAMERA;
-        } else if (event.ctrlKey) {
+        } else if (button === 4) {
           this.camera_.zoom((mouseX - this.lastMouseX_) / 3000);
           Multimesh.RENDER_HINT = Multimesh.CAMERA;
         } else if (button === 3) {

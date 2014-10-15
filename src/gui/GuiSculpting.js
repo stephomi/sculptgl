@@ -12,6 +12,7 @@ define([
     this.ctrlGui_ = ctrlGui; // main gui
     this.sculpt_ = ctrlGui.main_.getSculpt(); // sculpting management
     this.toolOnRelease_ = -1; // tool to apply when the mouse or the key is released
+    this.invertSign_ = false; // invert sign of tool (add/sub)
 
     this.menu_ = null; // ui menu
     this.ctrlSculpt_ = null; // sculpt controller
@@ -112,14 +113,25 @@ define([
       event.handled = true;
       if (this.main_.mouseButton_ !== 0)
         return;
+
       if (event.shiftKey && !event.altKey && !event.ctrlKey) {
+        // smoothing on alt key
         var selectedTool = this.getSelectedTool();
         if (selectedTool === Sculpt.tool.SMOOTH)
           return;
         this.toolOnRelease_ = selectedTool;
         ctrlSculpt.setValue(Sculpt.tool.SMOOTH);
         return;
+      } else if (!event.shiftKey && event.altKey && !event.ctrlKey) {
+        // invert sign on alt key
+        if (this.invertSign_) return;
+        this.invertSign_ = true;
+        var curTool = GuiSculptingTools[this.getSelectedTool()];
+        if (curTool.toggleNegative)
+          curTool.toggleNegative();
+        return;
       }
+
       switch (key) {
       case 46: // DEL
         if (window.confirm(TR('sculptDeleteMesh')))
@@ -179,6 +191,9 @@ define([
       if (this.main_.mouseButton_ === 0 && this.toolOnRelease_ !== -1) {
         this.ctrlSculpt_.setValue(this.toolOnRelease_);
         this.toolOnRelease_ = -1;
+      } else if (this.invertSign_) {
+        this.invertSign_ = false;
+        GuiSculptingTools[this.getSelectedTool()].toggleNegative();
       }
     },
     /** Mouse released event */
