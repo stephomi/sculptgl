@@ -439,6 +439,8 @@ define([
     },
     /** Device down event */
     onDeviceDown: function (event) {
+      if(this.focusGui_)
+        return;
       this.setMousePosition(event);
       var mouseX = this.mouseX_;
       var mouseY = this.mouseY_;
@@ -464,6 +466,8 @@ define([
     },
     /** Device move event */
     onDeviceMove: function (event) {
+      if(this.focusGui_)
+        return;
       this.setMousePosition(event);
       var mouseX = this.mouseX_;
       var mouseY = this.mouseY_;

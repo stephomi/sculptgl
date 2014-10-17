@@ -14,6 +14,10 @@ define([
     this.toolOnRelease_ = -1; // tool to apply when the mouse or the key is released
     this.invertSign_ = false; // invert sign of tool (add/sub)
 
+    this.modelBrushRadius_ = false; // model brush radius change
+    this.modelBrushIntensity_ = false; // model brush intensity change
+    this.lastMouseX_ = 0; // last x position
+
     this.menu_ = null; // ui menu
     this.ctrlSculpt_ = null; // sculpt controller
     this.ctrlSymmetry_ = null; // symmetry controller
@@ -78,17 +82,23 @@ define([
     },
     /** Add events */
     addEvents: function () {
+      var canvas = document.getElementById('canvas');
+
       var cbKeyDown = this.onKeyDown.bind(this);
       var cbKeyUp = this.onKeyUp.bind(this);
       var cbMouseUp = this.onMouseUp.bind(this);
+      var cbMouseMove = this.onMouseMove.bind(this);
+
       window.addEventListener('keydown', cbKeyDown, false);
       window.addEventListener('keyup', cbKeyUp, false);
-      var canvas = document.getElementById('canvas');
+      canvas.addEventListener('mousemove', cbMouseMove, false);
       canvas.addEventListener('mouseup', cbMouseUp, false);
       canvas.addEventListener('mouseout', cbMouseUp, false);
+
       this.removeCallback = function () {
         window.removeEventListener('keydown', cbKeyDown, false);
         window.removeEventListener('keyup', cbKeyUp, false);
+        canvas.removeEventListener('mousemove', cbMouseMove, false);
         canvas.removeEventListener('mouseup', cbMouseUp, false);
         canvas.removeEventListener('mouseout', cbMouseUp, false);
       };
@@ -133,13 +143,19 @@ define([
       }
 
       switch (key) {
+      case 88: // X
+        this.modelBrushRadius_ = this.main_.focusGui_ = true;
+        break;
+      case 67: // C
+        this.modelBrushIntensity_ = this.main_.focusGui_ = true;
+        break;
       case 107: // +
         this.ctrlRadius_.setValue(this.ctrlRadius_.getValue() + 3);
-        this.main_.getPicking().computeRadiusWorld2(this.main_.mouseX_, this.main_.mouseY_);
+        this.updateRadiusPicking();
         break;
       case 109: // -
         this.ctrlRadius_.setValue(this.ctrlRadius_.getValue() - 3);
-        this.main_.getPicking().computeRadiusWorld2(this.main_.mouseX_, this.main_.mouseY_);
+        this.updateRadiusPicking();
         break;
       case 46: // DEL
         if (window.confirm(TR('sculptDeleteMesh')))
@@ -185,6 +201,12 @@ define([
       case 105: // NUMPAD 9
         ctrlSculpt.setValue(Sculpt.tool.PAINT);
         break;
+      case 69: // E
+        ctrlSculpt.setValue(Sculpt.tool.TRANSLATE);
+        break;
+      case 82: // R
+        ctrlSculpt.setValue(Sculpt.tool.ROTATE);
+        break;
       case 78: // N
         var cur = GuiSculptingTools[this.getSelectedTool()];
         if (cur.toggleNegative)
@@ -195,7 +217,7 @@ define([
       }
     },
     /** Key released event */
-    onKeyUp: function () {
+    onKeyUp: function (event) {
       if (this.main_.mouseButton_ === 0 && this.toolOnRelease_ !== -1) {
         this.ctrlSculpt_.setValue(this.toolOnRelease_);
         this.toolOnRelease_ = -1;
@@ -203,6 +225,10 @@ define([
         this.invertSign_ = false;
         GuiSculptingTools[this.getSelectedTool()].toggleNegative();
       }
+      if (event.which === 88) // X
+        this.modelBrushRadius_ = this.main_.focusGui_ = false;
+      else if (event.which === 67) // C
+        this.modelBrushIntensity_ = this.main_.focusGui_ = false;
     },
     /** Mouse released event */
     onMouseUp: function () {
@@ -210,6 +236,24 @@ define([
         this.ctrlSculpt_.setValue(this.toolOnRelease_);
         this.toolOnRelease_ = -1;
       }
+    },
+    /** Mouse move event */
+    onMouseMove: function (e) {
+      if (this.modelBrushRadius_) {
+        this.ctrlRadius_.setValue(this.ctrlRadius_.getValue() + (e.pageX - this.lastMouseX_) * 1.0);
+        this.updateRadiusPicking();
+        this.main_.render();
+      }
+      if (this.modelBrushIntensity_) {
+        var wid = GuiSculptingTools[this.getSelectedTool()];
+        if (wid.intensity_)
+          wid.intensity_.setValue(wid.intensity_.getValue() + (e.pageX - this.lastMouseX_) * 1.0);
+      }
+      this.lastMouseX_ = e.pageX;
+    },
+    /** Updates radius picking */
+    updateRadiusPicking: function () {
+      this.main_.getPicking().computeRadiusWorld2(this.main_.mouseX_, this.main_.mouseY_);
     },
     /** Initialize tool */
     initTool: function (toolKey, foldSculpt, main) {

@@ -227,6 +227,7 @@ define([
     /** Compute the selection radius in world space */
     computeRadiusWorld2: function (mouseX, mouseY) {
       var mesh = this.mesh_;
+      if (!mesh) return;
       var interPointTransformed = [0.0, 0.0, 0.0];
       vec3.transformMat4(interPointTransformed, this.getIntersectionPoint(), mesh.getMatrix());
       var z = this.camera_.project(interPointTransformed)[2];
