@@ -189,6 +189,7 @@ define([
         len = Math.sqrt(tx * tx + ty * ty + tz * tz);
         if (len === 0.0)
           continue;
+        len = 1.0 / len;
         tx *= len;
         ty *= len;
         tz *= len;
