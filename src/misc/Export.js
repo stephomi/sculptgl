@@ -16,7 +16,7 @@ define([
 
     fd.append('token', key);
     fd.append('modelFile', Export.exportOBJ(meshes, true), 'sculptglModel.obj');
-    fd.append('name', 'My SculptGL model');
+    fd.append('name', 'My model');
     fd.append('tags', 'sculptgl');
 
     var xhr = new XMLHttpRequest();
