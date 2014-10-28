@@ -125,20 +125,6 @@ define([
   };
 
   HoleFilling.createMesh = function (mesh, vertices, faces) {
-    var newMesh = new Mesh(mesh.getGL());
-    newMesh.setVertices(vertices);
-    newMesh.setFaces(faces);
-    newMesh.init();
-    // copy render config
-    newMesh.setShowWireframe(mesh.getShowWireframe());
-    newMesh.setFlatShading(mesh.getFlatShading());
-    newMesh.setShader(mesh.getShader().getType());
-    newMesh.setTexture0(mesh.getTexture0());
-    newMesh.initRender();
-    return newMesh;
-  };
-
-  HoleFilling.createMesh = function (mesh, vertices, faces) {
     var newMesh = new Mesh();
     newMesh.setVertices(vertices);
     newMesh.setFaces(faces);
