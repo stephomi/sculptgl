@@ -62,6 +62,8 @@ define([
         ++nbTexCoords;
       } else if (line.startsWith('f ')) {
         split = line.split(/\s+/);
+        if (split.length !== 4 && split.length !== 5) // triangles and quads only
+          continue;
         var sp1 = split[1].split('/');
         var sp2 = split[2].split('/');
         var sp3 = split[3].split('/');
