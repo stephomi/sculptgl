@@ -37,7 +37,7 @@ define([], function () {
     fileImportTitle: 'Import',
     fileAdd: 'Add (obj, ply, stl)',
     fileExportMeshTitle: 'Export Mesh',
-    fileExportSceneTitle: 'Export Scene',
+    fileExportSceneTitle: 'Export Meshes',
     fileExportOBJ: 'OBJ (paint,quad,uv)',
     fileExportPLY: 'PLY (color,quad)',
     fileExportSTL: 'STL (color,tri)',
@@ -72,6 +72,12 @@ define([], function () {
     remeshTitle: 'Voxel Remeshing',
     remeshRemesh: 'Remesh',
     remeshResolution: 'Resolution',
+
+    // dynamic
+    dynamicTitle: 'Dynamic Topology',
+    dynamicActivated: 'Activated',
+    dynamicSubdivision: 'Subdivision',
+    dynamicDecimation: 'Decimation',
 
     // sculpt
     sculptTitle: 'Sculpting & Painting',
@@ -128,7 +134,7 @@ define([], function () {
     renderingImportUV: 'Import (jpg, png...)',
     renderingExtra: 'Extra',
     renderingFlat: 'flat (slower)',
-    renderingWireframe: 'wireframe',
+    renderingWireframe: 'wireframe (slower)',
 
     // matcaps
     matcapPearl: 'Pearl',

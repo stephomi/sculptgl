@@ -20,6 +20,12 @@ define([], function () {
       var remMeshes = this.removedMeshes_;
       for (i = 0, l = remMeshes.length; i < l; ++i)
         meshesMain.push(remMeshes[i]);
+      // re link the mesh's render to the current mesh
+      for (i = 0, l = meshesMain.length; i < l; ++i) {
+        var mesh = meshesMain[i];
+        mesh.getRender().mesh_ = mesh;
+        mesh.initRender();
+      }
       main.setMesh(remMeshes[0] ? remMeshes[0] : meshesMain[0]);
     },
     /** On redo */

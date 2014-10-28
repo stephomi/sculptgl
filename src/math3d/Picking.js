@@ -185,8 +185,8 @@ define([
       var vertSculptFlags = mesh.getVerticesSculptFlags();
       var leavesHit = mesh.getLeavesUpdate();
       var inter = this.getIntersectionPoint();
-      var iTrisInCells = mesh.intersectSphere(inter, rLocal2, leavesHit, mesh.getNbFaces());
-      var iVerts = mesh.getVerticesFromFaces(iTrisInCells);
+      var iFacesInCells = mesh.intersectSphere(inter, rLocal2, leavesHit, mesh.getNbFaces());
+      var iVerts = mesh.getVerticesFromFaces(iFacesInCells);
       var nbVerts = iVerts.length;
       var sculptFlag = ++Utils.SCULPT_FLAG;
       var pickedVertices = new Uint32Array(Utils.getMemory(4 * nbVerts + 12), 0, nbVerts + 3);
@@ -194,31 +194,15 @@ define([
       var itx = inter[0];
       var ity = inter[1];
       var itz = inter[2];
-      var j = 0;
       for (var i = 0; i < nbVerts; ++i) {
         var ind = iVerts[i];
-        j = ind * 3;
+        var j = ind * 3;
         var dx = itx - vAr[j];
         var dy = ity - vAr[j + 1];
         var dz = itz - vAr[j + 2];
         if ((dx * dx + dy * dy + dz * dz) < rLocal2) {
           vertSculptFlags[ind] = sculptFlag;
           pickedVertices[acc++] = ind;
-        }
-      }
-      if (pickedVertices.length === 0 && this.pickedFace_ !== -1) {
-        // no vertices inside the brush radius (big face or small radius)
-        var fAr = mesh.getFaces();
-        j = this.pickedFace_ * 3;
-        vertSculptFlags[fAr[j]] = sculptFlag;
-        vertSculptFlags[fAr[j + 1]] = sculptFlag;
-        vertSculptFlags[fAr[j + 2]] = sculptFlag;
-        pickedVertices[acc++] = fAr[j];
-        pickedVertices[acc++] = fAr[j + 1];
-        pickedVertices[acc++] = fAr[j + 2];
-        if (fAr[j + 3] >= 0) {
-          vertSculptFlags[fAr[j + 3]] = sculptFlag;
-          pickedVertices[acc++] = fAr[j + 3];
         }
       }
       this.pickedVertices_ = new Uint32Array(pickedVertices.subarray(0, acc));

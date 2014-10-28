@@ -194,7 +194,8 @@ define([
     newMesh.setFaces(new Int32Array(baseMesh.getNbFaces() * 4 * 4));
     Subdivision.applyEvenSmooth(baseMesh, newMesh.getVertices(), newMesh.getColors(), newMesh.getMaterials());
     var tags = Subdivision.applyOddSmooth(baseMesh, newMesh.getVertices(), newMesh.getColors(), newMesh.getMaterials(), newMesh.getFaces());
-    Subdivision.computeTexCoords(baseMesh, newMesh, tags);
+    if (baseMesh.hasUV())
+      Subdivision.computeTexCoords(baseMesh, newMesh, tags);
     newMesh.allocateArrays();
   };
 

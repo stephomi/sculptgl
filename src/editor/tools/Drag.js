@@ -61,7 +61,11 @@ define([
           mouseX += dx * step;
           mouseY += dy * step;
         }
-        this.mesh_.updateGeometryBuffers();
+        if (main.getMesh().getDynamicTopology) {
+          main.getMesh().updateBuffers();
+        } else {
+          this.mesh_.updateGeometryBuffers();
+        }
       }
       main.sumDisplacement_ = sumDisp;
     },
@@ -71,6 +75,7 @@ define([
 
       // undo-redo
       this.states_.pushVertices(iVertsInRadius);
+      iVertsInRadius = this.dynamicTopology(picking);
 
       if (this.culling_)
         iVertsInRadius = this.getFrontVertices(iVertsInRadius, picking.getEyeDirection());

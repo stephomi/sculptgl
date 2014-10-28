@@ -14,6 +14,7 @@ define([], function () {
 
   DrawArraysData.prototype = {
     getVerticesDrawArrays: function () {
+      if (!this.verticesXYZ_) this.updateDrawArrays(true);
       return this.verticesXYZ_;
     },
     getNormalsDrawArrays: function () {
@@ -28,6 +29,20 @@ define([], function () {
     getTexCoordsDrawArrays: function () {
       return this.texCoordsST_;
     },
+    /** ONLY FOR DYNAMIC MESH */
+    reAllocateArrays: function (nbAddElements) {
+      var mesh = this.mesh_;
+      var nbMagic = 10;
+      var nbDyna = this.verticesXYZ_.length / 9;
+      var nbTriangles = mesh.getNbTriangles();
+      var len = nbTriangles + nbAddElements * nbMagic;
+      if (nbDyna < len || nbDyna > len * 4) {
+        this.verticesXYZ_ = mesh.resizeArray(this.verticesXYZ_, len * 9);
+        this.normalsXYZ_ = mesh.resizeArray(this.normalsXYZ_, len * 9);
+        this.colorsRGB_ = mesh.resizeArray(this.colorsRGB_, len * 9);
+        this.materialsPBR_ = mesh.resizeArray(this.materialsPBR_, len * 9);
+      }
+    },
     /** Updates the arrays that are going to be used by webgl */
     updateDrawArrays: function (flat, iFaces) {
       var mesh = this.mesh_;
@@ -41,7 +56,7 @@ define([], function () {
 
       var faceNormals = mesh.getFaceNormals();
       var nbTriangles = mesh.getNbTriangles();
-      var facesToTris = mesh.getFacesToTriangles();
+      var facesToTris = mesh.hasOnlyTriangles() ? null : mesh.getFacesToTriangles();
 
       var full = iFaces === undefined;
       var cdv = this.verticesXYZ_;
@@ -49,20 +64,18 @@ define([], function () {
       var cdc = this.colorsRGB_;
       var cdm = this.materialsPBR_;
 
-      if (!cdv || cdv.length !== nbTriangles * 9)
+      if (!cdv || cdv.length < nbTriangles * 9) {
         cdv = this.verticesXYZ_ = new Float32Array(nbTriangles * 9);
-      if (!cdn || cdn.length !== nbTriangles * 9)
         cdn = this.normalsXYZ_ = new Float32Array(nbTriangles * 9);
-      if (!cdc || cdc.length !== nbTriangles * 9)
         cdc = this.colorsRGB_ = new Float32Array(nbTriangles * 9);
-      if (!cdm || cdm.length !== nbTriangles * 9)
         cdm = this.materialsPBR_ = new Float32Array(nbTriangles * 9);
+      }
 
       var nbFaces = full ? mesh.getNbFaces() : iFaces.length;
       for (var i = 0; i < nbFaces; ++i) {
         var idFace = full ? i : iFaces[i];
         var idTri = idFace * 3;
-        var ftt = facesToTris[idFace];
+        var ftt = facesToTris ? facesToTris[idFace] : idFace;
         var vId = ftt * 9;
 
         idFace *= 4;

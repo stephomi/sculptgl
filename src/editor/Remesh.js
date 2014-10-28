@@ -200,17 +200,12 @@ define([
 
   Remesh.createMesh = function (mesh, vertices, faces) {
     var newMesh = new Mesh(mesh.getGL());
+    newMesh.setID(mesh.getID());
     newMesh.setVertices(vertices);
     newMesh.setFaces(faces);
     newMesh.init();
-    // copy render config
-    newMesh.setShowWireframe(mesh.getShowWireframe());
-    newMesh.setFlatShading(mesh.getFlatShading());
-    newMesh.setShader(mesh.getShader().getType());
-    newMesh.setTexture0(mesh.getTexture0());
-    newMesh.setRoughness(mesh.getRoughness());
-    newMesh.setMetallic(mesh.getMetallic());
-    newMesh.setExposure(mesh.getExposure());
+    newMesh.setRender(mesh.getRender());
+    mesh.getRender().mesh_ = newMesh;
     newMesh.initRender();
     return newMesh;
   };
@@ -247,7 +242,7 @@ define([
     return box;
   };
 
-  Remesh.remesh = function (main, mesh, meshes) {
+  Remesh.remesh = function (mesh, meshes) {
     meshes = meshes.slice();
     console.time('prepareMeshes');
     var box = Remesh.prepareMeshes(meshes);

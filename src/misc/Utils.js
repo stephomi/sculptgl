@@ -3,15 +3,30 @@ define([], function () {
   'use strict';
 
   // Not sure I should put theses functions here...
+  // polyfills
+  if (!window.Map) {
+    window.Map = function () {
+      this.map = {};
+    };
+    window.Map.prototype = {
+      set: function (key, value) {
+        this.map[key] = value;
+      },
+      get: function (key) {
+        return this.map[key];
+      }
+    };
+  }
+
   /** endsWith function */
-  if (typeof String.prototype.endsWith !== 'function') {
+  if (!String.prototype.endsWith) {
     String.prototype.endsWith = function (str) {
       return this.slice(-str.length) === str;
     };
   }
 
   /** startsWith function */
-  if (typeof String.prototype.startsWith !== 'function') {
+  if (!String.prototype.startsWith) {
     String.prototype.startsWith = function (str) {
       return this.slice(0, str.length) === str;
     };
@@ -50,6 +65,33 @@ define([], function () {
     return new Int16Array(buffer)[0] === 256;
   })();
 
+  Utils.replaceElement = function (array, oldValue, newValue) {
+    for (var i = 0, l = array.length; i < l; ++i) {
+      if (array[i] === oldValue) {
+        array[i] = newValue;
+        return;
+      }
+    }
+  };
+
+  Utils.removeElement = function (array, remValue) {
+    for (var i = 0, l = array.length; i < l; ++i) {
+      if (array[i] === remValue) {
+        array[i] = array[l - 1];
+        array.pop();
+        return;
+      }
+    }
+  };
+
+  Utils.appendArray = function (array1, array2) {
+    var nb1 = array1.length;
+    var nb2 = array2.length;
+    array1.length += nb2;
+    for (var i = 0; i < nb2; ++i)
+      array1[nb1 + i] = array2[i];
+  };
+
   /** Return true if the number is a power of two */
   Utils.isPowerOfTwo = function (x) {
     return x !== 0 && (x & (x - 1)) === 0;
@@ -63,14 +105,15 @@ define([], function () {
     return x + 1;
   };
 
+  var sortFunc = function (a, b) {
+    return a - b;
+  };
   /** sort an array and delete duplicate values */
   Utils.tidy = function (array) {
-    array.sort(function (a, b) {
-      return a - b;
-    });
+    array.sort(sortFunc);
     var len = array.length;
-    var i = 0,
-      j = 0;
+    var i = 0;
+    var j = 0;
     for (i = 1; i < len; ++i) {
       if (array[j] !== array[i])
         array[++j] = array[i];
@@ -79,14 +122,14 @@ define([], function () {
       array.length = j + 1;
   };
 
-  /** Intersection between two arrays*/
+  /** Intersection between two arrays */
   Utils.intersectionArrays = function (a, b) {
-    var ai = 0,
-      bi = 0;
+    var ai = 0;
+    var bi = 0;
     var result = [];
 
-    var aLen = a.length,
-      bLen = b.length;
+    var aLen = a.length;
+    var bLen = b.length;
     while (ai < aLen && bi < bLen) {
       if (a[ai] < b[bi]) ai++;
       else if (a[ai] > b[bi]) bi++;

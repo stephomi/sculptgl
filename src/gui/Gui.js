@@ -63,7 +63,7 @@ define([
     /** Update information on mesh */
     updateMesh: function () {
       this.ctrlRendering_.updateMesh();
-      this.ctrlTopology_.updateMeshResolution();
+      this.ctrlTopology_.updateMeshTopology();
       this.updateMeshInfo();
     },
     /** Update number of vertices and triangles */

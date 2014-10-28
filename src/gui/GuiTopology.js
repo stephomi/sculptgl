@@ -1,9 +1,12 @@
 define([
   'gui/GuiTR',
   'editor/Remesh',
+  'mesh/Mesh',
   'mesh/multiresolution/Multimesh',
+  'mesh/dynamic/MeshDynamic',
+  'mesh/dynamic/Topology',
   'states/StateMultiresolution'
-], function (TR, Remesh, Multimesh, StateMultiresolution) {
+], function (TR, Remesh, Mesh, Multimesh, MeshDynamic, Topology, StateMultiresolution) {
 
   'use strict';
 
@@ -12,6 +15,7 @@ define([
     this.main_ = ctrlGui.main_; // main application
     this.menu_ = null; // ui menu
     this.ctrlResolution_ = null; // multiresolution controller
+    this.ctrlDynamic_ = null; // dynamic topology controller
     this.init(guiParent);
   }
 
@@ -32,14 +36,37 @@ define([
       menu.addTitle(TR('remeshTitle'));
       menu.addSlider(TR('remeshResolution'), Remesh, 'resolution', 8, 400, 1);
       menu.addButton(TR('remeshRemesh'), this, 'remesh');
+
+      // dynamic
+      menu.addTitle(TR('dynamicTitle'));
+      this.dynamic = false;
+      this.ctrlDynamic_ = menu.addCheckbox(TR('dynamicActivated'), this.dynamic, this.dynamicActivate.bind(this));
+      menu.addSlider(TR('dynamicSubdivision'), Topology, 'subFactor', 0, 100, 1);
+      menu.addSlider(TR('dynamicDecimation'), Topology, 'decFactor', 0, 100, 1);
     },
-    /** Update information on mesh */
+    dynamicActivate: function (enable) {
+      var main = this.main_;
+      var mesh = main.getMesh();
+      if (!mesh)
+        return;
+      var newMesh = enable ? new MeshDynamic(mesh) : this.convertToStaticMesh(mesh);
+      main.replaceMesh(mesh, newMesh);
+      main.getStates().pushStateAddRemove(newMesh, mesh);
+    },
+    /** Remesh the mesh */
     remesh: function () {
       var main = this.main_;
       var mesh = main.getMesh();
       if (!mesh)
         return;
-      var newMesh = Remesh.remesh(main, mesh, main.getMeshes());
+      var meshes = main.getMeshes().slice();
+      for (var i = 0, l = meshes.length; i < l; ++i) {
+        if (meshes[i] === mesh)
+          mesh = meshes[i] = this.convertToStaticMesh(meshes[i]);
+        else
+          meshes[i] = this.convertToStaticMesh(meshes[i]);
+      }
+      var newMesh = Remesh.remesh(mesh, meshes);
       main.getStates().pushStateAddRemove(newMesh, main.getMeshes().slice());
       main.meshes_.length = 0;
       main.meshes_.push(newMesh);
@@ -49,40 +76,61 @@ define([
     isMultimesh: function (mesh) {
       return mesh && mesh.meshes_ !== undefined;
     },
+    convertToStaticMesh: function (mesh) {
+      if (!mesh.getDynamicTopology) // already static
+        return mesh;
+      // dynamic to static mesh
+      var newMesh = new Mesh(mesh.getGL());
+      newMesh.setID(mesh.getID());
+      newMesh.setVertices(mesh.getVertices().subarray(0, mesh.getNbVertices() * 3));
+      newMesh.setColors(mesh.getColors().subarray(0, mesh.getNbVertices() * 3));
+      newMesh.setMaterials(mesh.getMaterials().subarray(0, mesh.getNbVertices() * 3));
+      newMesh.setFaces(mesh.getFaces().subarray(0, mesh.getNbFaces() * 4));
+      newMesh.init();
+      newMesh.setRender(mesh.getRender());
+      mesh.getRender().mesh_ = newMesh;
+      newMesh.initRender();
+      return newMesh;
+    },
     /** Convert a mesh into a multiresolution one */
     convertToMultimesh: function (mesh) {
-      var multimesh = new Multimesh(mesh);
-      this.main_.replaceMesh(mesh, multimesh);
+      if (this.isMultimesh(mesh))
+        return mesh;
+      var multimesh = new Multimesh(this.convertToStaticMesh(mesh));
       return multimesh;
     },
     /** Subdivide the mesh */
     subdivide: function () {
       var main = this.main_;
-      var mul = main.getMesh();
-      if (!mul) return;
-      if (!this.isMultimesh(mul))
-        mul = this.convertToMultimesh(mul);
+      var mesh = main.getMesh();
+      if (!mesh) return;
+      var mul = this.convertToMultimesh(mesh);
       if (mul.sel_ !== mul.meshes_.length - 1) {
         window.alert(TR('multiresSelectHighest'));
         return;
       }
       if (mul.getNbTriangles() > 400000) {
-        if (!window.confirm(TR('multiresWarnBigMesh', mul.getNbFaces() * 4)))
+        if (!window.confirm(TR('multiresWarnBigMesh', mul.getNbFaces() * 4))) {
+          if (mesh !== mul) mesh.getRender().mesh_ = mesh;
           return;
+        }
+      }
+      if (mesh !== mul) {
+        this.main_.replaceMesh(mesh, mul);
+        this.main_.getStates().pushStateAddRemove(mul, mesh, true);
       }
       main.getStates().pushState(new StateMultiresolution(main, mul, StateMultiresolution.SUBDIVISION));
       mul.addLevel();
       this.ctrlGui_.updateMeshInfo();
-      this.updateMeshResolution();
+      main.setMesh(mul);
       main.render();
     },
     /** Inverse subdivision */
     reverse: function () {
       var main = this.main_;
-      var mul = main.getMesh();
-      if (!mul) return;
-      if (!this.isMultimesh(mul))
-        mul = this.convertToMultimesh(mul);
+      var mesh = main.getMesh();
+      if (!mesh) return;
+      var mul = this.convertToMultimesh(mesh);
       if (mul.sel_ !== 0) {
         window.alert(TR('multiresSelectLowest'));
         return;
@@ -90,12 +138,17 @@ define([
       var stateRes = new StateMultiresolution(main, mul, StateMultiresolution.REVERSION);
       var newMesh = mul.computeReverse();
       if (!newMesh) {
+        if (mesh !== mul) mesh.getRender().mesh_ = mesh;
         window.alert(TR('multiresNotReversible'));
         return;
       }
+      if (mesh !== mul) {
+        this.main_.replaceMesh(mesh, mul);
+        this.main_.getStates().pushStateAddRemove(mul, mesh, true);
+      }
       main.getStates().pushState(stateRes);
       this.ctrlGui_.updateMeshInfo();
-      this.updateMeshResolution();
+      main.setMesh(mul);
       main.render();
     },
     /** Delete the lower meshes */
@@ -144,6 +197,16 @@ define([
       }
       this.ctrlResolution_.setMax(multimesh.meshes_.length);
       this.ctrlResolution_.setValue(multimesh.sel_ + 1);
+    },
+    /** Update topology information */
+    updateMeshTopology: function () {
+      this.updateMeshResolution();
+      var mesh = this.main_.getMesh();
+      if (!mesh || !mesh.getDynamicTopology) {
+        this.ctrlDynamic_.setValue(false, true);
+        return;
+      }
+      this.ctrlDynamic_.setValue(true, true);
     }
   };
 

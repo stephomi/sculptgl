@@ -92,6 +92,7 @@ define([
 
       // undo-redo
       this.states_.pushVertices(iVertsInRadius);
+      iVertsInRadius = this.dynamicTopology(picking);
 
       if (this.culling_)
         iVertsInRadius = this.getFrontVertices(iVertsInRadius, picking.getEyeDirection());

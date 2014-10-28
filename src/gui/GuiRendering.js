@@ -79,8 +79,13 @@ define([
       var val = parseInt(value, 10);
       var mesh = this.main_.getMesh();
       if (mesh) {
-        mesh.setShader(val);
-        this.main_.render();
+        if (val === Shader.mode.UV && !mesh.hasUV()) {
+          this.updateMesh();
+          window.alert('No UV on this mesh.');
+        } else {
+          mesh.setShader(val);
+          this.main_.render();
+        }
       }
       this.updateVisibility();
     },

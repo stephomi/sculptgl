@@ -30,7 +30,7 @@ define([
       // export
       menu.addTitle(TR('fileExportSceneTitle'));
       menu.addButton(TR('fileExportOBJ'), this, 'saveFileAsOBJ');
-      menu.addButton(TR('sketchfabTitle'), this, 'exportSketchfab');
+      this.ctrlSketchfab_ = menu.addButton(TR('sketchfabTitle'), this, 'exportSketchfab');
       menu.addTitle(TR('fileExportMeshTitle'));
       menu.addButton(TR('fileExportPLY'), this, 'saveFileAsPLY');
       menu.addButton(TR('fileExportSTL'), this, 'saveFileAsSTL');

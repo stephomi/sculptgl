@@ -151,11 +151,15 @@ define([
     },
     /** Set the shader */
     setShader: function (shaderType) {
+      if (shaderType === Shader.mode.UV && !this.mesh_.hasUV())
+        return;
       this.shader_.setType(shaderType);
-      this.mesh_.updateDuplicateGeometry();
-      this.mesh_.updateDuplicateColorsAndMaterials();
-      if (this.isUsingTexCoords())
-        this.updateFlatShading();
+      if (this.mesh_.hasUV()) {
+        this.mesh_.updateDuplicateGeometry();
+        this.mesh_.updateDuplicateColorsAndMaterials();
+        if (this.isUsingTexCoords())
+          this.updateFlatShading();
+      }
       this.updateBuffers();
     },
     /** Update flat shading buffers */
@@ -168,7 +172,7 @@ define([
       this.shaderWireframe_.setType(Shader.mode.WIREFRAME);
       if (this.shader_.getType() === Shader.mode.MATCAP && !this.texture0_)
         this.setMatcap(0);
-      this.setShader(this.shader_.type_);
+      this.setShader(this.shader_.getType());
       this.setShowWireframe(this.getShowWireframe());
     },
     /** Render the mesh */
@@ -179,19 +183,19 @@ define([
     },
     /** Updates color buffer */
     updateVertexBuffer: function () {
-      this.getVertexBuffer().update(this.mesh_.getRenderVertices(this.isUsingDrawArrays()));
+      this.getVertexBuffer().update(this.mesh_.getRenderVertices());
     },
     /** Updates color buffer */
     updateNormalBuffer: function () {
-      this.getNormalBuffer().update(this.mesh_.getRenderNormals(this.isUsingDrawArrays()));
+      this.getNormalBuffer().update(this.mesh_.getRenderNormals());
     },
     /** Updates color buffer */
     updateColorBuffer: function () {
-      this.getColorBuffer().update(this.mesh_.getRenderColors(this.isUsingDrawArrays()));
+      this.getColorBuffer().update(this.mesh_.getRenderColors());
     },
     /** Updates material buffer */
     updateMaterialBuffer: function () {
-      this.getMaterialBuffer().update(this.mesh_.getRenderMaterials(this.isUsingDrawArrays()));
+      this.getMaterialBuffer().update(this.mesh_.getRenderMaterials());
     },
     /** Updates texCoord buffer */
     updateTexCoordBuffer: function () {
@@ -233,6 +237,16 @@ define([
       this.getIndexBuffer().release();
       this.getWireframeBuffer().release();
     },
+    /** Copy render configuration */
+    copyRenderConfig: function (mesh) {
+      this.setFlatShading(mesh.getFlatShading());
+      this.setShowWireframe(mesh.getShowWireframe());
+      this.setShader(mesh.getShader().getType());
+      this.setTexture0(mesh.getTexture0());
+      this.setRoughness(mesh.getRoughness());
+      this.setMetallic(mesh.getMetallic());
+      this.setExposure(mesh.getExposure());
+    }
   };
 
   return Render;

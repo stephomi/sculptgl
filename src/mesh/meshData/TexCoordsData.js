@@ -19,6 +19,9 @@ define([
   }
 
   TexCoordsData.prototype = {
+    hasUV: function () {
+      return this.texCoordsST_ !== null;
+    },
     setTexCoords: function (tAr) {
       this.texCoordsST_ = tAr;
     },
@@ -50,24 +53,15 @@ define([
       return this.UVfacesABCD_;
     },
     getNbTexCoords: function () {
-      return this.texCoordsST_.length / 2;
+      return this.texCoordsST_ ? this.texCoordsST_.length / 2 : 0;
     },
     allocateArrays: function () {
-      var mesh = this.mesh_;
-
-      var nbVertices = mesh.getNbVertices();
-      var tc = this.texCoordsST_;
-      if (!tc) {
-        this.texCoordsST_ = new Float32Array(nbVertices * 2);
-        this.duplicateStartCount_ = new Uint32Array(nbVertices * 2);
-        this.UVverticesXYZ_ = mesh.getVertices();
-        this.UVnormalsXYZ_ = mesh.getNormals();
-        this.UVcolorsRGB_ = mesh.getColors();
-        this.UVmaterialsPBR_ = mesh.getMaterials();
-        this.UVfacesABCD_ = mesh.getFaces();
+      if (!this.hasUV())
         return;
-      }
-      var nbTexCoords = tc.length / 2;
+
+      var mesh = this.mesh_;
+      var nbTexCoords = this.texCoordsST_.length / 2;
+      var nbVertices = mesh.getNbVertices();
 
       var verts = this.UVverticesXYZ_ = new Float32Array(nbTexCoords * 3);
       verts.set(mesh.getVertices());
@@ -87,10 +81,10 @@ define([
     },
     updateDuplicateGeometry: function (iVerts) {
       var mesh = this.mesh_;
-      var vAr = this.getVerticesTexCoord();
-      if (!mesh.isUsingTexCoords() || vAr === mesh.getVertices())
+      if (!mesh.isUsingTexCoords() || !this.hasUV())
         return;
 
+      var vAr = this.getVerticesTexCoord();
       var cAr = this.getColorsTexCoord();
       var mAr = this.getMaterialsTexCoord();
       var nAr = this.getNormalsTexCoord();
@@ -136,7 +130,7 @@ define([
     },
     updateDuplicateColorsAndMaterials: function (iVerts) {
       var mesh = this.mesh_;
-      if (!mesh.isUsingTexCoords() || this.getVerticesTexCoord() === mesh.getVertices())
+      if (!mesh.isUsingTexCoords() || !this.hasUV())
         return;
 
       var cAr = this.getColorsTexCoord();

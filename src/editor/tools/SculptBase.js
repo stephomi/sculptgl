@@ -82,11 +82,14 @@ define([
           mouseX += dx * step;
           mouseY += dy * step;
         }
-        if (colorState) {
+        if (main.getMesh().getDynamicTopology) {
+          main.getMesh().updateBuffers();
+        } else if (colorState) {
           main.getMesh().updateColorBuffer();
           main.getMesh().updateMaterialBuffer();
-        } else
+        } else {
           main.getMesh().updateGeometryBuffers();
+        }
       }
       main.sumDisplacement_ = sumDisp;
     },
@@ -145,6 +148,8 @@ define([
       var mesh = this.mesh_;
       var vAr = mesh.getVertices();
       var vProxy = mesh.getVerticesProxy();
+      if (vAr === vProxy)
+        return;
       var vertStateFlags = mesh.getVerticesStateFlags();
       var stateFlag = Utils.STATE_FLAG;
       for (var i = 0, l = iVerts.length; i < l; ++i) {
@@ -162,14 +167,22 @@ define([
       var mesh = this.mesh_;
       var vrvStartCount = mesh.getVerticesRingVertStartCount();
       var vertRingVert = mesh.getVerticesRingVert();
+      var ringVerts = vertRingVert instanceof Array ? vertRingVert : null;
       var vertOnEdge = mesh.getVerticesOnEdge();
       var vAr = mesh.getVertices();
       var nbVerts = iVerts.length;
       for (var i = 0; i < nbVerts; ++i) {
         var i3 = i * 3;
         var id = iVerts[i];
-        var start = vrvStartCount[id * 2];
-        var end = start + vrvStartCount[id * 2 + 1];
+        var start, end;
+        if (ringVerts) {
+          vertRingVert = ringVerts[id];
+          start = 0;
+          end = vertRingVert.length;
+        } else {
+          start = vrvStartCount[id * 2];
+          end = start + vrvStartCount[id * 2 + 1];
+        }
         var avx = 0.0;
         var avy = 0.0;
         var avz = 0.0;
@@ -207,6 +220,53 @@ define([
         smoothVerts[i3 + 1] = avy / j;
         smoothVerts[i3 + 2] = avz / j;
       }
+    },
+    dynamicTopology: function (picking) {
+      var mesh = this.mesh_;
+      var iVerts = picking.getPickedVertices();
+      if (!mesh.getDynamicTopology)
+        return iVerts;
+      if (iVerts.length === 0) {
+        iVerts = mesh.getVerticesFromFaces([picking.getPickedFace()]);
+        // undo-redo
+        this.states_.pushVertices(iVerts);
+      }
+
+      var topo = mesh.getDynamicTopology();
+      var subFactor = topo.getSubdivisionFactor();
+      var decFactor = topo.getDecimationFactor();
+      if (subFactor === 0.0 && decFactor === 0.0)
+        return iVerts;
+
+      var iFaces = mesh.getFacesFromVertices(iVerts);
+      var radius2 = picking.getLocalRadius2();
+      var center = picking.getIntersectionPoint();
+      var d2Max = radius2 * (1.1 - subFactor) * 0.2;
+      var d2Min = (d2Max / 4.2025) * decFactor;
+
+      // undo-redo
+      this.states_.pushFaces(iFaces);
+
+      if (subFactor)
+        iFaces = topo.subdivision(iFaces, center, radius2, d2Max, this.states_);
+      if (decFactor)
+        iFaces = topo.decimation(iFaces, center, radius2, d2Min, this.states_);
+      iVerts = mesh.getVerticesFromFaces(iFaces);
+
+      var nbVerts = iVerts.length;
+      var sculptFlag = Utils.SCULPT_FLAG;
+      var vscf = mesh.getVerticesSculptFlags();
+      var iVertsInRadius = new Uint32Array(Utils.getMemory(nbVerts * 4), 0, nbVerts);
+      var acc = 0;
+      for (var i = 0; i < nbVerts; ++i) {
+        var iVert = iVerts[i];
+        if (vscf[iVert] === sculptFlag)
+          iVertsInRadius[acc++] = iVert;
+      }
+      iVertsInRadius = new Uint32Array(iVertsInRadius.subarray(0, acc));
+      mesh.updateTopology(iFaces);
+      mesh.updateGeometry(iFaces, iVertsInRadius);
+      return iVertsInRadius;
     }
   };
 
