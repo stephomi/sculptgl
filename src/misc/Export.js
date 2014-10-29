@@ -11,7 +11,7 @@ define([
   Export.exportOBJ = ExportOBJ.exportOBJ;
   Export.exportPLY = ExportPLY.exportPLY;
   Export.exportSTL = ExportSTL.exportSTL;
-  Export.exportSketchfab = function (meshes, mesh, key) {
+  Export.exportSketchfab = function (meshes, mesh, key, statusWidget) {
     var fd = new FormData();
 
     fd.append('token', key);
@@ -22,7 +22,22 @@ define([
     var xhr = new XMLHttpRequest();
     xhr.open('POST', 'https://api.sketchfab.com/v2/models', true);
 
+    var domStatus = statusWidget.domContainer;
+    statusWidget.setVisibility(true);
+    domStatus.innerHTML = 'Uploading...';
+
+    xhr.onprogress = function (event) {
+      if (event.lengthComputable)
+        domStatus.innerHTML = 'Uploading : ' + Math.round(event.loaded * 100.0 / event.total) + '%';
+    };
+    var hideStatus = function () {
+      statusWidget.setVisibility(false);
+    };
+    xhr.onerror = hideStatus;
+    xhr.onabort = hideStatus;
+
     xhr.onload = function () {
+      hideStatus();
       var res = JSON.parse(xhr.responseText);
       var uid = res.uid;
       if (!uid) {
@@ -49,6 +64,7 @@ define([
       check();
     };
     xhr.send(fd);
+    return xhr;
   };
 
   return Export;

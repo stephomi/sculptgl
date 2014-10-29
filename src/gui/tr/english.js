@@ -115,7 +115,7 @@ define([], function () {
     wacomRadius: 'Pressure radius',
     wacomIntensity: 'Pressure intensity',
 
-    // sketchfab
+    // rendering
     renderingTitle: 'Rendering',
     renderingGrid: 'Show grid',
     renderingMatcap: 'Matcap',
@@ -151,7 +151,8 @@ define([], function () {
     sketchfabUploadError: function (error) {
       return 'Sketchfab upload error :\n' + error;
     },
-    sketchfabUploadSuccess: 'Upload success !\nHere"s your link :'
+    sketchfabUploadSuccess: 'Upload success !\nHere"s your link :',
+    sketchfabAbort: 'Abort the last upload ?'
   };
 
   return TR;
