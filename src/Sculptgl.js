@@ -381,7 +381,6 @@ define([
     },
     /** Mouse released event */
     onMouseUp: function (event) {
-      event.stopPropagation();
       event.preventDefault();
       this.canvas_.style.cursor = 'default';
       this.mouseButton_ = 0;

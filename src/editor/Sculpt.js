@@ -77,7 +77,6 @@ define([
     },
     /** Mouse released event */
     onMouseUp: function (event) {
-      event.stopPropagation();
       event.preventDefault();
       var tool = this.getCurrentTool();
       if (tool.mesh_)
