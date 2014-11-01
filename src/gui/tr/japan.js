@@ -40,7 +40,7 @@ define([], function () {
     fileExportSceneTitle: 'Export Scene',
     fileExportOBJ: 'OBJ形式 (paint,quad,uv)',
     fileExportPLY: 'PLY形式 (color,quad)',
-    fileExportSTL: 'STL形式 (tri)',
+    fileExportSTL: 'STL形式 (color,tri)',
 
     // mesh
     meshTitle: 'メッシュ',

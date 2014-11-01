@@ -40,7 +40,7 @@ define([], function () {
     fileExportSceneTitle: 'Export Scene',
     fileExportOBJ: 'OBJ (paint,quad,uv)',
     fileExportPLY: 'PLY (color,quad)',
-    fileExportSTL: 'STL (tri)',
+    fileExportSTL: 'STL (color,tri)',
 
     // mesh
     meshTitle: 'Mesh',

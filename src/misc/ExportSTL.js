@@ -40,6 +40,7 @@ define([
   /** Export binary STL file */
   Export.exportBinarySTL = function (mesh) {
     var vAr = mesh.getVertices();
+    var cAr = mesh.getColors();
     var iAr = mesh.getTriangles();
 
     var origFN = mesh.getFaceNormals();
@@ -56,25 +57,36 @@ define([
     var norBuffer = new Uint8Array(faceNormals.buffer);
     var offset = 84;
     var inc = 0;
+
+    var mulc = 31 / 3;
     for (var i = 0; i < nbTriangles; ++i) {
       var k = i * 12;
       for (inc = 0; inc < 12; ++inc) {
         data[offset++] = norBuffer[k++];
       }
       k = i * 3;
-      var iv1 = iAr[k] * 12;
+      var iv1 = iAr[k] * 3;
+      var iv2 = iAr[k + 1] * 3;
+      var iv3 = iAr[k + 2] * 3;
+
+      var id1 = iv1 * 4;
       for (inc = 0; inc < 12; ++inc) {
-        data[offset++] = verBuffer[iv1++];
+        data[offset++] = verBuffer[id1++];
       }
-      var iv2 = iAr[k + 1] * 12;
+      var id2 = iv2 * 4;
       for (inc = 0; inc < 12; ++inc) {
-        data[offset++] = verBuffer[iv2++];
+        data[offset++] = verBuffer[id2++];
       }
-      var iv3 = iAr[k + 2] * 12;
+      var id3 = iv3 * 4;
       for (inc = 0; inc < 12; ++inc) {
-        data[offset++] = verBuffer[iv3++];
+        data[offset++] = verBuffer[id3++];
       }
-      offset += 2;
+      var r = Math.round((cAr[iv1] + cAr[iv2] + cAr[iv3]) * mulc) << 10;
+      var g = Math.round((cAr[iv1 + 1] + cAr[iv2 + 1] + cAr[iv3 + 1]) * mulc) << 5;
+      var b = Math.round((cAr[iv1 + 2] + cAr[iv2 + 2] + cAr[iv3 + 2]) * mulc);
+      var col = r + g + b + 32768;
+      data[offset++] = col & 255;
+      data[offset++] = col >> 8;
     }
     return new Blob([data]);
   };
