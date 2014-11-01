@@ -1,7 +1,9 @@
 module.exports = function (grunt) {
   'use strict';
 
-  var clean = ['build'];
+  var clean = {
+    main: ['build']
+  };
 
   var jshint = {
     files: ['Gruntfile.js', 'src/**/*.js']
@@ -21,6 +23,14 @@ module.exports = function (grunt) {
   };
 
   var copy = {
+    standalone: {
+      files: [{
+        expand: true,
+        flatten: true,
+        src: ['package.json'],
+        dest: 'build/'
+      }]
+    },
     main: {
       files: [{
         expand: true,
@@ -60,6 +70,14 @@ module.exports = function (grunt) {
     }
   };
 
+  var nodewebkit = {
+    options: {
+      platforms: ['win', 'osx', 'linux32', 'linux64'],
+      buildDir: './nodewebkit', // Where the build version of my node-webkit app is saved
+    },
+    src: ['build/**/*'] // Your node-webkit app
+  };
+
   // Project configuration.
   grunt.initConfig({
     pkg: grunt.file.readJSON('package.json'),
@@ -67,7 +85,8 @@ module.exports = function (grunt) {
     jshint: jshint,
     copy: copy,
     requirejs: requirejs,
-    manifest: manifest
+    manifest: manifest,
+    nodewebkit: nodewebkit
   });
 
   grunt.loadNpmTasks('grunt-manifest');
@@ -75,9 +94,11 @@ module.exports = function (grunt) {
   grunt.loadNpmTasks('grunt-contrib-jshint');
   grunt.loadNpmTasks('grunt-contrib-clean');
   grunt.loadNpmTasks('grunt-contrib-copy');
+  grunt.loadNpmTasks('grunt-node-webkit-builder');
 
   grunt.registerTask('test', 'jshint');
-  grunt.registerTask('build', ['clean', 'jshint', 'copy', 'requirejs' /*, 'manifest'*/ ]);
+  grunt.registerTask('build', ['clean', 'jshint', 'copy:main', 'requirejs' /*, 'manifest'*/ ]);
+  grunt.registerTask('standalone', ['build', 'copy:standalone', 'nodewebkit']);
 
   grunt.registerTask('default', 'build');
 };

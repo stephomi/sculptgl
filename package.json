@@ -1,15 +1,16 @@
 {
   "name": "SculptGL",
-  "version": "0.0.5",
+  "version": "0.9.0",
   "description": "A WebGL digital sculpting app",
-  "main": "main.js",
+  "main": "index.html",
   "dependencies": {
     "grunt": "*",
     "grunt-manifest": "*",
     "grunt-requirejs": "*",
+    "grunt-contrib-jshint": "*",
     "grunt-contrib-clean": "*",
     "grunt-contrib-copy": "*",
-    "grunt-contrib-jshint": "*"
+    "grunt-node-webkit-builder": "*"
   },
   "scripts": {
     "test": "no test"
@@ -23,5 +24,18 @@
   "bugs": {
     "url": "https://github.com/stephomi/sculptgl/issues"
   },
-  "homepage": "https://github.com/stephomi/sculptgl"
+  "homepage": "https://github.com/stephomi/sculptgl",
+  "single-instance": false,
+  "window": {
+    "title": "SculptGL",
+    "toolbar": false,
+    "frame": true,
+    "width": 1366,
+    "height": 768,
+    "position": "center"
+  },
+  "nodejs": true,
+  "webkit": {
+    "plugin": true
+  }
 }

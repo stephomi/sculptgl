@@ -15,7 +15,13 @@ Simply open `index.html`.
 
 #### Release
 
-Use grunt :
+If it's not already one done, install [nodejs](http://nodejs.org/).
+Then use grunt :
 
+    git clone git://github.com/stephomi/sculptgl.git
+    cd sculptgl
+    npm install -g grunt-cli # if not already done
     npm install
-    grunt
+
+    grunt build # web version
+    grunt standalone # desktop webkit version
