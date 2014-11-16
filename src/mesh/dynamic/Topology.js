@@ -12,7 +12,7 @@ define([
   };
 
   Topology.subFactor = 75; // subdivision factor
-  Topology.decFactor = 50; // decimation factor
+  Topology.decFactor = 10; // decimation factor
 
   Topology.prototype = {
     getSubdivisionFactor: function () {
