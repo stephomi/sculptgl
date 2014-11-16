@@ -299,11 +299,10 @@ define([
       var n1n2x = n1x + n2x;
       var n1n2y = n1y + n2y;
       var n1n2z = n1z + n2z;
-      var len = 1.0 / Math.sqrt(n1n2x * n1n2x + n1n2y * n1n2y + n1n2z * n1n2z);
       id = iNewVer * 3;
-      nAr[id] = n1n2x = n1n2x * len;
-      nAr[id + 1] = n1n2y = n1n2y * len;
-      nAr[id + 2] = n1n2z = n1n2z * len;
+      nAr[id] = n1n2x * 0.5;
+      nAr[id + 1] = n1n2y * 0.5;
+      nAr[id + 2] = n1n2z * 0.5;
       cAr[id] = (cAr[id1] + cAr[id2]) * 0.5;
       cAr[id + 1] = (cAr[id1 + 1] + cAr[id2 + 1]) * 0.5;
       cAr[id + 2] = (cAr[id1 + 2] + cAr[id2 + 2]) * 0.5;
@@ -317,6 +316,14 @@ define([
         vAr[id + 1] = (v1y + v2y) * 0.5;
         vAr[id + 2] = (v1z + v2z) * 0.5;
       } else {
+        var len = 1.0 / Math.sqrt(n1x * n1x + n1y * n1y + n1z * n1z);
+        n1x *= len;
+        n1y *= len;
+        n1z *= len;
+        len = 1.0 / Math.sqrt(n2x * n2x + n2y * n2y + n2z * n2z);
+        n2x *= len;
+        n2y *= len;
+        n2z *= len;
         var dot = n1x * n2x + n1y * n2y + n1z * n2z;
         var angle = 0;
         if (dot <= -1) angle = Math.PI;
@@ -326,8 +333,9 @@ define([
         var edgex = v1x - v2x;
         var edgey = v1y - v2y;
         var edgez = v1z - v2z;
-        len = Math.sqrt(edgex * edgex + edgey * edgey + edgez * edgez);
-        offset = angle * len * 0.02;
+        offset = angle * 0.12;
+        offset *= Math.sqrt(edgex * edgex + edgey * edgey + edgez * edgez);
+        offset /= Math.sqrt(n1n2x * n1n2x + n1n2y * n1n2y + n1n2z * n1n2z);
         if ((edgex * (n1x - n2x) + edgey * (n1y - n2y) + edgez * (n1z - n2z)) < 0)
           offset = -offset;
         vAr[id] = (v1x + v2x) * 0.5 + n1n2x * offset;
