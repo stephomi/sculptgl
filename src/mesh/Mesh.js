@@ -11,9 +11,26 @@ define([
     this.meshData_ = new MeshData(this); // the mesh data
     this.octree_ = new Octree(this); // octree
     this.render_ = gl ? new Render(gl, this) : null; // octree
+    this.id_ = Mesh.ID++; // useful id to retrieve a mesh (dynamic mesh, multires mesh, voxel mesh)
   }
 
+  Mesh.ID = 0;
+  Mesh.sortFunction = function (meshA, meshB) {
+    // render transparent (back to front) after opaque (front to back) ones
+    var aTr = meshA.isTransparent();
+    var bTr = meshB.isTransparent();
+    if (aTr && !bTr) return 1;
+    if (!aTr && bTr) return -1;
+    return (meshB.getDepth() - meshA.getDepth()) * (aTr && bTr ? 1.0 : -1.0);
+  };
+
   Mesh.prototype = {
+    getID: function () {
+      return this.id_;
+    },
+    setID: function (id) {
+      this.id_ = id;
+    },
     getMeshData: function () {
       return this.meshData_;
     },
@@ -85,7 +102,7 @@ define([
       this.updateDuplicateGeometry(iVerts);
       this.updateFlatShading(iFaces);
     },
-    /** Allocate some resources */
+    /** Allocate mesh resources */
     allocateArrays: function () {
       this.getIndexData().allocateArrays();
       this.getVertexData().allocateArrays();

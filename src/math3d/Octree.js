@@ -35,6 +35,16 @@ define([
       for (var i = 0; i < nbFaces; ++i)
         faceLeaf[i] = null;
     },
+    /** ONLY FOR DYNAMIC MESH */
+    reAllocateArrays: function (nbAddElements) {
+      var mesh = this.mesh_;
+      var nbDyna = this.facePosInLeaf_.length;
+      var nbTriangles = mesh.getNbTriangles();
+      var len = nbTriangles + nbAddElements;
+      if (nbDyna < len || nbDyna > len * 4) {
+        this.facePosInLeaf_ = mesh.resizeArray(this.facePosInLeaf_, len);
+      }
+    },
     /** Return faces intersected by a ray */
     intersectRay: function (vNear, eyeDir, hint) {
       var collectFaces = new Uint32Array(Utils.getMemory(hint * 4), 0, hint);

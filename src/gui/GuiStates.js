@@ -21,7 +21,7 @@ define([
       menu.addButton(TR('stateRedo'), this, 'onRedo', 'CTRL+Y');
       menu.addTitle(TR('stateMaxStack'));
       var states = this.main_.getStates();
-      menu.addSlider('', States.STACK_LENGTH, states.setNewMaxStack.bind(states), 1, 50, 1);
+      menu.addSlider('', States.STACK_LENGTH, states.setNewMaxStack.bind(states), 3, 50, 1);
       this.addEvents();
     },
     /** Add events */

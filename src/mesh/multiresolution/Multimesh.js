@@ -34,6 +34,7 @@ define([
         return this.getCurrentMesh();
       var baseMesh = this.getCurrentMesh();
       var newMesh = new MeshResolution(baseMesh.getTransformData(), baseMesh.getRender());
+      newMesh.setID(this.getID());
       baseMesh.setVerticesMapping(undefined);
 
       Subdivision.fullSubdivision(baseMesh, newMesh);
@@ -49,6 +50,7 @@ define([
         return this.getCurrentMesh();
       var baseMesh = this.getCurrentMesh();
       var newMesh = new MeshResolution(baseMesh.getTransformData(), baseMesh.getRender());
+      newMesh.setID(this.getID());
 
       var status = Reversion.computeReverse(baseMesh, newMesh);
       if (!status)

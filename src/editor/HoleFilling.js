@@ -126,6 +126,7 @@ define([
 
   HoleFilling.createMesh = function (mesh, vertices, faces) {
     var newMesh = new Mesh();
+    newMesh.setID(mesh.getID());
     newMesh.setVertices(vertices);
     newMesh.setFaces(faces);
 

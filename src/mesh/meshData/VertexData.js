@@ -21,11 +21,11 @@ define([
     this.vertRingVert_ = null; // array neighborhood vertices (Uint32Array)
 
     // flag for general purposes stuff
-    this.vertTagFlags_ = null; // tag flags (<= Utils.TAG_FLAG) (Uint32Array)
+    this.vertTagFlags_ = null; // tag flags (<= Utils.TAG_FLAG) (Int32Array)
     // flag for editing (tag vertices on each start of a sculpting session)
-    this.vertSculptFlags_ = null; // sculpt flags (<= Utils.SCULPT_FLAG) (Uint32Array)
+    this.vertSculptFlags_ = null; // sculpt flags (<= Utils.SCULPT_FLAG) (Int32Array)
     // flag for history (tag vertices on each start of a sculpting session)
-    this.vertStateFlags_ = null; // state flags (<= Utils.STATE_FLAG) (Uint32Array)
+    this.vertStateFlags_ = null; // state flags (<= Utils.STATE_FLAG) (Int32Array)
 
     this.vertProxy_ = null; // vertex proxy (Float32Array)
   }
@@ -86,7 +86,7 @@ define([
       return this.verticesXYZ_.length / 3;
     },
     allocateArrays: function () {
-      var nbVertices = this.getNbVertices();
+      var nbVertices = this.mesh_.getNbVertices();
 
       this.normalsXYZ_ = new Float32Array(nbVertices * 3);
       this.colorsRGB_ = this.colorsRGB_ ? this.colorsRGB_ : new Float32Array(nbVertices * 3);
@@ -97,15 +97,36 @@ define([
       this.vrvStartCount_ = new Uint32Array(nbVertices * 2);
       this.vrfStartCount_ = new Uint32Array(nbVertices * 2);
 
-      this.vertTagFlags_ = new Uint32Array(nbVertices);
-      this.vertSculptFlags_ = new Uint32Array(nbVertices);
-      this.vertStateFlags_ = new Uint32Array(nbVertices);
+      this.vertTagFlags_ = new Int32Array(nbVertices);
+      this.vertSculptFlags_ = new Int32Array(nbVertices);
+      this.vertStateFlags_ = new Int32Array(nbVertices);
 
       this.vertProxy_ = new Float32Array(nbVertices * 3);
     },
+    /** ONLY FOR DYNAMIC MESH */
+    reAllocateArrays: function (nbAddElements) {
+      var mesh = this.mesh_;
+      var nbDyna = this.verticesXYZ_.length / 3;
+      var nbVertices = mesh.getNbVertices();
+      var len = nbVertices + nbAddElements;
+      if (nbDyna < len || nbDyna > len * 4) {
+        this.verticesXYZ_ = mesh.resizeArray(this.verticesXYZ_, len * 3);
+        this.normalsXYZ_ = mesh.resizeArray(this.normalsXYZ_, len * 3);
+        this.colorsRGB_ = mesh.resizeArray(this.colorsRGB_, len * 3);
+        this.materialsPBR_ = mesh.resizeArray(this.materialsPBR_, len * 3);
+
+        this.vertOnEdge_ = mesh.resizeArray(this.vertOnEdge_, len);
+
+        this.vertTagFlags_ = mesh.resizeArray(this.vertTagFlags_, len);
+        this.vertSculptFlags_ = mesh.resizeArray(this.vertSculptFlags_, len);
+        this.vertStateFlags_ = mesh.resizeArray(this.vertStateFlags_, len);
+
+        // this.vertProxy_ = mesh.resizeArray(this.vertProxy_, len * 3);
+      }
+    },
     /** Init color and material array */
     initColorsAndMaterials: function () {
-      var nbVertices = this.getNbVertices();
+      var nbVertices = this.mesh_.getNbVertices();
       var i = 0;
       var len = nbVertices * 3;
       if (!this.colorsRGB_ || this.colorsRGB_.length !== len) {
@@ -127,19 +148,19 @@ define([
     initFaceRings: function () {
       var mesh = this.mesh_;
       var fAr = mesh.getFaces();
-      var nbVertices = this.getNbVertices();
+      var nbVertices = mesh.getNbVertices();
       var nbFaces = mesh.getNbFaces();
       var i = 0;
       var id = 0;
-      var countRing = new Uint32Array(this.getNbVertices());
+      var countRing = new Uint32Array(mesh.getNbVertices());
       for (i = 0; i < nbFaces; ++i) {
         id = i * 4;
-        countRing[fAr[id]]++;
-        countRing[fAr[id + 1]]++;
-        countRing[fAr[id + 2]]++;
+        countRing[fAr[id]] ++;
+        countRing[fAr[id + 1]] ++;
+        countRing[fAr[id + 2]] ++;
         var i4 = fAr[id + 3];
         if (i4 >= 0)
-          countRing[i4]++;
+          countRing[i4] ++;
       }
       var ringFace = this.getVerticesRingFaceStartCount();
       var acc = 0;
@@ -172,15 +193,23 @@ define([
       var mesh = this.mesh_;
       var vrfStartCount = this.getVerticesRingFaceStartCount();
       var vertRingFace = this.getVerticesRingFace();
+      var ringFaces = vertRingFace instanceof Array ? vertRingFace : null;
       var nAr = this.getNormals();
       var faceNormals = mesh.getFaceNormals();
 
       var full = iVerts === undefined;
-      var nbVerts = full ? this.getNbVertices() : iVerts.length;
+      var nbVerts = full ? mesh.getNbVertices() : iVerts.length;
       for (var i = 0; i < nbVerts; ++i) {
         var ind = full ? i : iVerts[i];
-        var start = vrfStartCount[ind * 2];
-        var end = start + vrfStartCount[ind * 2 + 1];
+        var start, end;
+        if (ringFaces) {
+          vertRingFace = ringFaces[ind];
+          start = 0;
+          end = vertRingFace.length;
+        } else {
+          start = vrfStartCount[ind * 2];
+          end = start + vrfStartCount[ind * 2 + 1];
+        }
         var nx = 0.0;
         var ny = 0.0;
         var nz = 0.0;
@@ -205,9 +234,10 @@ define([
       var vrfStartCount = this.getVerticesRingFaceStartCount();
       var vertRingFace = this.getVerticesRingFace();
       var vertTagFlags = this.getVerticesTagFlags();
+      var vertOnEdge = this.getVerticesOnEdge();
       var fAr = mesh.getFaces();
       var vrvStart = 0;
-      for (var i = 0, l = this.getNbVertices(); i < l; ++i) {
+      for (var i = 0, l = mesh.getNbVertices(); i < l; ++i) {
         var tagFlag = ++Utils.TAG_FLAG;
         var vrfStart = vrfStartCount[i * 2];
         var vrfEnd = vrfStart + vrfStartCount[i * 2 + 1];
@@ -237,39 +267,48 @@ define([
         vrvStartCount[i * 2 + 1] = vrvCount;
         vrvStart += vrvCount;
         if ((vrfEnd - vrfStart) !== vrvCount)
-          mesh.getVerticesOnEdge()[i] = 1;
+          vertOnEdge[i] = 1;
       }
     },
     /** Get more vertices (n-ring) */
     expandsVertices: function (iVerts, nRing) {
       var tagFlag = ++Utils.TAG_FLAG;
       var nbVerts = iVerts.length;
-      var vrvStartCount = this.getVerticesRingTriStartCount();
+      var vrvStartCount = this.getVerticesRingVertStartCount();
       var vertRingVert = this.getVerticesRingVert();
+      var ringVerts = vertRingVert instanceof Array ? vertRingVert : null;
       var vertTagFlags = this.getVerticesTagFlags();
       var acc = nbVerts;
-      var iVertsExpanded = new Uint32Array(Utils.getMemory(4 * this.getNbVertices()), 0, this.getNbVertices());
+      var nbVertices = this.mesh_.getNbVertices();
+      var iVertsExpanded = new Uint32Array(Utils.getMemory(4 * nbVertices), 0, nbVertices);
       iVertsExpanded.set(iVerts);
       var i = 0;
       for (i = 0; i < nbVerts; ++i)
-        vertTagFlags[iVerts[i]] = tagFlag;
+        vertTagFlags[iVertsExpanded[i]] = tagFlag;
       var iBegin = 0;
       while (nRing) {
         --nRing;
         for (i = iBegin; i < nbVerts; ++i) {
-          var idVert = iVerts[i] * 2;
-          var start = vrvStartCount[idVert];
-          var end = start + vrvStartCount[idVert + 1];
+          var idVert = iVertsExpanded[i];
+          var start, end;
+          if (ringVerts) {
+            vertRingVert = ringVerts[idVert];
+            start = 0;
+            end = vertRingVert.length;
+          } else {
+            start = vrvStartCount[idVert * 2];
+            end = start + vrvStartCount[idVert * 2 + 1];
+          }
           for (var j = start; j < end; ++j) {
             var id = vertRingVert[j];
-            if (vertTagFlags[id] !== tagFlag) {
-              vertTagFlags[id] = tagFlag;
-              iVertsExpanded[acc++] = id;
-            }
+            if (vertTagFlags[id] === tagFlag)
+              continue;
+            vertTagFlags[id] = tagFlag;
+            iVertsExpanded[acc++] = id;
           }
         }
         iBegin = nbVerts;
-        nbVerts = iVerts.length;
+        nbVerts = acc;
       }
       return new Uint32Array(iVertsExpanded.subarray(0, acc));
     },

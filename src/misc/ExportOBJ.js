@@ -78,7 +78,7 @@ define([
     var nbTexCoords = mesh.getNbTexCoords();
     var fArUV = mesh.getFacesTexCoord();
     var uvAr = mesh.getTexCoords();
-    var saveUV = true;
+    var saveUV = mesh.hasUV();
     for (i = 0; i < nbTexCoords; ++i) {
       j = i * 2;
       data += 'vt ' + uvAr[j] + ' ' + uvAr[j + 1] + '\n';

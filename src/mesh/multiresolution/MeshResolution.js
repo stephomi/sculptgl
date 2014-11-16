@@ -8,6 +8,7 @@ define([
 
   var MeshResolution = function (transformData, render, mesh) {
     this.meshOrigin_ = mesh || new Mesh();
+    if (mesh) this.meshOrigin_.setID(mesh.getID());
     this.meshOrigin_.setTransformData(transformData);
     this.meshOrigin_.setRender(render);
     this.detailsXYZ_ = null; // details vectors (Float32Array)

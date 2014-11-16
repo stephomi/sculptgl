@@ -18,7 +18,7 @@ define([
     this.UVtrianglesABC_ = null; // triangles tex coords (Uint32Array)
     this.trianglesABC_ = null; // triangles (Uint32Array)
 
-    this.faceTagFlags_ = null; // triangles tag (<= Utils.TAG_FLAG) (Uint32Array)
+    this.facesTagFlags_ = null; // triangles tag (<= Utils.TAG_FLAG) (Int32Array)
   }
 
   IndexData.prototype = {
@@ -29,13 +29,13 @@ define([
       return this.facesABCD_;
     },
     hasOnlyTriangles: function () {
-      return this.getNbTriangles() === this.getNbFaces();
+      return this.mesh_.getNbTriangles() === this.mesh_.getNbFaces();
     },
     hasOnlyQuads: function () {
-      return this.getNbTriangles() === this.getNbFaces() * 2;
+      return this.mesh_.getNbTriangles() === this.mesh_.getNbFaces() * 2;
     },
     getNbQuads: function () {
-      return this.getNbTriangles() - this.getNbFaces();
+      return this.mesh_.getNbTriangles() - this.mesh_.getNbFaces();
     },
     getFaceNormals: function () {
       return this.faceNormalsXYZ_;
@@ -46,8 +46,8 @@ define([
     getFaceCenters: function () {
       return this.faceCentersXYZ_;
     },
-    getFaceTagFlags: function () {
-      return this.faceTagFlags_;
+    getFacesTagFlags: function () {
+      return this.facesTagFlags_;
     },
     getFaceEdges: function () {
       return this.faceEdges_;
@@ -68,15 +68,35 @@ define([
       return this.trianglesABC_.length / 3;
     },
     allocateArrays: function () {
-      var nbFaces = this.getNbFaces();
+      var nbFaces = this.mesh_.getNbFaces();
 
       this.faceEdges_ = new Int32Array(nbFaces * 4);
+      this.facesToTriangles_ = new Uint32Array(nbFaces);
+
       this.faceBoxes_ = new Float32Array(nbFaces * 6);
       this.faceNormalsXYZ_ = new Float32Array(nbFaces * 3);
       this.faceCentersXYZ_ = new Float32Array(nbFaces * 3);
-      this.facesToTriangles_ = new Uint32Array(nbFaces);
 
-      this.faceTagFlags_ = new Uint32Array(nbFaces);
+      this.facesTagFlags_ = new Int32Array(nbFaces);
+    },
+    /** ONLY FOR DYNAMIC MESH */
+    reAllocateArrays: function (nbAddElements) {
+      var mesh = this.mesh_;
+      var nbDyna = this.facesABCD_.length / 4;
+      var nbTriangles = mesh.getNbTriangles();
+      var len = nbTriangles + nbAddElements;
+      if (nbDyna < len || nbDyna > len * 4) {
+        this.facesABCD_ = mesh.resizeArray(this.facesABCD_, len * 4);
+        this.trianglesABC_ = mesh.resizeArray(this.trianglesABC_, len * 3);
+        // this.faceEdges_ = mesh.resizeArray(this.faceEdges_, len * 4); // TODO used ?
+        // this.facesToTriangles_ = mesh.resizeArray(this.facesToTriangles_, len); // TODO used ?
+
+        this.faceBoxes_ = mesh.resizeArray(this.faceBoxes_, len * 6);
+        this.faceNormalsXYZ_ = mesh.resizeArray(this.faceNormalsXYZ_, len * 3);
+        this.faceCentersXYZ_ = mesh.resizeArray(this.faceCentersXYZ_, len * 3);
+
+        this.facesTagFlags_ = mesh.resizeArray(this.facesTagFlags_, len);
+      }
     },
     /** Update a group of faces normal and aabb */
     updateFacesAabbAndNormal: function (iFaces) {
@@ -88,7 +108,7 @@ define([
       var fAr = this.getFaces();
 
       var full = iFaces === undefined;
-      var nbFaces = full ? this.getNbFaces() : iFaces.length;
+      var nbFaces = full ? mesh.getNbFaces() : iFaces.length;
       for (var i = 0; i < nbFaces; ++i) {
         var ind = full ? i : iFaces[i];
         var idTri = ind * 3;
@@ -166,71 +186,45 @@ define([
       var nbFaces = iFaces.length;
       var vrfStartCount = mesh.getVerticesRingFaceStartCount();
       var vertRingFace = mesh.getVerticesRingFace();
-      var faceTagFlags = this.getFaceTagFlags();
+      var ringFaces = vertRingFace instanceof Array ? vertRingFace : null;
+      var ftf = this.getFacesTagFlags();
       var fAr = this.getFaces();
       var acc = nbFaces;
-      var iFacesExpanded = new Uint32Array(Utils.getMemory(4 * iFaces.length * 4), 0, iFaces.length * 4);
+      var iFacesExpanded = new Uint32Array(Utils.getMemory(4 * mesh.getNbFaces()), 0, mesh.getNbFaces());
       iFacesExpanded.set(iFaces);
       var i = 0;
       for (i = 0; i < nbFaces; ++i)
-        faceTagFlags[iFaces[i]] = tagFlag;
+        ftf[iFacesExpanded[i]] = tagFlag;
       var iBegin = 0;
       while (nRing) {
         --nRing;
         for (i = iBegin; i < nbFaces; ++i) {
-          var ind = iFaces[i] * 4;
-          var idv1 = fAr[ind] * 2;
-          var idv2 = fAr[ind + 1] * 2;
-          var idv3 = fAr[ind + 2] * 2;
-          var idv4 = fAr[ind + 2] * 2;
+          var ind = iFacesExpanded[i] * 4;
 
-          var start = vrfStartCount[idv1];
-          var end = start + vrfStartCount[idv1 + 1];
-
-          var j = 0;
-          var id = 0;
-          for (j = start; j < end; ++j) {
-            id = vertRingFace[j];
-            if (faceTagFlags[id] !== tagFlag) {
-              faceTagFlags[id] = tagFlag;
-              iFacesExpanded[acc++] = id;
+          for (var j = 0; j < 4; ++j) {
+            var idv = fAr[ind + j];
+            if (idv < 0)
+              break;
+            var start, end;
+            if (ringFaces) {
+              vertRingFace = ringFaces[idv];
+              start = 0;
+              end = vertRingFace.length;
+            } else {
+              start = vrfStartCount[idv * 2];
+              end = start + vrfStartCount[idv * 2 + 1];
             }
-          }
-
-          start = vrfStartCount[idv2];
-          end = start + vrfStartCount[idv2 + 1];
-          for (j = start; j < end; ++j) {
-            id = vertRingFace[j];
-            if (faceTagFlags[id] !== tagFlag) {
-              faceTagFlags[id] = tagFlag;
+            for (var k = start; k < end; ++k) {
+              var id = vertRingFace[k];
+              if (ftf[id] === tagFlag)
+                continue;
+              ftf[id] = tagFlag;
               iFacesExpanded[acc++] = id;
-            }
-          }
-
-          start = vrfStartCount[idv3];
-          end = start + vrfStartCount[idv3 + 1];
-          for (j = start; j < end; ++j) {
-            id = vertRingFace[j];
-            if (faceTagFlags[id] !== tagFlag) {
-              faceTagFlags[id] = tagFlag;
-              iFacesExpanded[acc++] = id;
-            }
-          }
-
-          if (idv4) {
-            start = vrfStartCount[idv4];
-            end = start + vrfStartCount[idv4 + 1];
-            for (j = start; j < end; ++j) {
-              id = vertRingFace[j];
-              if (faceTagFlags[id] !== tagFlag) {
-                faceTagFlags[id] = tagFlag;
-                iFacesExpanded[acc++] = id;
-              }
             }
           }
         }
         iBegin = nbFaces;
-        nbFaces = iFaces.length;
+        nbFaces = acc;
       }
       return new Uint32Array(iFacesExpanded.subarray(0, acc));
     },
@@ -241,17 +235,25 @@ define([
       var nbVerts = iVerts.length;
       var vrfStartCount = mesh.getVerticesRingFaceStartCount();
       var vertRingFace = mesh.getVerticesRingFace();
-      var faceTagFlags = this.getFaceTagFlags();
+      var ringFaces = vertRingFace instanceof Array ? vertRingFace : null;
+      var ftf = this.getFacesTagFlags();
       var acc = 0;
-      var iFaces = new Uint32Array(Utils.getMemory(4 * this.getNbFaces()), 0, this.getNbFaces());
+      var iFaces = new Uint32Array(Utils.getMemory(4 * mesh.getNbFaces()), 0, mesh.getNbFaces());
       for (var i = 0; i < nbVerts; ++i) {
-        var idVert = iVerts[i] * 2;
-        var start = vrfStartCount[idVert];
-        var end = start + vrfStartCount[idVert + 1];
+        var idVert = iVerts[i];
+        var start, end;
+        if (ringFaces) {
+          vertRingFace = ringFaces[idVert];
+          start = 0;
+          end = vertRingFace.length;
+        } else {
+          start = vrfStartCount[idVert * 2];
+          end = start + vrfStartCount[idVert * 2 + 1];
+        }
         for (var j = start; j < end; ++j) {
           var iFace = vertRingFace[j];
-          if (faceTagFlags[iFace] !== tagFlag) {
-            faceTagFlags[iFace] = tagFlag;
+          if (ftf[iFace] !== tagFlag) {
+            ftf[iFace] = tagFlag;
             iFaces[acc++] = iFace;
           }
         }
@@ -261,12 +263,13 @@ define([
     /** Computes triangles */
     initRenderTriangles: function () {
       var mesh = this.mesh_;
-      this.UVtrianglesABC_ = this.computeTrianglesFromFaces(mesh.getFacesTexCoord());
+      if (mesh.hasUV())
+        this.UVtrianglesABC_ = this.computeTrianglesFromFaces(mesh.getFacesTexCoord());
       this.trianglesABC_ = this.computeTrianglesFromFaces(mesh.getFaces());
     },
     /** Computes triangles from faces */
     computeTrianglesFromFaces: function (faces) {
-      var nbFaces = this.getNbFaces();
+      var nbFaces = this.mesh_.getNbFaces();
       var facesToTris = this.getFacesToTriangles();
       var iAr = new Uint32Array(Utils.getMemory(4 * nbFaces * 6), 0, nbFaces * 6);
       var acc = 0;

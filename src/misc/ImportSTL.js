@@ -18,7 +18,7 @@ define([
       vb = vb[0];
     }
     nbTriangles = vb.length / 9;
-    var mapVertices = {};
+    var mapVertices = new Map();
     var nbVertices = [0];
     var iAr = new Int32Array(nbTriangles * 4);
     for (var i = 0; i < nbTriangles; ++i) {
@@ -43,9 +43,10 @@ define([
     var y = vb[start + 1];
     var z = vb[start + 2];
     var hash = x + '+' + y + '+' + z;
-    var idVertex = mapVertices[hash];
+    var idVertex = mapVertices.get(hash);
     if (idVertex === undefined) {
-      mapVertices[hash] = idVertex = nbVertices[0];
+      idVertex = nbVertices[0];
+      mapVertices.set(hash, idVertex);
       var id = idVertex * 3;
       vb[id] = x;
       vb[id + 1] = y;

@@ -7,14 +7,14 @@ define([
   function StateGeometry(main, mesh) {
     this.main_ = main; // main application
     this.mesh_ = mesh; // the mesh
-    this.vArState_ = []; // copies of vertices coordinates
     this.idVertState_ = []; // ids of vertices
+    this.vArState_ = []; // copies of vertices coordinates
   }
 
   StateGeometry.prototype = {
     /** On undo */
     undo: function () {
-      this.pullState();
+      this.pullVertices();
       var mesh = this.mesh_;
       mesh.updateGeometry(mesh.getFacesFromVertices(this.idVertState_), this.idVertState_);
       mesh.updateGeometryBuffers();
@@ -43,12 +43,12 @@ define([
       var nbVerts = iVerts.length;
       for (var i = 0; i < nbVerts; ++i) {
         var id = iVerts[i];
-        if (vertStateFlags[id] !== stateFlag) {
-          vertStateFlags[id] = stateFlag;
-          idVertState.push(id);
-          id *= 3;
-          vArState.push(vAr[id], vAr[id + 1], vAr[id + 2]);
-        }
+        if (vertStateFlags[id] === stateFlag)
+          continue;
+        vertStateFlags[id] = stateFlag;
+        idVertState.push(id);
+        id *= 3;
+        vArState.push(vAr[id], vAr[id + 1], vAr[id + 2]);
       }
     },
     /** Push redo vertices */
@@ -59,18 +59,11 @@ define([
       var idVertUndoState = this.idVertState_;
       var nbVerts = idVertUndoState.length;
 
-      var vArRedoState = redoState.vArState_;
+      var vArRedoState = redoState.vArState_ = new Float32Array(nbVerts * 3);
       var idVertRedoState = redoState.idVertState_ = new Uint32Array(nbVerts);
-
-      var i = 0;
-      for (i = 0; i < nbVerts; ++i)
-        idVertRedoState[i] = idVertUndoState[i];
-
-      // fill states arrays
-      var nbState = idVertRedoState.length;
-      vArRedoState.length = nbState * 3;
-      for (i = 0; i < nbState; ++i) {
-        var id = idVertRedoState[i] * 3;
+      for (var i = 0; i < nbVerts; ++i) {
+        var id = idVertRedoState[i] = idVertUndoState[i];
+        id *= 3;
         var j = i * 3;
         vArRedoState[j] = vAr[id];
         vArRedoState[j + 1] = vAr[id + 1];
@@ -78,14 +71,13 @@ define([
       }
     },
     /** Pull vertices */
-    pullState: function () {
+    pullVertices: function () {
       var vArState = this.vArState_;
       var idVertState = this.idVertState_;
       var nbVerts = idVertState.length;
 
       var mesh = this.mesh_;
       var vAr = mesh.getVertices();
-
       for (var i = 0; i < nbVerts; ++i) {
         var id = idVertState[i] * 3;
         var j = i * 3;

@@ -550,7 +550,8 @@ define([
       return false;
     Reversion.createVertices(baseMesh, newMesh, triFaceOrQuadCenter);
     Reversion.copyVerticesData(baseMesh, newMesh);
-    Reversion.computeTexCoords(baseMesh, newMesh, triFaceOrQuadCenter);
+    if (baseMesh.hasUV())
+      Reversion.computeTexCoords(baseMesh, newMesh, triFaceOrQuadCenter);
     newMesh.allocateArrays();
     return true;
   };

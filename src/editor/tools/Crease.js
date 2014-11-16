@@ -22,6 +22,7 @@ define([
       this.updateProxy(iVertsInRadius);
       // undo-redo
       this.states_.pushVertices(iVertsInRadius);
+      iVertsInRadius = this.dynamicTopology(picking);
 
       var iVertsFront = this.getFrontVertices(iVertsInRadius, picking.getEyeDirection());
       if (this.culling_)

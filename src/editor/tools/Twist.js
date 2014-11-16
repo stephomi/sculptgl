@@ -69,7 +69,11 @@ define([
         pickingSym.pickVerticesInSphere(rLocal2);
         this.stroke(pickingSym, lx, ly, mx, my, this.twistDataSym_);
       }
-      this.mesh_.updateGeometryBuffers();
+      if (main.getMesh().getDynamicTopology) {
+        main.getMesh().updateBuffers();
+      } else {
+        this.mesh_.updateGeometryBuffers();
+      }
     },
     /** On stroke */
     stroke: function (picking, mx, my, lx, ly, twistData) {
@@ -77,6 +81,7 @@ define([
 
       // undo-redo
       this.states_.pushVertices(iVertsInRadius);
+      iVertsInRadius = this.dynamicTopology(picking);
 
       if (this.culling_)
         iVertsInRadius = this.getFrontVertices(iVertsInRadius, picking.getEyeDirection());

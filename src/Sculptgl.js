@@ -116,26 +116,7 @@ define([
       this.grid_.computeMatrices(cam);
       for (var i = 0, nb = meshes.length; i < nb; ++i)
         meshes[i].computeMatrices(cam);
-      meshes.sort(this.sortFunction.bind(this));
-    },
-    /**
-     * Sort function
-     * render transparent meshes after opaque ones
-     * transparent meshes rendered (back to front)
-     * opaque meshes rendered (front to back)
-     */
-    sortFunction: function (a, b) {
-      var aTr = a.isTransparent();
-      var bTr = b.isTransparent();
-      if (aTr && !bTr)
-        return 1;
-      else if (!aTr && bTr)
-        return -1;
-      else if (aTr && bTr) {
-        return b.getDepth() - a.getDepth();
-      } else {
-        return a.getDepth() - b.getDepth();
-      }
+      meshes.sort(Mesh.sortFunction);
     },
     /** Initialization */
     start: function () {
@@ -438,7 +419,7 @@ define([
     },
     /** Device down event */
     onDeviceDown: function (event) {
-      if(this.focusGui_)
+      if (this.focusGui_)
         return;
       this.setMousePosition(event);
       var mouseX = this.mouseX_;
@@ -452,10 +433,11 @@ define([
       var pickedMesh = picking.getMesh();
       if (button === 1 && pickedMesh)
         this.canvas_.style.cursor = 'none';
-      if (!pickedMesh && event.ctrlKey)
-        this.mouseButton_ = 4; // zoom camera if no picking
-      else if (!pickedMesh && event.altKey)
-        this.mouseButton_ = 2; // pan camera if no picking
+
+      if ((!pickedMesh || button === 3) && event.ctrlKey)
+        this.mouseButton_ = 4; // zoom camera
+      else if ((!pickedMesh || button === 3) && event.altKey)
+        this.mouseButton_ = 2; // pan camera
       else if (button === 3 || (button === 1 && !pickedMesh)) {
         this.mouseButton_ = 3; // rotate camera
         if (this.camera_.usePivot_)
@@ -465,7 +447,7 @@ define([
     },
     /** Device move event */
     onDeviceMove: function (event) {
-      if(this.focusGui_)
+      if (this.focusGui_)
         return;
       this.setMousePosition(event);
       var mouseX = this.mouseX_;
@@ -493,6 +475,8 @@ define([
         } else if (button === 1) {
           Multimesh.RENDER_HINT = Multimesh.SCULPT;
           this.sculpt_.update(this);
+          if (this.getMesh().getDynamicTopology)
+            this.gui_.updateMeshInfo();
         }
       }
       this.lastMouseX_ = mouseX;
@@ -501,11 +485,10 @@ define([
     },
     getIndexMesh: function (mesh) {
       var meshes = this.meshes_;
+      var id = mesh.getID();
       for (var i = 0, nbMeshes = meshes.length; i < nbMeshes; ++i) {
         var testMesh = meshes[i];
-        // a bit ugly... but when we convert a Mesh to a Multimesh
-        // we should consider the mesh as equal (an uniqueID would be cleaner...)
-        if (testMesh === mesh || (testMesh.getMeshOrigin && testMesh.getMeshOrigin() === mesh))
+        if (testMesh === mesh || testMesh.getID() === id)
           return i;
       }
       return -1;

@@ -37,10 +37,10 @@ define([], function () {
     fileImportTitle: 'Import',
     fileAdd: 'Add (obj,ply,stl)',
     fileExportMeshTitle: 'Export Mesh',
-    fileExportSceneTitle: 'Export Scene',
-    fileExportOBJ: 'OBJ形式 (paint,quad,uv)',
-    fileExportPLY: 'PLY形式 (color,quad)',
-    fileExportSTL: 'STL形式 (color,tri)',
+    fileExportSceneTitle: 'Export Meshes',
+    fileExportOBJ: 'OBJ (paint,quad,uv)',
+    fileExportPLY: 'PLY (color,quad)',
+    fileExportSTL: 'STL (color,tri)',
 
     // mesh
     meshTitle: 'メッシュ',
@@ -72,6 +72,12 @@ define([], function () {
     remeshTitle: 'Voxel Remeshing',
     remeshRemesh: 'Remesh',
     remeshResolution: 'Resolution',
+
+    // dynamic
+    dynamicTitle: 'Dynamic Topology',
+    dynamicActivated: 'Activated',
+    dynamicSubdivision: 'Subdivision',
+    dynamicDecimation: 'Decimation',
 
     // sculpt
     sculptTitle: 'Sculpting & Painting',
@@ -127,8 +133,8 @@ define([], function () {
     renderingMaterial: 'Material',
     renderingImportUV: 'Import (jpg, png...)',
     renderingExtra: 'Extra',
-    renderingFlat: 'フラットシェーディング',
-    renderingWireframe: 'ワイヤーフレーム',
+    renderingFlat: 'フラットシェーディング (slower)',
+    renderingWireframe: 'ワイヤーフレーム (slower)',
 
     // matcaps
     matcapPearl: 'Pearl',

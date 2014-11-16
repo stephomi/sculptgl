@@ -15,12 +15,13 @@ define([
   StateColorAndMaterial.prototype = {
     /** On undo */
     undo: function () {
-      this.pullState();
-      this.mesh_.updateDuplicateColorsAndMaterials();
-      this.mesh_.updateFlatShading();
-      this.mesh_.updateColorBuffer();
-      this.mesh_.updateMaterialBuffer();
-      this.main_.setMesh(this.mesh_);
+      this.pullVertices();
+      var mesh = this.mesh_;
+      mesh.updateDuplicateColorsAndMaterials();
+      mesh.updateFlatShading();
+      mesh.updateColorBuffer();
+      mesh.updateMaterialBuffer();
+      this.main_.setMesh(mesh);
     },
     /** On redo */
     redo: function () {
@@ -47,13 +48,13 @@ define([
       var nbVerts = iVerts.length;
       for (var i = 0; i < nbVerts; ++i) {
         var id = iVerts[i];
-        if (vertStateFlags[id] !== stateFlag) {
-          vertStateFlags[id] = stateFlag;
-          idVertState.push(id);
-          id *= 3;
-          cArState.push(cAr[id], cAr[id + 1], cAr[id + 2]);
-          mArState.push(mAr[id], mAr[id + 1], mAr[id + 2]);
-        }
+        if (vertStateFlags[id] === stateFlag)
+          continue;
+        vertStateFlags[id] = stateFlag;
+        idVertState.push(id);
+        id *= 3;
+        cArState.push(cAr[id], cAr[id + 1], cAr[id + 2]);
+        mArState.push(mAr[id], mAr[id + 1], mAr[id + 2]);
       }
     },
     /** Push redo vertices */
@@ -65,20 +66,12 @@ define([
       var idVertUndoState = this.idVertState_;
       var nbVerts = idVertUndoState.length;
 
-      var cArRedoState = redoState.cArState_;
-      var mArRedoState = redoState.mArState_;
+      var cArRedoState = redoState.cArState_ = new Float32Array(nbVerts * 3);
+      var mArRedoState = redoState.mArState_ = new Float32Array(nbVerts * 3);
       var idVertRedoState = redoState.idVertState_ = new Uint32Array(nbVerts);
-
-      var i = 0;
-      for (i = 0; i < nbVerts; ++i)
-        idVertRedoState[i] = idVertUndoState[i];
-
-      // fill states arrays
-      var nbState = idVertRedoState.length;
-      cArRedoState.length = nbState * 3;
-      mArRedoState.length = nbState * 3;
-      for (i = 0; i < nbState; ++i) {
-        var id = idVertRedoState[i] * 3;
+      for (var i = 0; i < nbVerts; ++i) {
+        var id = idVertRedoState[i] = idVertUndoState[i];
+        id *= 3;
         var j = i * 3;
         cArRedoState[j] = cAr[id];
         cArRedoState[j + 1] = cAr[id + 1];
@@ -89,7 +82,7 @@ define([
       }
     },
     /** Pull vertices */
-    pullState: function () {
+    pullVertices: function () {
       var cArState = this.cArState_;
       var mArState = this.mArState_;
       var idVertState = this.idVertState_;
@@ -98,7 +91,6 @@ define([
       var mesh = this.mesh_;
       var cAr = mesh.getColors();
       var mAr = mesh.getMaterials();
-
       for (var i = 0; i < nbVerts; ++i) {
         var id = idVertState[i] * 3;
         var j = i * 3;
