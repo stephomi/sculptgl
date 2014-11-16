@@ -13,6 +13,7 @@ define([
 
   Topology.subFactor = 75; // subdivision factor
   Topology.decFactor = 10; // decimation factor
+  Topology.linear = false; // linear subdivision
 
   Topology.prototype = {
     getSubdivisionFactor: function () {
@@ -22,6 +23,7 @@ define([
       return Topology.decFactor * 0.01;
     },
     subdivision: function (iTris, center, radius2, detail2, states) {
+      this.subdivision_.linear_ = Topology.linear;
       return this.subdivision_.subdivision(iTris, center, radius2, detail2, states);
     },
     decimation: function (iTris, center, radius2, detail2, states) {

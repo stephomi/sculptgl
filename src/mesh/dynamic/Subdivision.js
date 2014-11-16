@@ -11,7 +11,7 @@ define([
 
   var Subdivision = function (mesh) {
     this.mesh_ = mesh;
-    this.linearSubdivision_ = false; // linear subdivision
+    this.linear_ = false; // linear subdivision
     this.verticesMap_ = new Map(); // to detect new vertices at the middle of edge (for subdivision)
     this.states_ = null; // for undo-redo
 
@@ -118,7 +118,7 @@ define([
         vNew[i] = nbVertsInit + i;
 
       vNew = mesh.expandsVertices(vNew, 1);
-      if (!this.linearSubdivision_) {
+      if (!this.linear_) {
         var smo = new Smooth();
         smo.mesh_ = mesh;
         var expV = vNew.subarray(nbVNew);
@@ -312,7 +312,7 @@ define([
       mAr[id + 2] = (mAr[id1 + 2] + mAr[id2 + 2]) * 0.5;
 
       var offset = 0;
-      if (this.linearSubdivision_) {
+      if (this.linear_) {
         vAr[id] = (v1x + v2x) * 0.5;
         vAr[id + 1] = (v1y + v2y) * 0.5;
         vAr[id + 2] = (v1z + v2z) * 0.5;

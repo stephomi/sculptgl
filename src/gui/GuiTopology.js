@@ -43,6 +43,7 @@ define([
       this.ctrlDynamic_ = menu.addCheckbox(TR('dynamicActivated'), this.dynamic, this.dynamicActivate.bind(this));
       menu.addSlider(TR('dynamicSubdivision'), Topology, 'subFactor', 0, 100, 1);
       menu.addSlider(TR('dynamicDecimation'), Topology, 'decFactor', 0, 100, 1);
+      menu.addCheckbox(TR('dynamicLinear'), Topology, 'linear');
     },
     dynamicActivate: function (enable) {
       var main = this.main_;

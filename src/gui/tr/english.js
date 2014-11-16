@@ -75,9 +75,10 @@ define([], function () {
 
     // dynamic
     dynamicTitle: 'Dynamic Topology',
-    dynamicActivated: 'Activated',
+    dynamicActivated: 'Activated (no quads)',
     dynamicSubdivision: 'Subdivision',
     dynamicDecimation: 'Decimation',
+    dynamicLinear: 'Linear subdivision',
 
     // sculpt
     sculptTitle: 'Sculpting & Painting',
