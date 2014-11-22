@@ -116,6 +116,7 @@ define([
     gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, null);
   };
   ShaderBase.onLoadTexture0 = function (gl, tex, main) {
+    this.texture0 = gl.createTexture();
     gl.bindTexture(gl.TEXTURE_2D, this.texture0);
     gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, tex);
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
@@ -135,9 +136,9 @@ define([
   };
   /** Return or create texture0 */
   ShaderBase.getOrCreateTexture0 = function (gl, texPath, main) {
-    if (this.texture0)
+    if (this.texture0 !== undefined)
       return this.texture0;
-    this.texture0 = gl.createTexture();
+    this.texture0 = null; // trigger loading
     var tex = new Image();
     tex.src = texPath;
     tex.onload = ShaderBase.onLoadTexture0.bind(this, gl, tex, main);

@@ -39,7 +39,7 @@ define([
 
       // matcap texture
       var optionMatcaps = {};
-      for (var i = 0, mats = ShaderMatcap.getMatcaps(), l = mats.length; i < l; ++i)
+      for (var i = 0, mats = ShaderMatcap.matcaps, l = mats.length; i < l; ++i)
         optionMatcaps[i] = mats[i].name;
       this.ctrlMatcapTitle_ = menu.addTitle(TR('renderingMaterial'));
       this.ctrlMatcap_ = menu.addCombobox('', 0, this.onMatcapChange.bind(this), optionMatcaps);

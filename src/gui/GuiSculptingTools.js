@@ -122,6 +122,7 @@ define([
       var ctrlRoughness = fold.addSlider(TR('sculptRoughness'), tool.roughness_, cbMatChanged, 0.0, 1.0, 0.01);
       var ctrlMetallic = fold.addSlider(TR('sculptMetallic'), tool.metallic_, cbMatChanged, 0.0, 1.0, 0.01);
       materials.push(ctrlColor, ctrlRoughness, ctrlMetallic);
+      window.addEventListener('keyup', this.resetMaterialOverride.bind(this, main));
       window.addEventListener('mouseup', this.resetMaterialOverride.bind(this, main));
 
       tool.setPickCallback(this.onPickedMaterial.bind(this, materials, tool));
