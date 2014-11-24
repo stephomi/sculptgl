@@ -10,6 +10,7 @@ define([
     this.menu_ = null; // ui menu
     this.camera_ = this.main_.getCamera(); // the camera
     this.cameraTimer_ = -1; // interval id (used for zqsd/wasd/arrow moves)
+    this.cbTranslation_ = this.cbOnTranslation.bind(this);
     this.init(guiParent);
   }
 
@@ -31,10 +32,10 @@ define([
       menu.addTitle(TR('cameraProjection'));
       optionsType[Camera.projType.PERSPECTIVE] = TR('cameraPerspective');
       optionsType[Camera.projType.ORTHOGRAPHIC] = TR('cameraOrthographic');
-      menu.addCombobox('', camera.type_, this.onCameraTypeChange.bind(this), optionsType);
+      menu.addCombobox('', camera.getProjType(), this.onCameraTypeChange.bind(this), optionsType);
 
       // camera fov
-      this.ctrlFov_ = menu.addSlider(TR('cameraFov'), camera.fov_, this.onFovChange.bind(this), 10, 150, 1);
+      this.ctrlFov_ = menu.addSlider(TR('cameraFov'), camera.getFov(), this.onFovChange.bind(this), 10, 150, 1);
 
       // camera mode
       var optionsMode = {};
@@ -42,37 +43,43 @@ define([
       optionsMode[Camera.mode.ORBIT] = TR('cameraOrbit');
       optionsMode[Camera.mode.SPHERICAL] = TR('cameraSpherical');
       optionsMode[Camera.mode.PLANE] = TR('cameraPlane');
-      menu.addCombobox('', camera.mode_, this.onCameraModeChange.bind(this), optionsMode);
-      menu.addCheckbox(TR('cameraPivot'), camera.usePivot_, this.onPivotChange.bind(this));
+      menu.addCombobox('', camera.getMode(), this.onCameraModeChange.bind(this), optionsMode);
+      menu.addCheckbox(TR('cameraPivot'), camera.getUsePivot(), this.onPivotChange.bind(this));
 
       this.addEvents();
     },
     /** On camera mode change */
     onCameraModeChange: function (value) {
-      var camera = this.camera_;
-      camera.mode_ = parseInt(value, 10);
-      if (camera.mode_ === Camera.mode.ORBIT) {
-        camera.resetViewFront();
-        this.main_.render();
-      }
+      var mode = parseInt(value, 10);
+      if (!this.main_.isReplayed())
+        this.main_.replayer_.pushCameraMode(mode);
+
+      this.camera_.setMode(mode);
+      this.main_.render();
     },
     /** On camera type change */
     onCameraTypeChange: function (value) {
-      var camera = this.camera_;
-      camera.type_ = parseInt(value, 10);
-      this.ctrlFov_.setVisibility(camera.type_ === Camera.projType.PERSPECTIVE);
-      camera.updateProjection();
+      var type = parseInt(value, 10);
+      if (!this.main_.isReplayed())
+        this.main_.replayer_.pushCameraProjType(type);
+
+      this.camera_.setProjType(type);
+      this.ctrlFov_.setVisibility(type === Camera.projType.PERSPECTIVE);
       this.main_.render();
     },
     /** On fov change */
     onFovChange: function (value) {
-      this.camera_.fov_ = value;
-      this.camera_.updateProjection();
+      if (!this.main_.isReplayed())
+        this.main_.replayer_.pushCameraFov(value);
+
+      this.camera_.setFov(value);
       this.main_.render();
     },
     /** On pivot change */
-    onPivotChange: function (value) {
-      this.camera_.usePivot_ = value;
+    onPivotChange: function () {
+      if (!this.main_.isReplayed())
+        this.main_.replayer_.pushCameraTogglePivot();
+
       this.camera_.toggleUsePivot();
       this.main_.render();
     },
@@ -126,12 +133,17 @@ define([
       default:
         event.handled = false;
       }
-      if (this.cameraTimer_ === -1) {
-        this.cameraTimer_ = setInterval(function () {
-          camera.updateTranslation();
-          main.render();
-        }, 20);
+      if (event.handled === true && this.cameraTimer_ === -1) {
+        this.cameraTimer_ = window.setInterval(this.cbTranslation_, 16.6);
       }
+    },
+    cbOnTranslation: function () {
+      var main = this.main_;
+      if (!main.isReplayed())
+        main.replayer_.pushCameraFps();
+
+      main.getCamera().updateTranslation();
+      main.render();
     },
     /** Key released event */
     onKeyUp: function (event) {
@@ -174,21 +186,33 @@ define([
     },
     /** Reset camera */
     resetCamera: function () {
-      this.camera_.reset();
+      if (!this.main_.isReplayed())
+        this.main_.replayer_.pushCameraReset();
+
+      this.camera_.resetView();
       this.main_.render();
     },
     /** Reset to front view */
     resetFront: function () {
+      if (!this.main_.isReplayed())
+        this.main_.replayer_.pushCameraResetFront();
+
       this.camera_.resetViewFront();
       this.main_.render();
     },
     /** Reset to left view */
     resetLeft: function () {
+      if (!this.main_.isReplayed())
+        this.main_.replayer_.pushCameraResetLeft();
+
       this.camera_.resetViewLeft();
       this.main_.render();
     },
     /** Reset to top view */
     resetTop: function () {
+      if (!this.main_.isReplayed())
+        this.main_.replayer_.pushCameraResetTop();
+
       this.camera_.resetViewTop();
       this.main_.render();
     }

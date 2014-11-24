@@ -44,11 +44,11 @@ define([
     },
     /** Return true if the shader is using UVs */
     isUsingTexCoords: function () {
-      return this.type_ === Suv;
+      return this.type_ === Shader.mode.UV;
     },
     /** Return true if the shader is using alpha transparency stuffs */
     isTransparent: function () {
-      return this.type_ === Stransparency;
+      return this.type_ === Shader.mode.TRANSPARENCY;
     },
     /** Initialize the shader */
     init: function () {

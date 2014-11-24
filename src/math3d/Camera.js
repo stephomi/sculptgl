@@ -15,7 +15,7 @@ define([
 
   function Camera() {
     this.mode_ = Camera.mode.ORBIT; // camera mode
-    this.type_ = Camera.projType.PERSPECTIVE; // the projection type
+    this.projType_ = Camera.projType.PERSPECTIVE; // the projection type
 
     this.quatRot_ = quat.create(); // quaternion rotation
     this.view_ = mat4.create(); // view matrix
@@ -62,6 +62,31 @@ define([
   };
 
   Camera.prototype = {
+    setProjType: function (type) {
+      this.projType_ = type;
+      this.updateProjection();
+    },
+    setMode: function (mode) {
+      this.mode_ = mode;
+      if (mode === Camera.mode.ORBIT)
+        this.resetViewFront();
+    },
+    setFov: function (fov) {
+      this.fov_ = fov;
+      this.updateProjection();
+    },
+    getProjType: function () {
+      return this.projType_;
+    },
+    getMode: function () {
+      return this.mode_;
+    },
+    getFov: function () {
+      return this.fov_;
+    },
+    getUsePivot: function () {
+      return this.usePivot_;
+    },
     /** Start camera (store mouse coordinates) */
     start: function (mouseX, mouseY, picking) {
       this.lastNormalizedMouseXY_ = Geometry.normalizedMouse(mouseX, mouseY, this.width_, this.height_);
@@ -71,7 +96,7 @@ define([
         vec3.transformMat4(this.stepCenter_, picking.getIntersectionPoint(), picking.getMesh().getMatrix());
         // target zoom
         var targetZoom = vec3.dist(this.stepCenter_, this.computePosition());
-        if (this.type_ === Camera.projType.PERSPECTIVE)
+        if (this.projType_ === Camera.projType.PERSPECTIVE)
           this.stepZoom_ = (targetZoom - this.zoom_) / this.stepCount_;
         else
           this.stepZoom_ = 0.0;
@@ -90,8 +115,8 @@ define([
         var normalizedMouseXY = Geometry.normalizedMouse(mouseX, mouseY, this.width_, this.height_);
         if (this.mode_ === Camera.mode.ORBIT) {
           vec2.sub(diff, normalizedMouseXY, this.lastNormalizedMouseXY_);
-          this.rotX_ = Math.max(Math.min(this.rotX_ - diff[1], Math.PI * 0.5), -Math.PI * 0.5);
-          this.rotY_ = this.rotY_ + diff[0];
+          this.rotX_ = Math.max(Math.min(this.rotX_ - diff[1] * 2, Math.PI * 0.5), -Math.PI * 0.5);
+          this.rotY_ = this.rotY_ + diff[0] * 2;
           quat.identity(this.quatRot_);
           quat.rotateX(this.quatRot_, this.quatRot_, this.rotX_);
           quat.rotateY(this.quatRot_, this.quatRot_, this.rotY_);
@@ -113,6 +138,7 @@ define([
           vec3.add(this.center_, this.center_, this.stepCenter_);
         }
         this.lastNormalizedMouseXY_ = normalizedMouseXY;
+        this.updateView();
       };
     })(),
     /** Update model view matrices */
@@ -127,7 +153,7 @@ define([
         var view = this.view_;
         var tx = this.transX_;
         var ty = this.transY_;
-        var zoom = this.type_ === Camera.projType.PERSPECTIVE ? this.zoom_ : 1000.0;
+        var zoom = this.projType_ === Camera.projType.PERSPECTIVE ? this.zoom_ : 1000.0;
         mat4.lookAt(view, vec3.set(eye, tx, ty, zoom), vec3.set(center, tx, ty, 0.0), up);
         mat4.mul(view, view, mat4.fromQuat(matTmp, this.quatRot_));
         mat4.translate(view, view, vec3.negate(vecTmp, this.center_));
@@ -135,8 +161,7 @@ define([
     })(),
     /** Update projection matrix */
     updateProjection: function () {
-      this.proj_ = mat4.create();
-      if (this.type_ === Camera.projType.PERSPECTIVE)
+      if (this.projType_ === Camera.projType.PERSPECTIVE)
         mat4.perspective(this.proj_, this.fov_ * Math.PI / 180.0, this.width_ / this.height_, 0.05, 5000.0);
       else
         this.updateOrtho();
@@ -145,19 +170,22 @@ define([
     updateTranslation: function () {
       this.transX_ += this.moveX_ * this.speed_ / 400.0;
       this.zoom_ = Math.max(0.00001, this.zoom_ + this.moveZ_ * this.speed_ / 400.0);
-      if (this.type_ === Camera.projType.ORTHOGRAPHIC)
+      if (this.projType_ === Camera.projType.ORTHOGRAPHIC)
         this.updateOrtho();
+      this.updateView();
     },
     /** Compute translation values */
     translate: function (dx, dy) {
       this.transX_ -= dx * this.speed_;
       this.transY_ += dy * this.speed_;
+      this.updateView();
     },
     /** Zoom */
     zoom: function (delta) {
       this.zoom_ = Math.max(0.00001, this.zoom_ - delta * this.speed_);
-      if (this.type_ === Camera.projType.ORTHOGRAPHIC)
+      if (this.projType_ === Camera.projType.ORTHOGRAPHIC)
         this.updateOrtho();
+      this.updateView();
     },
     /** Update orthographic projection */
     updateOrtho: function () {
@@ -174,33 +202,45 @@ define([
     },
     /** Reset camera when we toggle usePivot */
     toggleUsePivot: function () {
+      this.usePivot_ = !this.usePivot_;
       this.transX_ = 0.0;
       this.transY_ = 0.0;
     },
     /** Reset camera */
     reset: function () {
+      this.mode_ = Camera.mode.ORBIT;
+      this.projType_ = Camera.projType.PERSPECTIVE;
+      this.fov_ = 45.0;
+      this.usePivot_ = false;
+      this.resetView();
+    },
+    /** Reset camera */
+    resetView: function () {
       this.transX_ = this.transY_ = this.zoom_ = this.rotX_ = this.rotY_ = 0.0;
       this.speed_ = Utils.SCALE * 0.9;
-      this.quatRot_ = quat.create();
+      quat.identity(this.quatRot_);
       vec3.set(this.center_, 0.0, 0.0, 0.0);
       this.zoom(-0.6);
     },
     /** Reset view front */
     resetViewFront: function () {
       this.rotX_ = this.rotY_ = 0.0;
-      this.quatRot_ = quat.create();
+      quat.identity(this.quatRot_);
+      this.updateView();
     },
     /** Reset view top */
     resetViewTop: function () {
       this.rotX_ = Math.PI * 0.5;
       this.rotY_ = 0.0;
       this.quatRot_ = quat.rotateX(this.quatRot_, quat.create(), Math.PI * 0.5);
+      this.updateView();
     },
     /** Reset view left */
     resetViewLeft: function () {
       this.rotX_ = 0.0;
       this.rotY_ = -Math.PI * 0.5;
       this.quatRot_ = quat.rotateY(this.quatRot_, quat.create(), -Math.PI * 0.5);
+      this.updateView();
     },
     /** Project the mouse coordinate into the world coordinate at a given z */
     unproject: (function () {

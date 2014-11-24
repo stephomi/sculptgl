@@ -10,7 +10,7 @@ define([
     // attributes vertex ( no duplicates )
     this.verticesXYZ_ = null; // vertices (Float32Array)
     this.colorsRGB_ = null; // color vertices (Float32Array)
-    this.materialsPBR_ = null; // pbr vertex data (Float32Array) roughness/metallic/alpha
+    this.materialsPBR_ = null; // pbr vertex data (Float32Array) roughness/metallic/????
     this.normalsXYZ_ = null; // normals (Float32Array)
 
     // topology stuffs

@@ -1,9 +1,12 @@
 define([
+  'lib/glMatrix',
   'gui/GuiTR',
   'editor/Sculpt'
-], function (TR, Sculpt) {
+], function (glm, TR, Sculpt) {
 
   'use strict';
+
+  var vec3 = glm.vec3;
 
   var GuiSculptingTools = {};
 
@@ -17,13 +20,13 @@ define([
       ctrls[i].setVisibility(true);
   };
 
-  var setOnChange = function (key, val, factor) {
-    this[key] = factor ? val * factor : val;
+  var setOnChange = function (key, factor, val) {
+    this[key] = factor ? val / factor : val;
   };
 
   // some helper functions
   var addCtrlIntensity = function (tool, fold, widget) {
-    var ctrl = fold.addSlider(TR('sculptIntensity'), tool.intensity_ * 100, setOnChange.bind(tool, 'intensity_', 0.01), 0, 100, 1);
+    var ctrl = fold.addSlider(TR('sculptIntensity'), tool.intensity_ * 100, setOnChange.bind(tool, 'intensity_', 100), 0, 100, 1);
     widget.intensity_ = ctrl;
     return ctrl;
   };
@@ -84,14 +87,14 @@ define([
   GuiSculptingTools[Sculpt.tool.PAINT] = {
     ctrls_: [],
     onMaterialChanged: function (main, tool, materials) {
-      tool.color_ = materials[0].getValue();
-      tool.roughness_ = materials[1].getValue();
-      tool.metallic_ = materials[2].getValue();
+      vec3.copy(tool.color_, materials[0].getValue());
+      tool.material_[0] = materials[1].getValue() / 100;
+      tool.material_[1] = materials[2].getValue() / 100;
       var mesh = main.getMesh();
       if (mesh) {
         mesh.setAlbedo(tool.color_);
-        mesh.setRoughness(tool.roughness_);
-        mesh.setMetallic(tool.metallic_);
+        mesh.setRoughness(tool.material_[0]);
+        mesh.setMetallic(tool.material_[1]);
         main.render();
       }
     },
@@ -106,11 +109,11 @@ define([
     },
     onPickedMaterial: function (materials, tool, color, roughness, metallic) {
       materials[0].setValue(color, true);
-      materials[1].setValue(roughness, true);
-      materials[2].setValue(metallic, true);
-      tool.color_ = color;
-      tool.roughness_ = roughness;
-      tool.metallic_ = metallic;
+      materials[1].setValue(roughness * 100, true);
+      materials[2].setValue(metallic * 100, true);
+      vec3.copy(tool.color_, color);
+      tool.material_[0] = roughness;
+      tool.material_[1] = metallic;
     },
     init: function (tool, fold, main) {
       this.ctrls_.push(addCtrlIntensity(tool, fold, this));
@@ -119,8 +122,8 @@ define([
       var materials = [];
       var cbMatChanged = this.onMaterialChanged.bind(this, main, tool, materials);
       var ctrlColor = fold.addColor(TR('sculptColor'), tool.color_, cbMatChanged);
-      var ctrlRoughness = fold.addSlider(TR('sculptRoughness'), tool.roughness_, cbMatChanged, 0.0, 1.0, 0.01);
-      var ctrlMetallic = fold.addSlider(TR('sculptMetallic'), tool.metallic_, cbMatChanged, 0.0, 1.0, 0.01);
+      var ctrlRoughness = fold.addSlider(TR('sculptRoughness'), tool.material_[0] * 100, cbMatChanged, 0, 100, 1);
+      var ctrlMetallic = fold.addSlider(TR('sculptMetallic'), tool.material_[1] * 100, cbMatChanged, 0, 100, 1);
       materials.push(ctrlColor, ctrlRoughness, ctrlMetallic);
       window.addEventListener('keyup', this.resetMaterialOverride.bind(this, main));
       window.addEventListener('mouseup', this.resetMaterialOverride.bind(this, main));

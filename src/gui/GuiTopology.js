@@ -39,20 +39,41 @@ define([
 
       // dynamic
       menu.addTitle(TR('dynamicTitle'));
-      this.dynamic = false;
-      this.ctrlDynamic_ = menu.addCheckbox(TR('dynamicActivated'), this.dynamic, this.dynamicActivate.bind(this));
-      menu.addSlider(TR('dynamicSubdivision'), Topology, 'subFactor', 0, 100, 1);
-      menu.addSlider(TR('dynamicDecimation'), Topology, 'decFactor', 0, 100, 1);
-      menu.addCheckbox(TR('dynamicLinear'), Topology, 'linear');
+      this.ctrlDynamic_ = menu.addCheckbox(TR('dynamicActivated'), false, this.dynamicToggleActivate.bind(this));
+      menu.addSlider(TR('dynamicSubdivision'), Topology.subFactor, this.dynamicSubdivision.bind(this), 0, 100, 1);
+      menu.addSlider(TR('dynamicDecimation'), Topology.decFactor, this.dynamicDecimation.bind(this), 0, 100, 1);
+      menu.addCheckbox(TR('dynamicLinear'), Topology.linear, this.dynamicToggleLinear.bind(this));
     },
-    dynamicActivate: function (enable) {
+    dynamicToggleActivate: function () {
       var main = this.main_;
       var mesh = main.getMesh();
       if (!mesh)
         return;
-      var newMesh = enable ? new MeshDynamic(mesh) : this.convertToStaticMesh(mesh);
+
+      if (!main.isReplayed())
+        main.replayer_.pushDynamicToggleActivate();
+
+      var newMesh = !mesh.getDynamicTopology ? new MeshDynamic(mesh) : this.convertToStaticMesh(mesh);
       main.replaceMesh(mesh, newMesh);
       main.getStates().pushStateAddRemove(newMesh, mesh);
+    },
+    dynamicToggleLinear: function () {
+      var main = this.main_;
+      if (!main.isReplayed())
+        main.replayer_.pushDynamicToggleLinear();
+      Topology.linear = !Topology.linear;
+    },
+    dynamicSubdivision: function (val) {
+      var main = this.main_;
+      if (!main.isReplayed())
+        main.replayer_.pushDynamicSubdivision(val);
+      Topology.subFactor = val;
+    },
+    dynamicDecimation: function (val) {
+      var main = this.main_;
+      if (!main.isReplayed())
+        main.replayer_.pushDynamicDecimation(val);
+      Topology.decFactor = val;
     },
     /** Remesh the mesh */
     remesh: function () {
@@ -60,6 +81,10 @@ define([
       var mesh = main.getMesh();
       if (!mesh)
         return;
+
+      if (!main.isReplayed())
+        main.replayer_.pushVoxelRemesh(Remesh.resolution);
+
       var meshes = main.getMeshes().slice();
       for (var i = 0, l = meshes.length; i < l; ++i) {
         if (meshes[i] === mesh)
@@ -83,11 +108,12 @@ define([
       // dynamic to static mesh
       var newMesh = new Mesh(mesh.getGL());
       newMesh.setID(mesh.getID());
+      newMesh.setTransformData(mesh.getTransformData());
       newMesh.setVertices(mesh.getVertices().subarray(0, mesh.getNbVertices() * 3));
       newMesh.setColors(mesh.getColors().subarray(0, mesh.getNbVertices() * 3));
       newMesh.setMaterials(mesh.getMaterials().subarray(0, mesh.getNbVertices() * 3));
       newMesh.setFaces(mesh.getFaces().subarray(0, mesh.getNbFaces() * 4));
-      newMesh.init();
+      newMesh.init(true);
       newMesh.setRender(mesh.getRender());
       mesh.getRender().mesh_ = newMesh;
       newMesh.initRender();
@@ -104,21 +130,27 @@ define([
     subdivide: function () {
       var main = this.main_;
       var mesh = main.getMesh();
-      if (!mesh) return;
+      if (!mesh)
+        return;
       var mul = this.convertToMultimesh(mesh);
       if (mul.sel_ !== mul.meshes_.length - 1) {
         window.alert(TR('multiresSelectHighest'));
         return;
       }
-      if (mul.getNbTriangles() > 400000) {
+      if (mul.getNbTriangles() > 400000 && !main.isReplayed()) {
         if (!window.confirm(TR('multiresWarnBigMesh', mul.getNbFaces() * 4))) {
-          if (mesh !== mul) mesh.getRender().mesh_ = mesh;
+          if (mesh !== mul)
+            mesh.getRender().mesh_ = mesh;
           return;
         }
       }
+
+      if (!main.isReplayed())
+        main.replayer_.pushMultiSubdivide();
+
       if (mesh !== mul) {
-        this.main_.replaceMesh(mesh, mul);
-        this.main_.getStates().pushStateAddRemove(mul, mesh, true);
+        main.replaceMesh(mesh, mul);
+        main.getStates().pushStateAddRemove(mul, mesh, true);
       }
       main.getStates().pushState(new StateMultiresolution(main, mul, StateMultiresolution.SUBDIVISION));
       mul.addLevel();
@@ -130,7 +162,8 @@ define([
     reverse: function () {
       var main = this.main_;
       var mesh = main.getMesh();
-      if (!mesh) return;
+      if (!mesh)
+        return;
       var mul = this.convertToMultimesh(mesh);
       if (mul.sel_ !== 0) {
         window.alert(TR('multiresSelectLowest'));
@@ -139,13 +172,18 @@ define([
       var stateRes = new StateMultiresolution(main, mul, StateMultiresolution.REVERSION);
       var newMesh = mul.computeReverse();
       if (!newMesh) {
-        if (mesh !== mul) mesh.getRender().mesh_ = mesh;
+        if (mesh !== mul)
+          mesh.getRender().mesh_ = mesh;
         window.alert(TR('multiresNotReversible'));
         return;
       }
+
+      if (!main.isReplayed())
+        main.replayer_.pushMultiReverse();
+
       if (mesh !== mul) {
-        this.main_.replaceMesh(mesh, mul);
-        this.main_.getStates().pushStateAddRemove(mul, mesh, true);
+        main.replaceMesh(mesh, mul);
+        main.getStates().pushStateAddRemove(mul, mesh, true);
       }
       main.getStates().pushState(stateRes);
       this.ctrlGui_.updateMeshInfo();
@@ -160,6 +198,10 @@ define([
         window.alert(TR('multiresNoLower'));
         return;
       }
+
+      if (!main.isReplayed())
+        main.replayer_.pushDeleteLower();
+
       main.getStates().pushState(new StateMultiresolution(main, mul, StateMultiresolution.DELETE_LOWER));
       mul.deleteLower();
       this.updateMeshResolution();
@@ -172,6 +214,10 @@ define([
         window.alert(TR('multiresNoHigher'));
         return;
       }
+
+      if (!main.isReplayed())
+        main.replayer_.pushDeleteHigher();
+
       main.getStates().pushState(new StateMultiresolution(main, mul, StateMultiresolution.DELETE_HIGHER));
       mul.deleteHigher();
       this.updateMeshResolution();
@@ -183,6 +229,10 @@ define([
       var multimesh = main.getMesh();
       if (!this.isMultimesh(multimesh) || multimesh.sel_ === uiRes)
         return;
+
+      if (!main.isReplayed())
+        main.replayer_.pushMultiResolution(value);
+
       main.getStates().pushState(new StateMultiresolution(main, multimesh, StateMultiresolution.SELECTION));
       multimesh.selectResolution(uiRes);
       this.ctrlGui_.updateMeshInfo();

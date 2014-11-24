@@ -13,7 +13,7 @@ define([], function () {
     var pen;
     if (Tablet.plugin)
       pen = Tablet.plugin.penAPI;
-    return (pen && pen.pointerType) ? pen.pressure : 1;
+    return (pen && pen.pointerType) ? pen.pressure : 1.0;
   };
 
   /** Returns the pressure intensity **/

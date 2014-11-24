@@ -261,7 +261,7 @@ define([], function () {
         result = func.apply(context, args);
         context = args = null;
       } else if (!timeout) {
-        timeout = setTimeout(later, remaining);
+        timeout = window.setTimeout(later, remaining);
       }
       return result;
     };

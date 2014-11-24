@@ -1,7 +1,7 @@
 define([
   'gui/GuiTR',
   'lib/FileSaver',
-  'misc/Export'
+  'files/Export'
 ], function (TR, saveAs, Export) {
 
   'use strict';
@@ -18,17 +18,18 @@ define([
     init: function (guiParent) {
       var menu = this.menu_ = guiParent.addMenu(TR('fileTitle'));
 
-      // scene
-      menu.addTitle(TR('fileResetTitle'));
-      menu.addButton(TR('fileResetSphere'), this.main_, 'resetScene');
-      menu.addButton(TR('fileResetScene'), this.main_, 'clearScene');
-
       // import
       menu.addTitle(TR('fileImportTitle'));
       menu.addButton(TR('fileAdd'), this, 'addFile');
 
+      // replayer
+      menu.addTitle(TR('fileReplayerTitle'));
+      menu.addButton(TR('fileReplayerImport'), this, 'addFile');
+      menu.addButton(TR('fileReplayerExport'), this.main_.replayer_, 'export');
+
       // export
       menu.addTitle(TR('fileExportSceneTitle'));
+      menu.addButton(TR('fileExportSGL'), this, 'saveFileAsSGL');
       menu.addButton(TR('fileExportOBJ'), this, 'saveFileAsOBJ');
       this.ctrlSketchfab_ = menu.addButton(TR('sketchfabTitle'), this, 'exportSketchfab');
       menu.addTitle(TR('fileExportMeshTitle'));
@@ -38,6 +39,12 @@ define([
     /** Load file */
     addFile: function () {
       document.getElementById('fileopen').click();
+    },
+    /** Save file as .sculptgl*/
+    saveFileAsSGL: function () {
+      if (this.main_.getMeshes().length === 0) return;
+      var blob = Export.exportSGL(this.main_.getMeshes());
+      saveAs(blob, 'yourMesh.sgl');
     },
     /** Save file as OBJ*/
     saveFileAsOBJ: function () {

@@ -170,9 +170,9 @@ define([
     /** Initialize rendering */
     initRender: function () {
       this.shaderWireframe_.setType(Shader.mode.WIREFRAME);
-      if (this.shader_.getType() === Shader.mode.MATCAP && !this.texture0_)
+      if (this.getShaderType() === Shader.mode.MATCAP && !this.texture0_)
         this.setMatcap(0);
-      this.setShader(this.shader_.getType());
+      this.setShader(this.getShaderType());
       this.setShowWireframe(this.getShowWireframe());
     },
     /** Render the mesh */
@@ -241,7 +241,7 @@ define([
     copyRenderConfig: function (mesh) {
       this.setFlatShading(mesh.getFlatShading());
       this.setShowWireframe(mesh.getShowWireframe());
-      this.setShader(mesh.getShader().getType());
+      this.setShader(mesh.getShaderType());
       this.setTexture0(mesh.getTexture0());
       this.setRoughness(mesh.getRoughness());
       this.setMetallic(mesh.getMetallic());

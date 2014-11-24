@@ -70,21 +70,6 @@ define([
       this.tools_[Sculpt.tool.SCALE] = new Scale(states);
       this.tools_[Sculpt.tool.TRANSLATE] = new Translate(states);
       this.tools_[Sculpt.tool.ROTATE] = new Rotate(states);
-
-      var canvas = document.getElementById('canvas');
-      canvas.addEventListener('mouseup', this.onMouseUp.bind(this), false);
-      canvas.addEventListener('mouseout', this.onMouseUp.bind(this), false);
-    },
-    /** Mouse released event */
-    onMouseUp: function (event) {
-      event.preventDefault();
-      var tool = this.getCurrentTool();
-      if (tool.mesh_)
-        tool.mesh_.checkLeavesUpdate();
-      if (this.sculptTimer_ !== -1) {
-        clearInterval(this.sculptTimer_);
-        this.sculptTimer_ = -1;
-      }
     },
     /** Return true if the current tool doesn't prevent picking */
     allowPicking: function () {
@@ -100,11 +85,25 @@ define([
     start: function (main) {
       var tool = this.getCurrentTool();
       tool.start(main);
-      if (main.getPicking().getMesh() && this.isUsingContinuous()) {
-        this.sculptTimer_ = setInterval(function () {
-          tool.update(main);
-          main.render();
-        }, 20);
+      if (!main.getPicking().getMesh() || !this.isUsingContinuous())
+        return;
+      // we do not execute this code if we are replaying
+      if (main.isReplayed())
+        return;
+      this.sculptTimer_ = window.setInterval(function () {
+        main.replayer_.pushUpdateContinuous();
+        tool.update(main);
+        main.render();
+      }, 16.6);
+    },
+    /** End sculpting */
+    end: function () {
+      var tool = this.getCurrentTool();
+      if (tool.mesh_)
+        tool.mesh_.checkLeavesUpdate();
+      if (this.sculptTimer_ !== -1) {
+        clearInterval(this.sculptTimer_);
+        this.sculptTimer_ = -1;
       }
     },
     /** Update sculpting */

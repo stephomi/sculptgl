@@ -1,14 +1,16 @@
 define([
   'gui/GuiTR',
-  'misc/ExportOBJ',
-  'misc/ExportPLY',
-  'misc/ExportSTL'
-], function (TR, ExportOBJ, ExportPLY, ExportSTL) {
+  'files/ExportOBJ',
+  'files/ExportSGL',
+  'files/ExportPLY',
+  'files/ExportSTL'
+], function (TR, ExportOBJ, ExportSGL, ExportPLY, ExportSTL) {
 
   'use strict';
 
   var Export = {};
   Export.exportOBJ = ExportOBJ.exportOBJ;
+  Export.exportSGL = ExportSGL.exportSGL;
   Export.exportPLY = ExportPLY.exportPLY;
   Export.exportSTL = ExportSTL.exportSTL;
   Export.exportSketchfab = function (meshes, mesh, key, statusWidget) {

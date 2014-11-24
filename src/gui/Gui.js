@@ -7,29 +7,33 @@ define([
   'gui/GuiMesh',
   'gui/GuiTopology',
   'gui/GuiRendering',
+  'gui/GuiScene',
   'gui/GuiSculpting',
   'gui/GuiStates',
   'gui/GuiTablet'
-], function (yagui, GuiBackground, GuiCamera, GuiConfig, GuiFiles, GuiMesh, GuiTopology, GuiRendering, GuiSculpting, GuiStates, GuiTablet) {
+], function (yagui, GuiBackground, GuiCamera, GuiConfig, GuiFiles, GuiMesh, GuiTopology, GuiRendering, GuiScene, GuiSculpting, GuiStates, GuiTablet) {
 
   'use strict';
 
   function Gui(main) {
-    this.main_ = main; // main application
+    this.main_ = main;
 
-    this.guiMain_ = null; // the main gui
-    this.sidebar_ = null; // the side bar
-    this.topbar_ = null; // the top bar
+    this.guiMain_ = null;
+    this.sidebar_ = null;
+    this.topbar_ = null;
 
-    this.ctrlTablet_ = null; // tablet controller
-    this.ctrlFiles_ = null; // files controller
-    this.ctrlStates_ = null; // history controller
-    this.ctrlCamera_ = null; // camera controller
-    this.ctrlBackground_ = null; // background controller
+    this.ctrlTablet_ = null;
+    this.ctrlFiles_ = null;
+    this.ctrlScene_ = null;
+    this.ctrlStates_ = null;
+    this.ctrlCamera_ = null;
+    this.ctrlBackground_ = null;
 
-    this.ctrlSculpting_ = null; // sculpting controller
-    this.ctrlTopology_ = null; // topology controller
-    this.ctrlRendering_ = null; // rendering controller
+    this.ctrlSculpting_ = null;
+    this.ctrlTopology_ = null;
+    this.ctrlRendering_ = null;
+
+    this.ctrls_ = []; // list of controllers
   }
 
   Gui.prototype = {
@@ -39,26 +43,32 @@ define([
 
       this.guiMain_ = new yagui.GuiMain(this.main_.getCanvas(), this.main_.onCanvasResize.bind(this.main_));
 
+      var ctrls = this.ctrls_;
+      ctrls.length = 0;
+      var idc = 0;
+
       // Initialize the topbar
       this.topbar_ = this.guiMain_.addTopbar();
-      this.ctrlFiles_ = new GuiFiles(this.topbar_, this);
-      this.ctrlStates_ = new GuiStates(this.topbar_, this);
-      this.ctrlBackground_ = new GuiBackground(this.topbar_, this);
-      this.ctrlCamera_ = new GuiCamera(this.topbar_, this);
-      this.ctrlTablet_ = new GuiTablet(this.topbar_, this);
-      this.ctrlConfig_ = new GuiConfig(this.topbar_, this);
-      this.ctrlMesh_ = new GuiMesh(this.topbar_, this);
+      ctrls[idc++] = this.ctrlFiles_ = new GuiFiles(this.topbar_, this);
+      ctrls[idc++] = this.ctrlScene_ = new GuiScene(this.topbar_, this);
+      ctrls[idc++] = this.ctrlStates_ = new GuiStates(this.topbar_, this);
+      ctrls[idc++] = this.ctrlBackground_ = new GuiBackground(this.topbar_, this);
+      ctrls[idc++] = this.ctrlCamera_ = new GuiCamera(this.topbar_, this);
+      ctrls[idc++] = this.ctrlTablet_ = new GuiTablet(this.topbar_, this);
+      ctrls[idc++] = this.ctrlConfig_ = new GuiConfig(this.topbar_, this);
+      ctrls[idc++] = this.ctrlMesh_ = new GuiMesh(this.topbar_, this);
 
       // Initialize the sidebar
       this.sidebar_ = this.guiMain_.addRightSidebar();
-      this.ctrlRendering_ = new GuiRendering(this.sidebar_, this);
-      this.ctrlTopology_ = new GuiTopology(this.sidebar_, this);
-      this.ctrlSculpting_ = new GuiSculpting(this.sidebar_, this);
+      ctrls[idc++] = this.ctrlRendering_ = new GuiRendering(this.sidebar_, this);
+      ctrls[idc++] = this.ctrlTopology_ = new GuiTopology(this.sidebar_, this);
+      ctrls[idc++] = this.ctrlSculpting_ = new GuiSculpting(this.sidebar_, this);
 
       // gui extra
       this.topbar_.addExtra();
 
       this.updateMesh();
+      this.setVisibility(true);
     },
     /** Update information on mesh */
     updateMesh: function () {
@@ -82,21 +92,30 @@ define([
     getShader: function () {
       return this.ctrlRendering_.getShader();
     },
+    addEvents: function () {
+      for (var i = 0, ctrls = this.ctrls_, nb = ctrls.length; i < nb; ++i) {
+        var ct = ctrls[i];
+        if (ct && ct.addEvents)
+          ct.addEvents();
+      }
+    },
+    removeEvents: function () {
+      for (var i = 0, ctrls = this.ctrls_, nb = ctrls.length; i < nb; ++i) {
+        var ct = ctrls[i];
+        if (ct && ct.removeEvents)
+          ct.removeEvents();
+      }
+    },
     /** Delete the old gui */
     deleteGui: function () {
-      if (!this.guiMain_)
+      if (!this.guiMain_ || !this.guiMain_.domMain.parentNode)
         return;
+      this.removeEvents();
+      this.setVisibility(false);
       this.guiMain_.domMain.parentNode.removeChild(this.guiMain_.domMain);
-
-      if (this.ctrlTablet_ && this.ctrlTablet_.removeEvents) this.ctrlTablet_.removeEvents();
-      if (this.ctrlFiles_ && this.ctrlFiles_.removeEvents) this.ctrlFiles_.removeEvents();
-      if (this.ctrlStates_ && this.ctrlStates_.removeEvents) this.ctrlStates_.removeEvents();
-      if (this.ctrlCamera_ && this.ctrlCamera_.removeEvents) this.ctrlCamera_.removeEvents();
-      if (this.ctrlBackground_ && this.ctrlBackground_.removeEvents) this.ctrlBackground_.removeEvents();
-
-      if (this.ctrlSculpting_ && this.ctrlSculpting_.removeEvents) this.ctrlSculpting_.removeEvents();
-      if (this.ctrlTopology_ && this.ctrlTopology_.removeEvents) this.ctrlTopology_.removeEvents();
-      if (this.ctrlRendering_ && this.ctrlRendering_.removeEvents) this.ctrlRendering_.removeEvents();
+    },
+    setVisibility: function (bool) {
+      this.guiMain_.setVisibility(bool);
     }
   };
 

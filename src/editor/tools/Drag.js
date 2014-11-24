@@ -115,8 +115,8 @@ define([
     /** Set a few infos that will be needed for the drag function afterwards */
     updateDragDir: function (picking, mouseX, mouseY, useSymmetry) {
       var mesh = this.mesh_;
-      var vNear = picking.camera_.unproject(mouseX, mouseY, 0.0);
-      var vFar = picking.camera_.unproject(mouseX, mouseY, 1.0);
+      var vNear = picking.unproject(mouseX, mouseY, 0.0);
+      var vFar = picking.unproject(mouseX, mouseY, 1.0);
       var matInverse = mat4.create();
       mat4.invert(matInverse, mesh.getMatrix());
       vec3.transformMat4(vNear, vNear, matInverse);

@@ -39,7 +39,6 @@ define([
       vec3.transformMat4(near, near, matrixInv);
       vec3.transformMat4(far, far, matrixInv);
       vec3.sub(this.normal_, far, near);
-
     },
     /** Update sculpting operation */
     update: (function () {

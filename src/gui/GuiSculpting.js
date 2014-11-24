@@ -14,8 +14,8 @@ define([
     this.toolOnRelease_ = -1; // tool to apply when the mouse or the key is released
     this.invertSign_ = false; // invert sign of tool (add/sub)
 
-    this.modelBrushRadius_ = false; // model brush radius change
-    this.modelBrushIntensity_ = false; // model brush intensity change
+    this.modalBrushRadius_ = false; // modal brush radius change
+    this.modalBrushIntensity_ = false; // modal brush intensity change
     this.lastMouseX_ = 0; // last x position
 
     this.menu_ = null; // ui menu
@@ -144,10 +144,10 @@ define([
 
       switch (key) {
       case 88: // X
-        this.modelBrushRadius_ = this.main_.focusGui_ = true;
+        this.modalBrushRadius_ = this.main_.focusGui_ = true;
         break;
       case 67: // C
-        this.modelBrushIntensity_ = this.main_.focusGui_ = true;
+        this.modalBrushIntensity_ = this.main_.focusGui_ = true;
         break;
       case 107: // +
         this.ctrlRadius_.setValue(this.ctrlRadius_.getValue() + 3);
@@ -223,12 +223,14 @@ define([
         this.toolOnRelease_ = -1;
       } else if (this.invertSign_) {
         this.invertSign_ = false;
-        GuiSculptingTools[this.getSelectedTool()].toggleNegative();
+        var tool = GuiSculptingTools[this.getSelectedTool()];
+        if (tool.toggleNegative)
+          tool.toggleNegative();
       }
       if (event.which === 88) // X
-        this.modelBrushRadius_ = this.main_.focusGui_ = false;
+        this.modalBrushRadius_ = this.main_.focusGui_ = false;
       else if (event.which === 67) // C
-        this.modelBrushIntensity_ = this.main_.focusGui_ = false;
+        this.modalBrushIntensity_ = this.main_.focusGui_ = false;
     },
     /** Mouse released event */
     onMouseUp: function () {
@@ -239,12 +241,12 @@ define([
     },
     /** Mouse move event */
     onMouseMove: function (e) {
-      if (this.modelBrushRadius_) {
+      if (this.modalBrushRadius_) {
         this.ctrlRadius_.setValue(this.ctrlRadius_.getValue() + (e.pageX - this.lastMouseX_) * 1.0);
         this.updateRadiusPicking();
         this.main_.render();
       }
-      if (this.modelBrushIntensity_) {
+      if (this.modalBrushIntensity_) {
         var wid = GuiSculptingTools[this.getSelectedTool()];
         if (wid.intensity_)
           wid.intensity_.setValue(wid.intensity_.getValue() + (e.pageX - this.lastMouseX_) * 1.0);
@@ -270,6 +272,7 @@ define([
       GuiSculptingTools.show(newValue);
       this.ctrlContinuous_.setVisibility(this.sculpt_.allowPicking() === true);
       this.ctrlSymmetry_.setVisibility(newValue !== Sculpt.tool.TRANSLATE && newValue !== Sculpt.tool.ROTATE);
+      this.ctrlRadius_.setVisibility(newValue !== Sculpt.tool.TRANSLATE && newValue !== Sculpt.tool.ROTATE);
     }
   };
 

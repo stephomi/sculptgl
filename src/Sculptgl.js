@@ -1,7 +1,9 @@
 define([
   'misc/Utils',
-  'misc/Import',
   'editor/Sculpt',
+  'files/Import',
+  'files/ReplayWriter',
+  'files/ReplayReader',
   'gui/Gui',
   'math3d/Camera',
   'math3d/Picking',
@@ -12,7 +14,7 @@ define([
   'states/States',
   'render/Render',
   'render/shaders/ShaderMatcap'
-], function (Utils, Import, Sculpt, Gui, Camera, Picking, Background, Grid, Mesh, Multimesh, States, Render, ShaderMatcap) {
+], function (Utils, Sculpt, Import, Replay, ReplayReader, Gui, Camera, Picking, Background, Grid, Mesh, Multimesh, States, Render, ShaderMatcap) {
 
   'use strict';
 
@@ -32,8 +34,8 @@ define([
     this.states_ = new States(this); // for undo-redo
     this.sculpt_ = new Sculpt(this.states_); // sculpting management
     this.camera_ = new Camera(); // the camera
-    this.picking_ = new Picking(this.camera_); // the ray picking
-    this.pickingSym_ = new Picking(this.camera_); // the symmetrical picking
+    this.picking_ = new Picking(this); // the ray picking
+    this.pickingSym_ = new Picking(this); // the symmetrical picking
 
     // renderable stuffs
     this.showGrid_ = true;
@@ -47,14 +49,26 @@ define([
     this.focusGui_ = false; // if the gui is being focused
 
     // misc stuffs
+    this.replayer_ = new Replay(this); // the user event stack replayer
+    this.replayerReader_ = new ReplayReader(this); // reader replayer
+    this.isReplayed_ = false; // if we want to save the replay mode
     this.preventRender_ = false; // prevent multiple render per render
-
-    // datas
-    this.initMeshPath_ = 'resources/sphere.obj'; // sphere
-    this.initMesh_ = ''; // sphere
   }
 
   SculptGL.prototype = {
+    /** Initialization */
+    start: function () {
+      this.initWebGL();
+      if (!this.gl_)
+        return;
+      this.background_ = new Background(this.gl_);
+      this.grid_ = new Grid(this.gl_);
+      this.loadTextures();
+      this.gui_.initGui();
+      this.onCanvasResize();
+      this.addEvents();
+      this.addSphere();
+    },
     getBackground: function () {
       return this.background_;
     },
@@ -85,6 +99,12 @@ define([
     getStates: function () {
       return this.states_;
     },
+    isReplayed: function () {
+      return this.isReplayed_;
+    },
+    setReplayed: function (isReplayed) {
+      this.isReplayed_ = isReplayed;
+    },
     setMesh: function (mesh) {
       this.mesh_ = mesh;
       this.getGui().updateMesh();
@@ -102,10 +122,10 @@ define([
       this.preventRender_ = false;
       var gl = this.gl_;
       gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
-      this.camera_.updateView();
       this.background_.render();
       this.computeMatricesAndSort();
-      if (this.showGrid_) this.grid_.render();
+      if (this.showGrid_)
+        this.grid_.render();
       for (var i = 0, meshes = this.meshes_, nb = meshes.length; i < nb; ++i)
         meshes[i].render(this);
     },
@@ -117,16 +137,6 @@ define([
       for (var i = 0, nb = meshes.length; i < nb; ++i)
         meshes[i].computeMatrices(cam);
       meshes.sort(Mesh.sortFunction);
-    },
-    /** Initialization */
-    start: function () {
-      this.initWebGL();
-      this.background_ = new Background(this.gl_);
-      this.grid_ = new Grid(this.gl_);
-      this.loadTextures();
-      this.gui_.initGui();
-      this.onCanvasResize();
-      this.initEvents();
     },
     /** Load webgl context */
     initWebGL: function () {
@@ -172,8 +182,6 @@ define([
           gl.generateMipmap(gl.TEXTURE_2D);
           gl.bindTexture(gl.TEXTURE_2D, null);
           ShaderMatcap.textures[idMaterial] = idTex;
-          if (idMaterial === 0)
-            self.loadSphere();
         };
       };
       for (var i = 0, mats = ShaderMatcap.matcaps, l = mats.length; i < l; ++i)
@@ -183,34 +191,82 @@ define([
     onCanvasResize: function () {
       var newWidth = this.gl_.viewportWidth = this.camera_.width_ = this.canvas_.width;
       var newHeight = this.gl_.viewportHeight = this.camera_.height_ = this.canvas_.height;
+
+      if (!this.isReplayed())
+        this.replayer_.pushCameraSize(newWidth, newHeight);
+
       this.background_.onResize(newWidth, newHeight);
       this.gl_.viewport(0, 0, newWidth, newHeight);
       this.camera_.updateProjection();
       this.render();
     },
     /** Initialize */
-    initEvents: function () {
+    addEvents: function () {
       var canvas = this.canvas_;
-      var mouseThrottled = Utils.throttle(this.onMouseMove.bind(this), 16.66);
-      canvas.addEventListener('mousedown', this.onMouseDown.bind(this), false);
-      canvas.addEventListener('mouseup', this.onMouseUp.bind(this), false);
-      canvas.addEventListener('mouseout', this.onMouseOut.bind(this), false);
-      canvas.addEventListener('mouseover', this.onMouseOver.bind(this), false);
-      canvas.addEventListener('mousemove', mouseThrottled, false);
-      canvas.addEventListener('mousewheel', this.onMouseWheel.bind(this), false);
-      canvas.addEventListener('DOMMouseScroll', this.onMouseWheel.bind(this), false);
-      canvas.addEventListener('webglcontextlost', this.onContextLost, false);
-      canvas.addEventListener('webglcontextrestored', this.onContextRestored, false);
-      // multi touch
-      canvas.addEventListener('touchstart', this.onTouchStart.bind(this), false);
-      canvas.addEventListener('touchmove', this.onTouchMove.bind(this), false);
-      canvas.addEventListener('touchend', this.onMouseUp.bind(this), false);
-      canvas.addEventListener('touchcancel', this.onMouseUp.bind(this), false);
-      canvas.addEventListener('touchleave', this.onMouseUp.bind(this), false);
-      document.getElementById('fileopen').addEventListener('change', this.loadFile.bind(this), false);
-      document.getElementById('backgroundopen').addEventListener('change', this.loadBackground.bind(this), false);
-    },
 
+      var cbMouseMove = Utils.throttle(this.onMouseMove.bind(this), 16.66);
+      var cbMouseDown = this.onMouseDown.bind(this);
+      var cbMouseUp = this.onMouseUp.bind(this);
+      var cbMouseOut = this.onMouseOut.bind(this);
+      var cbMouseOver = this.onMouseOver.bind(this);
+      var cbMouseWheel = this.onMouseWheel.bind(this);
+      var cbTouchStart = this.onTouchStart.bind(this);
+      var cbTouchMove = this.onTouchMove.bind(this);
+
+      // mouse
+      canvas.addEventListener('mousedown', cbMouseDown, false);
+      canvas.addEventListener('mouseup', cbMouseUp, false);
+      canvas.addEventListener('mouseout', cbMouseOut, false);
+      canvas.addEventListener('mouseover', cbMouseOver, false);
+      canvas.addEventListener('mousemove', cbMouseMove, false);
+      canvas.addEventListener('mousewheel', cbMouseWheel, false);
+      canvas.addEventListener('DOMMouseScroll', cbMouseWheel, false);
+
+      // multi touch
+      canvas.addEventListener('touchstart', cbTouchStart, false);
+      canvas.addEventListener('touchmove', cbTouchMove, false);
+      canvas.addEventListener('touchend', cbMouseUp, false);
+      canvas.addEventListener('touchcancel', cbMouseUp, false);
+      canvas.addEventListener('touchleave', cbMouseUp, false);
+
+      var cbContextLost = this.onContextLost.bind(this);
+      var cbContextRestored = this.onContextRestored.bind(this);
+      var cbLoadFile = this.loadFile.bind(this);
+      var cbLoadBackground = this.loadBackground.bind(this);
+      // misc
+      canvas.addEventListener('webglcontextlost', cbContextLost, false);
+      canvas.addEventListener('webglcontextrestored', cbContextRestored, false);
+      document.getElementById('fileopen').addEventListener('change', cbLoadFile, false);
+      document.getElementById('backgroundopen').addEventListener('change', cbLoadBackground, false);
+
+      this.removeCallback = function () {
+        // mouse
+        canvas.removeEventListener('mousedown', cbMouseDown, false);
+        canvas.removeEventListener('mouseup', cbMouseUp, false);
+        canvas.removeEventListener('mouseout', cbMouseOut, false);
+        canvas.removeEventListener('mouseover', cbMouseOver, false);
+        canvas.removeEventListener('mousemove', cbMouseMove, false);
+        canvas.removeEventListener('mousewheel', cbMouseWheel, false);
+        canvas.removeEventListener('DOMMouseScroll', cbMouseWheel, false);
+
+        // multi touch
+        canvas.removeEventListener('touchstart', cbTouchStart, false);
+        canvas.removeEventListener('touchmove', cbTouchMove, false);
+        canvas.removeEventListener('touchend', cbMouseUp, false);
+        canvas.removeEventListener('touchcancel', cbMouseUp, false);
+        canvas.removeEventListener('touchleave', cbMouseUp, false);
+
+        // misc
+        canvas.removeEventListener('webglcontextlost', cbContextLost, false);
+        canvas.removeEventListener('webglcontextrestored', cbContextRestored, false);
+        document.getElementById('fileopen').removeEventListener('change', cbLoadFile, false);
+        document.getElementById('backgroundopen').removeEventListener('change', cbLoadBackground, false);
+      };
+    },
+    /** Remove events */
+    removeEvents: function () {
+      if (this.removeCallback) this.removeCallback();
+    },
     /** Load background */
     loadBackground: function (event) {
       if (event.target.files.length === 0)
@@ -234,12 +290,11 @@ define([
     /** Return the file type */
     getFileType: function (name) {
       var lower = name.toLowerCase();
-      if (lower.endsWith('.obj'))
-        return 'obj';
-      if (lower.endsWith('.stl'))
-        return 'stl';
-      if (lower.endsWith('.ply'))
-        return 'ply';
+      if (lower.endsWith('.obj')) return 'obj';
+      if (lower.endsWith('.sgl')) return 'sgl';
+      if (lower.endsWith('.stl')) return 'stl';
+      if (lower.endsWith('.ply')) return 'ply';
+      if (lower.endsWith('.rep')) return 'rep';
       return;
     },
     /** Load file */
@@ -248,16 +303,22 @@ define([
       event.preventDefault();
       if (event.target.files.length === 0)
         return;
+
       var file = event.target.files[0];
       var fileType = this.getFileType(file.name);
       if (!fileType)
         return;
+
       var reader = new FileReader();
       var self = this;
       reader.onload = function (evt) {
-        self.loadScene(evt.target.result, fileType);
+        if (fileType === 'rep')
+          self.replayerReader_.import(evt.target.result);
+        else
+          self.loadScene(evt.target.result, fileType);
         document.getElementById('fileopen').value = '';
       };
+
       if (fileType === 'obj')
         reader.readAsText(file);
       else
@@ -284,61 +345,111 @@ define([
     },
     /** Load a file */
     loadScene: function (fileData, fileType) {
-      var data = fileData || this.initMesh_;
-      var type = fileType || this.getFileType(this.initMeshPath_);
       var newMeshes;
-      if (type === 'obj') newMeshes = Import.importOBJ(data, this.gl_);
-      else if (type === 'stl') newMeshes = Import.importSTL(data, this.gl_);
-      else if (type === 'ply') newMeshes = Import.importPLY(data, this.gl_);
+      if (fileType === 'obj') newMeshes = Import.importOBJ(fileData, this.gl_);
+      else if (fileType === 'sgl') newMeshes = Import.importSGL(fileData, this.gl_);
+      else if (fileType === 'stl') newMeshes = Import.importSTL(fileData, this.gl_);
+      else if (fileType === 'ply') newMeshes = Import.importPLY(fileData, this.gl_);
       var nbNewMeshes = newMeshes.length;
-      if (nbNewMeshes === 0) return;
+      if (nbNewMeshes === 0)
+        return;
+
+      if (!this.isReplayed())
+        this.replayer_.pushLoadMeshes(newMeshes, fileData, fileType);
+
       var meshes = this.meshes_;
-      var multimeshes = [];
+      var ignoreTransform = fileType === 'sgl';
       for (var i = 0; i < nbNewMeshes; ++i) {
-        var mesh = new Multimesh(newMeshes[i]);
-        mesh.init();
+        var mesh = newMeshes[i] = new Multimesh(newMeshes[i]);
+        mesh.init(ignoreTransform);
         mesh.initRender();
         meshes.push(mesh);
-        multimeshes.push(mesh);
       }
-      this.centerMeshes(multimeshes);
-      this.states_.pushStateAdd(multimeshes);
+      this.centerMeshes(newMeshes);
+      this.states_.pushStateAdd(newMeshes);
       this.setMesh(meshes[meshes.length - 1]);
       this.camera_.reset();
     },
     /** Load the sphere */
-    loadSphere: function () {
-      var self = this;
-      var sphereXhr = new XMLHttpRequest();
-      sphereXhr.open('GET', this.initMeshPath_, true);
-      var fileType = this.getFileType(this.initMeshPath_);
-      if (!fileType)
-        return;
-      sphereXhr.responseType = fileType === 'obj' ? 'text' : 'arraybuffer';
-      sphereXhr.onload = function () {
-        self.initMesh_ = this.response;
-        self.resetScene();
-      };
-      sphereXhr.send(null);
+    addSphere: function () {
+      if (!this.isReplayed())
+        this.replayer_.pushAddSphere();
+
+      // make a cube and subdivide it
+      var mesh = new Mesh(this.gl_);
+
+      var v = new Float32Array(24);
+      v[1] = v[2] = v[4] = v[6] = v[7] = v[9] = v[10] = v[11] = v[14] = v[18] = v[21] = v[23] = -10.0;
+      v[0] = v[3] = v[5] = v[8] = v[12] = v[13] = v[15] = v[16] = v[17] = v[19] = v[20] = v[22] = 10.0;
+
+      var uv = new Float32Array(28);
+      uv[0] = uv[6] = uv[8] = uv[10] = uv[11] = uv[13] = uv[16] = uv[23] = uv[25] = 0.5;
+      uv[1] = uv[3] = 1.0;
+      uv[2] = uv[4] = uv[9] = uv[12] = uv[14] = uv[15] = uv[18] = 0.25;
+      uv[5] = uv[7] = uv[21] = uv[24] = uv[26] = uv[27] = 0.75;
+      uv[17] = uv[19] = uv[20] = uv[22] = 0.0;
+
+      var f = new Int32Array(24);
+      var ft = new Int32Array(24);
+      f[0] = f[8] = f[21] = ft[0] = 0;
+      f[1] = f[11] = f[12] = ft[1] = 1;
+      f[2] = f[15] = f[16] = ft[2] = ft[15] = ft[16] = 2;
+      f[3] = f[19] = f[22] = ft[3] = ft[19] = ft[22] = 3;
+      f[4] = f[9] = f[20] = ft[4] = ft[9] = 4;
+      f[7] = f[10] = f[13] = ft[5] = ft[18] = ft[23] = 5;
+      f[6] = f[14] = f[17] = ft[6] = ft[14] = ft[17] = 6;
+      f[5] = f[18] = f[23] = ft[7] = ft[10] = 7;
+      ft[8] = 8;
+      ft[11] = 9;
+      ft[12] = 10;
+      ft[13] = 11;
+      ft[20] = 12;
+      ft[21] = 13;
+
+      mesh.setVertices(v);
+      mesh.setFaces(f);
+      mesh.initTexCoordsDataFromOBJData(uv, ft);
+
+      mesh.init();
+      mesh.initRender();
+
+      mesh = new Multimesh(mesh);
+      while (mesh.getNbFaces() < 20000)
+        mesh.addLevel();
+      // discard the very low res
+      mesh.meshes_.splice(0, 3);
+      mesh.sel_ -= 3;
+
+      this.meshes_.push(mesh);
+      this.states_.pushStateAdd(mesh);
+      this.setMesh(mesh);
     },
     /** Clear the scene */
     clearScene: function () {
-      this.states_.pushStateRemove(this.meshes_.slice());
-      this.meshes_.length = 0;
+      // So basically two choices here (option 1 is chosen for now) :
+      // 1. we reset everying (can't be undo and the replayer starts over)
+      // 2. we consider clearScene as a standard operation (we can undo it and it's logged in the replay)
+      this.replayer_.reset();
+      this.getStates().reset();
+
+      // option 2 instead :
+      // if (!this.isReplayed())
+      //   this.replayer_.pushClearScene();
+      // this.states_.pushStateRemove(this.meshes_.slice());
+
+      this.getMeshes().length = 0;
+      this.getCamera().reset();
+      this.showGrid_ = true;
       this.setMesh(null);
-    },
-    /** Reset the scene */
-    resetScene: function () {
-      this.clearScene();
-      this.loadScene();
-      var ctrlTopo = this.getGui().ctrlTopology_;
-      while (this.meshes_[0].getNbFaces() < 20000)
-        ctrlTopo.subdivide();
-      this.states_.reset();
     },
     /** Delete the current selected mesh */
     deleteCurrentMesh: function () {
-      if (!this.mesh_) return;
+      if (!this.mesh_)
+        return;
+
+      if (!this.isReplayed())
+        this.replayer_.pushDeleteMesh();
+
       this.states_.pushStateRemove(this.mesh_);
       this.meshes_.splice(this.meshes_.indexOf(this.mesh_), 1);
       this.setMesh(null);
@@ -363,15 +474,24 @@ define([
     /** Mouse released event */
     onMouseUp: function (event) {
       event.preventDefault();
+
+      if (!this.isReplayed())
+        this.replayer_.pushDeviceUp();
+
       this.canvas_.style.cursor = 'default';
       this.mouseButton_ = 0;
       Multimesh.RENDER_HINT = Multimesh.NONE;
+      this.sculpt_.end();
       this.render();
     },
     /** Mouse wheel event */
     onMouseWheel: function (event) {
       event.stopPropagation();
       event.preventDefault();
+
+      if (!this.isReplayed())
+        this.replayer_.pushDeviceWheel(event.wheelDelta || -event.detail);
+
       var delta = Math.max(-1.0, Math.min(1.0, (event.wheelDelta || -event.detail)));
       this.camera_.zoom(delta * 0.02);
       Multimesh.RENDER_HINT = Multimesh.CAMERA;
@@ -419,12 +539,18 @@ define([
     },
     /** Device down event */
     onDeviceDown: function (event) {
-      if (this.focusGui_)
-        return;
-      this.setMousePosition(event);
+      if (!this.isReplayed()) {
+        if (this.focusGui_)
+          return;
+        this.setMousePosition(event);
+      }
       var mouseX = this.mouseX_;
       var mouseY = this.mouseY_;
       var button = this.mouseButton_ = event.which;
+
+      if (!this.isReplayed())
+        this.replayer_.pushDeviceDown(button, mouseX, mouseY);
+
       if (button === 1) {
         this.sumDisplacement_ = 0;
         this.sculpt_.start(this);
@@ -444,15 +570,23 @@ define([
           picking.intersectionMouseMeshes(this.meshes_, mouseX, mouseY);
         this.camera_.start(mouseX, mouseY, picking);
       }
+      this.lastMouseX_ = mouseX;
+      this.lastMouseY_ = mouseY;
     },
     /** Device move event */
     onDeviceMove: function (event) {
-      if (this.focusGui_)
-        return;
-      this.setMousePosition(event);
+      if (!this.isReplayed()) {
+        if (this.focusGui_)
+          return;
+        this.setMousePosition(event);
+      }
       var mouseX = this.mouseX_;
       var mouseY = this.mouseY_;
       var button = this.mouseButton_;
+
+      if (!this.isReplayed())
+        this.replayer_.pushDeviceMove(mouseX, mouseY);
+
       if (button !== 1 || this.sculpt_.allowPicking()) {
         Multimesh.RENDER_HINT = Multimesh.PICKING;
         if (this.mesh_ && button === 1)

@@ -12,7 +12,6 @@ define([
 
   function Scale(states) {
     SculptBase.call(this, states);
-    this.intensity_ = 0.75; // deformation intensity
     this.culling_ = false; // if we backface cull the vertices
   }
 
@@ -23,8 +22,8 @@ define([
       var mouseX = main.mouseX_;
       var mouseY = main.mouseY_;
       var picking = main.getPicking();
-      var vNear = picking.camera_.unproject(mouseX, mouseY, 0.0);
-      var vFar = picking.camera_.unproject(mouseX, mouseY, 1.0);
+      var vNear = picking.unproject(mouseX, mouseY, 0.0);
+      var vFar = picking.unproject(mouseX, mouseY, 1.0);
       var matInverse = mat4.create();
       mat4.invert(matInverse, mesh.getMatrix());
       vec3.transformMat4(vNear, vNear, matInverse);

@@ -13,9 +13,8 @@ define([
     SculptBase.call(this, states);
     this.intensity_ = 0.75; // deformation intensity
     this.culling_ = false; // if we backface cull the vertices
-    this.color_ = [1.0, 0.766, 0.336]; // albedo
-    this.roughness_ = 0.3; // roughness
-    this.metallic_ = 0.95; // metallic
+    this.color_ = vec3.fromValues(1.0, 0.766, 0.336); // albedo
+    this.material_ = vec3.fromValues(0.3, 0.95, 0.0); // roughness/metallic/????
     this.pickColor_ = false; // color picking
     this.global_ = false; // global material
     this.pickCallback_ = null; // callback function after picking a color
@@ -109,8 +108,8 @@ define([
       var cAr = mesh.getColors();
       var mAr = mesh.getMaterials();
       var color = this.color_;
-      var roughness = this.roughness_;
-      var metallic = this.metallic_;
+      var roughness = this.material_[0];
+      var metallic = this.material_[1];
       var radius = Math.sqrt(radiusSquared);
       var cr = color[0];
       var cg = color[1];

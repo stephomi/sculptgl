@@ -12,7 +12,7 @@ define([
   function TransformData(mesh) {
     this.mesh_ = mesh; // the mesh
 
-    this.center_ = [0.0, 0.0, 0.0]; // center of the mesh (local space, before transformation)
+    this.center_ = vec3.create(); // center of the mesh (local space, before transformation)
     this.matrix_ = mat4.create(); // transformation matrix of the mesh
     this.scale_ = 1.0; // the scale is already applied in the matrix transform
 
@@ -48,6 +48,9 @@ define([
     getScale: function () {
       return this.scale_;
     },
+    setScale: function (scale) {
+      this.scale_ = scale;
+    },
     getSymmetryNormal: function () {
       return this.symmetryNormal_;
     },
@@ -70,7 +73,9 @@ define([
       this.computeCenter();
       var box = this.mesh_.getBound();
       var diag = vec3.dist([box[0], box[1], box[2]], [box[3], box[4], box[5]]);
-      var scale = this.scale_ = Utils.SCALE / diag;
+      var scale = Utils.SCALE / diag;
+      // f32 cast for sgl exporter consistency
+      scale = this.scale_ = new Float32Array([scale])[0];
       mat4.scale(this.matrix_, this.matrix_, [scale, scale, scale]);
     },
     translate: function (trans) {

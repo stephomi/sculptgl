@@ -31,16 +31,28 @@ define([], function () {
 
     // file
     fileTitle: 'ファイル (インポート/エクスポート)',
-    fileResetTitle: 'Scene',
-    fileResetScene: 'Clear scene',
-    fileResetSphere: 'Reset sphere',
     fileImportTitle: 'Import',
-    fileAdd: 'Add (obj,ply,stl)',
+    fileAdd: 'Add (obj, sgl, ply, stl)',
     fileExportMeshTitle: 'Export Mesh',
-    fileExportSceneTitle: 'Export Meshes',
-    fileExportOBJ: 'OBJ (paint,quad,uv)',
-    fileExportPLY: 'PLY (color,quad)',
-    fileExportSTL: 'STL (color,tri)',
+    fileExportSceneTitle: 'Export Scene',
+    fileExportSGL: 'Save .sgl (SculptGL)',
+    fileExportOBJ: 'Save .obj',
+    fileExportPLY: 'Save .ply',
+    fileExportSTL: 'Save .stl',
+    fileReplayerTitle: 'Inputs Replayer',
+    fileReplayerImport: 'Load .rep',
+    fileReplayerExport: 'Save .rep',
+
+    // replayer
+    replayTitle: 'Replay config',
+    replayPaused: 'Paused',
+    replaySpeed: 'Replay speed',
+    replayOverride: 'Override',
+
+    // scene
+    sceneTitle: 'Scene',
+    sceneReset: 'Clear scene',
+    sceneAddSphere: 'Add sphere',
 
     // mesh
     meshTitle: 'メッシュ',

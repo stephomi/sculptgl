@@ -11,15 +11,15 @@ define([
   var vec3 = glm.vec3;
   var mat4 = glm.mat4;
 
-  function Picking(camera) {
+  function Picking(main) {
     this.mesh_ = null; // mesh
+    this.main_ = main; // the camera
     this.pickedFace_ = -1; // face picked
     this.pickedVertices_ = []; // vertices selected
     this.interPoint_ = [0.0, 0.0, 0.0]; // intersection point (mesh local space)
-    this.rDisplay_ = 50.0; // radius of the selection area (screen space)
+    this.rDisplay_ = 50; // radius of the selection area (screen space)
     this.rLocal2_ = 0.0; // radius of the selection area (local/object space)
     this.rWorld2_ = 0.0; // radius of the selection area (world space)
-    this.camera_ = camera; // the camera
     this.eyeDir_ = [0.0, 0.0, 0.0]; // eye direction
   }
 
@@ -70,8 +70,8 @@ define([
       var matInverse = mat4.create();
       var nearPoint = [0.0, 0.0, 0.0];
       return function (meshes, mouseX, mouseY) {
-        var vNear = this.camera_.unproject(mouseX, mouseY, 0.0);
-        var vFar = this.camera_.unproject(mouseX, mouseY, 1.0);
+        var vNear = this.unproject(mouseX, mouseY, 0.0);
+        var vFar = this.unproject(mouseX, mouseY, 1.0);
         var nearDistance = Infinity;
         var nearMesh = null;
         var nearFace = -1;
@@ -101,8 +101,8 @@ define([
     })(),
     /** Intersection between a ray the mouse position */
     intersectionMouseMesh: function (mesh, mouseX, mouseY, useSymmetry) {
-      var vNear = this.camera_.unproject(mouseX, mouseY, 0.0);
-      var vFar = this.camera_.unproject(mouseX, mouseY, 1.0);
+      var vNear = this.unproject(mouseX, mouseY, 0.0);
+      var vFar = this.unproject(mouseX, mouseY, 1.0);
       var matInverse = mat4.create();
       mat4.invert(matInverse, mesh.getMatrix());
       vec3.transformMat4(vNear, vNear, matInverse);
@@ -214,12 +214,18 @@ define([
       if (!mesh) return;
       var interPointTransformed = [0.0, 0.0, 0.0];
       vec3.transformMat4(interPointTransformed, this.getIntersectionPoint(), mesh.getMatrix());
-      var z = this.camera_.project(interPointTransformed)[2];
-      var vCircle = this.camera_.unproject(mouseX + (this.rDisplay_ * Tablet.getPressureRadius()), mouseY, z);
+      var z = this.project(interPointTransformed)[2];
+      var vCircle = this.unproject(mouseX + (this.rDisplay_ * Tablet.getPressureRadius()), mouseY, z);
       this.rWorld2_ = vec3.sqrDist(interPointTransformed, vCircle);
       vec3.scale(interPointTransformed, interPointTransformed, 1.0 / mesh.getScale());
       vec3.scale(vCircle, vCircle, 1.0 / mesh.getScale());
       this.rLocal2_ = vec3.sqrDist(interPointTransformed, vCircle);
+    },
+    unproject: function (x, y, z) {
+      return this.main_.getCamera().unproject(x, y, z);
+    },
+    project: function (vec) {
+      return this.main_.getCamera().project(vec);
     }
   };
 

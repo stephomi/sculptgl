@@ -31,8 +31,8 @@ define([
       var mouseX = main.mouseX_;
       var mouseY = main.mouseY_;
       var picking = main.getPicking();
-      var vNear = picking.camera_.unproject(mouseX, mouseY, 0.0);
-      var vFar = picking.camera_.unproject(mouseX, mouseY, 1.0);
+      var vNear = picking.unproject(mouseX, mouseY, 0.0);
+      var vFar = picking.unproject(mouseX, mouseY, 1.0);
       var matInverse = mat4.create();
       mat4.invert(matInverse, this.mesh_.getMatrix());
       vec3.transformMat4(vNear, vNear, matInverse);

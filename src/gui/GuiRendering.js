@@ -35,83 +35,115 @@ define([
       optionsShaders[Shader.mode.NORMAL] = TR('renderingNormal');
       optionsShaders[Shader.mode.UV] = TR('renderingUV');
       menu.addTitle(TR('renderingShader'));
-      this.ctrlShaders_ = menu.addCombobox('', Shader.mode.MATCAP, this.onShaderChange.bind(this), optionsShaders);
+      this.ctrlShaders_ = menu.addCombobox('', Shader.mode.MATCAP, this.onShaderChanged.bind(this), optionsShaders);
 
       // matcap texture
       var optionMatcaps = {};
       for (var i = 0, mats = ShaderMatcap.matcaps, l = mats.length; i < l; ++i)
         optionMatcaps[i] = mats[i].name;
       this.ctrlMatcapTitle_ = menu.addTitle(TR('renderingMaterial'));
-      this.ctrlMatcap_ = menu.addCombobox('', 0, this.onMatcapChange.bind(this), optionMatcaps);
+      this.ctrlMatcap_ = menu.addCombobox('', 0, this.onMatcapChanged.bind(this), optionMatcaps);
 
       // uv texture
       this.ctrlUV_ = menu.addButton(TR('renderingImportUV'), this, 'importTexture');
       this.ctrlUV_.setVisibility(false);
 
-      this.ctrlExposure_ = menu.addSlider('Exposure', 0.0, this.onExposureChanged.bind(this), 0.0, 5.0, 0.01);
+      this.ctrlExposure_ = menu.addSlider('Exposure', 20, this.onExposureChanged.bind(this), 0, 100, 1);
       this.ctrlExposure_.setVisibility(false);
 
       menu.addTitle(TR('renderingExtra'));
       // flat shading
-      this.ctrlFlatShading_ = menu.addCheckbox(TR('renderingFlat'), false, this.onFlatChange.bind(this));
+      this.ctrlFlatShading_ = menu.addCheckbox(TR('renderingFlat'), false, this.onFlatShading.bind(this));
 
       // wireframe
-      this.ctrlShowWireframe_ = menu.addCheckbox(TR('renderingWireframe'), false, this.onWireframeChange.bind(this));
+      this.ctrlShowWireframe_ = menu.addCheckbox(TR('renderingWireframe'), false, this.onShowWireframe.bind(this));
       if (Render.ONLY_DRAW_ARRAYS)
         this.ctrlShowWireframe_.setVisibility(false);
 
       // display grid
-      menu.addCheckbox(TR('renderingGrid'), this.main_.showGrid_, this.onShowGridChange.bind(this));
+      menu.addCheckbox(TR('renderingGrid'), this.main_.showGrid_, this.onShowGrid.bind(this));
 
       this.addEvents();
     },
     onExposureChanged: function (val) {
-      var mesh = this.main_.getMesh();
-      if (mesh) mesh.getRender().setExposure(val);
-      this.main_.render();
+      var main = this.main_;
+      var mesh = main.getMesh();
+      if (!mesh)
+        return;
+
+      if (!main.isReplayed())
+        main.replayer_.pushExposure(val);
+
+      mesh.getRender().setExposure(val / 20);
+      main.render();
     },
-    onShowGridChange: function (val) {
-      this.main_.showGrid_ = val;
-      this.main_.render();
+    onShowGrid: function (bool) {
+      var main = this.main_;
+
+      if (!main.isReplayed())
+        main.replayer_.pushShowGrid(bool);
+
+      main.showGrid_ = bool;
+      main.render();
     },
     /** On shader change */
-    onShaderChange: function (value) {
+    onShaderChanged: function (value) {
+      var main = this.main_;
       var val = parseInt(value, 10);
-      var mesh = this.main_.getMesh();
+      var mesh = main.getMesh();
       if (mesh) {
         if (val === Shader.mode.UV && !mesh.hasUV()) {
           this.updateMesh();
           window.alert('No UV on this mesh.');
         } else {
+
+          if (!main.isReplayed())
+            main.replayer_.pushShaderSelect(value);
+
           mesh.setShader(val);
-          this.main_.render();
+          main.render();
         }
       }
       this.updateVisibility();
     },
     /** On matcap change */
-    onMatcapChange: function (value) {
-      var mesh = this.main_.getMesh();
-      if (mesh) {
-        mesh.setMatcap(value);
-        this.main_.render();
-      }
+    onMatcapChanged: function (value) {
+      var main = this.main_;
+      var mesh = main.getMesh();
+      if (!mesh)
+        return;
+
+      if (!main.isReplayed())
+        main.replayer_.pushMatcapSelect(value);
+
+      mesh.setMatcap(value);
+      main.render();
     },
     /** On flat shading change */
-    onFlatChange: function (value) {
-      var mesh = this.main_.getMesh();
-      if (mesh) {
-        mesh.setFlatShading(value);
-        this.main_.render();
-      }
+    onFlatShading: function (bool) {
+      var main = this.main_;
+      var mesh = main.getMesh();
+      if (!mesh)
+        return;
+
+      if (!main.isReplayed())
+        main.replayer_.pushFlatShading(bool);
+
+      mesh.setFlatShading(bool);
+      main.render();
     },
     /** On wireframe change */
-    onWireframeChange: function (value) {
-      var mesh = this.main_.getMesh();
-      if (mesh) {
-        mesh.setShowWireframe(value);
-        this.main_.render();
-      }
+    onShowWireframe: function (bool) {
+      var main = this.main_;
+      var mesh = main.getMesh();
+      if (!mesh)
+        return;
+
+      if (!main.isReplayed())
+        main.replayer_.pushShowWireframe(bool);
+
+      mesh.setShowWireframe(bool);
+      main.render();
     },
     /** Add events */
     addEvents: function () {
@@ -134,7 +166,7 @@ define([
       this.ctrlFlatShading_.setValue(render.flatShading_, true);
       this.ctrlShowWireframe_.setValue(render.showWireframe_, true);
       this.ctrlMatcap_.setValue(render.matcap_, true);
-      this.ctrlExposure_.setValue(render.exposure_, true);
+      this.ctrlExposure_.setValue(render.exposure_ * 20, true);
       this.updateVisibility();
     },
     updateVisibility: function () {
