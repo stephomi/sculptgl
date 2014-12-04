@@ -3,8 +3,9 @@ define([
   'lib/FileSaver',
   'editor/Sculpt',
   'files/ExportSGL',
-  'files/ReplayEnums'
-], function (glm, saveAs, Sculpt, ExportSGL, Replay) {
+  'files/ReplayEnums',
+  'misc/Tablet'
+], function (glm, saveAs, Sculpt, ExportSGL, Replay, Tablet) {
 
   'use strict';
 
@@ -22,10 +23,16 @@ define([
 
     this.lastRadius_ = 50.0; // last radius
     this.sculpt_ = new Sculpt(); // states of sculpting tools
+    this.pressureOnRadius_ = true; // pressure on radius
+    this.pressureOnIntensity_ = false; // pressure on intensity
+    this.pressure_ = 1.0; // tablet pressure
   };
 
   ReplayWriter.prototype = {
     reset: function () {
+      this.pressure_ = 1.0;
+      this.tUseOnRadius_ = true;
+      this.tUseOnIntensity_ = false;
       this.firstReplay_ = null;
       this.nbBytesLoadingMeshes_ = 0;
       this.stack_.length = 0;
@@ -38,6 +45,20 @@ define([
       this.firstReplay_ = buffer;
     },
     checkSculptTools: function () {
+      if (Tablet.useOnRadius !== this.pressureOnRadius_) {
+        this.pressureOnRadius_ = Tablet.useOnRadius;
+        this.stack_.push(Replay.TABLET_TOGGLE_RADIUS);
+      }
+      if (Tablet.useOnIntensity !== this.pressureOnIntensity_) {
+        this.pressureOnIntensity_ = Tablet.useOnIntensity;
+        this.stack_.push(Replay.TABLET_TOGGLE_INTENSITY);
+      }
+      var pre = Tablet.pressure();
+      if (pre !== this.pressure_) {
+        this.pressure_ = pre;
+        this.stack_.push(Replay.TABLET_PRESSURE, pre);
+      }
+
       var radius = this.main_.getPicking().getScreenRadius();
       if (radius !== this.lastRadius_) {
         this.lastRadius_ = radius;
@@ -413,6 +434,7 @@ define([
           break;
         case Replay.PAINT_ROUGHNESS:
         case Replay.PAINT_METALLIC:
+        case Replay.TABLET_PRESSURE:
           data.setFloat32(offset, stack[++i]);
           offset += 4;
           break;

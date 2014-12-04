@@ -94,5 +94,9 @@ define([], function () {
   Replay.SHADER_SELECT = ida++; // [val (u8)]
   Replay.MATCAP_SELECT = ida++; // [val (u8)]
 
+  Replay.TABLET_TOGGLE_INTENSITY = ida++; // []
+  Replay.TABLET_TOGGLE_RADIUS = ida++; // []
+  Replay.TABLET_PRESSURE = ida++; // [val (f32)]
+
   return Replay;
 });

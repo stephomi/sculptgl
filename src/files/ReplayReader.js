@@ -4,10 +4,11 @@ define([
   'gui/GuiTR',
   'files/ReplayEnums',
   'math3d/Camera',
+  'misc/Tablet',
   'editor/Sculpt',
   'editor/Remesh',
   'render/Shader'
-], function (glm, yagui, TR, Replay, Camera, Sculpt, Remesh, Shader) {
+], function (glm, yagui, TR, Replay, Camera, Tablet, Sculpt, Remesh, Shader) {
 
   'use strict';
 
@@ -66,6 +67,7 @@ define([
       this.sel_ = 8 + 4;
 
       // basically it's a soft reset
+      Tablet.overridePressure = 1.0;
       this.virtualCamera_ = new Camera();
       main.sculpt_ = new Sculpt(main.getStates());
       main.getPicking().rDisplay_ = 50;
@@ -463,6 +465,16 @@ define([
         main.getGui().ctrlRendering_.onMatcapChanged(data.getUint8(sel));
         sel += 1;
         break;
+      case Replay.TABLET_TOGGLE_INTENSITY:
+        Tablet.useOnIntensity = !Tablet.useOnIntensity;
+        break;
+      case Replay.TABLET_TOGGLE_RADIUS:
+        Tablet.useOnRadius = !Tablet.useOnRadius;
+        break;
+      case Replay.TABLET_PRESSURE:
+        Tablet.overridePressure = data.getFloat32(sel);
+        sel += 4;
+        break;
       }
       if (this.renderOverride_)
         this.applyRenderOverride();
@@ -481,6 +493,7 @@ define([
         main.addEvents();
         main.setReplayed(false);
         main.getGui().initGui();
+        Tablet.overridePressure = -1.0;
         return;
       }
       this.sel_ = sel;
