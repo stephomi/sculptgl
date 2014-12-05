@@ -15,7 +15,7 @@ Simply open `index.html`.
 
 #### Release
 
-If it's not already one done, install [nodejs](http://nodejs.org/).
+If it's not already done, install [nodejs](http://nodejs.org/).
 Then use grunt :
 
     git clone git://github.com/stephomi/sculptgl.git
