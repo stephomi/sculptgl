@@ -13,12 +13,12 @@ define([
   Export.exportSGL = ExportSGL.exportSGL;
   Export.exportPLY = ExportPLY.exportPLY;
   Export.exportSTL = ExportSTL.exportSTL;
-  Export.exportSketchfab = function (meshes, mesh, key, statusWidget) {
+  Export.exportSketchfab = function (main, key, statusWidget) {
     var fd = new FormData();
 
     fd.append('token', key);
-    fd.append('modelFile', Export.exportOBJ(meshes, true), 'sculptglModel.obj');
-    fd.append('name', 'My model');
+    fd.append('modelFile', Export.exportOBJ(main.getMeshes(), true), 'sculptglModel.obj');
+    fd.append('name', 'My model - ' + main.replayer_.uid_);
     fd.append('tags', 'sculptgl');
 
     var xhr = new XMLHttpRequest();

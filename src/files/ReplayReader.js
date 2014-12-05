@@ -15,6 +15,12 @@ define([
   var vec3 = glm.vec3;
   var mat4 = glm.mat4;
 
+  // debug
+  var DEBUG = false;
+  var invEnums;
+  if (DEBUG)
+    invEnums = Object.keys(Replay);
+
   var ReplayReader = function (main) {
     this.main_ = main; // main application
 
@@ -64,6 +70,7 @@ define([
       if (this.data_.getUint32(4) !== Replay.VERSION)
         return;
       this.nbBytesRessourcesToLoad_ = this.data_.getUint32(8);
+      this.nbBytesRessourcesLoaded_ = 0;
       this.sel_ = 8 + 4;
 
       main.replayer_.autoUpload_ = false;
@@ -99,7 +106,7 @@ define([
       menu.addCheckbox(TR('replayOverride'), this, 'cameraOverride_');
 
       menu.addTitle(TR('replaySpeed'));
-      menu.addSlider(null, this, 'speed_', 1, 200, 1);
+      menu.addSlider(null, this, 'speed_', 1, 500, 1);
       menu.addCheckbox(TR('replayPaused'), this, 'paused_');
 
       menu.addTitle(TR('renderingTitle'));
@@ -111,7 +118,7 @@ define([
 
       menu.addCheckbox(TR('renderingFlat'), this.flatShading_, this.onFlatShadingChanged.bind(this));
       menu.addCheckbox(TR('renderingWireframe'), this.wireframe_, this.onWireframeChanged.bind(this));
-      menu.addCheckbox(TR('renderingGrid'), this.onGridChanged, this.onGridChanged.bind(this));
+      menu.addCheckbox(TR('renderingGrid'), this.grid_, this.onGridChanged.bind(this));
 
       this.widgetProgress_ = topbar.addMenu('Progress : ');
     },
@@ -140,8 +147,10 @@ define([
     initEvents: function () {
       var main = this.main_;
       this.canvas_ = main.getCanvas();
-      this.loadFile = main.loadFile.bind(main);
-      this.loadBackground = main.loadBackground.bind(main);
+      // just assign a dummy function to disable file loadings
+      this.loadFiles = main.stopAndPrevent.bind(main);
+      this.loadBackground = main.stopAndPrevent.bind(main);
+      this.stopAndPrevent = main.stopAndPrevent.bind(main);
       this.removeEvents();
       this.addEvents();
     },
@@ -236,7 +245,7 @@ define([
       };
       return rmid;
     },
-    replayAction: function () {
+    replayAction: function (nbSync) {
       if (this.paused_) {
         window.setTimeout(this.cbReplayAction_, 100.0);
         return;
@@ -251,10 +260,13 @@ define([
       // no render
       main.preventRender_ = true;
       // load virtual camera
-      main.camera_ = this.virtualCamera_;
+      var vcam = main.camera_ = this.virtualCamera_;
       var sculpt = main.sculpt_;
       var tool = main.sculpt_.getCurrentTool();
 
+      // debug
+      if (DEBUG)
+        console.log(invEnums[ac]);
       switch (ac) {
       case Replay.DEVICE_MOVE:
         main.mouseX_ = data.getUint16(sel);
@@ -287,44 +299,44 @@ define([
         main.getGui().ctrlStates_.onRedo();
         break;
       case Replay.CAMERA_SIZE:
-        this.virtualCamera_.width_ = data.getUint16(sel);
-        this.virtualCamera_.height_ = data.getUint16(sel + 2);
-        this.virtualCamera_.updateProjection();
-        this.virtualCamera_.updateView();
+        vcam.width_ = data.getUint16(sel);
+        vcam.height_ = data.getUint16(sel + 2);
+        vcam.updateProjection();
+        vcam.updateView();
         sel += 4;
         break;
       case Replay.CAMERA_FPS:
-        this.virtualCamera_.moveX_ = data.getInt8(sel);
-        this.virtualCamera_.moveZ_ = data.getInt8(sel + 1);
-        this.virtualCamera_.updateTranslation();
+        vcam.moveX_ = data.getInt8(sel);
+        vcam.moveZ_ = data.getInt8(sel + 1);
+        vcam.updateTranslation();
         sel += 2;
         break;
       case Replay.CAMERA_MODE:
-        this.virtualCamera_.setMode(data.getUint8(sel));
+        vcam.setMode(data.getUint8(sel));
         sel += 1;
         break;
       case Replay.CAMERA_PROJ_TYPE:
-        this.virtualCamera_.setProjType(data.getUint8(sel));
+        vcam.setProjType(data.getUint8(sel));
         sel += 1;
         break;
       case Replay.CAMERA_FOV:
-        this.virtualCamera_.setFov(data.getUint8(sel));
+        vcam.setFov(data.getUint8(sel));
         sel += 1;
         break;
       case Replay.CAMERA_RESET:
-        this.virtualCamera_.resetView();
+        vcam.resetView();
         break;
       case Replay.CAMERA_RESET_FRONT:
-        this.virtualCamera_.resetViewFront();
+        vcam.resetViewFront();
         break;
       case Replay.CAMERA_RESET_LEFT:
-        this.virtualCamera_.resetViewLeft();
+        vcam.resetViewLeft();
         break;
       case Replay.CAMERA_RESET_TOP:
-        this.virtualCamera_.resetViewTop();
+        vcam.resetViewTop();
         break;
       case Replay.CAMERA_TOGGLE_PIVOT:
-        this.virtualCamera_.toggleUsePivot();
+        vcam.toggleUsePivot();
         break;
       case Replay.SCULPT_RADIUS:
         main.getPicking().rDisplay_ = data.getUint8(sel);
@@ -347,10 +359,10 @@ define([
       case Replay.CREASE_INTENSITY:
       case Replay.FLATTEN_INTENSITY:
       case Replay.INFLATE_INTENSITY:
-      case Replay.SMOOTH_INTENSITY:
       case Replay.PINCH_INTENSITY:
+      case Replay.SMOOTH_INTENSITY:
       case Replay.PAINT_INTENSITY:
-        tool.intensity_ = data.getUint8(sel) * 100;
+        tool.intensity_ = data.getUint8(sel) / 100;
         sel += 1;
         break;
       case Replay.BRUSH_TOGGLE_NEGATIVE:
@@ -487,25 +499,40 @@ define([
       // render
       // back virtual camera
       main.getCanvas().style.cursor = 'default';
-      main.camera_ = this.realCamera_;
-      if (!this.cameraOverride_)
-        mat4.copy(this.realCamera_.view_, this.virtualCamera_.view_);
-      main.applyRender();
+      var rcam = main.camera_ = this.realCamera_;
+      if (!this.cameraOverride_) {
+        mat4.copy(rcam.view_, vcam.view_);
+        if (vcam.getMode() !== rcam.getMode())
+          rcam.setMode(vcam.getMode());
+        if (vcam.getProjType() !== rcam.getProjType())
+          rcam.setProjType(vcam.getProjType());
+        if (vcam.getFov() !== rcam.getFov())
+          rcam.setFov(vcam.getFov());
+      }
 
       if (sel >= data.byteLength) {
         main.camera_ = this.virtualCamera_;
         this.removeEvents();
+        main.mouseButton_ = 0;
         main.addEvents();
         main.setReplayed(false);
         main.getGui().initGui();
         Tablet.overridePressure = -1.0;
         main.replayer_.autoUpload_ = true;
+        main.applyRender();
         return;
       }
       this.sel_ = sel;
       var ratio = (sel - this.nbBytesRessourcesLoaded_) / (data.byteLength - this.nbBytesRessourcesToLoad_);
       this.widgetProgress_.domContainer.innerHTML = 'Progress : ' + parseInt(100 * ratio, 10) + '%';
-      window.setTimeout(this.cbReplayAction_, 1000.0 / this.speed_);
+
+      if (this.speed_ < 100 || nbSync === 0) {
+        main.applyRender();
+        window.setTimeout(this.cbReplayAction_, 1000.0 / this.speed_);
+      } else {
+        // sync replay action
+        this.replayAction(nbSync === undefined ? Math.floor(this.speed_ / 100.0) : --nbSync);
+      }
     }
   };
 

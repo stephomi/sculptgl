@@ -19,11 +19,11 @@ define([], function () {
   // nbMaterials (u32) => 0 or nbVertices
   // materials (f32 * 3 * nbVertices)
   // NbFaces (u32)
-  // faces (i32 * 4)
+  // faces (i32 * 4 * nbFaces)
   // NbTexCoords (u32) => 0 means no UV
   // texcoords (f32 * 2 * nbTexCoords)
   // nbFacesTexCoords (u32) => 0 or nbFaces
-  // faces (i32 * 4 / nbFaces)
+  // faces (i32 * 4 * nbFaces)
   //
   /** Export SGL (sculptgl) file */
   Export.exportSGLAsArrayBuffer = function (meshes) {
@@ -95,7 +95,7 @@ define([], function () {
       var hasUV = mesh.hasUV();
       u32a[off++] = hasUV ? mesh.getNbTexCoords() : 0;
       if (hasUV > 0) {
-        i32a.set(mesh.getTexCoords(), off);
+        f32a.set(mesh.getTexCoords(), off);
         off += mesh.getNbTexCoords() * 2;
       }
 

@@ -231,12 +231,17 @@ define([
 
       var cbContextLost = this.onContextLost.bind(this);
       var cbContextRestored = this.onContextRestored.bind(this);
-      var cbLoadFile = this.loadFile.bind(this);
+      var cbLoadFiles = this.loadFiles.bind(this);
       var cbLoadBackground = this.loadBackground.bind(this);
+      var cbStopAndPrevent = this.stopAndPrevent.bind(this);
+
       // misc
       canvas.addEventListener('webglcontextlost', cbContextLost, false);
       canvas.addEventListener('webglcontextrestored', cbContextRestored, false);
-      document.getElementById('fileopen').addEventListener('change', cbLoadFile, false);
+      window.addEventListener('dragenter', cbStopAndPrevent, false);
+      window.addEventListener('dragover', cbStopAndPrevent, false);
+      window.addEventListener('drop', cbLoadFiles, false);
+      document.getElementById('fileopen').addEventListener('change', cbLoadFiles, false);
       document.getElementById('backgroundopen').addEventListener('change', cbLoadBackground, false);
 
       this.removeCallback = function () {
@@ -259,9 +264,16 @@ define([
         // misc
         canvas.removeEventListener('webglcontextlost', cbContextLost, false);
         canvas.removeEventListener('webglcontextrestored', cbContextRestored, false);
-        document.getElementById('fileopen').removeEventListener('change', cbLoadFile, false);
+        window.removeEventListener('dragenter', cbStopAndPrevent, false);
+        window.removeEventListener('dragover', cbStopAndPrevent, false);
+        window.removeEventListener('drop', cbLoadFiles, false);
+        document.getElementById('fileopen').removeEventListener('change', cbLoadFiles, false);
         document.getElementById('backgroundopen').removeEventListener('change', cbLoadBackground, false);
       };
+    },
+    stopAndPrevent: function (event) {
+      event.stopPropagation();
+      event.preventDefault();
     },
     /** Remove events */
     removeEvents: function () {
@@ -298,14 +310,20 @@ define([
       return;
     },
     /** Load file */
-    loadFile: function (event) {
+    loadFiles: function (event) {
       event.stopPropagation();
       event.preventDefault();
-      if (event.target.files.length === 0)
-        return;
-
-      var file = event.target.files[0];
-      var fileType = this.getFileType(file.name);
+      var files = event.dataTransfer ? event.dataTransfer.files : event.target.files;
+      for (var i = 0, nb = files.length; i < nb; ++i) {
+        var file = files[i];
+        var fileType = this.getFileType(file.name);
+        this.readFile(file, fileType);
+        if (fileType === 'rep')
+          return;
+      }
+    },
+    readFile: function (file, ftype) {
+      var fileType = ftype || this.getFileType(file.name);
       if (!fileType)
         return;
 
@@ -354,9 +372,6 @@ define([
       if (nbNewMeshes === 0)
         return;
 
-      if (!this.isReplayed())
-        this.replayer_.pushLoadMeshes(newMeshes, fileData, fileType);
-
       var meshes = this.meshes_;
       var ignoreTransform = fileType === 'sgl';
       for (var i = 0; i < nbNewMeshes; ++i) {
@@ -365,10 +380,14 @@ define([
         mesh.initRender();
         meshes.push(mesh);
       }
+
+      if (!this.isReplayed())
+        this.replayer_.pushLoadMeshes(newMeshes, fileData, fileType);
+
       this.centerMeshes(newMeshes);
       this.states_.pushStateAdd(newMeshes);
       this.setMesh(meshes[meshes.length - 1]);
-      this.camera_.reset();
+      this.camera_.resetView();
     },
     /** Load the sphere */
     addSphere: function () {
@@ -426,21 +445,12 @@ define([
     },
     /** Clear the scene */
     clearScene: function () {
-      // So basically two choices here (option 1 is chosen for now) :
-      // 1. we reset everying (can't be undo and the replayer starts over)
-      // 2. we consider clearScene as a standard operation (we can undo it and it's logged in the replay)
-      this.replayer_.reset();
       this.getStates().reset();
-
-      // option 2 instead :
-      // if (!this.isReplayed())
-      //   this.replayer_.pushClearScene();
-      // this.states_.pushStateRemove(this.meshes_.slice());
-
       this.getMeshes().length = 0;
-      this.getCamera().reset();
+      this.getCamera().resetView();
       this.showGrid_ = true;
       this.setMesh(null);
+      this.replayer_.reset();
     },
     /** Delete the current selected mesh */
     deleteCurrentMesh: function () {

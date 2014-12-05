@@ -45,7 +45,7 @@ define([
     // orbit camera
     this.rotX_ = 0.0; // x rot for orbit camera
     this.rotY_ = 0.0; // y rot for orbit camera
-    this.reset();
+    this.resetView();
   }
 
   // the camera modes
@@ -96,11 +96,13 @@ define([
         vec3.transformMat4(this.stepCenter_, picking.getIntersectionPoint(), picking.getMesh().getMatrix());
         // target zoom
         var targetZoom = vec3.dist(this.stepCenter_, this.computePosition());
-        if (this.projType_ === Camera.projType.PERSPECTIVE)
+        if (this.projType_ === Camera.projType.PERSPECTIVE) {
           this.stepZoom_ = (targetZoom - this.zoom_) / this.stepCount_;
-        else
+          this.speed_ = targetZoom * 5.0;
+        } else {
           this.stepZoom_ = 0.0;
-        this.speed_ = targetZoom * 5.0;
+          this.speed_ = Utils.SCALE * 0.9;
+        }
         vec3.sub(this.stepCenter_, this.stepCenter_, this.center_);
         vec3.scale(this.stepCenter_, this.stepCenter_, 1.0 / this.stepCount_);
       }
@@ -205,14 +207,6 @@ define([
       this.usePivot_ = !this.usePivot_;
       this.transX_ = 0.0;
       this.transY_ = 0.0;
-    },
-    /** Reset camera */
-    reset: function () {
-      this.mode_ = Camera.mode.ORBIT;
-      this.projType_ = Camera.projType.PERSPECTIVE;
-      this.fov_ = 45.0;
-      this.usePivot_ = false;
-      this.resetView();
     },
     /** Reset camera */
     resetView: function () {

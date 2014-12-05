@@ -104,14 +104,20 @@ define([
   Import.initMeshOBJ = function (mesh, vAr, fAr, cAr, mAr, texAr, uvfAr, cArMrgb, mArMat) {
     mesh.setVertices(new Float32Array(vAr));
     mesh.setFaces(new Int32Array(fAr));
-    if (cArMrgb.length > 0) mesh.setColors(new Float32Array(cArMrgb));
-    else if (cAr.length > 0) mesh.setColors(new Float32Array(cAr));
 
-    if (mArMat.length > 0) mesh.setMaterials(new Float32Array(mArMat));
-    else if (mAr.length > 0) mesh.setMaterials(new Float32Array(mAr));
+    if (cArMrgb.length === vAr.length) mesh.setColors(new Float32Array(cArMrgb));
+    else if (cAr.length === vAr.length) mesh.setColors(new Float32Array(cAr));
 
-    if (texAr.length > 0 && uvfAr.length > 0) mesh.initTexCoordsDataFromOBJData(texAr, uvfAr);
-    vAr.length = texAr.length = fAr.length = uvfAr.length = 0;
+    if (mArMat.length === vAr.length) mesh.setMaterials(new Float32Array(mArMat));
+    else if (mAr.length === vAr.length) mesh.setMaterials(new Float32Array(mAr));
+
+    if (texAr.length > 0 && uvfAr.length === fAr.length)
+      mesh.initTexCoordsDataFromOBJData(texAr, uvfAr);
+
+    vAr.length = fAr.length = 0;
+    cArMrgb.length = cAr.length = 0;
+    mArMat.length = mAr.length = 0;
+    texAr.length = uvfAr.length = 0;
   };
 
   return Import;

@@ -90,7 +90,7 @@ define([
 
       var key = api === 'guest' ? 'babc9a5cd4f343f9be0c7bd9cf93600c' : api;
       this.ctrlUploading_ = this.ctrlUploading_ || this.parent_.addMenu(); // dummy menu
-      this.sketchfabXhr_ = Export.exportSketchfab(this.main_.getMeshes(), mesh, key, this.ctrlUploading_);
+      this.sketchfabXhr_ = Export.exportSketchfab(this.main_, key, this.ctrlUploading_);
     }
   };
 

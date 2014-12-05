@@ -30,8 +30,8 @@ define([
     this.autoUpload_ = true; // send file if it's not too big :D
     this.lastNbActions_ = 0; // nb of last checked stack action
     this.uid_ = new Date().getTime(); // best uid ever
-    this.cbCheckUpload_ = window.setTimeout.bind(window, this.checkUpload.bind(this), 20000);
     parent.location.hash = this.uid_;
+    this.cbCheckUpload_ = window.setTimeout.bind(window, this.checkUpload.bind(this), 20000);
     this.checkUpload();
   };
 
@@ -39,7 +39,7 @@ define([
     checkUpload: function () {
       var nbActions = this.stack_.length;
       // 5 Mb limits
-      if (this.nbBytesLoadingMeshes_ > 5000000 || nbActions === this.lastNbActions_ || nbActions < 1000) {
+      if (this.nbBytesLoadingMeshes_ > 10000000 || nbActions === this.lastNbActions_ || nbActions < 2000) {
         this.cbCheckUpload_();
         return;
       }
@@ -55,16 +55,28 @@ define([
       xhr.send(fd);
     },
     reset: function () {
+      this.uid_ = new Date().getTime();
+      parent.location.hash = this.uid_;
+      this.lastDeviceMove_ = undefined;
+      this.lastExposure_ = undefined;
+      this.lastFov_ = undefined;
       this.lastNbActions_ = 0;
+      this.lastRadius_ = 50.0;
+
       this.pressure_ = 1.0;
       this.tUseOnRadius_ = true;
       this.tUseOnIntensity_ = false;
       this.firstReplay_ = null;
       this.nbBytesLoadingMeshes_ = 0;
       this.stack_.length = 0;
-      this.lastRadius_ = 50.0;
       this.sculpt_ = new Sculpt();
-      this.pushCameraSize(this.main_.getCamera().width_, this.main_.getCamera().height_);
+
+      var cam = this.main_.getCamera();
+      this.pushCameraSize(cam.width_, cam.height_);
+      this.pushCameraMode(cam.getMode());
+      this.pushCameraProjType(cam.getProjType());
+      this.pushCameraFov(cam.getFov());
+      if (cam.getUsePivot()) this.pushCameraTogglePivot();
     },
     setFirstReplay: function (buffer) {
       this.stack_.length = 0;
@@ -116,7 +128,7 @@ define([
       case Sculpt.tool.BRUSH:
         if (mainSel.intensity_ !== replaySel.intensity_) {
           replaySel.intensity_ = mainSel.intensity_;
-          this.stack_.push(Replay.BRUSH_INTENSITY, mainSel.intensity_);
+          this.stack_.push(Replay.BRUSH_INTENSITY, mainSel.intensity_ * 100);
         }
         if (mainSel.negative_ !== replaySel.negative_) {
           replaySel.negative_ = mainSel.negative_;
@@ -138,7 +150,7 @@ define([
       case Sculpt.tool.CREASE:
         if (mainSel.intensity_ !== replaySel.intensity_) {
           replaySel.intensity_ = mainSel.intensity_;
-          this.stack_.push(Replay.CREASE_INTENSITY, mainSel.intensity_);
+          this.stack_.push(Replay.CREASE_INTENSITY, mainSel.intensity_ * 100);
         }
         if (mainSel.negative_ !== replaySel.negative_) {
           replaySel.negative_ = mainSel.negative_;
@@ -152,7 +164,7 @@ define([
       case Sculpt.tool.INFLATE:
         if (mainSel.intensity_ !== replaySel.intensity_) {
           replaySel.intensity_ = mainSel.intensity_;
-          this.stack_.push(Replay.INFLATE_INTENSITY, mainSel.intensity_);
+          this.stack_.push(Replay.INFLATE_INTENSITY, mainSel.intensity_ * 100);
         }
         if (mainSel.negative_ !== replaySel.negative_) {
           replaySel.negative_ = mainSel.negative_;
@@ -166,7 +178,7 @@ define([
       case Sculpt.tool.FLATTEN:
         if (mainSel.intensity_ !== replaySel.intensity_) {
           replaySel.intensity_ = mainSel.intensity_;
-          this.stack_.push(Replay.FLATTEN_INTENSITY, mainSel.intensity_);
+          this.stack_.push(Replay.FLATTEN_INTENSITY, mainSel.intensity_ * 100);
         }
         if (mainSel.negative_ !== replaySel.negative_) {
           replaySel.negative_ = mainSel.negative_;
@@ -180,7 +192,7 @@ define([
       case Sculpt.tool.PINCH:
         if (mainSel.intensity_ !== replaySel.intensity_) {
           replaySel.intensity_ = mainSel.intensity_;
-          this.stack_.push(Replay.PINCH_INTENSITY, mainSel.intensity_);
+          this.stack_.push(Replay.PINCH_INTENSITY, mainSel.intensity_ * 100);
         }
         if (mainSel.negative_ !== replaySel.negative_) {
           replaySel.negative_ = mainSel.negative_;
@@ -194,7 +206,7 @@ define([
       case Sculpt.tool.SMOOTH:
         if (mainSel.intensity_ !== replaySel.intensity_) {
           replaySel.intensity_ = mainSel.intensity_;
-          this.stack_.push(Replay.SMOOTH_INTENSITY, mainSel.intensity_);
+          this.stack_.push(Replay.SMOOTH_INTENSITY, mainSel.intensity_ * 100);
         }
         if (mainSel.culling_ !== replaySel.culling_) {
           replaySel.culling_ = mainSel.culling_;
@@ -223,7 +235,7 @@ define([
           break;
         if (mainSel.intensity_ !== replaySel.intensity_) {
           replaySel.intensity_ = mainSel.intensity_;
-          this.stack_.push(Replay.PAINT_INTENSITY, mainSel.intensity_);
+          this.stack_.push(Replay.PAINT_INTENSITY, mainSel.intensity_ * 100);
         }
         if (mainSel.material_[0] !== replaySel.material_[0]) {
           replaySel.material_[0] = mainSel.material_[0];
@@ -267,12 +279,13 @@ define([
     pushDeviceMove: function (x, y) {
       // optimize a bit
       if (this.main_.mouseButton_ === 0) {
-        if (this.stack_[this.stack_.length - 3] === Replay.DEVICE_MOVE) {
+        if (this.lastDeviceMove_ === this.stack_.length - 3) {
           this.stack_[this.stack_.length - 2] = x;
           this.stack_[this.stack_.length - 1] = y;
           return;
         }
       }
+      this.lastDeviceMove_ = this.stack_.length;
 
       this.checkSculptTools();
       this.stack_.push(Replay.DEVICE_MOVE, x, y);
@@ -295,10 +308,11 @@ define([
     },
     pushCameraFov: function (fov) {
       // optimize a bit
-      if (this.stack_[this.stack_.length - 2] === Replay.CAMERA_FOV) {
+      if (this.lastFov_ === this.stack_.length - 2) {
         this.stack_[this.stack_.length - 1] = fov;
         return;
       }
+      this.lastFov_ = this.stack_.length;
       this.stack_.push(Replay.CAMERA_FOV, fov);
     },
     pushCameraTogglePivot: function () {
@@ -362,10 +376,11 @@ define([
     },
     pushExposure: function (val) {
       // optimize a bit
-      if (this.stack_[this.stack_.length - 2] === Replay.EXPOSURE_INTENSITY) {
+      if (this.lastExposure_ === this.stack_.length - 2) {
         this.stack_[this.stack_.length - 1] = val;
         return;
       }
+      this.lastExposure_ = this.stack_.length;
       this.stack_.push(Replay.EXPOSURE_INTENSITY, val);
     },
     pushShowGrid: function (bool) {
@@ -449,8 +464,8 @@ define([
         case Replay.DYNAMIC_DECIMATION:
         case Replay.EXPOSURE_INTENSITY:
         case Replay.SHOW_GRID:
-        case Replay.FLAT_SHADING:
         case Replay.SHOW_WIREFRAME:
+        case Replay.FLAT_SHADING:
         case Replay.SHADER_SELECT:
         case Replay.MATCAP_SELECT:
           data.setUint8(offset, stack[++i]);
