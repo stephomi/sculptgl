@@ -489,11 +489,11 @@ define([
       event.stopPropagation();
       event.preventDefault();
 
+      var dir = (event.detail < 0 || event.wheelDelta > 0) ? 1 : -1;
       if (!this.isReplayed())
-        this.replayer_.pushDeviceWheel(event.wheelDelta || -event.detail);
+        this.replayer_.pushDeviceWheel(dir);
 
-      var delta = Math.max(-1.0, Math.min(1.0, (event.wheelDelta || -event.detail)));
-      this.camera_.zoom(delta * 0.02);
+      this.camera_.zoom(dir * 0.02);
       Multimesh.RENDER_HINT = Multimesh.CAMERA;
       this.render();
     },
@@ -549,7 +549,7 @@ define([
       var button = this.mouseButton_ = event.which;
 
       if (!this.isReplayed())
-        this.replayer_.pushDeviceDown(button, mouseX, mouseY);
+        this.replayer_.pushDeviceDown(button, mouseX, mouseY, event);
 
       if (button === 1) {
         this.sumDisplacement_ = 0;

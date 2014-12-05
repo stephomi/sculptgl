@@ -39,7 +39,7 @@ define([], function () {
     fileExportOBJ: 'Save .obj',
     fileExportPLY: 'Save .ply',
     fileExportSTL: 'Save .stl',
-    fileReplayerTitle: 'Inputs Replayer',
+    fileReplayerTitle: 'Replayer (BETA)',
     fileReplayerImport: 'Load .rep',
     fileReplayerExport: 'Save .rep',
 

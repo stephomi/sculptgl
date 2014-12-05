@@ -66,6 +66,8 @@ define([
       this.nbBytesRessourcesToLoad_ = this.data_.getUint32(8);
       this.sel_ = 8 + 4;
 
+      main.replayer_.autoUpload_ = false;
+
       // basically it's a soft reset
       Tablet.overridePressure = 1.0;
       this.virtualCamera_ = new Camera();
@@ -264,16 +266,19 @@ define([
         ev.which = data.getUint8(sel);
         main.mouseX_ = data.getUint16(sel + 1);
         main.mouseY_ = data.getUint16(sel + 3);
+        var mask = data.getUint8(sel + 5);
+        ev.altKey = mask & Replay.ALT;
+        ev.ctrlKey = mask & Replay.CTRL;
         main.onDeviceDown(ev);
-        sel += 5;
+        sel += 6;
         break;
       case Replay.DEVICE_UP:
         main.onMouseUp(ev);
         break;
       case Replay.DEVICE_WHEEL:
-        ev.wheelDelta = data.getInt16(sel);
+        ev.wheelDelta = data.getInt8(sel);
         main.onMouseWheel(ev);
-        sel += 2;
+        sel += 1;
         break;
       case Replay.UNDO:
         main.getGui().ctrlStates_.onUndo();
@@ -494,6 +499,7 @@ define([
         main.setReplayed(false);
         main.getGui().initGui();
         Tablet.overridePressure = -1.0;
+        main.replayer_.autoUpload_ = true;
         return;
       }
       this.sel_ = sel;

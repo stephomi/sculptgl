@@ -25,7 +25,7 @@ define([
       // replayer
       menu.addTitle(TR('fileReplayerTitle'));
       menu.addButton(TR('fileReplayerImport'), this, 'addFile');
-      menu.addButton(TR('fileReplayerExport'), this.main_.replayer_, 'export');
+      menu.addButton(TR('fileReplayerExport'), this, 'saveFileAsREP');
 
       // export
       menu.addTitle(TR('fileExportSceneTitle'));
@@ -40,7 +40,13 @@ define([
     addFile: function () {
       document.getElementById('fileopen').click();
     },
-    /** Save file as .sculptgl*/
+    /** Save file as .rep*/
+    saveFileAsREP: function () {
+      var rep = this.main_.replayer_;
+      var blob = rep.export();
+      saveAs(blob, rep.uid_ + '.rep');
+    },
+    /** Save file as .sgl*/
     saveFileAsSGL: function () {
       if (this.main_.getMeshes().length === 0) return;
       var blob = Export.exportSGL(this.main_.getMeshes());

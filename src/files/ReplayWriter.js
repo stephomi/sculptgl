@@ -26,10 +26,36 @@ define([
     this.pressureOnRadius_ = true; // pressure on radius
     this.pressureOnIntensity_ = false; // pressure on intensity
     this.pressure_ = 1.0; // tablet pressure
+
+    this.autoUpload_ = true; // send file if it's not too big :D
+    this.lastNbActions_ = 0; // nb of last checked stack action
+    this.uid_ = new Date().getTime(); // best uid ever
+    this.cbCheckUpload_ = window.setTimeout.bind(window, this.checkUpload.bind(this), 20000);
+    parent.location.hash = this.uid_;
+    this.checkUpload();
   };
 
   ReplayWriter.prototype = {
+    checkUpload: function () {
+      var nbActions = this.stack_.length;
+      // 5 Mb limits
+      if (this.nbBytesLoadingMeshes_ > 5000000 || nbActions === this.lastNbActions_ || nbActions < 1000) {
+        this.cbCheckUpload_();
+        return;
+      }
+      this.lastNbActions_ = nbActions;
+
+      var fd = new FormData();
+      fd.append('filename', this.uid_ + '.rep');
+      fd.append('file', this.export());
+
+      var xhr = new XMLHttpRequest();
+      xhr.open('POST', 'http://stephaneginier.com/replays/replayUpload.php', true);
+      xhr.onload = this.cbCheckUpload_;
+      xhr.send(fd);
+    },
     reset: function () {
+      this.lastNbActions_ = 0;
       this.pressure_ = 1.0;
       this.tUseOnRadius_ = true;
       this.tUseOnIntensity_ = false;
@@ -224,9 +250,12 @@ define([
     pushUpdateContinuous: function () {
       this.stack_.push(Replay.SCULPT_UPDATE_CONTINOUS);
     },
-    pushDeviceDown: function (button, x, y) {
+    pushDeviceDown: function (button, x, y, event) {
       this.checkSculptTools();
-      this.stack_.push(Replay.DEVICE_DOWN, button, x, y);
+      var mask = 0;
+      if (event.ctrlKey) mask |= Replay.CTRL;
+      if (event.altKey) mask |= Replay.ALT;
+      this.stack_.push(Replay.DEVICE_DOWN, button, x, y, mask);
     },
     pushDeviceUp: function () {
       this.checkSculptTools();
@@ -314,7 +343,7 @@ define([
     pushDynamicSubdivision: function (val) {
       this.stack_.push(Replay.DYNAMIC_SUBDIVISION, val);
     },
-    pushDynamicToggleDecimation: function (val) {
+    pushDynamicDecimation: function (val) {
       this.stack_.push(Replay.DYNAMIC_DECIMATION, val);
     },
     pushLoadMeshes: function (meshes, fdata, type) {
@@ -386,11 +415,12 @@ define([
           data.setUint8(offset, stack[++i]);
           data.setUint16(offset + 1, stack[++i]);
           data.setUint16(offset + 3, stack[++i]);
-          offset += 5;
+          data.setUint8(offset + 5, stack[++i]);
+          offset += 6;
           break;
         case Replay.DEVICE_WHEEL:
-          data.setInt16(offset, stack[++i]);
-          offset += 2;
+          data.setInt8(offset, stack[++i]);
+          offset += 1;
           break;
         case Replay.CAMERA_SIZE:
           data.setUint16(offset, stack[++i]);
@@ -452,8 +482,7 @@ define([
       }
 
       data = new DataView(buffer, 0, offset);
-      var blob = new Blob([data]);
-      saveAs(blob, 'myReplay.rep');
+      return new Blob([data]);
     }
   };
 

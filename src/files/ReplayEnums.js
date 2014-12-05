@@ -4,15 +4,19 @@ define([], function () {
 
   var Replay = {};
 
+  Replay.CTRL = 1 << 0;
+  Replay.ALT = 1 << 1;
+  Replay.SHIFT = 1 << 2;
+
   Replay.CODE = 59821876; // code
   Replay.VERSION = 1; // version
 
   var ida = 0;
   // id action (u8)
   Replay.DEVICE_MOVE = ida++; // [x (u16), y (u16)]
-  Replay.DEVICE_DOWN = ida++; // [button (u8), x (u16), y (u16)]
+  Replay.DEVICE_DOWN = ida++; // [button (u8), x (u16), y (u16), mask (u8)]
   Replay.DEVICE_UP = ida++; // []
-  Replay.DEVICE_WHEEL = ida++; // [delta (i16)]
+  Replay.DEVICE_WHEEL = ida++; // [dir (u8)]
 
   Replay.UNDO = ida++; // []
   Replay.REDO = ida++; // []
