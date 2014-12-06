@@ -24,7 +24,7 @@ define([
       iVertsInRadius = this.dynamicTopology(picking);
 
       if (this.culling_)
-        iVertsInRadius = SculptBase.getFrontVertices(iVertsInRadius, picking.getEyeDirection());
+        iVertsInRadius = this.getFrontVertices(iVertsInRadius, picking.getEyeDirection());
 
       this.pinch(iVertsInRadius, picking.getIntersectionPoint(), picking.getLocalRadius2(), intensity);
 
