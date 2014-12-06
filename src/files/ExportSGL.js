@@ -76,34 +76,36 @@ define([], function () {
       var nbColors = mesh.getColors() ? nbVertices : 0;
       u32a[off++] = nbColors;
       if (nbColors > 0)
-        f32a.set(mesh.getColors(), off);
+        f32a.set(mesh.getColors().subarray(0, nbVertices * 3), off);
       off += nbColors * 3;
 
       // materials
       var nbMaterials = mesh.getMaterials() ? nbVertices : 0;
       u32a[off++] = nbMaterials;
       if (nbMaterials > 0)
-        f32a.set(mesh.getMaterials(), off);
+        f32a.set(mesh.getMaterials().subarray(0, nbVertices * 3), off);
       off += nbMaterials * 3;
 
       // faces
-      u32a[off++] = mesh.getNbFaces();
-      i32a.set(mesh.getFaces(), off);
-      off += mesh.getNbFaces() * 4;
+      var nbFaces = mesh.getNbFaces();
+      u32a[off++] = nbFaces;
+      i32a.set(mesh.getFaces().subarray(0, nbFaces * 4), off);
+      off += nbFaces * 4;
 
-      // uvs
       var hasUV = mesh.hasUV();
-      u32a[off++] = hasUV ? mesh.getNbTexCoords() : 0;
+      // uvs
+      var nbTexCoords = mesh.getNbTexCoords();
+      u32a[off++] = nbTexCoords;
       if (hasUV > 0) {
-        f32a.set(mesh.getTexCoords(), off);
-        off += mesh.getNbTexCoords() * 2;
+        f32a.set(mesh.getTexCoords().subarray(0, nbTexCoords * 2), off);
+        off += nbTexCoords * 2;
       }
 
       // face uvs
-      u32a[off++] = hasUV ? mesh.getNbFaces() : 0;
+      u32a[off++] = nbFaces;
       if (hasUV) {
-        i32a.set(mesh.getFacesTexCoord(), off);
-        off += mesh.getNbFaces() * 4;
+        i32a.set(mesh.getFacesTexCoord().subarray(0, nbFaces * 4), off);
+        off += nbFaces * 4;
       }
     }
 
