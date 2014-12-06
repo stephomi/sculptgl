@@ -66,8 +66,10 @@ define([
       this.stroke(picking, mx, my, lx, ly, this.twistData_);
       if (main.getSculpt().getSymmetry()) {
         var pickingSym = main.getPickingSymmetry();
-        pickingSym.pickVerticesInSphere(rLocal2);
-        this.stroke(pickingSym, lx, ly, mx, my, this.twistDataSym_);
+        if (pickingSym.getMesh()) {
+          pickingSym.pickVerticesInSphere(rLocal2);
+          this.stroke(pickingSym, lx, ly, mx, my, this.twistDataSym_);
+        }
       }
       if (main.getMesh().getDynamicTopology) {
         main.getMesh().updateBuffers();

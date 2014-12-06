@@ -48,8 +48,10 @@ define([
       this.stroke(picking, delta);
       if (main.getSculpt().getSymmetry()) {
         var pickingSym = main.getPickingSymmetry();
-        pickingSym.pickVerticesInSphere(rLocal2);
-        this.stroke(pickingSym, delta);
+        if (pickingSym.getMesh()) {
+          pickingSym.pickVerticesInSphere(rLocal2);
+          this.stroke(pickingSym, delta);
+        }
       }
       if (main.getMesh().getDynamicTopology) {
         main.getMesh().updateBuffers();
