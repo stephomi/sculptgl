@@ -265,7 +265,25 @@ define([
         var height = this.height_;
         return [(vec[0] / w + 1) * this.width_ * 0.5, height - (vec[1] / w + 1.0) * height * 0.5, (vec[2] / w + 1.0) * 0.5];
       };
-    })()
+    })(),
+    copyCamera: function (cam) {
+      mat4.copy(this.view_, cam.view_);
+      quat.copy(this.quatRot_, cam.quatRot_);
+      vec3.copy(this.center_, cam.center_);
+
+      this.transX_ = cam.transX_;
+      this.transY_ = cam.transY_;
+      this.rotX_ = cam.rotX_;
+      this.rotY_ = cam.rotY_;
+      this.zoom_ = cam.zoom_;
+
+      if (this.getMode() !== cam.getMode())
+        this.setMode(cam.getMode());
+      if (this.getProjType() !== cam.getProjType())
+        this.setProjType(cam.getProjType());
+      if (this.getFov() !== cam.getFov())
+        this.setFov(cam.getFov());
+    }
   };
 
   return Camera;

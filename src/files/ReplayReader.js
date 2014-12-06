@@ -13,7 +13,6 @@ define([
   'use strict';
 
   var vec3 = glm.vec3;
-  var mat4 = glm.mat4;
 
   // debug
   var DEBUG = false;
@@ -134,7 +133,7 @@ define([
       var topbar = this.guiReplay_.addTopbar();
       var menu = topbar.addMenu(TR('replayTitle'));
       menu.addTitle(TR('cameraTitle'));
-      menu.addCheckbox(TR('replayOverride'), this, 'cameraOverride_');
+      menu.addCheckbox(TR('replayOverride'), this.cameraOverride_, this.onCameraOverride.bind(this));
 
       menu.addTitle(TR('replaySpeed'));
       menu.addSlider(null, this, 'speed_', 1, 500, 1);
@@ -152,6 +151,10 @@ define([
       menu.addCheckbox(TR('renderingGrid'), this.grid_, this.onGridChanged.bind(this));
 
       this.widgetProgress_ = topbar.addMenu('Progress : ');
+    },
+    onCameraOverride: function (val) {
+      this.cameraOverride_ = val;
+      this.realCamera_.copyCamera(this.virtualCamera_);
     },
     onShaderChanged: function (val) {
       this.shader_ = val;
@@ -521,46 +524,46 @@ define([
         sel += 4;
         break;
       }
-      if (this.renderOverride_)
-        this.applyRenderOverride();
-
-      // render
-      // back virtual camera
-      main.getCanvas().style.cursor = 'default';
-      var rcam = main.camera_ = this.realCamera_;
-      if (!this.cameraOverride_) {
-        mat4.copy(rcam.view_, vcam.view_);
-        if (vcam.getMode() !== rcam.getMode())
-          rcam.setMode(vcam.getMode());
-        if (vcam.getProjType() !== rcam.getProjType())
-          rcam.setProjType(vcam.getProjType());
-        if (vcam.getFov() !== rcam.getFov())
-          rcam.setFov(vcam.getFov());
-      }
-
+      this.sel_ = sel;
       if (sel >= data.byteLength) {
-        main.camera_ = this.virtualCamera_;
-        this.removeEvents();
-        main.mouseButton_ = 0;
-        main.addEvents();
-        main.setReplayed(false);
-        main.getGui().initGui();
-        Tablet.overridePressure = -1.0;
-        main.replayer_.autoUpload_ = true;
-        main.applyRender();
+        this.endReplay();
         return;
       }
-      this.sel_ = sel;
-      var ratio = (sel - this.nbBytesRessourcesLoaded_) / (data.byteLength - this.nbBytesRessourcesToLoad_);
-      this.widgetProgress_.domContainer.innerHTML = 'Progress : ' + parseInt(100 * ratio, 10) + '%';
-
       if (this.speed_ < 100 || nbSync === 0) {
+        main.getCanvas().style.cursor = 'default';
+
+        // manage camera
+        main.camera_ = this.realCamera_;
+        if (!this.cameraOverride_)
+          this.realCamera_.copyCamera(this.virtualCamera_);
+
+        // update progress
+        var ratio = (sel - this.nbBytesRessourcesLoaded_) / (data.byteLength - this.nbBytesRessourcesToLoad_);
+        this.widgetProgress_.domContainer.innerHTML = 'Progress : ' + parseInt(100 * ratio, 10) + '%';
+
+        // render
+        if (this.renderOverride_)
+          this.applyRenderOverride();
         main.applyRender();
+
+        // async replay action
         window.setTimeout(this.cbReplayAction_, 1000.0 / this.speed_);
       } else {
         // sync replay action
         this.replayAction(nbSync === undefined ? Math.floor(this.speed_ / 100.0) : --nbSync);
       }
+    },
+    endReplay: function () {
+      this.removeEvents();
+      var main = this.main_;
+      main.camera_ = this.virtualCamera_;
+      main.mouseButton_ = 0;
+      main.addEvents();
+      main.setReplayed(false);
+      main.getGui().initGui();
+      Tablet.overridePressure = -1.0;
+      main.replayer_.autoUpload_ = true;
+      main.applyRender();
     }
   };
 
