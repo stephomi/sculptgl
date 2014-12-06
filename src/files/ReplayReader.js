@@ -60,6 +60,37 @@ define([
   };
 
   ReplayReader.prototype = {
+    checkURL: function () {
+      var vars = window.location.search.substring(1).split('&');
+      var url = '';
+      for (var i = 0, nbVars = vars.length; i < nbVars; i++) {
+        var pair = vars[i].split('=');
+        if (pair[0] === 'replay') {
+          url = pair[1];
+          break;
+        }
+      }
+      if (!url)
+        return;
+      if (url.substr(-4, 4) !== '.rep')
+        url += '.rep';
+
+      var statusWidget = this.main_.getGui().getWidgetNotification();
+      var domStatus = statusWidget.domContainer;
+      statusWidget.setVisibility(true);
+      domStatus.innerHTML = 'Downloading...';
+
+      var xhr = new XMLHttpRequest();
+      xhr.open('GET', 'http://stephaneginier.com/replays/' + url, true);
+      xhr.responseType = 'arraybuffer';
+      xhr.onload = function (evt) {
+        statusWidget.setVisibility(false);
+        if (evt.target.status !== 200)
+          return;
+        this.import(evt.target.response);
+      }.bind(this);
+      xhr.send(null);
+    },
     import: function (data) {
       var main = this.main_;
       this.data_ = new DataView(data);
@@ -447,9 +478,6 @@ define([
         break;
       case Replay.ADD_SPHERE:
         main.addSphere();
-        break;
-      case Replay.CLEAR_SCENE:
-        main.clearScene();
         break;
       case Replay.DELETE_CURRENT_MESH:
         main.deleteCurrentMesh();

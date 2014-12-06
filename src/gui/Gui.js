@@ -33,6 +33,8 @@ define([
     this.ctrlTopology_ = null;
     this.ctrlRendering_ = null;
 
+    this.ctrlNotification_ = null;
+
     this.ctrls_ = []; // list of controllers
   }
 
@@ -69,6 +71,14 @@ define([
 
       this.updateMesh();
       this.setVisibility(true);
+    },
+    /** Return simple widget */
+    getWidgetNotification: function () {
+      if (!this.ctrlUploading_) {
+        this.ctrlNotification_ = this.topbar_.addMenu();
+        this.ctrlNotification_.setVisibility(false);
+      }
+      return this.ctrlNotification_;
     },
     /** Update information on mesh */
     updateMesh: function () {

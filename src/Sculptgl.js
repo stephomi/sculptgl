@@ -68,6 +68,7 @@ define([
       this.onCanvasResize();
       this.addEvents();
       this.addSphere();
+      this.replayerReader_.checkURL();
     },
     getBackground: function () {
       return this.background_;
@@ -450,6 +451,7 @@ define([
       this.getCamera().resetView();
       this.showGrid_ = true;
       this.setMesh(null);
+      this.mouseButton_ = 0;
       this.replayer_.reset();
     },
     /** Delete the current selected mesh */

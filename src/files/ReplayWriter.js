@@ -30,7 +30,6 @@ define([
     this.autoUpload_ = true; // send file if it's not too big :D
     this.lastNbActions_ = 0; // nb of last checked stack action
     this.uid_ = new Date().getTime(); // best uid ever
-    parent.location.hash = this.uid_;
     this.cbCheckUpload_ = window.setTimeout.bind(window, this.checkUpload.bind(this), 20000);
     this.checkUpload();
   };
@@ -43,6 +42,7 @@ define([
         this.cbCheckUpload_();
         return;
       }
+      parent.location.hash = this.uid_;
       this.lastNbActions_ = nbActions;
 
       var fd = new FormData();
@@ -56,7 +56,7 @@ define([
     },
     reset: function () {
       this.uid_ = new Date().getTime();
-      parent.location.hash = this.uid_;
+      parent.location.hash = '';
       this.lastDeviceMove_ = undefined;
       this.lastExposure_ = undefined;
       this.lastFov_ = undefined;
@@ -367,9 +367,6 @@ define([
     },
     pushAddSphere: function () {
       this.stack_.push(Replay.ADD_SPHERE);
-    },
-    pushClearScene: function () {
-      this.stack_.push(Replay.CLEAR_SCENE);
     },
     pushDeleteMesh: function () {
       this.stack_.push(Replay.DELETE_CURRENT_MESH);

@@ -170,7 +170,7 @@ define([], function () {
     sketchfabUploadError: function (error) {
       return 'Sketchfab upload error :\n' + error;
     },
-    sketchfabUploadSuccess: 'Upload success !\nHere"s your link :',
+    sketchfabUploadSuccess: 'Upload success !\nHere is your link :',
     sketchfabAbort: 'Abort the last upload ?'
   };
 

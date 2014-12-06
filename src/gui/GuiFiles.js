@@ -8,6 +8,7 @@ define([
 
   function GuiFiles(guiParent, ctrlGui) {
     this.main_ = ctrlGui.main_; // main application
+    this.ctrlGui_ = ctrlGui;
     this.menu_ = null; // ui menu
     this.parent_ = guiParent;
     this.init(guiParent);
@@ -78,7 +79,8 @@ define([
       if (!mesh)
         return;
 
-      if (this.sketchfabXhr_ && this.ctrlUploading_ && this.ctrlUploading_.domContainer.hidden === false) {
+      var ctrlNotif = this.ctrlGui_.getWidgetNotification();
+      if (this.sketchfabXhr_ && ctrlNotif.domContainer.hidden === false) {
         if (!window.confirm(TR('sketchfabAbort')))
           return;
         this.sketchfabXhr_.abort();
@@ -89,8 +91,7 @@ define([
         return;
 
       var key = api === 'guest' ? 'babc9a5cd4f343f9be0c7bd9cf93600c' : api;
-      this.ctrlUploading_ = this.ctrlUploading_ || this.parent_.addMenu(); // dummy menu
-      this.sketchfabXhr_ = Export.exportSketchfab(this.main_, key, this.ctrlUploading_);
+      this.sketchfabXhr_ = Export.exportSketchfab(this.main_, key, ctrlNotif);
     }
   };
 
