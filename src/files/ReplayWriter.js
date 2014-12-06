@@ -38,7 +38,7 @@ define([
     checkUpload: function () {
       var nbActions = this.stack_.length;
       // 5 Mb limits
-      if (this.nbBytesLoadingMeshes_ > 10000000 || nbActions === this.lastNbActions_ || nbActions < 2000) {
+      if (this.nbBytesLoadingMeshes_ > 10000000 || nbActions === this.lastNbActions_ || nbActions < 5000) {
         this.cbCheckUpload_();
         return;
       }

@@ -33,7 +33,7 @@ define([
 
     // extra control stuffs
     this.paused_ = false; // paused replay
-    this.speed_ = 60; // speed replay
+    this.speed_ = 200; // speed replay
 
     // render
     this.virtualRender_ = []; // id mesh -> render config
