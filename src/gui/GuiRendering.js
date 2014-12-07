@@ -72,7 +72,7 @@ define([
         return;
 
       if (!main.isReplayed())
-        main.replayer_.pushExposure(val);
+        main.getReplayWriter().pushExposure(val);
 
       mesh.getRender().setExposure(val / 20);
       main.render();
@@ -81,7 +81,7 @@ define([
       var main = this.main_;
 
       if (!main.isReplayed())
-        main.replayer_.pushShowGrid(bool);
+        main.getReplayWriter().pushShowGrid(bool);
 
       main.showGrid_ = bool;
       main.render();
@@ -98,7 +98,7 @@ define([
         } else {
 
           if (!main.isReplayed())
-            main.replayer_.pushShaderSelect(value);
+            main.getReplayWriter().pushShaderSelect(value);
 
           mesh.setShader(val);
           main.render();
@@ -114,7 +114,7 @@ define([
         return;
 
       if (!main.isReplayed())
-        main.replayer_.pushMatcapSelect(value);
+        main.getReplayWriter().pushMatcapSelect(value);
 
       mesh.setMatcap(value);
       main.render();
@@ -127,7 +127,7 @@ define([
         return;
 
       if (!main.isReplayed())
-        main.replayer_.pushFlatShading(bool);
+        main.getReplayWriter().pushFlatShading(bool);
 
       mesh.setFlatShading(bool);
       main.render();
@@ -140,7 +140,7 @@ define([
         return;
 
       if (!main.isReplayed())
-        main.replayer_.pushShowWireframe(bool);
+        main.getReplayWriter().pushShowWireframe(bool);
 
       mesh.setShowWireframe(bool);
       main.render();

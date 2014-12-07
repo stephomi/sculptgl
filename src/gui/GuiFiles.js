@@ -43,7 +43,7 @@ define([
     },
     /** Save file as .rep*/
     saveFileAsREP: function () {
-      var rep = this.main_.replayer_;
+      var rep = this.main_.getReplayWriter();
       var blob = rep.export();
       saveAs(blob, rep.uid_ + '.rep');
     },

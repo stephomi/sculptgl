@@ -14,7 +14,7 @@ define([
   'states/States',
   'render/Render',
   'render/shaders/ShaderMatcap'
-], function (Utils, Sculpt, Import, Replay, ReplayReader, Gui, Camera, Picking, Background, Grid, Mesh, Multimesh, States, Render, ShaderMatcap) {
+], function (Utils, Sculpt, Import, ReplayWriter, ReplayReader, Gui, Camera, Picking, Background, Grid, Mesh, Multimesh, States, Render, ShaderMatcap) {
 
   'use strict';
 
@@ -49,7 +49,7 @@ define([
     this.focusGui_ = false; // if the gui is being focused
 
     // misc stuffs
-    this.replayer_ = new Replay(this); // the user event stack replayer
+    this.replayerWriter_ = new ReplayWriter(this); // the user event stack replayer
     this.replayerReader_ = new ReplayReader(this); // reader replayer
     this.isReplayed_ = false; // if we want to save the replay mode
     this.preventRender_ = false; // prevent multiple render per render
@@ -68,7 +68,13 @@ define([
       this.onCanvasResize();
       this.addEvents();
       this.addSphere();
-      this.replayerReader_.checkURL();
+      this.getReplayReader().checkURL();
+    },
+    getReplayWriter: function () {
+      return this.replayerWriter_;
+    },
+    getReplayReader: function () {
+      return this.replayerReader_;
     },
     getBackground: function () {
       return this.background_;
@@ -194,7 +200,7 @@ define([
       var newHeight = this.gl_.viewportHeight = this.camera_.height_ = this.canvas_.height;
 
       if (!this.isReplayed())
-        this.replayer_.pushCameraSize(newWidth, newHeight);
+        this.getReplayWriter().pushCameraSize(newWidth, newHeight);
 
       this.background_.onResize(newWidth, newHeight);
       this.gl_.viewport(0, 0, newWidth, newHeight);
@@ -332,7 +338,7 @@ define([
       var self = this;
       reader.onload = function (evt) {
         if (fileType === 'rep')
-          self.replayerReader_.import(evt.target.result);
+          self.getReplayReader().import(evt.target.result);
         else
           self.loadScene(evt.target.result, fileType);
         document.getElementById('fileopen').value = '';
@@ -383,7 +389,7 @@ define([
       }
 
       if (!this.isReplayed())
-        this.replayer_.pushLoadMeshes(newMeshes, fileData, fileType);
+        this.getReplayWriter().pushLoadMeshes(newMeshes, fileData, fileType);
 
       this.centerMeshes(newMeshes);
       this.states_.pushStateAdd(newMeshes);
@@ -393,7 +399,7 @@ define([
     /** Load the sphere */
     addSphere: function () {
       if (!this.isReplayed())
-        this.replayer_.pushAddSphere();
+        this.getReplayWriter().pushAddSphere();
 
       // make a cube and subdivide it
       var mesh = new Mesh(this.gl_);
@@ -452,7 +458,7 @@ define([
       this.showGrid_ = true;
       this.setMesh(null);
       this.mouseButton_ = 0;
-      this.replayer_.reset();
+      this.getReplayWriter().reset();
     },
     /** Delete the current selected mesh */
     deleteCurrentMesh: function () {
@@ -460,7 +466,7 @@ define([
         return;
 
       if (!this.isReplayed())
-        this.replayer_.pushDeleteMesh();
+        this.getReplayWriter().pushDeleteMesh();
 
       this.states_.pushStateRemove(this.mesh_);
       this.meshes_.splice(this.meshes_.indexOf(this.mesh_), 1);
@@ -488,7 +494,7 @@ define([
       event.preventDefault();
 
       if (!this.isReplayed())
-        this.replayer_.pushDeviceUp();
+        this.getReplayWriter().pushDeviceUp();
 
       this.canvas_.style.cursor = 'default';
       this.mouseButton_ = 0;
@@ -503,7 +509,7 @@ define([
 
       var dir = (event.detail < 0 || event.wheelDelta > 0) ? 1 : -1;
       if (!this.isReplayed())
-        this.replayer_.pushDeviceWheel(dir);
+        this.getReplayWriter().pushDeviceWheel(dir);
 
       this.camera_.zoom(dir * 0.02);
       Multimesh.RENDER_HINT = Multimesh.CAMERA;
@@ -561,7 +567,7 @@ define([
       var button = this.mouseButton_ = event.which;
 
       if (!this.isReplayed())
-        this.replayer_.pushDeviceDown(button, mouseX, mouseY, event);
+        this.getReplayWriter().pushDeviceDown(button, mouseX, mouseY, event);
 
       if (button === 1) {
         this.sumDisplacement_ = 0;
@@ -597,7 +603,7 @@ define([
       var button = this.mouseButton_;
 
       if (!this.isReplayed())
-        this.replayer_.pushDeviceMove(mouseX, mouseY);
+        this.getReplayWriter().pushDeviceMove(mouseX, mouseY);
 
       if (button !== 1 || this.sculpt_.allowPicking()) {
         Multimesh.RENDER_HINT = Multimesh.PICKING;

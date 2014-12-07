@@ -95,7 +95,7 @@ define([
       if (!this.undos_.length || this.curUndoIndex_ < 0)
         return;
       if (!this.main_.isReplayed())
-        this.main_.replayer_.pushUndo();
+        this.main_.getReplayWriter().pushUndo();
 
       var state = this.getCurrentState();
       var redoState = state.createRedo();
@@ -112,7 +112,7 @@ define([
       if (!this.redos_.length)
         return;
       if (!this.main_.isReplayed())
-        this.main_.replayer_.pushRedo();
+        this.main_.getReplayWriter().pushRedo();
 
       var state = this.redos_[this.redos_.length - 1];
       state.redo();

@@ -2,13 +2,14 @@ define([
   'lib/glMatrix',
   'lib/yagui',
   'gui/GuiTR',
+  'files/ExportSGL',
   'files/ReplayEnums',
   'math3d/Camera',
   'misc/Tablet',
   'editor/Sculpt',
   'editor/Remesh',
   'render/Shader'
-], function (glm, yagui, TR, Replay, Camera, Tablet, Sculpt, Remesh, Shader) {
+], function (glm, yagui, TR, ExportSGL, Replay, Camera, Tablet, Sculpt, Remesh, Shader) {
 
   'use strict';
 
@@ -52,10 +53,15 @@ define([
     this.lastMouseY = 0; // real last y mouse position
     this.mouseButton_ = 0; // the real button pressed
 
-    // progress is based on nbBytes load so it should ignore big ressources
+    // progress is based on nbBytes load so it should ignore big resources
     this.widgetProgress_ = null; // show progress
-    this.nbBytesRessourcesLoaded_ = 0; // number of bytes loaded
-    this.nbBytesRessourcesToLoad_ = 0; // total number of bytes to load
+    this.nbBytesResourcesLoaded_ = 0; // number of bytes loaded
+    this.nbBytesResourcesToLoad_ = 0; // total number of bytes to load
+
+    // iframe stuffs
+    this.iframe = null;
+    this.iframeParentCallback_ = null;
+    this.iframeCallback_ = this.iframeCallback.bind(this);
   };
 
   ReplayReader.prototype = {
@@ -90,20 +96,45 @@ define([
       }.bind(this);
       xhr.send(null);
     },
-    import: function (data) {
+    setFinishCallback: function (cb) {
+      this.iframeParentCallback_ = cb;
+    },
+    iframeCallback: function (arraysgl) {
+      this.iframe.remove();
       var main = this.main_;
-      this.data_ = new DataView(data);
+      document.body.appendChild(main.getCanvas());
+      main.clearScene();
+      main.loadScene(arraysgl, 'sgl');
+      this.endReplay();
+    },
+    loadVersion: function (version) {
+      var iframe = this.iframe = document.createElement('iframe');
+      iframe.id = 'sglframe' + version;
+      iframe.src = 'http://stephaneginier.com/sculptgl';
+      iframe.frameborder = 0;
+      // css full screen iframe
+      iframe.style.position = 'absolute';
+      iframe.style.left = '0px';
+      iframe.style.top = '0px';
+      iframe.style.width = '100%';
+      iframe.style.height = '100%';
+      document.body.appendChild(iframe);
 
-      if (this.data_.getUint32(0) !== Replay.CODE)
-        return;
-      // TODO ... load other sculptgl version ?
-      if (this.data_.getUint32(4) !== Replay.VERSION)
-        return;
-      this.nbBytesRessourcesToLoad_ = this.data_.getUint32(8);
-      this.nbBytesRessourcesLoaded_ = 0;
-      this.sel_ = 8 + 4;
+      iframe.onload = function () {
+        var sgl = iframe.contentWindow.sculptgl;
+        var rep = sgl.getReplayReader();
+        rep.setFinishCallback(this.iframeCallback_);
+        rep.import(this.data_.buffer, this.data_);
+      }.bind(this);
+    },
+    import: function (data, dataView) {
+      var main = this.main_;
+      this.data_ = dataView ? dataView : new DataView(data);
 
-      main.replayer_.autoUpload_ = false;
+      // remove events and delete gui
+      main.removeEvents();
+      main.getGui().deleteGui();
+      main.getReplayWriter().autoUpload_ = false;
 
       // basically it's a soft reset
       Tablet.overridePressure = 1.0;
@@ -112,13 +143,22 @@ define([
       main.getPicking().rDisplay_ = 50;
       main.setReplayed(true);
       main.clearScene();
-      main.replayer_.setFirstReplay(data);
+
+      if (this.data_.getUint32(0) !== Replay.CODE)
+        return;
+      var version = this.data_.getUint32(4);
+      this.nbBytesResourcesToLoad_ = this.data_.getUint32(8);
+      this.nbBytesResourcesLoaded_ = 0;
+      this.sel_ = 12;
+      if (version !== Replay.VERSION) {
+        main.getCanvas().remove();
+        this.loadVersion(version);
+        return;
+      }
+      main.getReplayWriter().setFirstReplay(data);
 
       // to make sure all the undo/redo actions are executed
       main.getStates().setNewMaxStack(50);
-
-      main.removeEvents();
-      main.getGui().deleteGui();
 
       this.initEvents();
 
@@ -476,7 +516,7 @@ define([
       case Replay.LOAD_MESHES:
         var nbBytes = data.getUint32(sel);
         main.loadScene(data.buffer.slice(sel + 4, sel + 4 + nbBytes), 'sgl');
-        this.nbBytesRessourcesLoaded_ += nbBytes;
+        this.nbBytesResourcesLoaded_ += nbBytes;
         sel += 4 + nbBytes;
         break;
       case Replay.ADD_SPHERE:
@@ -538,7 +578,7 @@ define([
           this.realCamera_.copyCamera(this.virtualCamera_);
 
         // update progress
-        var ratio = (sel - this.nbBytesRessourcesLoaded_) / (data.byteLength - this.nbBytesRessourcesToLoad_);
+        var ratio = (sel - this.nbBytesResourcesLoaded_) / (data.byteLength - this.nbBytesResourcesToLoad_);
         this.widgetProgress_.domContainer.innerHTML = 'Progress : ' + parseInt(100 * ratio, 10) + '%';
 
         // render
@@ -563,8 +603,11 @@ define([
       main.getGui().initGui();
       main.focusGui_ = false;
       Tablet.overridePressure = -1.0;
-      main.replayer_.autoUpload_ = true;
+      main.getReplayWriter().autoUpload_ = true;
       main.applyRender();
+
+      if (this.iframeParentCallback_)
+        this.iframeParentCallback_(ExportSGL.exportSGLAsArrayBuffer(main.getMeshes()));
     }
   };
 

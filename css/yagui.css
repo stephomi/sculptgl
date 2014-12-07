@@ -14,6 +14,11 @@
   user-select: none;
 }
 
+body {
+ overflow: hidden;
+ margin: 0;
+}
+
 #tablet-plugin {
   position: absolute;
   top: -1000px;

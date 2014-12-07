@@ -51,7 +51,7 @@ define([
         return;
 
       if (!main.isReplayed())
-        main.replayer_.pushDynamicToggleActivate();
+        main.getReplayWriter().pushDynamicToggleActivate();
 
       var newMesh = !mesh.getDynamicTopology ? new MeshDynamic(mesh) : this.convertToStaticMesh(mesh);
       main.replaceMesh(mesh, newMesh);
@@ -60,19 +60,19 @@ define([
     dynamicToggleLinear: function () {
       var main = this.main_;
       if (!main.isReplayed())
-        main.replayer_.pushDynamicToggleLinear();
+        main.getReplayWriter().pushDynamicToggleLinear();
       Topology.linear = !Topology.linear;
     },
     dynamicSubdivision: function (val) {
       var main = this.main_;
       if (!main.isReplayed())
-        main.replayer_.pushDynamicSubdivision(val);
+        main.getReplayWriter().pushDynamicSubdivision(val);
       Topology.subFactor = val;
     },
     dynamicDecimation: function (val) {
       var main = this.main_;
       if (!main.isReplayed())
-        main.replayer_.pushDynamicDecimation(val);
+        main.getReplayWriter().pushDynamicDecimation(val);
       Topology.decFactor = val;
     },
     /** Remesh the mesh */
@@ -83,7 +83,7 @@ define([
         return;
 
       if (!main.isReplayed())
-        main.replayer_.pushVoxelRemesh(Remesh.resolution);
+        main.getReplayWriter().pushVoxelRemesh(Remesh.resolution);
 
       var meshes = main.getMeshes().slice();
       for (var i = 0, l = meshes.length; i < l; ++i) {
@@ -146,7 +146,7 @@ define([
       }
 
       if (!main.isReplayed())
-        main.replayer_.pushMultiSubdivide();
+        main.getReplayWriter().pushMultiSubdivide();
 
       if (mesh !== mul) {
         main.replaceMesh(mesh, mul);
@@ -179,7 +179,7 @@ define([
       }
 
       if (!main.isReplayed())
-        main.replayer_.pushMultiReverse();
+        main.getReplayWriter().pushMultiReverse();
 
       if (mesh !== mul) {
         main.replaceMesh(mesh, mul);
@@ -200,7 +200,7 @@ define([
       }
 
       if (!main.isReplayed())
-        main.replayer_.pushDeleteLower();
+        main.getReplayWriter().pushDeleteLower();
 
       main.getStates().pushState(new StateMultiresolution(main, mul, StateMultiresolution.DELETE_LOWER));
       mul.deleteLower();
@@ -216,7 +216,7 @@ define([
       }
 
       if (!main.isReplayed())
-        main.replayer_.pushDeleteHigher();
+        main.getReplayWriter().pushDeleteHigher();
 
       main.getStates().pushState(new StateMultiresolution(main, mul, StateMultiresolution.DELETE_HIGHER));
       mul.deleteHigher();
@@ -231,7 +231,7 @@ define([
         return;
 
       if (!main.isReplayed())
-        main.replayer_.pushMultiResolution(value);
+        main.getReplayWriter().pushMultiResolution(value);
 
       main.getStates().pushState(new StateMultiresolution(main, multimesh, StateMultiresolution.SELECTION));
       multimesh.selectResolution(uiRes);

@@ -12,8 +12,8 @@
   window.addEventListener('load', function (e) {
     // start the app
     var SculptGL = require('Sculptgl');
-    var sculptgl = new SculptGL();
-    sculptgl.start();
+    window.sculptgl = new SculptGL();
+    window.sculptgl.start();
     // // Check if a new cache is available on page load.
     // window.applicationCache.addEventListener('updateready', function (e) {
     //   if (window.applicationCache.status === window.applicationCache.UPDATEREADY) {

@@ -18,7 +18,7 @@ define([
 
     fd.append('token', key);
     fd.append('modelFile', Export.exportOBJ(main.getMeshes(), true), 'sculptglModel.obj');
-    fd.append('name', 'My model - ' + main.replayer_.uid_);
+    fd.append('name', 'My model - ' + main.getReplayWriter().uid_);
     fd.append('tags', 'sculptgl');
 
     var xhr = new XMLHttpRequest();

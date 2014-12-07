@@ -52,7 +52,7 @@ define([
     onCameraModeChange: function (value) {
       var mode = parseInt(value, 10);
       if (!this.main_.isReplayed())
-        this.main_.replayer_.pushCameraMode(mode);
+        this.main_.getReplayWriter().pushCameraMode(mode);
 
       this.camera_.setMode(mode);
       this.main_.render();
@@ -61,7 +61,7 @@ define([
     onCameraTypeChange: function (value) {
       var type = parseInt(value, 10);
       if (!this.main_.isReplayed())
-        this.main_.replayer_.pushCameraProjType(type);
+        this.main_.getReplayWriter().pushCameraProjType(type);
 
       this.camera_.setProjType(type);
       this.ctrlFov_.setVisibility(type === Camera.projType.PERSPECTIVE);
@@ -70,7 +70,7 @@ define([
     /** On fov change */
     onFovChange: function (value) {
       if (!this.main_.isReplayed())
-        this.main_.replayer_.pushCameraFov(value);
+        this.main_.getReplayWriter().pushCameraFov(value);
 
       this.camera_.setFov(value);
       this.main_.render();
@@ -78,7 +78,7 @@ define([
     /** On pivot change */
     onPivotChange: function () {
       if (!this.main_.isReplayed())
-        this.main_.replayer_.pushCameraTogglePivot();
+        this.main_.getReplayWriter().pushCameraTogglePivot();
 
       this.camera_.toggleUsePivot();
       this.main_.render();
@@ -140,7 +140,7 @@ define([
     cbOnTranslation: function () {
       var main = this.main_;
       if (!main.isReplayed())
-        main.replayer_.pushCameraFps();
+        main.getReplayWriter().pushCameraFps();
 
       main.getCamera().updateTranslation();
       main.render();
@@ -187,7 +187,7 @@ define([
     /** Reset camera */
     resetCamera: function () {
       if (!this.main_.isReplayed())
-        this.main_.replayer_.pushCameraReset();
+        this.main_.getReplayWriter().pushCameraReset();
 
       this.camera_.resetView();
       this.main_.render();
@@ -195,7 +195,7 @@ define([
     /** Reset to front view */
     resetFront: function () {
       if (!this.main_.isReplayed())
-        this.main_.replayer_.pushCameraResetFront();
+        this.main_.getReplayWriter().pushCameraResetFront();
 
       this.camera_.resetViewFront();
       this.main_.render();
@@ -203,7 +203,7 @@ define([
     /** Reset to left view */
     resetLeft: function () {
       if (!this.main_.isReplayed())
-        this.main_.replayer_.pushCameraResetLeft();
+        this.main_.getReplayWriter().pushCameraResetLeft();
 
       this.camera_.resetViewLeft();
       this.main_.render();
@@ -211,7 +211,7 @@ define([
     /** Reset to top view */
     resetTop: function () {
       if (!this.main_.isReplayed())
-        this.main_.replayer_.pushCameraResetTop();
+        this.main_.getReplayWriter().pushCameraResetTop();
 
       this.camera_.resetViewTop();
       this.main_.render();
