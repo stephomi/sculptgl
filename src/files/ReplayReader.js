@@ -561,6 +561,7 @@ define([
       main.addEvents();
       main.setReplayed(false);
       main.getGui().initGui();
+      main.focusGui_ = false;
       Tablet.overridePressure = -1.0;
       main.replayer_.autoUpload_ = true;
       main.applyRender();
