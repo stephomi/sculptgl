@@ -15,6 +15,8 @@ define([
 
   var vec3 = glm.vec3;
 
+  var SCREENSHOT_NODEJS = false;
+
   // debug
   var DEBUG = false;
   var invEnums;
@@ -24,6 +26,7 @@ define([
   var ReplayReader = function (main) {
     this.main_ = main; // main application
 
+    this.uid_ = 0; // name of the loaded replay
     this.data_ = null; // typed array of input action
     this.sel_ = 0; // read selector
     this.cbReplayAction_ = this.replayAction.bind(this); // callback replay action
@@ -59,14 +62,60 @@ define([
     this.nbBytesResourcesToLoad_ = 0; // total number of bytes to load
 
     // iframe stuffs
-    this.iframe = null;
+    this.iframe_ = null;
     this.iframeParentCallback_ = null;
     this.iframeCallback_ = this.iframeCallback.bind(this);
   };
 
   ReplayReader.prototype = {
+    readDirNodeJS: function () {
+      var files = this.replayFiles_;
+      var fs = window.nodeRequire('fs');
+      if (!files) {
+        this.dir_ = '../Cours/replays/replay-6/';
+        files = this.replayFiles_ = fs.readdirSync(this.dir_);
+        files.sort();
+        this.nbReadFile_ = 0;
+      }
+
+      var nbFiles = files.length;
+      var i = this.nbReadFile_;
+      while (i < nbFiles) {
+        var fname = files[i];
+        if (!fname.endsWith('jpg'))
+          break;
+        i += 2;
+      }
+      this.nbReadFile_ = i;
+
+      var buffer = fs.readFileSync(this.dir_ + this.replayFiles_[this.nbReadFile_++]);
+      var ab = new Uint8Array(buffer);
+      this.import(ab.buffer);
+      // window.require = window.nodeRequire;
+      // window.require('nw.gui').Window.get().showDevTools();
+    },
+    takeThumbnailsNodeJS: function () {
+      var canvas = this.main_.getCanvas();
+      canvas.width = 1024;
+      canvas.height = 768;
+      this.main_.onCanvasResize();
+      this.main_.getCamera().resetView();
+      this.main_.applyRender();
+
+      var dataUrl = canvas.toDataURL('image/jpeg');
+      var fs = window.nodeRequire('fs');
+      var buffer = new Buffer(dataUrl.split(',')[1], 'base64');
+      var name = this.replayFiles_[this.nbReadFile_ - 1];
+      fs.writeFileSync(this.dir_ + name.substr(0, name.length - 4) + '.jpg', buffer, 'base64');
+      this.readDirNodeJS();
+    },
     checkURL: function () {
-      var vars = window.location.search.substring(1).split('&');
+      if (SCREENSHOT_NODEJS && window.nodeRequire) {
+        window.setTimeout(this.readDirNodeJS.bind(this), 2000);
+        return;
+      }
+
+      var vars = window.location.search.substr(1).split('&');
       var url = '';
       for (var i = 0, nbVars = vars.length; i < nbVars; i++) {
         var pair = vars[i].split('=');
@@ -100,7 +149,7 @@ define([
       this.iframeParentCallback_ = cb;
     },
     iframeCallback: function (arraysgl) {
-      this.iframe.remove();
+      this.iframe_.remove();
       var main = this.main_;
       document.body.appendChild(main.getCanvas());
       main.clearScene();
@@ -108,7 +157,7 @@ define([
       this.endReplay();
     },
     loadVersion: function (version) {
-      var iframe = this.iframe = document.createElement('iframe');
+      var iframe = this.iframe_ = document.createElement('iframe');
       iframe.id = 'sglframe' + version;
       iframe.src = 'http://stephaneginier.com/sculptgl';
       iframe.frameborder = 0;
@@ -127,7 +176,8 @@ define([
         rep.import(this.data_.buffer, this.data_);
       }.bind(this);
     },
-    import: function (data, dataView) {
+    import: function (data, dataView, uid) {
+      this.uid_ = uid;
       var main = this.main_;
       this.data_ = dataView ? dataView : new DataView(data);
 
@@ -319,12 +369,49 @@ define([
       };
       return rmid;
     },
-    replayAction: function (nbSync) {
+    replayAction: function () {
       if (this.paused_) {
         window.setTimeout(this.cbReplayAction_, 100.0);
         return;
       }
 
+      // fastest nodejs version
+      if (SCREENSHOT_NODEJS && window.nodeRequire)
+        this.speed_ = 1000;
+
+      var nbSync = 1 + Math.floor(this.speed_ / 100.0);
+      while (nbSync--) {
+        if (this.applyAction() === true)
+          return;
+      }
+
+      // no need to render
+      if (SCREENSHOT_NODEJS && window.nodeRequire) {
+        window.setTimeout(this.cbReplayAction_, 1000.0 / this.speed_);
+        return;
+      }
+
+      var main = this.main_;
+      main.getCanvas().style.cursor = 'default';
+
+      // manage camera
+      main.camera_ = this.realCamera_;
+      if (!this.cameraOverride_)
+        this.realCamera_.copyCamera(this.virtualCamera_);
+
+      // update progress
+      var ratio = (this.sel_ - this.nbBytesResourcesLoaded_) / (this.data_.byteLength - this.nbBytesResourcesToLoad_);
+      this.widgetProgress_.domContainer.innerHTML = 'Progress : ' + parseInt(100 * ratio, 10) + '%';
+
+      // render
+      if (this.renderOverride_)
+        this.applyRenderOverride();
+      main.applyRender();
+
+      // async replay action
+      window.setTimeout(this.cbReplayAction_, 1000.0 / this.speed_);
+    },
+    applyAction: function () {
       var ev = this.event_;
       var main = this.main_;
       var data = this.data_;
@@ -567,31 +654,9 @@ define([
       this.sel_ = sel;
       if (sel >= data.byteLength) {
         this.endReplay();
-        return;
+        return true;
       }
-      if (this.speed_ < 100 || nbSync === 0) {
-        main.getCanvas().style.cursor = 'default';
-
-        // manage camera
-        main.camera_ = this.realCamera_;
-        if (!this.cameraOverride_)
-          this.realCamera_.copyCamera(this.virtualCamera_);
-
-        // update progress
-        var ratio = (sel - this.nbBytesResourcesLoaded_) / (data.byteLength - this.nbBytesResourcesToLoad_);
-        this.widgetProgress_.domContainer.innerHTML = 'Progress : ' + parseInt(100 * ratio, 10) + '%';
-
-        // render
-        if (this.renderOverride_)
-          this.applyRenderOverride();
-        main.applyRender();
-
-        // async replay action
-        window.setTimeout(this.cbReplayAction_, 1000.0 / this.speed_);
-      } else {
-        // sync replay action
-        this.replayAction(nbSync === undefined ? Math.floor(this.speed_ / 100.0) : --nbSync);
-      }
+      return false;
     },
     endReplay: function () {
       this.removeEvents();
@@ -604,8 +669,13 @@ define([
       main.focusGui_ = false;
       Tablet.overridePressure = -1.0;
       main.getReplayWriter().autoUpload_ = true;
-      main.applyRender();
 
+      if (SCREENSHOT_NODEJS && window.nodeRequire) {
+        this.takeThumbnailsNodeJS();
+        return;
+      }
+
+      main.applyRender();
       if (this.iframeParentCallback_)
         this.iframeParentCallback_(ExportSGL.exportSGLAsArrayBuffer(main.getMeshes()));
     }

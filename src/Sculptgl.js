@@ -338,7 +338,7 @@ define([
       var self = this;
       reader.onload = function (evt) {
         if (fileType === 'rep')
-          self.getReplayReader().import(evt.target.result);
+          self.getReplayReader().import(evt.target.result, null, file.name.substr(0, file.name.length - 4));
         else
           self.loadScene(evt.target.result, fileType);
         document.getElementById('fileopen').value = '';

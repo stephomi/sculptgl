@@ -7,6 +7,10 @@
   <title> SculptGL - A WebGL sculpting app </title>
   <link href='http://fonts.googleapis.com/css?family=Open+Sans:400,600' rel='stylesheet' type='text/css'>
   <link rel='stylesheet' href='css/yagui.css' type='text/css'/>
+  <script>
+    window.nodeRequire = window.require;
+    window.require = undefined;
+  </script>
   <!-- 3rd party libraries -->
   <script src='lib/FileSaver.js'></script>
   <script src='lib/gl-matrix-min.js'></script>
