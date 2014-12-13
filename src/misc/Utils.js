@@ -171,45 +171,6 @@ define([], function () {
     return sign * (1 + mantissa * Math.pow(2, -23)) * Math.pow(2, exponent);
   };
 
-  /** Compute ACMR and ATVR (vertex post transform ratio) */
-  Utils.outputsACMRandATVR = function (mesh) {
-    var iAr = mesh.getIndices();
-    var sizeCache = 32;
-    var cache = [];
-    cache.length = sizeCache;
-
-    var isCacheMiss = function (id) {
-      for (var k = 0; k < sizeCache; ++k) {
-        if (cache[k] === undefined) {
-          cache[k] = id;
-          return 1;
-        } else if (cache[k] === id) {
-          // not sure about that one...
-          // Does a cache HIT moves the vert
-          // up in the FIFO ?
-          // cache.splice(k,1)
-          // cache.push(id)
-          return 0;
-        }
-      }
-      cache.shift();
-      cache.push(id);
-      return 1;
-    };
-
-    var nbTriangles = mesh.getNbTriangles();
-    var cacheMiss = 0;
-    for (var i = 0; i < nbTriangles; ++i) {
-      var id = i * 3;
-      cacheMiss += isCacheMiss(iAr[id]);
-      cacheMiss += isCacheMiss(iAr[id + 1]);
-      cacheMiss += isCacheMiss(iAr[id + 2]);
-    }
-
-    console.log(cacheMiss / nbTriangles);
-    console.log(cacheMiss / mesh.getNbVertices());
-  };
-
   /** Array buffer to string utf-8 */
   Utils.ab2str = function (buf) {
     var str = '';
@@ -318,21 +279,71 @@ define([], function () {
   // };
   // Utils.vector = vector;
 
+  // /** Compute ACMR and ATVR (vertex post transform ratio) */
+  // Utils.outputsACMRandATVR = function (mesh) {
+  //   var iAr = mesh.getTriangles();
+  //   var sizeCache = 32;
+  //   var cache = [];
+  //   cache.length = sizeCache;
+
+  //   var isCacheMiss = function (id) {
+  //     for (var k = 0; k < sizeCache; ++k) {
+  //       if (cache[k] === undefined) {
+  //         cache[k] = id;
+  //         return 1;
+  //       } else if (cache[k] === id) {
+  //         // not sure about that one...
+  //         // Does a cache HIT moves the vert
+  //         // up in the FIFO ?
+  //         // cache.splice(k,1)
+  //         // cache.push(id)
+  //         return 0;
+  //       }
+  //     }
+  //     cache.shift();
+  //     cache.push(id);
+  //     return 1;
+  //   };
+
+  //   var nbTriangles = mesh.getNbTriangles();
+  //   var cacheMiss = 0;
+  //   for (var i = 0; i < nbTriangles; ++i) {
+  //     var id = i * 3;
+  //     cacheMiss += isCacheMiss(iAr[id]);
+  //     cacheMiss += isCacheMiss(iAr[id + 1]);
+  //     cacheMiss += isCacheMiss(iAr[id + 2]);
+  //   }
+
+  //   console.log('ACMR : ' + cacheMiss / nbTriangles);
+  //   console.log('ATVR : ' + cacheMiss / mesh.getNbVertices());
+  // };
+
   // Utils.optimizePreTransform = function (newMesh) {
   //   var vArOld = newMesh.getVertices();
   //   var cArOld = newMesh.getColors();
   //   var mArOld = newMesh.getMaterials();
-  //   var iArOld = newMesh.getIndices();
+  //   var fArOld = newMesh.getFaces();
 
-  //   var vArNew = new Float32Array(vArOld.length);
-  //   var cArNew = new Float32Array(cArOld.length);
-  //   var mArNew = new Float32Array(mArOld.length);
-  //   var iArNew = new Uint32Array(iArOld.length);
+  //   // var hasUV = newMesh.hasUV();
+  //   // var fArUVOld = newMesh.getFacesTexCoord();
+  //   // var uvArOld = newMesh.getTexCoords();
+  //   // var dupOld = newMesh.getVerticesDuplicateStartCount();
 
-  //   var idvPos = new Int32Array(newMesh.getNbVertices());
+  //   var nbVerts = newMesh.getNbVertices();
+
+  //   var vArNew = new Float32Array(nbVerts * 3);
+  //   var cArNew = cArOld ? new Float32Array(nbVerts * 3) : null;
+  //   var mArNew = mArOld ? new Float32Array(nbVerts * 3) : null;
+  //   var fArNew = new Uint32Array(newMesh.getNbFaces() * 4);
+
+  //   // var dupNew = hasUV ? new Uint32Array(nbVerts * 2) : null;
+  //   // var uvArNew = hasUV ? new Float32Array(uvArOld.subarray(0, newMesh.getNbTexCoords() * 2)) : null;
+  //   // var fArUVNew = hasUV ? new Int32Array(fArUVOld.subarray(0, newMesh.getNbFaces() * 4)) : null;
+
+  //   var idvPos = new Int32Array(nbVerts);
   //   var acc = 0;
-  //   for (var i = 0, l = iArNew.length; i < l; ++i) {
-  //     var iv = iArOld[i];
+  //   for (var i = 0, l = fArNew.length; i < l; ++i) {
+  //     var iv = fArOld[i];
   //     var tag = idvPos[iv] - 1;
   //     if (tag === -1) {
   //       var idNew = acc * 3;
@@ -340,21 +351,38 @@ define([], function () {
   //       vArNew[idNew] = vArOld[idOld];
   //       vArNew[idNew + 1] = vArOld[idOld + 1];
   //       vArNew[idNew + 2] = vArOld[idOld + 2];
-  //       cArNew[idNew] = cArOld[idOld];
-  //       cArNew[idNew + 1] = cArOld[idOld + 1];
-  //       cArNew[idNew + 2] = cArOld[idOld + 2];
-  //       mArNew[idNew] = mArOld[idOld];
-  //       mArNew[idNew + 1] = mArOld[idOld + 1];
-  //       mArNew[idNew + 2] = mArOld[idOld + 2];
+  //       if (cArNew) {
+  //         cArNew[idNew] = cArOld[idOld];
+  //         cArNew[idNew + 1] = cArOld[idOld + 1];
+  //         cArNew[idNew + 2] = cArOld[idOld + 2];
+  //       }
+  //       if (mArNew) {
+  //         mArNew[idNew] = mArOld[idOld];
+  //         mArNew[idNew + 1] = mArOld[idOld + 1];
+  //         mArNew[idNew + 2] = mArOld[idOld + 2];
+  //       }
+  //       // if (dupNew) {
+  //       //   dupNew[acc * 2] = dupOld[iv * 2];
+  //       //   dupNew[acc * 2 + 1] = dupOld[iv * 2 + 1];
+  //       // }
+  //       // if (uvArNew) {
+  //       //   uvArNew[acc * 2] = uvArOld[iv * 2];
+  //       //   uvArNew[acc * 2 + 1] = uvArOld[iv * 2 + 1];
+  //       // }
   //       tag = acc++;
   //       idvPos[iv] = tag + 1;
   //     }
-  //     iArNew[i] = tag;
+  //     fArNew[i] = tag;
+  //     // if (fArUVNew && fArUVNew[i] < nbVerts)
+  //     //   fArUVNew[i] = tag;
   //   }
   //   newMesh.setVertices(vArNew);
   //   newMesh.setColors(cArNew);
   //   newMesh.setMaterials(mArNew);
-  //   newMesh.setIndices(iArNew);
+  //   newMesh.setFaces(fArNew);
+  //   // newMesh.setVerticesDuplicateStartCount(dupNew);
+  //   // newMesh.setTexCoords(uvArNew);
+  //   // newMesh.setFacesTexCoord(fArUVNew);
   // };
 
   return Utils;
