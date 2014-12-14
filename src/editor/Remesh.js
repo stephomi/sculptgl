@@ -4,8 +4,9 @@ define([
   'editor/SurfaceNets',
   'math3d/Geometry',
   'mesh/Mesh',
-  'misc/Utils'
-], function (glm, HoleFilling, SurfaceNets, Geometry, Mesh, Utils) {
+  'misc/Utils',
+  'render/Shader'
+], function (glm, HoleFilling, SurfaceNets, Geometry, Mesh, Utils, Shader) {
 
   'use strict';
 
@@ -216,6 +217,8 @@ define([
     var tmp = [0.0, 0.0, 0.0];
     for (var i = 0, nbm = meshes.length; i < nbm; ++i) {
       var mesh = meshes[i];
+      if (mesh.isUsingTexCoords())
+        mesh.setShader(Shader.mode.PBR);
       var matrix = mesh.getMatrix();
       mesh = HoleFilling.closeHoles(mesh);
       if (mesh === meshes[i])

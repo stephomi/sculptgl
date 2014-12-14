@@ -1,8 +1,9 @@
 define([
   'misc/Utils',
   'mesh/dynamic/Topology',
-  'mesh/Mesh'
-], function (Utils, Topology, Mesh) {
+  'mesh/Mesh',
+  'render/Shader'
+], function (Utils, Topology, Mesh, Shader) {
 
   'use strict';
 
@@ -30,6 +31,8 @@ define([
     this.wireframe_ = null; // Uint32Array
     this.init(mesh);
     this.setRender(mesh.getRender());
+    if (mesh.isUsingTexCoords())
+      this.setShader(Shader.mode.PBR);
     mesh.getRender().mesh_ = this;
     this.initRender();
   };

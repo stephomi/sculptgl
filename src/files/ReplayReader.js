@@ -72,7 +72,7 @@ define([
       var files = this.replayFiles_;
       var fs = window.nodeRequire('fs');
       if (!files) {
-        this.dir_ = '../Cours/replays/replay-6/';
+        this.dir_ = '../Cours/replays/replay-7/';
         files = this.replayFiles_ = fs.readdirSync(this.dir_);
         files.sort();
         this.nbReadFile_ = 0;
@@ -99,7 +99,7 @@ define([
       canvas.width = 1024;
       canvas.height = 768;
       this.main_.onCanvasResize();
-      this.main_.getCamera().resetView();
+      this.main_.getCamera().resetViewFront();
       this.main_.applyRender();
 
       var dataUrl = canvas.toDataURL('image/jpeg');
@@ -380,14 +380,19 @@ define([
         this.speed_ = 1000;
 
       var nbSync = 1 + Math.floor(this.speed_ / 100.0);
+      var nextTick = 0;
       while (nbSync--) {
-        if (this.applyAction() === true)
+        nextTick = this.applyAction();
+        if (nextTick < 0)
           return;
+        else if (nextTick > 0)
+          break;
       }
+      nextTick = nextTick === 0 ? 1000.0 / this.speed_ : nextTick;
 
       // no need to render
       if (SCREENSHOT_NODEJS && window.nodeRequire) {
-        window.setTimeout(this.cbReplayAction_, 1000.0 / this.speed_);
+        window.setTimeout(this.cbReplayAction_, nextTick);
         return;
       }
 
@@ -409,7 +414,7 @@ define([
       main.applyRender();
 
       // async replay action
-      window.setTimeout(this.cbReplayAction_, 1000.0 / this.speed_);
+      window.setTimeout(this.cbReplayAction_, nextTick);
     },
     applyAction: function () {
       var ev = this.event_;
@@ -424,6 +429,8 @@ define([
       var vcam = main.camera_ = this.virtualCamera_;
       var sculpt = main.sculpt_;
       var tool = main.sculpt_.getCurrentTool();
+
+      var nextTick = 0; // asap
 
       // debug
       if (DEBUG)
@@ -571,6 +578,7 @@ define([
         break;
       case Replay.MULTI_SUBDIVIDE:
         main.getGui().ctrlTopology_.subdivide();
+        nextTick = 100;
         break;
       case Replay.MULTI_REVERSE:
         main.getGui().ctrlTopology_.reverse();
@@ -585,6 +593,7 @@ define([
         Remesh.resolution = data.getUint16(sel);
         main.getGui().ctrlTopology_.remesh();
         sel += 2;
+        nextTick = 100;
         break;
       case Replay.DYNAMIC_TOGGLE_ACTIVATE:
         main.getGui().ctrlTopology_.dynamicToggleActivate();
@@ -654,9 +663,9 @@ define([
       this.sel_ = sel;
       if (sel >= data.byteLength) {
         this.endReplay();
-        return true;
+        return -1; // end
       }
-      return false;
+      return nextTick;
     },
     endReplay: function () {
       this.removeEvents();
