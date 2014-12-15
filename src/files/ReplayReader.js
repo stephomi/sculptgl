@@ -358,6 +358,10 @@ define([
           mesh.setShader(ren.shader_);
       }
     },
+    getOrCreateRenderMeshes: function (meshes) {
+      for (var i = 0, l = meshes.length; i < l; ++i)
+        this.getOrCreateRenderMesh(meshes[i]);
+    },
     getOrCreateRenderMesh: function (mesh) {
       var rmid = this.virtualRender_[mesh.getID()];
       if (rmid)
@@ -614,9 +618,11 @@ define([
         main.loadScene(data.buffer.slice(sel + 4, sel + 4 + nbBytes), 'sgl');
         this.nbBytesResourcesLoaded_ += nbBytes;
         sel += 4 + nbBytes;
+        this.getOrCreateRenderMeshes(main.getMeshes());
         break;
       case Replay.ADD_SPHERE:
         main.addSphere();
+        this.getOrCreateRenderMesh(main.getMesh());
         break;
       case Replay.DELETE_CURRENT_MESH:
         main.deleteCurrentMesh();
