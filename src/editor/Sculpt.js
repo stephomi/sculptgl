@@ -92,15 +92,13 @@ define([
         return;
       this.sculptTimer_ = window.setInterval(function () {
         main.getReplayWriter().pushUpdateContinuous();
-        tool.update(main);
-        main.render();
+        tool.updateContinuous(main);
       }, 16.6);
     },
     /** End sculpting */
     end: function () {
       var tool = this.getCurrentTool();
-      if (tool.mesh_)
-        tool.mesh_.checkLeavesUpdate();
+      tool.end();
       if (this.sculptTimer_ !== -1) {
         clearInterval(this.sculptTimer_);
         this.sculptTimer_ = -1;

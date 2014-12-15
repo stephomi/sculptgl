@@ -525,7 +525,7 @@ define([
         sculpt.continuous_ = !sculpt.continuous_;
         break;
       case Replay.SCULPT_UPDATE_CONTINOUS:
-        tool.update(main);
+        tool.updateContinuous(main);
         break;
       case Replay.BRUSH_INTENSITY:
       case Replay.CREASE_INTENSITY:

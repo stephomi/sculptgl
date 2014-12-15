@@ -38,6 +38,12 @@ define([
   };
 
   MeshDynamic.prototype = {
+    updateGeometry: function (iFaces, iVerts) {
+      Mesh.prototype.updateGeometry.call(this, iFaces, iVerts);
+      this.localStackEditFaces_.length = 0;
+      if (iFaces)
+        this.localStackEditFaces_[0] = iFaces;
+    },
     getDynamicTopology: function () {
       return this.dynamicTopology_;
     },
@@ -72,22 +78,27 @@ define([
       return this.facesStateFlags_;
     },
     getRenderVertices: function () {
+      if (this.isLocalEdit()) return this.localVerticesXYZ_;
       if (this.isUsingDrawArrays()) return this.getVerticesDrawArrays();
       return this.getVertices().subarray(0, this.getNbVertices() * 3);
     },
     getRenderNormals: function () {
+      if (this.isLocalEdit()) return this.localNormalsXYZ_;
       if (this.isUsingDrawArrays()) return this.getNormalsDrawArrays();
       return this.getNormals().subarray(0, this.getNbVertices() * 3);
     },
     getRenderColors: function () {
+      if (this.isLocalEdit()) return this.localColorsRGB_;
       if (this.isUsingDrawArrays()) return this.getColorsDrawArrays();
       return this.getColors().subarray(0, this.getNbVertices() * 3);
     },
     getRenderMaterials: function () {
+      if (this.isLocalEdit()) return this.localMaterialsPBR_;
       if (this.isUsingDrawArrays()) return this.getMaterialsDrawArrays();
       return this.getMaterials().subarray(0, this.getNbVertices() * 3);
     },
     getRenderTriangles: function () {
+      if (this.isLocalEdit()) return this.localTrianglesABC_;
       return this.getTriangles().subarray(0, this.getNbTriangles() * 3);
     },
     init: function (mesh) {

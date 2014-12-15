@@ -13,7 +13,7 @@ define([
   ShaderTransparency.program = undefined;
 
   ShaderTransparency.uniformNames = ['uMV', 'uMVP', 'uN'];
-  Array.prototype.push.apply(ShaderTransparency.uniformNames, ShaderBase.uniformNames.picking);
+  Array.prototype.push.apply(ShaderTransparency.uniformNames, ShaderBase.uniformNames.symmetryLine);
 
   ShaderTransparency.vertex = [
     'attribute vec3 aVertex;',
@@ -36,22 +36,20 @@ define([
 
   ShaderTransparency.fragment = [
     'precision mediump float;',
-    ShaderBase.strings.pickingUniforms,
+    ShaderBase.strings.symmetryLineUniforms,
     'varying vec3 vVertex;',
     'varying vec3 vNormal;',
     'varying vec3 vColor;',
-    'const vec3 colorBackface = vec3(0.81, 0.71, 0.23);',
     'const vec3 vecLight = vec3(0.06189844605901729, 0.12379689211803457, 0.9903751369442766);',
     'const float shininess = 100.0;',
-    ShaderBase.strings.pickingFunction,
+    ShaderBase.strings.symmetryLineFunction,
     'void main() {',
     '  vec4 color = vec4(vColor, 0.05);',
     '  vec4 specularColor = color * 0.5;',
     '  specularColor.a = color.a * 3.0;',
     '  float specular = max(dot(-vecLight, -reflect(vecLight, vNormal)), 0.0);',
     '  vec4 fragColor = color + specularColor * (specular + pow(specular, shininess));',
-    '  picking(fragColor.rgb);',
-    '  gl_FragColor = fragColor;',
+    '  gl_FragColor = symmetryLine(fragColor);',
     '}'
   ].join('\n');
 
@@ -61,6 +59,7 @@ define([
     gl.useProgram(this.program);
     this.bindAttributes(render);
     this.updateUniforms(render, main);
+
     gl.depthMask(false);
     gl.enable(gl.BLEND);
     ShaderBase.drawBuffer(render);

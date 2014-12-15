@@ -56,6 +56,7 @@ define([
         Geometry.intersectLinePlane(vNear, vFar, this.origin_, this.normal_, inter);
 
         mat4.translate(mesh.getMatrix(), this.matrix_, vec3.sub(inter, inter, this.origin_));
+        main.render();
       };
     })()
   };

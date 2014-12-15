@@ -46,6 +46,7 @@ define([
       var rLocal2 = picking.getLocalRadius2();
       picking.pickVerticesInSphere(rLocal2);
       this.stroke(picking, delta);
+
       if (main.getSculpt().getSymmetry()) {
         var pickingSym = main.getPickingSymmetry();
         if (pickingSym.getMesh()) {
@@ -53,11 +54,7 @@ define([
           this.stroke(pickingSym, delta);
         }
       }
-      if (main.getMesh().getDynamicTopology) {
-        main.getMesh().updateBuffers();
-      } else {
-        this.mesh_.updateGeometryBuffers();
-      }
+      this.updateRender(main);
     },
     /** On stroke */
     stroke: function (picking, delta) {

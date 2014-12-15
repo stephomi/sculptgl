@@ -1,8 +1,7 @@
 define([
   'render/Buffer',
-  'render/Attribute',
   'render/Shader'
-], function (Buffer, Attribute, Shader) {
+], function (Buffer, Shader) {
 
   'use strict';
 
@@ -15,8 +14,8 @@ define([
     this.tex_ = null; // the texture
     this.fill_ = true; // if the canvas should be fille by the background
 
-    this.vertCoords = new Float32Array([-1.0, -1.0, -1.0, 1.0, 1.0, -1.0, -1.0, 1.0, 1.0, 1.0, 1.0, -1.0]);
-    this.texCoords = new Float32Array([0.0, 0.0, 0.0, 1.0, 1.0, 0.0, 0.0, 1.0, 1.0, 1.0, 1.0, 0.0]);
+    this.vertCoords = new Float32Array([-1.0, -1.0, 1.0, -1.0, -1.0, 1.0, 1.0, 1.0]);
+    this.texCoords = new Float32Array([0.0, 0.0, 1.0, 0.0, 0.0, 1.0, 1.0, 1.0]);
 
     this.shader_ = null; // the shader
     this.init();
@@ -47,10 +46,6 @@ define([
       this.getVertexBuffer().release();
       this.getTexCoordBuffer().release();
     },
-    /** Return the configuration of the shader */
-    getConfig: function () {
-      return Shader[Shader.mode.BACKGROUND];
-    },
     /** Initialize Vertex Buffer Object (VBO) */
     initBuffer: function () {
       this.getVertexBuffer().update(this.vertCoords);
@@ -63,7 +58,7 @@ define([
       var comp = this.fill_ ? 1.0 / ratio : ratio;
       var x = comp < 1.0 ? 1.0 : 1.0 / ratio;
       var y = comp < 1.0 ? ratio : 1.0;
-      this.vertCoords.set([-x, -y, -x, y, x, -y, -x, y, x, y, x, -y]);
+      this.vertCoords.set([-x, -y, x, -y, -x, y, x, y]);
       this.getVertexBuffer().update(this.vertCoords);
     },
     /** Load background texture */

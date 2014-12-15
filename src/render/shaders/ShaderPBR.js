@@ -17,7 +17,7 @@ define([
   ShaderPBR.program = undefined;
 
   ShaderPBR.uniformNames = ['uMV', 'uMVP', 'uN', 'uIblTransform', 'uTexture0', 'uAlbedo', 'uRoughness', 'uMetallic', 'uExposure'];
-  Array.prototype.push.apply(ShaderPBR.uniformNames, ShaderBase.uniformNames.picking);
+  Array.prototype.push.apply(ShaderPBR.uniformNames, ShaderBase.uniformNames.symmetryLine);
 
   ShaderPBR.vertex = [
     'precision mediump float;',
@@ -54,8 +54,8 @@ define([
     'varying vec3 vAlbedo;',
     'varying float vRoughness;',
     'varying float vMetallic;',
-    ShaderBase.strings.pickingUniforms,
-    ShaderBase.strings.pickingFunction,
+    ShaderBase.strings.symmetryLineUniforms,
+    ShaderBase.strings.symmetryLineFunction,
     '',
     '#define PI 3.1415926535897932384626433832795',
     '#define PI_2 (2.0*3.1415926535897932384626433832795)',
@@ -280,7 +280,7 @@ define([
     '  MaterialRoughness = max( 0.05 , vRoughness );',
     '  MaterialAlbedo = vAlbedo * (1.0 - vMetallic);',
     '  MaterialSpecular = mix( vec3(0.04), vAlbedo, vMetallic);',
-    '  vec3 fragColor = picking(solid2( getIBLTransfrom( uIblTransform ), fragNormal, -fragEye ));',
+    '  vec3 fragColor = symmetryLine(solid2( getIBLTransfrom( uIblTransform ), fragNormal, -fragEye ));',
     '  gl_FragColor = vec4( fragColor, 1.0);',
     '}'
   ].join('\n');

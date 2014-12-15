@@ -18,56 +18,57 @@ define([
   }
 
   Drag.prototype = {
-    /** Update sculpting operation */
+    /** Make a brush stroke */
     sculptStroke: function (main) {
       var mesh = this.mesh_;
-      var mouseX = main.mouseX_;
-      var mouseY = main.mouseY_;
       var picking = main.getPicking();
-      var pickingSym = main.getPickingSymmetry();
-      var lx = main.lastMouseX_;
-      var ly = main.lastMouseY_;
-      var dx = mouseX - lx;
-      var dy = mouseY - ly;
+      var pickingSym = main.getSculpt().getSymmetry() ? main.getPickingSymmetry() : null;
+
+      var dx = main.mouseX_ - this.lastMouseX_;
+      var dy = main.mouseY_ - this.lastMouseY_;
       var dist = Math.sqrt(dx * dx + dy * dy);
-      main.sumDisplacement_ += dist;
-      var sumDisp = main.sumDisplacement_;
       var minSpacing = 0.15 * picking.getScreenRadius();
-      var step = dist / Math.floor(dist / minSpacing);
-      dx /= dist;
-      dy /= dist;
-      mouseX = lx;
-      mouseY = ly;
-      var sym = main.getSculpt().getSymmetry();
-      minSpacing = 0.0;
+
+      var step = 1.0 / Math.floor(dist / minSpacing);
+      dx *= step;
+      dy *= step;
+      var mouseX = this.lastMouseX_;
+      var mouseY = this.lastMouseY_;
+
       if (!picking.getMesh())
         return;
-      picking.mesh_ = pickingSym.mesh_ = mesh;
-      vec3.copy(pickingSym.getIntersectionPoint(), picking.getIntersectionPoint());
-      Geometry.mirrorPoint(pickingSym.getIntersectionPoint(), mesh.getCenter(), mesh.getSymmetryNormal());
-      if (sumDisp > minSpacing || sumDisp === 0.0) {
-        sumDisp = 0.0;
-        for (var i = 0; i <= dist; i += step) {
-          var localRadius2 = picking.getLocalRadius2();
-          this.updateDragDir(picking, mouseX, mouseY);
-          picking.pickVerticesInSphere(localRadius2);
-          this.stroke(picking);
-          if (sym) {
-            this.updateDragDir(pickingSym, mouseX, mouseY, true);
-            pickingSym.setLocalRadius2(localRadius2);
-            pickingSym.pickVerticesInSphere(localRadius2);
-            this.stroke(pickingSym, true);
-          }
-          mouseX += dx * step;
-          mouseY += dy * step;
-        }
-        if (main.getMesh().getDynamicTopology) {
-          main.getMesh().updateBuffers();
-        } else {
-          this.mesh_.updateGeometryBuffers();
-        }
+      picking.mesh_ = mesh;
+      if (pickingSym) {
+        pickingSym.mesh_ = mesh;
+        vec3.copy(pickingSym.getIntersectionPoint(), picking.getIntersectionPoint());
+        Geometry.mirrorPoint(pickingSym.getIntersectionPoint(), mesh.getCenter(), mesh.getSymmetryNormal());
       }
-      main.sumDisplacement_ = sumDisp;
+
+      for (var i = 0.0; i <= 1.0; i += step) {
+        if (!this.makeStroke(mouseX, mouseY, picking, pickingSym))
+          break;
+        mouseX += dx;
+        mouseY += dy;
+      }
+
+      this.updateRender(main);
+
+      this.lastMouseX_ = main.mouseX_;
+      this.lastMouseY_ = main.mouseY_;
+    },
+    makeStroke: function (mouseX, mouseY, picking, pickingSym) {
+      var localRadius2 = picking.getLocalRadius2();
+      this.updateDragDir(picking, mouseX, mouseY);
+      picking.pickVerticesInSphere(localRadius2);
+      this.stroke(picking);
+
+      if (pickingSym) {
+        this.updateDragDir(pickingSym, mouseX, mouseY, true);
+        pickingSym.setLocalRadius2(localRadius2);
+        pickingSym.pickVerticesInSphere(localRadius2);
+        this.stroke(pickingSym, true);
+      }
+      return true;
     },
     /** On stroke */
     stroke: function (picking, sym) {

@@ -35,14 +35,28 @@ define([
     },
     /** Update sculpting operation */
     update: function (main) {
-      if (this.pickColor_ === true) {
-        var picking = main.getPicking();
-        picking.intersectionMouseMesh(this.mesh_, main.mouseX_, main.mouseY_);
-        if (picking.getMesh())
-          this.pickColor(picking.getPickedFace(), picking.getIntersectionPoint());
-        return;
+      if (this.pickColor_ === true)
+        return this.updatePickColor(main);
+      this.sculptStroke(main);
+    },
+    updateContinuous: function (main) {
+      if (this.pickColor_ === true)
+        return this.updatePickColor(main);
+      SculptBase.prototype.updateContinuous.call(this, main);
+    },
+    updateMeshBuffers: function () {
+      if (this.mesh_.getDynamicTopology) {
+        this.mesh_.updateBuffers();
+      } else {
+        this.mesh_.updateColorBuffer();
+        this.mesh_.updateMaterialBuffer();
       }
-      this.sculptStroke(main, true);
+    },
+    updatePickColor: function (main) {
+      var picking = main.getPicking();
+      picking.intersectionMouseMesh(this.mesh_, main.mouseX_, main.mouseY_);
+      if (picking.getMesh())
+        this.pickColor(picking.getPickedFace(), picking.getIntersectionPoint());
     },
     /** Pick the color under the mouse */
     setPickCallback: function (cb) {

@@ -216,7 +216,7 @@ define([], function () {
       context = this;
       args = arguments;
       if (remaining <= 0 || remaining > wait) {
-        clearTimeout(timeout);
+        window.clearTimeout(timeout);
         timeout = null;
         previous = now;
         result = func.apply(context, args);

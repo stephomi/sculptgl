@@ -8,13 +8,15 @@ define([
   'math3d/Camera',
   'math3d/Picking',
   'mesh/Background',
+  'mesh/Selection',
   'mesh/Grid',
   'mesh/Mesh',
   'mesh/multiresolution/Multimesh',
   'states/States',
   'render/Render',
+  'render/Rtt',
   'render/shaders/ShaderMatcap'
-], function (Utils, Sculpt, Import, ReplayWriter, ReplayReader, Gui, Camera, Picking, Background, Grid, Mesh, Multimesh, States, Render, ShaderMatcap) {
+], function (Utils, Sculpt, Import, ReplayWriter, ReplayReader, Gui, Camera, Picking, Background, Selection, Grid, Mesh, Multimesh, States, Render, Rtt, ShaderMatcap) {
 
   'use strict';
 
@@ -27,7 +29,6 @@ define([
     this.mouseY_ = 0; // the y position
     this.lastMouseX_ = 0; // the last x position
     this.lastMouseY_ = 0; // the last y position
-    this.sumDisplacement_ = 0; // sum of the displacement mouse
     this.mouseButton_ = 0; // which mouse button is pressed
 
     // core of the app
@@ -41,8 +42,10 @@ define([
     this.showGrid_ = true;
     this.grid_ = null; // the grid
     this.background_ = null; // the background
+    this.selection_ = null; // the selection geometry
     this.meshes_ = []; // the meshes
     this.mesh_ = null; // the selected mesh
+    this.rtt_ = null; // rtt
 
     // ui stuffs
     this.gui_ = new Gui(this); // gui
@@ -52,7 +55,9 @@ define([
     this.replayerWriter_ = new ReplayWriter(this); // the user event stack replayer
     this.replayerReader_ = new ReplayReader(this); // reader replayer
     this.isReplayed_ = false; // if we want to save the replay mode
-    this.preventRender_ = false; // prevent multiple render per render
+    this.preventRender_ = false; // prevent multiple render per frame
+
+    this.drawFullScene_ = false; // render everything on the rtt
   }
 
   SculptGL.prototype = {
@@ -62,7 +67,10 @@ define([
       if (!this.gl_)
         return;
       this.background_ = new Background(this.gl_);
+      this.selection_ = new Selection(this.gl_);
       this.grid_ = new Grid(this.gl_);
+      this.rtt_ = new Rtt(this.gl_);
+
       this.loadTextures();
       this.gui_.initGui();
       this.onCanvasResize();
@@ -117,24 +125,49 @@ define([
       this.getGui().updateMesh();
       this.render();
     },
+    renderSelectOverRtt: function () {
+      if (this.requestRender())
+        this.drawFullScene_ = false;
+    },
     /** Request a render */
     render: function () {
+      this.drawFullScene_ = true;
+      this.requestRender();
+    },
+    requestRender: function () {
       if (this.preventRender_ === true)
-        return;
+        return false; // render already requested for the next frame
       window.requestAnimationFrame(this.applyRender.bind(this));
       this.preventRender_ = true;
+      return true;
     },
     /** Render the scene */
     applyRender: function () {
       this.preventRender_ = false;
-      var gl = this.gl_;
-      gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
-      this.background_.render();
       this.computeMatricesAndSort();
-      if (this.showGrid_)
-        this.grid_.render();
-      for (var i = 0, meshes = this.meshes_, nb = meshes.length; i < nb; ++i)
-        meshes[i].render(this);
+      var gl = this.gl_;
+
+      gl.disable(gl.DEPTH_TEST);
+      // gl.enable(gl.CULL_FACE);
+      gl.bindFramebuffer(gl.FRAMEBUFFER, this.rtt_.getFramebuffer());
+
+      if (this.drawFullScene_) {
+        gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+
+        this.background_.render();
+
+        gl.enable(gl.DEPTH_TEST);
+        if (this.showGrid_)
+          this.grid_.render();
+        for (var i = 0, meshes = this.meshes_, nb = meshes.length; i < nb; ++i)
+          meshes[i].render(this);
+      }
+
+      // render to screen
+      gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+      gl.disable(gl.DEPTH_TEST);
+      this.rtt_.render();
+      this.selection_.render(this);
     },
     /** Pre compute matrices and sort meshes */
     computeMatricesAndSort: function () {
@@ -143,33 +176,33 @@ define([
       this.grid_.computeMatrices(cam);
       for (var i = 0, nb = meshes.length; i < nb; ++i)
         meshes[i].computeMatrices(cam);
+      this.selection_.computeMatrices(this);
       meshes.sort(Mesh.sortFunction);
     },
     /** Load webgl context */
     initWebGL: function () {
-      // TODO : add an option to toggle antialias if possible ?
       var attributes = {
-        antialias: true,
+        antialias: false,
         stencil: true
       };
       var canvas = document.getElementById('canvas');
       var gl = this.gl_ = canvas.getContext('webgl', attributes) || canvas.getContext('experimental-webgl', attributes);
       if (!gl) {
-        window.alert('Could not initialise WebGL. You should try Chrome or Firefox.');
+        window.alert('Could not initialise WebGL.');
+        return;
       }
-      if (gl) {
-        if (!gl.getExtension('OES_element_index_uint')) {
-          Render.ONLY_DRAW_ARRAYS = true;
-        }
-        gl.viewportWidth = window.innerWidth;
-        gl.viewportHeight = window.innerHeight;
-        gl.clearColor(0.2, 0.2, 0.2, 1);
-        gl.enable(gl.DEPTH_TEST);
-        gl.depthFunc(gl.LEQUAL);
-        gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
-        gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true);
-        gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+      if (!gl.getExtension('OES_element_index_uint')) {
+        Render.ONLY_DRAW_ARRAYS = true;
       }
+      gl.viewportWidth = window.innerWidth;
+      gl.viewportHeight = window.innerHeight;
+      gl.clearColor(0.2, 0.2, 0.2, 1);
+      gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
+      gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true);
+      gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+
+      gl.depthFunc(gl.LEQUAL);
+      gl.cullFace(gl.BACK);
     },
     /** Load textures (preload) */
     loadTextures: function () {
@@ -189,6 +222,7 @@ define([
           gl.generateMipmap(gl.TEXTURE_2D);
           gl.bindTexture(gl.TEXTURE_2D, null);
           ShaderMatcap.textures[idMaterial] = idTex;
+          self.render();
         };
       };
       for (var i = 0, mats = ShaderMatcap.matcaps, l = mats.length; i < l; ++i)
@@ -203,6 +237,7 @@ define([
         this.getReplayWriter().pushCameraSize(newWidth, newHeight);
 
       this.background_.onResize(newWidth, newHeight);
+      this.rtt_.onResize(newWidth, newHeight);
       this.gl_.viewport(0, 0, newWidth, newHeight);
       this.camera_.updateProjection();
       this.render();
@@ -395,6 +430,7 @@ define([
       this.states_.pushStateAdd(newMeshes);
       this.setMesh(meshes[meshes.length - 1]);
       this.camera_.resetView();
+      return newMeshes;
     },
     /** Load the sphere */
     addSphere: function () {
@@ -440,15 +476,16 @@ define([
       mesh.initRender();
 
       mesh = new Multimesh(mesh);
-      while (mesh.getNbFaces() < 20000)
+      while (mesh.getNbFaces() < 50000)
         mesh.addLevel();
       // discard the very low res
-      mesh.meshes_.splice(0, 3);
-      mesh.sel_ -= 3;
+      mesh.meshes_.splice(0, 4);
+      mesh.sel_ -= 4;
 
       this.meshes_.push(mesh);
       this.states_.pushStateAdd(mesh);
       this.setMesh(mesh);
+      return mesh;
     },
     /** Clear the scene */
     clearScene: function () {
@@ -514,6 +551,14 @@ define([
       this.camera_.zoom(dir * 0.02);
       Multimesh.RENDER_HINT = Multimesh.CAMERA;
       this.render();
+      // workaround for "end mouse wheel" event
+      if (this.timerEndWheel_)
+        window.clearTimeout(this.timerEndWheel_);
+      this.timerEndWheel_ = window.setTimeout(this.endWheel.bind(this), 300);
+    },
+    endWheel: function () {
+      Multimesh.RENDER_HINT = Multimesh.NONE;
+      this.render();
     },
     /** Set mouse position from event */
     setMousePosition: function (event) {
@@ -569,10 +614,8 @@ define([
       if (!this.isReplayed())
         this.getReplayWriter().pushDeviceDown(button, mouseX, mouseY, event);
 
-      if (button === 1) {
-        this.sumDisplacement_ = 0;
+      if (button === 1)
         this.sculpt_.start(this);
-      }
       var picking = this.picking_;
       var pickedMesh = picking.getMesh();
       if (button === 1 && pickedMesh)
@@ -618,12 +661,15 @@ define([
         if (button === 2) {
           this.camera_.translate((mouseX - this.lastMouseX_) / 3000, (mouseY - this.lastMouseY_) / 3000);
           Multimesh.RENDER_HINT = Multimesh.CAMERA;
+          this.render();
         } else if (button === 4) {
           this.camera_.zoom((mouseX - this.lastMouseX_) / 3000);
           Multimesh.RENDER_HINT = Multimesh.CAMERA;
+          this.render();
         } else if (button === 3) {
           this.camera_.rotate(mouseX, mouseY);
           Multimesh.RENDER_HINT = Multimesh.CAMERA;
+          this.render();
         } else if (button === 1) {
           Multimesh.RENDER_HINT = Multimesh.SCULPT;
           this.sculpt_.update(this);
@@ -633,7 +679,7 @@ define([
       }
       this.lastMouseX_ = mouseX;
       this.lastMouseY_ = mouseY;
-      this.render();
+      this.renderSelectOverRtt();
     },
     getIndexMesh: function (mesh) {
       var meshes = this.meshes_;

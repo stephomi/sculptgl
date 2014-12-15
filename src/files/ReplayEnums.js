@@ -100,7 +100,7 @@ define([], function () {
   Replay.SHIFT = 1 << 2;
 
   Replay.CODE = 59821876; // code
-  Replay.VERSION = 1; // version
+  Replay.VERSION = 2; // version
 
   return Replay;
 });

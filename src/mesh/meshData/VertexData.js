@@ -312,7 +312,7 @@ define([
       }
       return new Uint32Array(iVertsExpanded.subarray(0, acc));
     },
-    /** Return all the faces linked to a group of vertices */
+    /** Return all the vertices linked to a group of faces */
     getVerticesFromFaces: function (iFaces) {
       var mesh = this.mesh_;
       var tagFlag = ++Utils.TAG_FLAG;

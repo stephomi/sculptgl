@@ -15,7 +15,7 @@ define([
   ShaderUV.program = undefined;
 
   ShaderUV.uniformNames = ['uMV', 'uMVP', 'uN', 'uTexture0'];
-  Array.prototype.push.apply(ShaderUV.uniformNames, ShaderBase.uniformNames.picking);
+  Array.prototype.push.apply(ShaderUV.uniformNames, ShaderBase.uniformNames.symmetryLine);
 
   ShaderUV.vertex = [
     'attribute vec3 aVertex;',
@@ -42,15 +42,15 @@ define([
   ShaderUV.fragment = [
     'precision mediump float;',
     'uniform sampler2D uTexture0;',
-    ShaderBase.strings.pickingUniforms,
+    ShaderBase.strings.symmetryLineUniforms,
     'varying vec3 vVertex;',
     'varying vec3 vNormal;',
     'varying vec3 vColor;',
     'varying vec2 vTexCoord;',
-    ShaderBase.strings.pickingFunction,
+    ShaderBase.strings.symmetryLineFunction,
     'void main() {',
     '  vec3 fragColor = texture2D(uTexture0, vTexCoord).rgb * vColor;',
-    '  fragColor = picking(fragColor);',
+    '  fragColor = symmetryLine(fragColor);',
     '  gl_FragColor = vec4(fragColor, 1.0);',
     '}'
   ].join('\n');

@@ -13,7 +13,7 @@ define([
   ShaderNormal.program = undefined;
 
   ShaderNormal.uniformNames = ['uMV', 'uMVP'];
-  Array.prototype.push.apply(ShaderNormal.uniformNames, ShaderBase.uniformNames.picking);
+  Array.prototype.push.apply(ShaderNormal.uniformNames, ShaderBase.uniformNames.symmetryLine);
 
   ShaderNormal.vertex = [
     'attribute vec3 aVertex;',
@@ -32,13 +32,13 @@ define([
 
   ShaderNormal.fragment = [
     'precision mediump float;',
-    ShaderBase.strings.pickingUniforms,
+    ShaderBase.strings.symmetryLineUniforms,
     'varying vec3 vVertex;',
     'varying vec3 vNormal;',
-    ShaderBase.strings.pickingFunction,
+    ShaderBase.strings.symmetryLineFunction,
     'void main() {',
     '  vec3 fragColor = vNormal * 0.5 + 0.5;',
-    '  fragColor = picking(fragColor);',
+    '  fragColor = symmetryLine(fragColor);',
     '  gl_FragColor = vec4(fragColor, 1.0);',
     '}'
   ].join('\n');

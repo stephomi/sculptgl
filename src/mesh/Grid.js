@@ -55,10 +55,6 @@ define([
     release: function () {
       this.getVertexBuffer().release();
     },
-    /** Return the configuration of the shader */
-    getConfig: function () {
-      return Shader[Shader.mode.BACKGROUND];
-    },
     /** Initialize Vertex Buffer Object (VBO) */
     initBuffer: function () {
       this.getVertexBuffer().update(this.vertCoords);

@@ -143,7 +143,7 @@ define([
     },
     /** Return the rendering mesh index */
     getLowIndexRender: function () {
-      var limit = 1500000;
+      var limit = 500000;
       var sel = this.sel_;
       while (sel >= 0) {
         var mesh = this.meshes_[sel];
