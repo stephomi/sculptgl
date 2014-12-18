@@ -1,7 +1,8 @@
 define([
   'gui/tr/english',
+  'gui/tr/chinese',
   'gui/tr/japan'
-], function (english, japan) {
+], function (english, chinese, japan) {
 
   'use strict';
 
@@ -16,12 +17,15 @@ define([
 
   GuiTR.languages = {
     'english': english,
-    '日本語': japan
+    '日本語': japan,
+    '中国': chinese
   };
 
   GuiTR.select = 'english';
-  var language = window.navigator.userLanguage || window.navigator.language;
-  if (language === 'jp') GuiTR.select = '日本語';
+  var language = window.navigator.language || window.navigator.userLanguage;
+  if (language) language = language.substr(0, 2);
+  if (language === 'ja') GuiTR.select = '日本語';
+  else if (language === 'zh') GuiTR.select = '中国';
 
   return GuiTR;
 });
