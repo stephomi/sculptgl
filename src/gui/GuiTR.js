@@ -18,14 +18,14 @@ define([
   GuiTR.languages = {
     'english': english,
     '日本語': japan,
-    '中国': chinese
+    '中文': chinese
   };
 
   GuiTR.select = 'english';
   var language = window.navigator.language || window.navigator.userLanguage;
   if (language) language = language.substr(0, 2);
   if (language === 'ja') GuiTR.select = '日本語';
-  else if (language === 'zh') GuiTR.select = '中国';
+  else if (language === 'zh') GuiTR.select = '中文';
 
   return GuiTR;
 });
