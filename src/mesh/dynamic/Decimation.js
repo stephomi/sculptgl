@@ -290,10 +290,15 @@ define([
       var nx = nAr[id] + nAr[id2];
       var ny = nAr[id + 1] + nAr[id2 + 1];
       var nz = nAr[id + 2] + nAr[id2 + 2];
-      var len = 1.0 / Math.sqrt(nx * nx + ny * ny + nz * nz);
-      nx *= len;
-      ny *= len;
-      nz *= len;
+      var len = nx * nx + ny * ny + nz * nz;
+      if (len === 0) {
+        nx = 1.0;
+      } else {
+        len = 1.0 / Math.sqrt(len);
+        nx *= len;
+        ny *= len;
+        nz *= len;
+      }
       nAr[id] = nx;
       nAr[id + 1] = ny;
       nAr[id + 2] = nz;

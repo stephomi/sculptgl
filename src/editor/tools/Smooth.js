@@ -64,7 +64,10 @@ define([
         var nx = nAr[ind];
         var ny = nAr[ind + 1];
         var nz = nAr[ind + 2];
-        var len = 1.0 / Math.sqrt(nx * nx + ny * ny + nz * nz);
+        var len = nx * nx + ny * ny + nz * nz;
+        if (len === 0.0)
+          continue;
+        len = 1.0 / Math.sqrt(len);
         nx *= len;
         ny *= len;
         nz *= len;

@@ -170,7 +170,10 @@ define([
         var ny = nArUp[j + 1];
         var nz = nArUp[j + 2];
         // normalize vector
-        var len = 1.0 / Math.sqrt(nx * nx + ny * ny + nz * nz);
+        var len = nx * nx + ny * ny + nz * nz;
+        if (len === 0.0)
+          continue;
+        len = 1.0 / Math.sqrt(len);
         nx *= len;
         ny *= len;
         nz *= len;
@@ -187,10 +190,10 @@ define([
         ty -= ny * len;
         tz -= nz * len;
         // normalize vector
-        len = Math.sqrt(tx * tx + ty * ty + tz * tz);
+        len = tx * tx + ty * ty + tz * tz;
         if (len === 0.0)
           continue;
-        len = 1.0 / len;
+        len = 1.0 / Math.sqrt(len);
         tx *= len;
         ty *= len;
         tz *= len;
@@ -246,7 +249,10 @@ define([
         var ny = nArUp[j + 1];
         var nz = nArUp[j + 2];
         // normalize vector
-        var len = 1.0 / Math.sqrt(nx * nx + ny * ny + nz * nz);
+        var len = nx * nx + ny * ny + nz * nz;
+        if (len === 0.0)
+          continue;
+        len = 1.0 / Math.sqrt(len);
         nx *= len;
         ny *= len;
         nz *= len;
@@ -263,10 +269,10 @@ define([
         ty -= ny * len;
         tz -= nz * len;
         // normalize vector
-        len = Math.sqrt(tx * tx + ty * ty + tz * tz);
+        len = tx * tx + ty * ty + tz * tz;
         if (len === 0.0)
           continue;
-        len = 1.0 / len;
+        len = 1.0 / Math.sqrt(len);
         tx *= len;
         ty *= len;
         tz *= len;

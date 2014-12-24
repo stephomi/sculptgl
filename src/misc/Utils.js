@@ -235,7 +235,12 @@ define([], function () {
       var nx = array[j];
       var ny = array[j + 1];
       var nz = array[j + 2];
-      var len = 1.0 / Math.sqrt(nx * nx + ny * ny + nz * nz);
+      var len = nx * nx + ny * ny + nz * nz;
+      if (len === 0) {
+        arrayOut[j] = 1.0;
+        continue;
+      }
+      len = 1.0 / Math.sqrt(len);
       arrayOut[j] = nx * len;
       arrayOut[j + 1] = ny * len;
       arrayOut[j + 2] = nz * len;
