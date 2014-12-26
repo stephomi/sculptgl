@@ -208,6 +208,59 @@ define([
       this.pickedVertices_ = new Uint32Array(pickedVertices.subarray(0, acc));
       return this.pickedVertices_;
     },
+    /** Find all the vertices inside the sphere (with topological check) */
+    pickVerticesInSphereTopological: function (rLocal2) {
+      var mesh = this.mesh_;
+      var nbVertices = mesh.getNbVertices();
+      var vAr = mesh.getVertices();
+      var fAr = mesh.getFaces();
+
+      var vrvStartCount = mesh.getVerticesRingVertStartCount();
+      var vertRingVert = mesh.getVerticesRingVert();
+      var ringVerts = vertRingVert instanceof Array ? vertRingVert : null;
+
+      var vertSculptFlags = mesh.getVerticesSculptFlags();
+      var sculptFlag = ++Utils.SCULPT_FLAG;
+
+      var idf = this.getPickedFace();
+      var pickedVertices = new Uint32Array(Utils.getMemory(4 * nbVertices), 0, nbVertices);
+      pickedVertices[0] = fAr[idf * 4];
+      vertSculptFlags[pickedVertices[0]] = sculptFlag;
+      var acc = 1;
+
+      var inter = this.getIntersectionPoint();
+      var itx = inter[0];
+      var ity = inter[1];
+      var itz = inter[2];
+      for (var i = 0; i < acc; ++i) {
+        var id = pickedVertices[i];
+        var start, end;
+        if (ringVerts) {
+          vertRingVert = ringVerts[id];
+          start = 0;
+          end = vertRingVert.length;
+        } else {
+          start = vrvStartCount[id * 2];
+          end = start + vrvStartCount[id * 2 + 1];
+        }
+
+        for (var j = start; j < end; ++j) {
+          var idv = vertRingVert[j];
+          if (vertSculptFlags[idv] === sculptFlag)
+            continue;
+          vertSculptFlags[idv] = sculptFlag;
+          var id3 = idv * 3;
+          var dx = itx - vAr[id3];
+          var dy = ity - vAr[id3 + 1];
+          var dz = itz - vAr[id3 + 2];
+          if ((dx * dx + dy * dy + dz * dz) > rLocal2)
+            continue;
+          pickedVertices[acc++] = idv;
+        }
+      }
+      this.pickedVertices_ = new Uint32Array(pickedVertices.subarray(0, acc));
+      return this.pickedVertices_;
+    },
     /** Compute the selection radius in world space */
     computeRadiusWorld2: function (mouseX, mouseY) {
       var mesh = this.mesh_;

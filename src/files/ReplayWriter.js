@@ -217,6 +217,12 @@ define([
           this.stack_.push(Replay.SMOOTH_TOGGLE_TANGENT);
         }
         break;
+      case Sculpt.tool.MOVE:
+        if (mainSel.topoCheck_ !== replaySel.topoCheck_) {
+          replaySel.topoCheck_ = mainSel.topoCheck_;
+          this.stack_.push(Replay.MOVE_TOGGLE_TOPOCHECK);
+        }
+        break;
       case Sculpt.tool.TWIST:
         if (mainSel.culling_ !== replaySel.culling_) {
           replaySel.culling_ = mainSel.culling_;

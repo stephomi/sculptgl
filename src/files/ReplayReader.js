@@ -558,6 +558,9 @@ define([
       case Replay.SMOOTH_TOGGLE_TANGENT:
         tool.tangent_ = !tool.tangent_;
         break;
+      case Replay.MOVE_TOGGLE_TOPOCHECK:
+        tool.topoCheck_ = !tool.topoCheck_;
+        break;
       case Replay.BRUSH_TOGGLE_CLAY:
         tool.clay_ = !tool.clay_;
         break;

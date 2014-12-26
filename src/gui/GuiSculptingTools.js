@@ -160,7 +160,9 @@ define([
 
   GuiSculptingTools[Sculpt.tool.MOVE] = {
     ctrls_: [],
-    init: function () {}
+    init: function (tool, fold) {
+      this.ctrls_.push(fold.addCheckbox(TR('sculptTopologicalCheck'), tool, 'topoCheck_'));
+    }
   };
 
   GuiSculptingTools[Sculpt.tool.SMOOTH] = {

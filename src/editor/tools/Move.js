@@ -12,6 +12,7 @@ define([
 
   function Move(states) {
     SculptBase.call(this, states);
+    this.topoCheck_ = true;
     this.moveData_ = {
       center: [0.0, 0.0, 0.0],
       dir: [0.0, 0.0],
@@ -39,7 +40,10 @@ define([
       }
     },
     initMoveData: function (picking, moveData) {
-      picking.pickVerticesInSphere(picking.getLocalRadius2());
+      if (this.topoCheck_)
+        picking.pickVerticesInSphereTopological(picking.getLocalRadius2());
+      else
+        picking.pickVerticesInSphere(picking.getLocalRadius2());
       vec3.copy(moveData.center, picking.getIntersectionPoint());
       var iVerts = picking.getPickedVertices();
       // undo-redo

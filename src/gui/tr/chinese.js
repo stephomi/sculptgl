@@ -122,6 +122,7 @@ define([], function () {
     sculptColorGlobal: '全域',
     sculptPickColor: '選擇材質',
     sculptTangentialSmoothing: '僅放鬆',
+    sculptTopologicalCheck: 'Topological check',
     sculptDeleteMesh: '刪除此網面 ?',
 
     // states
