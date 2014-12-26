@@ -78,9 +78,6 @@ define([
       this.states_.pushVertices(iVertsInRadius);
       iVertsInRadius = this.dynamicTopology(picking);
 
-      if (this.culling_)
-        iVertsInRadius = this.getFrontVertices(iVertsInRadius, picking.getEyeDirection());
-
       this.drag(iVertsInRadius, picking.getIntersectionPoint(), picking.getLocalRadius2(), sym);
       Smooth.prototype.smoothTangent.call(this, iVertsInRadius, 1.0);
 

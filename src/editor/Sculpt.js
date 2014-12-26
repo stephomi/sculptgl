@@ -9,9 +9,10 @@ define([
   'editor/tools/Drag',
   'editor/tools/Paint',
   'editor/tools/Scale',
+  'editor/tools/Move',
   'editor/tools/Translate',
   'editor/tools/Rotate'
-], function (Brush, Inflate, Twist, Smooth, Flatten, Pinch, Crease, Drag, Paint, Scale, Translate, Rotate) {
+], function (Brush, Inflate, Twist, Smooth, Flatten, Pinch, Crease, Drag, Paint, Scale, Move, Translate, Rotate) {
 
   'use strict';
 
@@ -42,9 +43,10 @@ define([
     CREASE: 6,
     DRAG: 7,
     PAINT: 8,
-    SCALE: 9,
-    TRANSLATE: 10,
-    ROTATE: 11
+    MOVE: 9,
+    SCALE: 10,
+    TRANSLATE: 11,
+    ROTATE: 12
   };
 
   Sculpt.prototype = {
@@ -67,6 +69,7 @@ define([
       this.tools_[Sculpt.tool.CREASE] = new Crease(states);
       this.tools_[Sculpt.tool.DRAG] = new Drag(states);
       this.tools_[Sculpt.tool.PAINT] = new Paint(states);
+      this.tools_[Sculpt.tool.MOVE] = new Move(states);
       this.tools_[Sculpt.tool.SCALE] = new Scale(states);
       this.tools_[Sculpt.tool.TRANSLATE] = new Translate(states);
       this.tools_[Sculpt.tool.ROTATE] = new Rotate(states);
@@ -75,7 +78,7 @@ define([
     allowPicking: function () {
       var tool = this.tool_;
       var st = Sculpt.tool;
-      return tool !== st.TWIST && tool !== st.DRAG && tool !== st.SCALE && tool !== st.TRANSLATE && tool !== st.ROTATE;
+      return tool !== st.TWIST && tool !== st.MOVE && tool !== st.DRAG && tool !== st.SCALE && tool !== st.TRANSLATE && tool !== st.ROTATE;
     },
     /** Return true if the current tool is using continous sculpting */
     isUsingContinuous: function () {

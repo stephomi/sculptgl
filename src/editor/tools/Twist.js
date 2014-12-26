@@ -9,7 +9,6 @@ define([
 
   var vec2 = glm.vec2;
   var vec3 = glm.vec3;
-  var mat4 = glm.mat4;
   var quat = glm.quat;
 
   function Twist(states) {
@@ -31,28 +30,20 @@ define([
       var mouseX = main.mouseX_;
       var mouseY = main.mouseY_;
       var picking = main.getPicking();
-      var vNear = picking.unproject(mouseX, mouseY, 0.0);
-      var vFar = picking.unproject(mouseX, mouseY, 1.0);
-      var matInverse = mat4.create();
-      mat4.invert(matInverse, this.mesh_.getMatrix());
-      vec3.transformMat4(vNear, vNear, matInverse);
-      vec3.transformMat4(vFar, vFar, matInverse);
       this.initTwistData(picking, mouseX, mouseY, this.twistData_);
       if (main.getSculpt().getSymmetry()) {
         var pickingSym = main.getPickingSymmetry();
-        pickingSym.intersectionRayMesh(this.mesh_, vNear, vFar, mouseX, mouseY, true);
-        if (!pickingSym.mesh_)
-          return;
-        this.initTwistData(pickingSym, mouseX, mouseY, this.twistDataSym_);
+        pickingSym.intersectionMouseMesh(this.mesh_, mouseX, mouseY, true);
         pickingSym.setLocalRadius2(picking.getLocalRadius2());
+        if (pickingSym.getMesh())
+          this.initTwistData(pickingSym, mouseX, mouseY, this.twistDataSym_);
       }
     },
     /** Set a few infos that will be needed for the twist function afterwards */
     initTwistData: function (picking, mouseX, mouseY, twistData) {
       picking.pickVerticesInSphere(picking.getLocalRadius2());
       vec3.negate(twistData.normal, picking.getEyeDirection());
-      twistData.center[0] = mouseX;
-      twistData.center[1] = mouseY;
+      vec2.set(twistData.center, mouseX, mouseY);
     },
     /** Make a brush twist stroke */
     sculptStroke: function (main) {
@@ -73,6 +64,7 @@ define([
         }
       }
       this.updateRender(main);
+      main.getCanvas().style.cursor = 'default';
     },
     /** On stroke */
     stroke: function (picking, mx, my, lx, ly, twistData) {

@@ -158,6 +158,11 @@ define([
     }
   };
 
+  GuiSculptingTools[Sculpt.tool.MOVE] = {
+    ctrls_: [],
+    init: function () {}
+  };
+
   GuiSculptingTools[Sculpt.tool.SMOOTH] = {
     ctrls_: [],
     init: function (tool, fold) {

@@ -44,6 +44,7 @@ define([
       optionsSculpt[Sculpt.tool.CREASE] = TR('sculptCrease');
       optionsSculpt[Sculpt.tool.DRAG] = TR('sculptDrag');
       optionsSculpt[Sculpt.tool.PAINT] = TR('sculptPaint');
+      optionsSculpt[Sculpt.tool.MOVE] = TR('sculptMove');
       optionsSculpt[Sculpt.tool.SCALE] = TR('sculptScale');
       optionsSculpt[Sculpt.tool.TRANSLATE] = TR('sculptTranslate');
       optionsSculpt[Sculpt.tool.ROTATE] = TR('sculptRotate');
@@ -63,6 +64,7 @@ define([
       this.initTool(Sculpt.tool.CREASE, menu);
       this.initTool(Sculpt.tool.DRAG, menu);
       this.initTool(Sculpt.tool.PAINT, menu, this.main_);
+      this.initTool(Sculpt.tool.MOVE, menu);
       this.initTool(Sculpt.tool.SCALE, menu);
       this.initTool(Sculpt.tool.TRANSLATE, menu);
       this.initTool(Sculpt.tool.ROTATE, menu);
@@ -163,7 +165,7 @@ define([
         break;
       case 48: // 0
       case 96: // NUMPAD 0
-        ctrlSculpt.setValue(Sculpt.tool.SCALE);
+        ctrlSculpt.setValue(Sculpt.tool.MOVE);
         break;
       case 49: // 1
       case 97: // NUMPAD 1
