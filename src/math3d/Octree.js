@@ -183,8 +183,8 @@ define([
     },
     updateOctreeAdd: function (facesToMove) {
       var mesh = this.mesh_;
-      var faceCenters = mesh.getFaceCenters();
-      var faceBoxes = mesh.getFaceBoxes();
+      var fc = mesh.getFaceCenters();
+      var fb = mesh.getFaceBoxes();
       var facePosInLeaf = this.facePosInLeaf_;
       var faceLeaf = this.faceLeaf_;
       var nbFacesToMove = facesToMove.length;
@@ -199,19 +199,23 @@ define([
       var zmax = rootLoose[5];
       for (var i = 0; i < nbFacesToMove; ++i) { // add face to the octree
         var idFace = facesToMove[i];
-        var idCen = idFace * 3;
-        var idBox = idFace * 6;
-        var fc = faceCenters.subarray(idCen, idCen + 3);
-        var fb = faceBoxes.subarray(idBox, idBox + 6);
-        if (fb[0] > xmax || fb[3] < xmin || fb[1] > ymax || fb[4] < ymin || fb[2] > zmax || fb[5] < zmin) {
+        var idb = idFace * 6;
+        var ibux = fb[idb];
+        var ibuy = fb[idb + 1];
+        var ibuz = fb[idb + 2];
+        var iblx = fb[idb + 3];
+        var ibly = fb[idb + 4];
+        var iblz = fb[idb + 5];
+        if (ibux > xmax || iblx < xmin || ibuy > ymax || ibly < ymin || ibuz > zmax || iblz < zmin) {
           // a face is outside the root node
           // we reconstruct the whole octree, slow... but rare
           this.computeOctree(undefined, 0.3);
           this.leavesUpdate_.length = 0;
           break;
         } else {
+          var idc = idFace * 3;
           var leaf = faceLeaf[idFace];
-          var newleaf = root.addFace(idFace, fb, fc);
+          var newleaf = root.addFace(idFace, ibux, ibuy, ibuz, iblx, ibly, iblz, fc[idc], fc[idc + 1], fc[idc + 2]);
           if (newleaf) {
             facePosInLeaf[idFace] = newleaf.iFaces_.length - 1;
             faceLeaf[idFace] = newleaf;
