@@ -174,6 +174,15 @@ define([
     }
   };
 
+  GuiSculptingTools[Sculpt.tool.MASKING] = {
+    ctrls_: [],
+    init: function (tool, fold) {
+      this.ctrls_.push(addCtrlIntensity(tool, fold, this));
+      this.ctrls_.push(addCtrlNegative(tool, fold, this));
+      this.ctrls_.push(addCtrlCulling(tool, fold));
+    }
+  };
+
   GuiSculptingTools[Sculpt.tool.TRANSLATE] = {
     ctrls_: [],
     init: function () {}

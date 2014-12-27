@@ -38,6 +38,7 @@ define([
     /** Flatten, projection of the sculpting vertex onto a plane defined by the barycenter and normals of all the sculpting vertices */
     flatten: function (iVertsInRadius, aNormal, aCenter, center, radiusSquared, intensity) {
       var vAr = this.mesh_.getVertices();
+      var mAr = this.mesh_.getMaterials();
       var radius = Math.sqrt(radiusSquared);
       var cx = center[0];
       var cy = center[1];
@@ -64,6 +65,7 @@ define([
         var fallOff = dist * dist;
         fallOff = 3.0 * fallOff * fallOff - 4.0 * fallOff * dist + 1.0;
         fallOff *= distToPlane * intensity;
+        fallOff *= mAr[ind + 2];
         vAr[ind] = vx - anx * fallOff;
         vAr[ind + 1] = vy - any * fallOff;
         vAr[ind + 2] = vz - anz * fallOff;

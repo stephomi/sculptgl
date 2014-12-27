@@ -36,6 +36,7 @@ define([
     'varying vec3 vAlbedo;',
     'varying float vRoughness;',
     'varying float vMetallic;',
+    'varying float vMasking;',
     'void main() {',
     '  vec4 vertex4 = vec4(aVertex, 1.0);',
     '  vNormal = normalize(uN * aNormal);',
@@ -43,6 +44,7 @@ define([
     '  vRoughness = uRoughness >= 0.0 ? uRoughness : aMaterial.x;',
     '  vMetallic = uMetallic >= 0.0 ? uMetallic : aMaterial.y;',
     '  vVertex = vec3(uMV * vertex4);',
+    '  vMasking = aMaterial.z;',
     '  gl_Position = uMVP * vertex4;',
     '}'
   ].join('\n');
@@ -54,8 +56,8 @@ define([
     'varying vec3 vAlbedo;',
     'varying float vRoughness;',
     'varying float vMetallic;',
-    ShaderBase.strings.symmetryLineUniforms,
-    ShaderBase.strings.symmetryLineFunction,
+    ShaderBase.strings.fragColorUniforms,
+    ShaderBase.strings.fragColorFunction,
     '',
     '#define PI 3.1415926535897932384626433832795',
     '#define PI_2 (2.0*3.1415926535897932384626433832795)',
@@ -280,8 +282,8 @@ define([
     '  MaterialRoughness = max( 0.05 , vRoughness );',
     '  MaterialAlbedo = vAlbedo * (1.0 - vMetallic);',
     '  MaterialSpecular = mix( vec3(0.04), vAlbedo, vMetallic);',
-    '  vec3 fragColor = symmetryLine(solid2( getIBLTransfrom( uIblTransform ), fragNormal, -fragEye ));',
-    '  gl_FragColor = vec4( fragColor, 1.0);',
+    '  vec3 fragColor = solid2( getIBLTransfrom( uIblTransform ), fragNormal, -fragEye );',
+    '  gl_FragColor = getFragColor(fragColor);',
     '}'
   ].join('\n');
 

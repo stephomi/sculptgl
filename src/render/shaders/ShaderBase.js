@@ -14,21 +14,24 @@ define([
   ShaderBase.uniformNames.symmetryLine = ['uPlaneO', 'uPlaneN', 'uScale'];
 
   ShaderBase.strings = {};
-  ShaderBase.strings.symmetryLineUniforms = [
+  ShaderBase.strings.fragColorUniforms = [
     'uniform vec3 uPlaneN;',
     'uniform vec3 uPlaneO;',
     'uniform float uScale;',
+    'varying float vMasking;'
   ].join('\n');
-  ShaderBase.strings.symmetryLineFunction = [
-    'vec3 symmetryLine(const in vec3 frag) {',
+  ShaderBase.strings.fragColorFunction = [
+    'vec4 getFragColor(const in vec3 frag) {',
+    '  vec3 col = frag * (0.3 + 0.7 * vMasking);',
     '  if(uScale > 0.0 && abs(dot(uPlaneN, vVertex - uPlaneO)) < 0.15 / uScale)',
-    '      return min(frag * 1.3, 1.0);',
-    '  return frag;',
+    '      return vec4(min(col * 1.3, 1.0), 1.0);',
+    '  return vec4(col, 1.0);',
     '}',
-    'vec4 symmetryLine(const in vec4 frag) {',
+    'vec4 getFragColor(const in vec4 frag) {',
+    '  vec3 col = frag.rgb * (0.3 + 0.7 * vMasking);',
     '  if(uScale > 0.0 && abs(dot(uPlaneN, vVertex - uPlaneO)) < 0.15 / uScale)',
-    '      return vec4(min(frag * 1.3, 1.0).rgb, 0.2);',
-    '  return frag;',
+    '      return vec4(min(col * 1.3, 1.0), 0.2);',
+    '  return vec4(col, frag.a);',
     '}'
   ].join('\n');
 

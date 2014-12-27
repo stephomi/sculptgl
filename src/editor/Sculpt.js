@@ -8,11 +8,12 @@ define([
   'editor/tools/Crease',
   'editor/tools/Drag',
   'editor/tools/Paint',
-  'editor/tools/Scale',
   'editor/tools/Move',
+  'editor/tools/Masking',
+  'editor/tools/Scale',
   'editor/tools/Translate',
   'editor/tools/Rotate'
-], function (Brush, Inflate, Twist, Smooth, Flatten, Pinch, Crease, Drag, Paint, Scale, Move, Translate, Rotate) {
+], function (Brush, Inflate, Twist, Smooth, Flatten, Pinch, Crease, Drag, Paint, Move, Masking, Scale, Translate, Rotate) {
 
   'use strict';
 
@@ -44,9 +45,10 @@ define([
     DRAG: 7,
     PAINT: 8,
     MOVE: 9,
-    SCALE: 10,
-    TRANSLATE: 11,
-    ROTATE: 12
+    MASKING: 10,
+    SCALE: 11,
+    TRANSLATE: 12,
+    ROTATE: 13
   };
 
   Sculpt.prototype = {
@@ -70,6 +72,7 @@ define([
       this.tools_[Sculpt.tool.DRAG] = new Drag(states);
       this.tools_[Sculpt.tool.PAINT] = new Paint(states);
       this.tools_[Sculpt.tool.MOVE] = new Move(states);
+      this.tools_[Sculpt.tool.MASKING] = new Masking(states);
       this.tools_[Sculpt.tool.SCALE] = new Scale(states);
       this.tools_[Sculpt.tool.TRANSLATE] = new Translate(states);
       this.tools_[Sculpt.tool.ROTATE] = new Rotate(states);

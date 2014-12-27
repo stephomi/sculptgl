@@ -37,6 +37,7 @@ define([
     inflate: function (iVerts, center, radiusSquared, intensity) {
       var mesh = this.mesh_;
       var vAr = mesh.getVertices();
+      var mAr = mesh.getMaterials();
       var vProxy = mesh.getVerticesProxy();
       var nAr = mesh.getNormals();
       var radius = Math.sqrt(radiusSquared);
@@ -61,6 +62,7 @@ define([
         var ny = nAr[ind + 1];
         var nz = nAr[ind + 2];
         fallOff /= Math.sqrt(nx * nx + ny * ny + nz * nz);
+        fallOff *= mAr[ind + 2];
         vAr[ind] += nx * fallOff;
         vAr[ind + 1] += ny * fallOff;
         vAr[ind + 2] += nz * fallOff;

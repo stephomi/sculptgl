@@ -14,7 +14,7 @@ define([
     this.intensity_ = 0.75; // deformation intensity
     this.culling_ = false; // if we backface cull the vertices
     this.color_ = vec3.fromValues(1.0, 0.766, 0.336); // albedo
-    this.material_ = vec3.fromValues(0.3, 0.95, 0.0); // roughness/metallic/????
+    this.material_ = vec3.fromValues(0.3, 0.95, 0.0); // roughness/metallic/masking
     this.pickColor_ = false; // color picking
     this.global_ = false; // global material
     this.pickCallback_ = null; // callback function after picking a color
@@ -31,7 +31,7 @@ define([
       var picking = main.getPicking();
       if (this.pickColor_)
         return this.pickColor(picking.getPickedFace(), picking.getIntersectionPoint());
-      this.update(main, true);
+      this.update(main);
     },
     /** Update sculpting operation */
     update: function (main) {
@@ -140,6 +140,7 @@ define([
         var fallOff = dist * dist;
         fallOff = 3.0 * fallOff * fallOff - 4.0 * fallOff * dist + 1.0;
         fallOff *= intensity;
+        fallOff *= mAr[ind + 2];
         var fallOffCompl = 1.0 - fallOff;
         cAr[ind] = cAr[ind] * fallOffCompl + cr * fallOff;
         cAr[ind + 1] = cAr[ind + 1] * fallOffCompl + cg * fallOff;

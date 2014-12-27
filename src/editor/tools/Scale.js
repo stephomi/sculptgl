@@ -55,6 +55,7 @@ define([
     /** Scale the vertices around the mouse point intersection */
     scale: function (iVerts, center, radiusSquared, intensity) {
       var vAr = this.mesh_.getVertices();
+      var mAr = this.mesh_.getMaterials();
       var deltaScale = intensity * 0.01;
       var radius = Math.sqrt(radiusSquared);
       var cx = center[0];
@@ -72,6 +73,7 @@ define([
         var fallOff = dist * dist;
         fallOff = 3.0 * fallOff * fallOff - 4.0 * fallOff * dist + 1.0;
         fallOff *= deltaScale;
+        fallOff *= mAr[ind + 2];
         vAr[ind] = vx + dx * fallOff;
         vAr[ind + 1] = vy + dy * fallOff;
         vAr[ind + 2] = vz + dz * fallOff;

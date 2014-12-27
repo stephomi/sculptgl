@@ -133,14 +133,16 @@ define([
     /** Compute average normal of a group of vertices with culling */
     areaNormal: function (iVerts) {
       var nAr = this.mesh_.getNormals();
+      var mAr = this.mesh_.getMaterials();
       var anx = 0.0;
       var any = 0.0;
       var anz = 0.0;
       for (var i = 0, l = iVerts.length; i < l; ++i) {
         var ind = iVerts[i] * 3;
-        anx += nAr[ind];
-        any += nAr[ind + 1];
-        anz += nAr[ind + 2];
+        var f = mAr[ind + 2];
+        anx += nAr[ind] * f;
+        any += nAr[ind + 1] * f;
+        anz += nAr[ind + 2] * f;
       }
       var len = Math.sqrt(anx * anx + any * any + anz * anz);
       if (len === 0.0)
@@ -151,17 +153,21 @@ define([
     /** Compute average center of a group of vertices (with culling) */
     areaCenter: function (iVerts) {
       var vAr = this.mesh_.getVertices();
+      var mAr = this.mesh_.getMaterials();
       var nbVerts = iVerts.length;
       var ax = 0.0;
       var ay = 0.0;
       var az = 0.0;
+      var acc = 0;
       for (var i = 0; i < nbVerts; ++i) {
         var ind = iVerts[i] * 3;
-        ax += vAr[ind];
-        ay += vAr[ind + 1];
-        az += vAr[ind + 2];
+        var f = mAr[ind + 2];
+        acc += f;
+        ax += vAr[ind] * f;
+        ay += vAr[ind + 1] * f;
+        az += vAr[ind + 2] * f;
       }
-      return [ax / nbVerts, ay / nbVerts, az / nbVerts];
+      return [ax / acc, ay / acc, az / acc];
     },
     /** Updates the vertices original coords that are sculpted for the first time in this stroke */
     updateProxy: function (iVerts) {

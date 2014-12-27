@@ -44,6 +44,7 @@ define([
       optionsSculpt[Sculpt.tool.CREASE] = TR('sculptCrease');
       optionsSculpt[Sculpt.tool.DRAG] = TR('sculptDrag');
       optionsSculpt[Sculpt.tool.PAINT] = TR('sculptPaint');
+      optionsSculpt[Sculpt.tool.MASKING] = TR('sculptMasking');
       optionsSculpt[Sculpt.tool.MOVE] = TR('sculptMove');
       optionsSculpt[Sculpt.tool.SCALE] = TR('sculptScale');
       optionsSculpt[Sculpt.tool.TRANSLATE] = TR('sculptTranslate');
@@ -64,6 +65,7 @@ define([
       this.initTool(Sculpt.tool.CREASE, menu);
       this.initTool(Sculpt.tool.DRAG, menu);
       this.initTool(Sculpt.tool.PAINT, menu, this.main_);
+      this.initTool(Sculpt.tool.MASKING, menu);
       this.initTool(Sculpt.tool.MOVE, menu);
       this.initTool(Sculpt.tool.SCALE, menu);
       this.initTool(Sculpt.tool.TRANSLATE, menu);
@@ -113,6 +115,37 @@ define([
     getSelectedTool: function () {
       return parseInt(this.ctrlSculpt_.getValue(), 10);
     },
+    checkModifierKey: function (event) {
+      var selectedTool = this.getSelectedTool();
+
+      if (this.main_.mouseButton_ === 0) {
+        if (event.shiftKey && !event.altKey && !event.ctrlKey) {
+          // smoothing on shift key
+          if (selectedTool === Sculpt.tool.SMOOTH)
+            return true;
+          this.toolOnRelease_ = selectedTool;
+          this.ctrlSculpt_.setValue(Sculpt.tool.SMOOTH);
+          return true;
+        }
+        if (event.ctrlKey && !event.shiftKey && !event.altKey) {
+          // masking on ctrl key
+          if (selectedTool !== Sculpt.tool.MASKING) {
+            this.toolOnRelease_ = selectedTool;
+            this.ctrlSculpt_.setValue(Sculpt.tool.MASKING);
+          }
+        }
+      }
+      if (event.altKey) {
+        // invert sign on alt key
+        if (this.invertSign_ || event.shiftKey) return true;
+        this.invertSign_ = true;
+        var curTool = GuiSculptingTools[selectedTool];
+        if (curTool.toggleNegative)
+          curTool.toggleNegative();
+        return true;
+      }
+      return false;
+    },
     /** Key pressed event */
     onKeyDown: function (event) {
       if (event.handled === true)
@@ -121,29 +154,14 @@ define([
       if (!this.main_.focusGui_)
         event.preventDefault();
       var key = event.which;
-      var ctrlSculpt = this.ctrlSculpt_;
       event.handled = true;
+      if (this.checkModifierKey(event))
+        return;
+
       if (this.main_.mouseButton_ !== 0)
         return;
 
-      if (event.shiftKey && !event.altKey && !event.ctrlKey) {
-        // smoothing on alt key
-        var selectedTool = this.getSelectedTool();
-        if (selectedTool === Sculpt.tool.SMOOTH)
-          return;
-        this.toolOnRelease_ = selectedTool;
-        ctrlSculpt.setValue(Sculpt.tool.SMOOTH);
-        return;
-      } else if (!event.shiftKey && event.altKey && !event.ctrlKey) {
-        // invert sign on alt key
-        if (this.invertSign_) return;
-        this.invertSign_ = true;
-        var curTool = GuiSculptingTools[this.getSelectedTool()];
-        if (curTool.toggleNegative)
-          curTool.toggleNegative();
-        return;
-      }
-
+      var ctrlSculpt = this.ctrlSculpt_;
       switch (key) {
       case 88: // X
         this.modalBrushRadius_ = this.main_.focusGui_ = true;
@@ -218,16 +236,22 @@ define([
         event.handled = false;
       }
     },
+    releaseInvertSign: function () {
+      if (!this.invertSign_)
+        return;
+      this.invertSign_ = false;
+      var tool = GuiSculptingTools[this.getSelectedTool()];
+      if (tool.toggleNegative)
+        tool.toggleNegative();
+    },
     /** Key released event */
     onKeyUp: function (event) {
-      if (this.main_.mouseButton_ === 0 && this.toolOnRelease_ !== -1) {
+      var releaseTool = this.main_.mouseButton_ === 0 && this.toolOnRelease_ !== -1 && !event.ctrlKey && !event.shiftKey;
+      if (!event.altKey || releaseTool)
+        this.releaseInvertSign();
+      if (releaseTool) {
         this.ctrlSculpt_.setValue(this.toolOnRelease_);
         this.toolOnRelease_ = -1;
-      } else if (this.invertSign_) {
-        this.invertSign_ = false;
-        var tool = GuiSculptingTools[this.getSelectedTool()];
-        if (tool.toggleNegative)
-          tool.toggleNegative();
       }
       if (event.which === 88) // X
         this.modalBrushRadius_ = this.main_.focusGui_ = false;
@@ -235,8 +259,9 @@ define([
         this.modalBrushIntensity_ = this.main_.focusGui_ = false;
     },
     /** Mouse released event */
-    onMouseUp: function () {
-      if (this.toolOnRelease_ !== -1) {
+    onMouseUp: function (event) {
+      if (this.toolOnRelease_ !== -1 && !event.ctrlKey && !event.shiftKey) {
+        this.releaseInvertSign();
         this.ctrlSculpt_.setValue(this.toolOnRelease_);
         this.toolOnRelease_ = -1;
       }

@@ -659,11 +659,11 @@ define([
       }
       if (button !== 0) {
         if (button === 2) {
-          this.camera_.translate((mouseX - this.lastMouseX_) / 3000, (mouseY - this.lastMouseY_) / 3000);
+          this.camera_.translate((mouseX - this.lastMouseX_) / 1000, (mouseY - this.lastMouseY_) / 1000);
           Multimesh.RENDER_HINT = Multimesh.CAMERA;
           this.render();
         } else if (button === 4) {
-          this.camera_.zoom((mouseX - this.lastMouseX_) / 3000);
+          this.camera_.zoom((mouseX - this.lastMouseX_) / 1000);
           Multimesh.RENDER_HINT = Multimesh.CAMERA;
           this.render();
         } else if (button === 3) {

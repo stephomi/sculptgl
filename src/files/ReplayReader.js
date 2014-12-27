@@ -334,9 +334,9 @@ define([
       var button = this.mouseButton_;
 
       if (button === 2)
-        this.realCamera_.translate((mouseX - this.lastMouseX_) / 3000, (mouseY - this.lastMouseY_) / 3000);
+        this.realCamera_.translate((mouseX - this.lastMouseX_) / 1000, (mouseY - this.lastMouseY_) / 1000);
       else if (button === 4)
-        this.realCamera_.zoom((mouseX - this.lastMouseX_) / 3000);
+        this.realCamera_.zoom((mouseX - this.lastMouseX_) / 1000);
       else if (button === 3)
         this.realCamera_.rotate(mouseX, mouseY);
 
@@ -534,6 +534,7 @@ define([
       case Replay.PINCH_INTENSITY:
       case Replay.SMOOTH_INTENSITY:
       case Replay.PAINT_INTENSITY:
+      case Replay.MASKING_INTENSITY:
         tool.intensity_ = data.getUint8(sel) / 100;
         sel += 1;
         break;
@@ -542,6 +543,7 @@ define([
       case Replay.FLATTEN_TOGGLE_NEGATIVE:
       case Replay.PINCH_TOGGLE_NEGATIVE:
       case Replay.INFLATE_TOGGLE_NEGATIVE:
+      case Replay.MASKING_TOGGLE_NEGATIVE:
         tool.negative_ = !tool.negative_;
         break;
       case Replay.BRUSH_TOGGLE_CULLING:
@@ -553,6 +555,7 @@ define([
       case Replay.SCALE_TOGGLE_CULLING:
       case Replay.TWIST_TOGGLE_CULLING:
       case Replay.PAINT_TOGGLE_CULLING:
+      case Replay.MASKING_TOGGLE_CULLING:
         tool.culling_ = !tool.culling_;
         break;
       case Replay.SMOOTH_TOGGLE_TANGENT:

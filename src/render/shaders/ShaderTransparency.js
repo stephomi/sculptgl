@@ -19,37 +19,40 @@ define([
     'attribute vec3 aVertex;',
     'attribute vec3 aNormal;',
     'attribute vec3 aColor;',
+    'attribute vec3 aMaterial;',
     'uniform mat4 uMV;',
     'uniform mat4 uMVP;',
     'uniform mat3 uN;',
     'varying vec3 vVertex;',
     'varying vec3 vNormal;',
     'varying vec3 vColor;',
+    'varying float vMasking;',
     'void main() {',
     '  vec4 vertex4 = vec4(aVertex, 1.0);',
     '  vNormal = normalize(uN * aNormal);',
     '  vColor = aColor;',
     '  vVertex = vec3(uMV * vertex4);',
+    '  vMasking = aMaterial.z;',
     '  gl_Position = uMVP * vertex4;',
     '}'
   ].join('\n');
 
   ShaderTransparency.fragment = [
     'precision mediump float;',
-    ShaderBase.strings.symmetryLineUniforms,
     'varying vec3 vVertex;',
     'varying vec3 vNormal;',
     'varying vec3 vColor;',
     'const vec3 vecLight = vec3(0.06189844605901729, 0.12379689211803457, 0.9903751369442766);',
     'const float shininess = 100.0;',
-    ShaderBase.strings.symmetryLineFunction,
+    ShaderBase.strings.fragColorUniforms,
+    ShaderBase.strings.fragColorFunction,
     'void main() {',
     '  vec4 color = vec4(vColor, 0.05);',
     '  vec4 specularColor = color * 0.5;',
     '  specularColor.a = color.a * 3.0;',
     '  float specular = max(dot(-vecLight, -reflect(vecLight, vNormal)), 0.0);',
     '  vec4 fragColor = color + specularColor * (specular + pow(specular, shininess));',
-    '  gl_FragColor = symmetryLine(fragColor);',
+    '  gl_FragColor = getFragColor(fragColor);',
     '}'
   ].join('\n');
 

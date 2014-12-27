@@ -18,28 +18,30 @@ define([
   ShaderNormal.vertex = [
     'attribute vec3 aVertex;',
     'attribute vec3 aNormal;',
+    'attribute vec3 aMaterial;',
     'uniform mat4 uMV;',
     'uniform mat4 uMVP;',
     'varying vec3 vVertex;',
     'varying vec3 vNormal;',
+    'varying float vMasking;',
     'void main() {',
     '  vec4 vert4 = vec4(aVertex, 1.0);',
     '  vNormal = normalize(aNormal);',
     '  vVertex = vec3(uMV * vert4);',
+    '  vMasking = aMaterial.z;',
     '  gl_Position = uMVP * vert4;',
     '}'
   ].join('\n');
 
   ShaderNormal.fragment = [
     'precision mediump float;',
-    ShaderBase.strings.symmetryLineUniforms,
     'varying vec3 vVertex;',
     'varying vec3 vNormal;',
-    ShaderBase.strings.symmetryLineFunction,
+    ShaderBase.strings.fragColorUniforms,
+    ShaderBase.strings.fragColorFunction,
     'void main() {',
     '  vec3 fragColor = vNormal * 0.5 + 0.5;',
-    '  fragColor = symmetryLine(fragColor);',
-    '  gl_FragColor = vec4(fragColor, 1.0);',
+    '  gl_FragColor = getFragColor(fragColor);',
     '}'
   ].join('\n');
   /** Draw */
@@ -59,12 +61,14 @@ define([
     var attrs = ShaderNormal.attributes;
     attrs.aVertex = new Attribute(gl, program, 'aVertex', 3, glfloat);
     attrs.aNormal = new Attribute(gl, program, 'aNormal', 3, glfloat);
+    attrs.aMaterial = new Attribute(gl, program, 'aMaterial', 3, glfloat);
   };
   /** Bind attributes */
   ShaderNormal.bindAttributes = function (render) {
     var attrs = ShaderNormal.attributes;
     attrs.aVertex.bindToBuffer(render.getVertexBuffer());
     attrs.aNormal.bindToBuffer(render.getNormalBuffer());
+    attrs.aMaterial.bindToBuffer(render.getMaterialBuffer());
   };
   /** Updates uniforms */
   ShaderNormal.updateUniforms = function (render, main) {

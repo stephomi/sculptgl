@@ -68,6 +68,10 @@ define([], function () {
 
   Replay.MOVE_TOGGLE_TOPOCHECK = ida++; // []
 
+  Replay.MASKING_INTENSITY = ida++; // [intensity (u8)]
+  Replay.MASKING_TOGGLE_NEGATIVE = ida++; // []
+  Replay.MASKING_TOGGLE_CULLING = ida++; // []
+
   Replay.MULTI_RESOLUTION = ida++; // [res (u8)]
   Replay.MULTI_SUBDIVIDE = ida++; // []
   Replay.MULTI_REVERSE = ida++; // []

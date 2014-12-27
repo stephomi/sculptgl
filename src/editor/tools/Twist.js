@@ -95,6 +95,7 @@ define([
       vec2.normalize(vecOldMouse, vecOldMouse);
       var angle = Geometry.signedAngle2d(vecMouse, vecOldMouse);
       var vAr = mesh.getVertices();
+      var mAr = mesh.getMaterials();
       var radius = Math.sqrt(radiusSquared);
       var cx = center[0];
       var cy = center[1];
@@ -111,7 +112,7 @@ define([
         var dist = Math.sqrt(dx * dx + dy * dy + dz * dz) / radius;
         var fallOff = dist * dist;
         fallOff = 3.0 * fallOff * fallOff - 4.0 * fallOff * dist + 1.0;
-        quat.setAxisAngle(rot, nPlane, angle * fallOff);
+        quat.setAxisAngle(rot, nPlane, angle * fallOff * mAr[ind + 2]);
         vec3.set(coord, vx, vy, vz);
         vec3.sub(coord, coord, center);
         vec3.transformQuat(coord, coord, rot);

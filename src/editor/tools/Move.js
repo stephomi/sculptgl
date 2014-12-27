@@ -97,6 +97,7 @@ define([
     },
     move: function (iVerts, center, radiusSquared, moveData) {
       var vAr = this.mesh_.getVertices();
+      var mAr = this.mesh_.getMaterials();
       var radius = Math.sqrt(radiusSquared);
       var vProxy = moveData.vProxy;
       var cx = center[0];
@@ -118,6 +119,7 @@ define([
         var dist = Math.sqrt(dx * dx + dy * dy + dz * dz) / radius;
         var fallOff = dist * dist;
         fallOff = 3.0 * fallOff * fallOff - 4.0 * fallOff * dist + 1.0;
+        fallOff *= mAr[ind + 2];
         vAr[ind] += dirx * fallOff;
         vAr[ind + 1] += diry * fallOff;
         vAr[ind + 2] += dirz * fallOff;

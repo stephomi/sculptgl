@@ -10,7 +10,9 @@ define([
     // attributes vertex ( no duplicates )
     this.verticesXYZ_ = null; // vertices (Float32Array)
     this.colorsRGB_ = null; // color vertices (Float32Array)
-    this.materialsPBR_ = null; // pbr vertex data (Float32Array) roughness/metallic/????
+    // it doesn't really make sense to put the masking data here but I am too lazy to manage
+    // a separate buffer (it would imply changes on : subdivision/reversion/renderBuffer/dynamicMesh)
+    this.materialsPBR_ = null; // pbr vertex data (Float32Array) roughness/metallic/masking
     this.normalsXYZ_ = null; // normals (Float32Array)
 
     // topology stuffs

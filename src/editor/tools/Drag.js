@@ -86,6 +86,7 @@ define([
     /** Drag deformation */
     drag: function (iVerts, center, radiusSquared, sym) {
       var vAr = this.mesh_.getVertices();
+      var mAr = this.mesh_.getMaterials();
       var radius = Math.sqrt(radiusSquared);
       var cx = center[0];
       var cy = center[1];
@@ -105,6 +106,7 @@ define([
         var dist = Math.sqrt(dx * dx + dy * dy + dz * dz) / radius;
         var fallOff = dist * dist;
         fallOff = 3.0 * fallOff * fallOff - 4.0 * fallOff * dist + 1.0;
+        fallOff *= mAr[ind + 2];
         vAr[ind] = vx + dirx * fallOff;
         vAr[ind + 1] = vy + diry * fallOff;
         vAr[ind + 2] = vz + dirz * fallOff;

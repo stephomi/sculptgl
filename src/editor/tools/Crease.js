@@ -39,6 +39,7 @@ define([
     crease: function (iVertsInRadius, aNormal, center, radiusSquared, intensity) {
       var mesh = this.mesh_;
       var vAr = mesh.getVertices();
+      var mAr = mesh.getMaterials();
       var vProxy = mesh.getVerticesProxy();
       var radius = Math.sqrt(radiusSquared);
       var cx = center[0];
@@ -63,6 +64,7 @@ define([
         fallOff = 3.0 * fallOff * fallOff - 4.0 * fallOff * dist + 1.0;
         var brushModifier = Math.pow(fallOff, 5) * brushFactor;
         fallOff = fallOff * deformIntensity;
+        fallOff *= mAr[ind + 2];
         vAr[ind] += dx * fallOff + anx * brushModifier;
         vAr[ind + 1] += dy * fallOff + any * brushModifier;
         vAr[ind + 2] += dz * fallOff + anz * brushModifier;

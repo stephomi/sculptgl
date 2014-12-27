@@ -46,6 +46,7 @@ define([
     brush: function (iVertsInRadius, aNormal, center, radiusSquared, intensity) {
       var mesh = this.mesh_;
       var vAr = mesh.getVertices();
+      var mAr = mesh.getMaterials();
       var vProxy = this.accumulate_ ? vAr : mesh.getVerticesProxy();
       var radius = Math.sqrt(radiusSquared);
       var deformIntensityBrush = intensity * radius * (this.clay_ ? 0.1 : 0.05);
@@ -68,6 +69,7 @@ define([
         var fallOff = dist * dist;
         fallOff = 3.0 * fallOff * fallOff - 4.0 * fallOff * dist + 1.0;
         fallOff *= deformIntensityBrush;
+        fallOff *= mAr[ind + 2];
         vAr[ind] += anx * fallOff;
         vAr[ind + 1] += any * fallOff;
         vAr[ind + 2] += anz * fallOff;

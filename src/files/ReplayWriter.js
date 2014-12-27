@@ -82,6 +82,20 @@ define([
       this.stack_.length = 0;
       this.firstReplay_ = buffer;
     },
+    checkIntensityNegativeCulling: function (mainSel, replaySel, name) {
+      if (mainSel.intensity_ !== undefined && mainSel.intensity_ !== replaySel.intensity_) {
+        replaySel.intensity_ = mainSel.intensity_;
+        this.stack_.push(Replay[name + '_INTENSITY'], mainSel.intensity_ * 100);
+      }
+      if (mainSel.negative_ !== undefined && mainSel.negative_ !== replaySel.negative_) {
+        replaySel.negative_ = mainSel.negative_;
+        this.stack_.push(Replay[name + '_TOGGLE_NEGATIVE']);
+      }
+      if (mainSel.culling_ !== undefined && mainSel.culling_ !== replaySel.culling_) {
+        replaySel.culling_ = mainSel.culling_;
+        this.stack_.push(Replay[name + '_TOGGLE_CULLING']);
+      }
+    },
     checkSculptTools: function () {
       if (Tablet.useOnRadius !== this.pressureOnRadius_) {
         this.pressureOnRadius_ = Tablet.useOnRadius;
@@ -126,21 +140,10 @@ define([
 
       switch (tool) {
       case Sculpt.tool.BRUSH:
-        if (mainSel.intensity_ !== replaySel.intensity_) {
-          replaySel.intensity_ = mainSel.intensity_;
-          this.stack_.push(Replay.BRUSH_INTENSITY, mainSel.intensity_ * 100);
-        }
-        if (mainSel.negative_ !== replaySel.negative_) {
-          replaySel.negative_ = mainSel.negative_;
-          this.stack_.push(Replay.BRUSH_TOGGLE_NEGATIVE);
-        }
+        this.checkIntensityNegativeCulling(mainSel, replaySel, 'BRUSH');
         if (mainSel.clay_ !== replaySel.clay_) {
           replaySel.clay_ = mainSel.clay_;
           this.stack_.push(Replay.BRUSH_TOGGLE_CLAY);
-        }
-        if (mainSel.culling_ !== replaySel.culling_) {
-          replaySel.culling_ = mainSel.culling_;
-          this.stack_.push(Replay.BRUSH_TOGGLE_CULLING);
         }
         if (mainSel.accumulate_ !== replaySel.accumulate_) {
           replaySel.accumulate_ = mainSel.accumulate_;
@@ -148,70 +151,19 @@ define([
         }
         break;
       case Sculpt.tool.CREASE:
-        if (mainSel.intensity_ !== replaySel.intensity_) {
-          replaySel.intensity_ = mainSel.intensity_;
-          this.stack_.push(Replay.CREASE_INTENSITY, mainSel.intensity_ * 100);
-        }
-        if (mainSel.negative_ !== replaySel.negative_) {
-          replaySel.negative_ = mainSel.negative_;
-          this.stack_.push(Replay.CREASE_TOGGLE_NEGATIVE);
-        }
-        if (mainSel.culling_ !== replaySel.culling_) {
-          replaySel.culling_ = mainSel.culling_;
-          this.stack_.push(Replay.CREASE_TOGGLE_CULLING);
-        }
+        this.checkIntensityNegativeCulling(mainSel, replaySel, 'CREASE');
         break;
       case Sculpt.tool.INFLATE:
-        if (mainSel.intensity_ !== replaySel.intensity_) {
-          replaySel.intensity_ = mainSel.intensity_;
-          this.stack_.push(Replay.INFLATE_INTENSITY, mainSel.intensity_ * 100);
-        }
-        if (mainSel.negative_ !== replaySel.negative_) {
-          replaySel.negative_ = mainSel.negative_;
-          this.stack_.push(Replay.INFLATE_TOGGLE_NEGATIVE);
-        }
-        if (mainSel.culling_ !== replaySel.culling_) {
-          replaySel.culling_ = mainSel.culling_;
-          this.stack_.push(Replay.INFLATE_TOGGLE_CULLING);
-        }
+        this.checkIntensityNegativeCulling(mainSel, replaySel, 'INFLATE');
         break;
       case Sculpt.tool.FLATTEN:
-        if (mainSel.intensity_ !== replaySel.intensity_) {
-          replaySel.intensity_ = mainSel.intensity_;
-          this.stack_.push(Replay.FLATTEN_INTENSITY, mainSel.intensity_ * 100);
-        }
-        if (mainSel.negative_ !== replaySel.negative_) {
-          replaySel.negative_ = mainSel.negative_;
-          this.stack_.push(Replay.FLATTEN_TOGGLE_NEGATIVE);
-        }
-        if (mainSel.culling_ !== replaySel.culling_) {
-          replaySel.culling_ = mainSel.culling_;
-          this.stack_.push(Replay.FLATTEN_TOGGLE_CULLING);
-        }
+        this.checkIntensityNegativeCulling(mainSel, replaySel, 'FLATTEN');
         break;
       case Sculpt.tool.PINCH:
-        if (mainSel.intensity_ !== replaySel.intensity_) {
-          replaySel.intensity_ = mainSel.intensity_;
-          this.stack_.push(Replay.PINCH_INTENSITY, mainSel.intensity_ * 100);
-        }
-        if (mainSel.negative_ !== replaySel.negative_) {
-          replaySel.negative_ = mainSel.negative_;
-          this.stack_.push(Replay.PINCH_TOGGLE_NEGATIVE);
-        }
-        if (mainSel.culling_ !== replaySel.culling_) {
-          replaySel.culling_ = mainSel.culling_;
-          this.stack_.push(Replay.PINCH_TOGGLE_CULLING);
-        }
+        this.checkIntensityNegativeCulling(mainSel, replaySel, 'PINCH');
         break;
       case Sculpt.tool.SMOOTH:
-        if (mainSel.intensity_ !== replaySel.intensity_) {
-          replaySel.intensity_ = mainSel.intensity_;
-          this.stack_.push(Replay.SMOOTH_INTENSITY, mainSel.intensity_ * 100);
-        }
-        if (mainSel.culling_ !== replaySel.culling_) {
-          replaySel.culling_ = mainSel.culling_;
-          this.stack_.push(Replay.SMOOTH_TOGGLE_CULLING);
-        }
+        this.checkIntensityNegativeCulling(mainSel, replaySel, 'SMOOTH');
         if (mainSel.tangent_ !== replaySel.tangent_) {
           replaySel.tangent_ = mainSel.tangent_;
           this.stack_.push(Replay.SMOOTH_TOGGLE_TANGENT);
@@ -223,26 +175,20 @@ define([
           this.stack_.push(Replay.MOVE_TOGGLE_TOPOCHECK);
         }
         break;
+      case Sculpt.tool.MASKING:
+        this.checkIntensityNegativeCulling(mainSel, replaySel, 'MASKING');
+        break;
       case Sculpt.tool.TWIST:
-        if (mainSel.culling_ !== replaySel.culling_) {
-          replaySel.culling_ = mainSel.culling_;
-          this.stack_.push(Replay.TWIST_TOGGLE_CULLING);
-        }
+        this.checkIntensityNegativeCulling(mainSel, replaySel, 'TWIST');
         break;
       case Sculpt.tool.SCALE:
-        if (mainSel.culling_ !== replaySel.culling_) {
-          replaySel.culling_ = mainSel.culling_;
-          this.stack_.push(Replay.SCALE_TOGGLE_CULLING);
-        }
+        this.checkIntensityNegativeCulling(mainSel, replaySel, 'SCALE');
         break;
       case Sculpt.tool.PAINT:
         // optimize a bit
         if (mainSel.pickColor_)
           break;
-        if (mainSel.intensity_ !== replaySel.intensity_) {
-          replaySel.intensity_ = mainSel.intensity_;
-          this.stack_.push(Replay.PAINT_INTENSITY, mainSel.intensity_ * 100);
-        }
+        this.checkIntensityNegativeCulling(mainSel, replaySel, 'PAINT');
         if (mainSel.material_[0] !== replaySel.material_[0]) {
           replaySel.material_[0] = mainSel.material_[0];
           this.stack_.push(Replay.PAINT_ROUGHNESS, mainSel.material_[0]);
@@ -250,10 +196,6 @@ define([
         if (mainSel.material_[1] !== replaySel.material_[1]) {
           replaySel.material_[1] = mainSel.material_[1];
           this.stack_.push(Replay.PAINT_METALLIC, mainSel.material_[1]);
-        }
-        if (mainSel.culling_ !== replaySel.culling_) {
-          replaySel.culling_ = mainSel.culling_;
-          this.stack_.push(Replay.PAINT_TOGGLE_CULLING);
         }
         if (vec3.sqrDist(mainSel.color_, replaySel.color_) !== 0.0) {
           vec3.copy(replaySel.color_, mainSel.color_);
@@ -462,6 +404,7 @@ define([
         case Replay.PINCH_INTENSITY:
         case Replay.SMOOTH_INTENSITY:
         case Replay.PAINT_INTENSITY:
+        case Replay.MASKING_INTENSITY:
         case Replay.MULTI_RESOLUTION:
         case Replay.DYNAMIC_SUBDIVISION:
         case Replay.DYNAMIC_DECIMATION:
