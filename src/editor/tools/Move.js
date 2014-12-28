@@ -13,6 +13,7 @@ define([
   function Move(states) {
     SculptBase.call(this, states);
     this.topoCheck_ = true;
+    this.negative_ = false; // along normal
     this.moveData_ = {
       center: [0.0, 0.0, 0.0],
       dir: [0.0, 0.0],
@@ -142,7 +143,14 @@ define([
         Geometry.mirrorPoint(vFar, ptPlane, nPlane);
       }
 
-      vec3.sub(moveData.dir, Geometry.vertexOnLine(moveData.center, vNear, vFar), moveData.center);
+      if (this.negative_) {
+        var len = vec3.dist(Geometry.vertexOnLine(moveData.center, vNear, vFar), moveData.center);
+        vec3.normalize(moveData.dir, picking.getPickedNormal());
+        vec3.scale(moveData.dir, moveData.dir, mouseX < this.lastMouseX_ ? -len : len);
+      } else {
+        vec3.sub(moveData.dir, Geometry.vertexOnLine(moveData.center, vNear, vFar), moveData.center);
+      }
+
       var eyeDir = picking.getEyeDirection();
       vec3.sub(eyeDir, vFar, vNear);
       vec3.normalize(eyeDir, eyeDir);

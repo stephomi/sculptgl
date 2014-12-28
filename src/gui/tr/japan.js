@@ -124,6 +124,7 @@ define([], function () {
     sculptPickColor: 'Picking Material',
     sculptTangentialSmoothing: 'Relax only',
     sculptTopologicalCheck: 'Topological check',
+    sculptMoveAlongNormal: 'Move along normal (N or -Alt)',
     sculptDeleteMesh: 'Delete the mesh ?',
 
     // states

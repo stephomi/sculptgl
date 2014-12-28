@@ -63,6 +63,13 @@ define([
     getPickedFace: function () {
       return this.pickedFace_;
     },
+    getPickedNormal: function () {
+      if (!this.mesh_ || this.pickedFace_ < 0) return;
+      var id = this.pickedFace_ * 3;
+      var fn = this.mesh_.getFaceNormals();
+      var n = vec3.set([0.0, 0.0, 0.0], fn[id], fn[id + 1], fn[id + 2]);
+      return vec3.normalize(n, n);
+    },
     /** Intersection between a ray the mouse position for every meshes */
     intersectionMouseMeshes: (function () {
       var vNearTransform = [0.0, 0.0, 0.0];

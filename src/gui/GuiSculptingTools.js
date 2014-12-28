@@ -33,8 +33,8 @@ define([
   var addCtrlCulling = function (tool, fold) {
     return fold.addCheckbox(TR('sculptCulling'), tool, 'culling_');
   };
-  var addCtrlNegative = function (tool, fold, widget) {
-    var ctrl = fold.addCheckbox(TR('sculptNegative'), tool, 'negative_');
+  var addCtrlNegative = function (tool, fold, widget, name) {
+    var ctrl = fold.addCheckbox(name || TR('sculptNegative'), tool, 'negative_');
     widget.toggleNegative = function () {
       ctrl.setValue(!ctrl.getValue());
     };
@@ -162,6 +162,7 @@ define([
     ctrls_: [],
     init: function (tool, fold) {
       this.ctrls_.push(fold.addCheckbox(TR('sculptTopologicalCheck'), tool, 'topoCheck_'));
+      this.ctrls_.push(addCtrlNegative(tool, fold, this, TR('sculptMoveAlongNormal')));
     }
   };
 

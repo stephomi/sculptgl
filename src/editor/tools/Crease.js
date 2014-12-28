@@ -28,10 +28,7 @@ define([
       if (this.culling_)
         iVertsInRadius = iVertsFront;
 
-      var aNormal = this.areaNormal(iVertsFront);
-      if (!aNormal)
-        return;
-      this.crease(iVertsInRadius, aNormal, picking.getIntersectionPoint(), picking.getLocalRadius2(), intensity);
+      this.crease(iVertsInRadius, picking.getPickedNormal(), picking.getIntersectionPoint(), picking.getLocalRadius2(), intensity);
 
       this.mesh_.updateGeometry(this.mesh_.getFacesFromVertices(iVertsInRadius), iVertsInRadius);
     },

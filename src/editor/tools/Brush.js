@@ -31,11 +31,11 @@ define([
       if (this.culling_)
         iVertsInRadius = iVertsFront;
 
-      var aNormal = this.areaNormal(iVertsFront);
-      if (!aNormal)
-        return;
-      this.brush(iVertsInRadius, aNormal, picking.getIntersectionPoint(), picking.getLocalRadius2(), intensity);
+      this.brush(iVertsInRadius, picking.getPickedNormal(), picking.getIntersectionPoint(), picking.getLocalRadius2(), intensity);
       if (this.clay_) {
+        var aNormal = this.areaNormal(iVertsFront);
+        if (!aNormal)
+          return;
         var aCenter = this.areaCenter(iVertsFront);
         Flatten.prototype.flatten.call(this, iVertsInRadius, aNormal, aCenter, picking.getIntersectionPoint(), picking.getLocalRadius2(), intensity);
       }
