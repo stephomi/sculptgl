@@ -87,6 +87,18 @@ body {
   background: rgba(0,0,0,0.3);
 }
 
+.gui-sidebar > ul[opened=true] > label:before{
+  content:'▼';
+  text-indent: 1em;
+  float: left;
+}
+
+.gui-sidebar > ul[opened=false] > label:before{
+  content:'►';
+  text-indent: 1em;
+  float: left;
+}
+
 .gui-sidebar > ul{
   display: block;
   list-style: none;
