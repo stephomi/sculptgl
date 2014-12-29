@@ -16,13 +16,13 @@ define([
 
     this.modalBrushRadius_ = false; // modal brush radius change
     this.modalBrushIntensity_ = false; // modal brush intensity change
-    this.lastMouseX_ = 0; // last x position
+    this.lastMouseX_ = 0;
 
-    this.menu_ = null; // ui menu
-    this.ctrlSculpt_ = null; // sculpt controller
-    this.ctrlSymmetry_ = null; // symmetry controller
-    this.ctrlContinuous_ = null; // continuous controller
-    this.ctrlRadius_ = null; // radius controller
+    this.menu_ = null;
+    this.ctrlSculpt_ = null;
+    this.ctrlSymmetry_ = null;
+    this.ctrlContinuous_ = null;
+    this.ctrlRadius_ = null;
     this.init(guiParent);
   }
 
@@ -56,20 +56,20 @@ define([
       this.ctrlRadius_ = menu.addSlider(TR('sculptRadius'), picking, 'rDisplay_', 5, 200, 1);
 
       // init all the specific subtools ui
-      this.initTool(Sculpt.tool.BRUSH, menu);
-      this.initTool(Sculpt.tool.INFLATE, menu);
-      this.initTool(Sculpt.tool.TWIST, menu);
-      this.initTool(Sculpt.tool.SMOOTH, menu);
-      this.initTool(Sculpt.tool.FLATTEN, menu);
-      this.initTool(Sculpt.tool.PINCH, menu);
-      this.initTool(Sculpt.tool.CREASE, menu);
-      this.initTool(Sculpt.tool.DRAG, menu);
-      this.initTool(Sculpt.tool.PAINT, menu, this.main_);
-      this.initTool(Sculpt.tool.MASKING, menu);
-      this.initTool(Sculpt.tool.MOVE, menu);
-      this.initTool(Sculpt.tool.SCALE, menu);
-      this.initTool(Sculpt.tool.TRANSLATE, menu);
-      this.initTool(Sculpt.tool.ROTATE, menu);
+      this.initTool(Sculpt.tool.BRUSH);
+      this.initTool(Sculpt.tool.INFLATE);
+      this.initTool(Sculpt.tool.TWIST);
+      this.initTool(Sculpt.tool.SMOOTH);
+      this.initTool(Sculpt.tool.FLATTEN);
+      this.initTool(Sculpt.tool.PINCH);
+      this.initTool(Sculpt.tool.CREASE);
+      this.initTool(Sculpt.tool.DRAG);
+      this.initTool(Sculpt.tool.PAINT);
+      this.initTool(Sculpt.tool.MASKING);
+      this.initTool(Sculpt.tool.MOVE);
+      this.initTool(Sculpt.tool.SCALE);
+      this.initTool(Sculpt.tool.TRANSLATE);
+      this.initTool(Sculpt.tool.ROTATE);
 
       menu.addTitle(TR('Extra'));
       // symmetry
@@ -285,8 +285,8 @@ define([
       this.main_.getPicking().computeRadiusWorld2(this.main_.mouseX_, this.main_.mouseY_);
     },
     /** Initialize tool */
-    initTool: function (toolKey, foldSculpt, main) {
-      GuiSculptingTools[toolKey].init(this.sculpt_.tools_[toolKey], foldSculpt, main);
+    initTool: function (toolKey) {
+      GuiSculptingTools[toolKey].init(this.sculpt_.tools_[toolKey], this.menu_, this.main_);
       GuiSculptingTools.hide(toolKey);
     },
     /** When the sculpting tool is changed */

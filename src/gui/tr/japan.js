@@ -125,6 +125,8 @@ define([], function () {
     sculptTangentialSmoothing: 'Relax only',
     sculptTopologicalCheck: 'Topological check',
     sculptMoveAlongNormal: 'Move along normal (N or -Alt)',
+    sculptMaskingClear: 'Clear (-Ctrl + Drag)',
+    sculptMaskingInvert: 'Invert (-Ctrl + Click)',
     sculptDeleteMesh: 'Delete the mesh ?',
 
     // states

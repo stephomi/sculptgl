@@ -586,6 +586,12 @@ define([
         tool.material_[1] = data.getFloat32(sel);
         sel += 4;
         break;
+      case Replay.MASKING_CLEAR:
+        main.getSculpt().getTool('MASKING').clear(main.getMesh(), main);
+        break;
+      case Replay.MASKING_INVERT:
+        main.getSculpt().getTool('MASKING').invert(main.getMesh(), main);
+        break;
       case Replay.MULTI_RESOLUTION:
         main.getGui().ctrlTopology_.onResolutionChanged(data.getUint8(sel));
         sel += 1;

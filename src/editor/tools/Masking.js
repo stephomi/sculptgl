@@ -49,6 +49,42 @@ define([
         fallOff *= maskIntensity;
         mAr[ind + 2] = Math.min(Math.max(mAr[ind + 2] + fallOff, 0.0), 1.0);
       }
+    },
+    clear: function (mesh, main) {
+      this.mesh_ = mesh;
+
+      var nbVertices = mesh.getNbVertices();
+      var cleaned = new Uint32Array(Utils.getMemory(4 * nbVertices), 0, nbVertices);
+      var mAr = mesh.getMaterials();
+      var acc = 0;
+      var i = 0;
+      for (i = 0; i < nbVertices; ++i) {
+        if (mAr[i * 3 + 2] !== 1.0)
+          cleaned[acc++] = i;
+      }
+      if (acc === 0) return;
+      cleaned = new Uint32Array(cleaned.subarray(0, acc));
+      this.pushState();
+      this.states_.pushVertices(cleaned);
+      for (i = 0; i < acc; ++i)
+        mAr[cleaned[i] * 3 + 2] = 1.0;
+
+      mesh.updateDuplicateColorsAndMaterials();
+      mesh.updateFlatShading();
+      this.updateRender(main);
+    },
+    invert: function (mesh, main, isState) {
+      this.mesh_ = mesh;
+      if (!isState)
+        this.states_.pushStateCustom(this.invert.bind(this, mesh, main, true));
+
+      var mAr = mesh.getMaterials();
+      for (var i = 0, nb = mesh.getNbVertices(); i < nb; ++i)
+        mAr[i * 3 + 2] = 1.0 - mAr[i * 3 + 2];
+
+      mesh.updateDuplicateColorsAndMaterials();
+      mesh.updateFlatShading();
+      this.updateRender(main);
     }
   };
 

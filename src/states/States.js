@@ -5,8 +5,9 @@ define([
   'states/StateGeometry',
   'states/StateDynamic',
   'states/StateMultiresolution',
-  'states/StateTransform'
-], function (Utils, StAddRemove, StColorAndMaterial, StGeometry, StDynamic, StMultiresolution, StTransform) {
+  'states/StateTransform',
+  'states/StateCustom'
+], function (Utils, StAddRemove, StColorAndMaterial, StGeometry, StDynamic, StMultiresolution, StTransform, StCustom) {
 
   'use strict';
 
@@ -20,6 +21,9 @@ define([
   States.STACK_LENGTH = 15;
 
   States.prototype = {
+    pushStateCustom: function (undocb, redocb) {
+      this.pushState(new StCustom(undocb, redocb));
+    },
     pushStateAddRemove: function (addMesh, remMesh, silent) {
       var st = new StAddRemove(this.main_, addMesh, remMesh);
       st.silent = silent;

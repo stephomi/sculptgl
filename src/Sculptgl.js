@@ -31,6 +31,11 @@ define([
     this.lastMouseY_ = 0; // the last y position
     this.mouseButton_ = 0; // which mouse button is pressed
 
+    // masking
+    this.checkMask_ = false;
+    this.maskX_ = 0;
+    this.maskY_ = 0;
+
     // core of the app
     this.states_ = new States(this); // for undo-redo
     this.sculpt_ = new Sculpt(this.states_); // sculpting management
@@ -537,6 +542,13 @@ define([
       this.mouseButton_ = 0;
       Multimesh.RENDER_HINT = Multimesh.NONE;
       this.sculpt_.end();
+      if (this.checkMask_) {
+        this.checkMask_ = false;
+        if (this.lastMouseX_ === this.maskX_ && this.lastMouseY_ === this.maskY_)
+          this.getSculpt().getTool('MASKING').invert(this.mesh_, this);
+        else
+          this.getSculpt().getTool('MASKING').clear(this.mesh_, this);
+      }
       this.render();
     },
     /** Mouse wheel event */
@@ -621,11 +633,15 @@ define([
       if (button === 1 && pickedMesh)
         this.canvas_.style.cursor = 'none';
 
+      this.checkMask_ = false;
       if (button === 3 && event.ctrlKey)
         this.mouseButton_ = 4; // zoom camera
-      else if (!pickedMesh && event.ctrlKey)
+      else if (!pickedMesh && event.ctrlKey) {
+        this.maskX_ = mouseX;
+        this.maskY_ = mouseY;
+        this.checkMask_ = true;
         this.mouseButton_ = 0;
-      else if ((!pickedMesh || button === 3) && event.altKey)
+      } else if ((!pickedMesh || button === 3) && event.altKey)
         this.mouseButton_ = 2; // pan camera
       else if (button === 3 || (button === 1 && !pickedMesh)) {
         this.mouseButton_ = 3; // rotate camera

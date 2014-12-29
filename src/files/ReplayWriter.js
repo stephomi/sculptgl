@@ -346,6 +346,12 @@ define([
     pushMatcapSelect: function (val) {
       this.stack_.push(Replay.MATCAP_SELECT, val);
     },
+    pushMaskClear: function () {
+      this.stack_.push(Replay.MASKING_CLEAR);
+    },
+    pushMaskInvert: function () {
+      this.stack_.push(Replay.MASKING_INVERT);
+    },
     export: function () {
       var stack = this.stack_;
       var nb = stack.length;

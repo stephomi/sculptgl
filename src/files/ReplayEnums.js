@@ -72,6 +72,8 @@ define([], function () {
   Replay.MASKING_INTENSITY = ida++; // [intensity (u8)]
   Replay.MASKING_TOGGLE_NEGATIVE = ida++; // []
   Replay.MASKING_TOGGLE_CULLING = ida++; // []
+  Replay.MASKING_CLEAR = ida++; // []
+  Replay.MASKING_INVERT = ida++; // []
 
   Replay.MULTI_RESOLUTION = ida++; // [res (u8)]
   Replay.MULTI_SUBDIVIDE = ida++; // []

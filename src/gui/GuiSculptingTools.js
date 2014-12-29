@@ -177,10 +177,30 @@ define([
 
   GuiSculptingTools[Sculpt.tool.MASKING] = {
     ctrls_: [],
-    init: function (tool, fold) {
+    init: function (tool, fold, main) {
       this.ctrls_.push(addCtrlIntensity(tool, fold, this));
       this.ctrls_.push(addCtrlNegative(tool, fold, this));
       this.ctrls_.push(addCtrlCulling(tool, fold));
+      this.main_ = main;
+      this.tool_ = tool;
+      var bts = fold.addDualButton(TR('sculptMaskingClear'), TR('sculptMaskingInvert'), this, this, 'clear', 'invert');
+      this.ctrls_.push(bts[0], bts[1]);
+    },
+    clear: function () {
+      var main = this.main_;
+      var mesh = main.getMesh();
+      if (!mesh) return;
+      if (!main.isReplayed())
+        main.getReplayWriter().pushMaskClear();
+      this.tool_.clear(mesh, main);
+    },
+    invert: function () {
+      var main = this.main_;
+      var mesh = main.getMesh();
+      if (!mesh) return;
+      if (!main.isReplayed())
+        main.getReplayWriter().pushMaskInvert();
+      this.tool_.invert(mesh, main);
     }
   };
 

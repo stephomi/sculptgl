@@ -125,6 +125,8 @@ define([], function () {
     sculptTangentialSmoothing: '僅放鬆',
     sculptTopologicalCheck: 'Topological check',
     sculptMoveAlongNormal: 'Move along normal (N or -Alt)',
+    sculptMaskingClear: 'Clear (-Ctrl + Drag)',
+    sculptMaskingInvert: 'Invert (-Ctrl + Click)',
     sculptDeleteMesh: '刪除此網面 ?',
 
     // states

@@ -52,14 +52,15 @@ define([
   };
 
   Sculpt.prototype = {
-    /** Get current tool */
     getCurrentTool: function () {
       return this.tools_[this.tool_];
     },
     getSymmetry: function () {
       return this.symmetry_;
     },
-    /** Initialize tools */
+    getTool: function (key) {
+      return this.tools_[key] ? this.tools_[key] : this.tools_[Sculpt.tool[key]];
+    },
     init: function () {
       var states = this.states_;
       this.tools_[Sculpt.tool.BRUSH] = new Brush(states);
