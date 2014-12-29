@@ -6,7 +6,7 @@ define([], function () {
 
   var ida = 0;
   // id action (u8)
-  Replay.DEVICE_MOVE = ida++; // [x (u16), y (u16)]
+  Replay.DEVICE_MOVE = ida++; // [x (u16), y (u16), mask (u8)]
   Replay.DEVICE_DOWN = ida++; // [button (u8), x (u16), y (u16), mask (u8)]
   Replay.DEVICE_UP = ida++; // []
   Replay.DEVICE_WHEEL = ida++; // [dir (i8)]

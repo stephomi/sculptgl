@@ -224,19 +224,22 @@ define([
     pushDeviceWheel: function (delta) {
       this.stack_.push(Replay.DEVICE_WHEEL, delta);
     },
-    pushDeviceMove: function (x, y) {
+    pushDeviceMove: function (x, y, event) {
+      var mask = 0;
+      if (event.ctrlKey) mask |= Replay.CTRL;
+      if (event.altKey) mask |= Replay.ALT;
       // optimize a bit
       if (this.main_.mouseButton_ === 0) {
-        if (this.lastDeviceMove_ === this.stack_.length - 3) {
-          this.stack_[this.stack_.length - 2] = x;
-          this.stack_[this.stack_.length - 1] = y;
+        if (this.lastDeviceMove_ === this.stack_.length - 4) {
+          this.stack_[this.stack_.length - 3] = x;
+          this.stack_[this.stack_.length - 2] = y;
+          this.stack_[this.stack_.length - 1] = mask;
           return;
         }
       }
       this.lastDeviceMove_ = this.stack_.length;
-
       this.checkSculptTools();
-      this.stack_.push(Replay.DEVICE_MOVE, x, y);
+      this.stack_.push(Replay.DEVICE_MOVE, x, y, mask);
     },
     pushUndo: function () {
       this.stack_.push(Replay.UNDO);
@@ -369,7 +372,8 @@ define([
         case Replay.DEVICE_MOVE:
           data.setUint16(offset, stack[++i]);
           data.setUint16(offset + 2, stack[++i]);
-          offset += 4;
+          data.setUint8(offset + 4, stack[++i]);
+          offset += 5;
           break;
         case Replay.DEVICE_DOWN:
           data.setUint8(offset, stack[++i]);

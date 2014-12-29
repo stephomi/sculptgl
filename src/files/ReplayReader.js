@@ -443,16 +443,19 @@ define([
       case Replay.DEVICE_MOVE:
         main.mouseX_ = data.getUint16(sel);
         main.mouseY_ = data.getUint16(sel + 2);
+        var mask0 = data.getUint8(sel + 4);
+        ev.altKey = mask0 & Replay.ALT;
+        ev.ctrlKey = mask0 & Replay.CTRL;
         main.onDeviceMove(ev);
-        sel += 4;
+        sel += 5;
         break;
       case Replay.DEVICE_DOWN:
         ev.which = data.getUint8(sel);
         main.mouseX_ = data.getUint16(sel + 1);
         main.mouseY_ = data.getUint16(sel + 3);
-        var mask = data.getUint8(sel + 5);
-        ev.altKey = mask & Replay.ALT;
-        ev.ctrlKey = mask & Replay.CTRL;
+        var mask1 = data.getUint8(sel + 5);
+        ev.altKey = mask1 & Replay.ALT;
+        ev.ctrlKey = mask1 & Replay.CTRL;
         main.onDeviceDown(ev);
         sel += 6;
         break;
