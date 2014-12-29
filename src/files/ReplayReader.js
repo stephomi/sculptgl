@@ -152,9 +152,9 @@ define([
       this.iframe_.remove();
       var main = this.main_;
       document.body.appendChild(main.getCanvas());
+      this.endReplay();
       main.clearScene();
       main.loadScene(arraysgl, 'sgl');
-      this.endReplay();
     },
     loadVersion: function (version) {
       var iframe = this.iframe_ = document.createElement('iframe');
