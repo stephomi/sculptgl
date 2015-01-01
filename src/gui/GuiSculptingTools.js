@@ -161,6 +161,7 @@ define([
   GuiSculptingTools[Sculpt.tool.MOVE] = {
     ctrls_: [],
     init: function (tool, fold) {
+      this.ctrls_.push(addCtrlIntensity(tool, fold, this));
       this.ctrls_.push(fold.addCheckbox(TR('sculptTopologicalCheck'), tool, 'topoCheck_'));
       this.ctrls_.push(addCtrlNegative(tool, fold, this, TR('sculptMoveAlongNormal')));
     }

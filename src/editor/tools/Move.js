@@ -12,6 +12,7 @@ define([
 
   function Move(states) {
     SculptBase.call(this, states);
+    this.intensity_ = 1.0;
     this.topoCheck_ = true;
     this.negative_ = false; // along normal
     this.moveData_ = {
@@ -150,6 +151,7 @@ define([
       } else {
         vec3.sub(moveData.dir, Geometry.vertexOnLine(moveData.center, vNear, vFar), moveData.center);
       }
+      vec3.scale(moveData.dir, moveData.dir, this.intensity_);
 
       var eyeDir = picking.getEyeDirection();
       vec3.sub(eyeDir, vFar, vNear);

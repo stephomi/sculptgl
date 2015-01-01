@@ -66,6 +66,7 @@ define([], function () {
   Replay.PAINT_METALLIC = ida++; // [metallic (f32)]
   Replay.PAINT_TOGGLE_CULLING = ida++; // []
 
+  Replay.MOVE_INTENSITY = ida++; // [intensity (u8)]
   Replay.MOVE_TOGGLE_TOPOCHECK = ida++; // []
   Replay.MOVE_TOGGLE_NEGATIVE = ida++; // []
 

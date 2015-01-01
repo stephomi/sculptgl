@@ -414,6 +414,7 @@ define([
         case Replay.PINCH_INTENSITY:
         case Replay.SMOOTH_INTENSITY:
         case Replay.PAINT_INTENSITY:
+        case Replay.MOVE_INTENSITY:
         case Replay.MASKING_INTENSITY:
         case Replay.MULTI_RESOLUTION:
         case Replay.DYNAMIC_SUBDIVISION:

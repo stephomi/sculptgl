@@ -537,6 +537,7 @@ define([
       case Replay.PINCH_INTENSITY:
       case Replay.SMOOTH_INTENSITY:
       case Replay.PAINT_INTENSITY:
+      case Replay.MOVE_INTENSITY:
       case Replay.MASKING_INTENSITY:
         tool.intensity_ = data.getUint8(sel) / 100;
         sel += 1;
