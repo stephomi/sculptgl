@@ -542,6 +542,11 @@ define([
         tool.intensity_ = data.getUint8(sel) / 100;
         sel += 1;
         break;
+      case Replay.PAINT_HARDNESS:
+      case Replay.MASKING_HARDNESS:
+        tool.hardness_ = data.getUint8(sel) / 100;
+        sel += 1;
+        break;
       case Replay.BRUSH_TOGGLE_NEGATIVE:
       case Replay.CREASE_TOGGLE_NEGATIVE:
       case Replay.FLATTEN_TOGGLE_NEGATIVE:

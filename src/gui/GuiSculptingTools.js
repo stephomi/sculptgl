@@ -30,6 +30,9 @@ define([
     widget.intensity_ = ctrl;
     return ctrl;
   };
+  var addCtrlHardness = function (tool, fold) {
+    return fold.addSlider(TR('sculptHardness'), tool.hardness_ * 100, setOnChange.bind(tool, 'hardness_', 100), 0, 100, 1);
+  };
   var addCtrlCulling = function (tool, fold) {
     return fold.addCheckbox(TR('sculptCulling'), tool, 'culling_');
   };
@@ -117,6 +120,7 @@ define([
     },
     init: function (tool, fold, main) {
       this.ctrls_.push(addCtrlIntensity(tool, fold, this));
+      this.ctrls_.push(addCtrlHardness(tool, fold, this));
       this.ctrls_.push(addCtrlCulling(tool, fold));
 
       var materials = [];
@@ -180,6 +184,7 @@ define([
     ctrls_: [],
     init: function (tool, fold, main) {
       this.ctrls_.push(addCtrlIntensity(tool, fold, this));
+      this.ctrls_.push(addCtrlHardness(tool, fold, this));
       this.ctrls_.push(addCtrlNegative(tool, fold, this));
       this.ctrls_.push(addCtrlCulling(tool, fold));
       this.main_ = main;

@@ -87,6 +87,10 @@ define([
         replaySel.intensity_ = mainSel.intensity_;
         this.stack_.push(Replay[name + '_INTENSITY'], mainSel.intensity_ * 100);
       }
+      if (mainSel.hardness_ !== undefined && mainSel.hardness_ !== replaySel.hardness_) {
+        replaySel.hardness_ = mainSel.hardness_;
+        this.stack_.push(Replay[name + '_HARDNESS'], mainSel.hardness_ * 100);
+      }
       if (mainSel.negative_ !== undefined && mainSel.negative_ !== replaySel.negative_) {
         replaySel.negative_ = mainSel.negative_;
         this.stack_.push(Replay[name + '_TOGGLE_NEGATIVE']);
@@ -416,6 +420,8 @@ define([
         case Replay.PAINT_INTENSITY:
         case Replay.MOVE_INTENSITY:
         case Replay.MASKING_INTENSITY:
+        case Replay.PAINT_HARDNESS:
+        case Replay.MASKING_HARDNESS:
         case Replay.MULTI_RESOLUTION:
         case Replay.DYNAMIC_SUBDIVISION:
         case Replay.DYNAMIC_DECIMATION:

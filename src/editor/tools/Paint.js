@@ -11,6 +11,7 @@ define([
 
   function Paint(states) {
     SculptBase.call(this, states);
+    this.hardness_ = 0.75;
     this.intensity_ = 0.75; // deformation intensity
     this.culling_ = false; // if we backface cull the vertices
     this.color_ = vec3.fromValues(1.0, 0.766, 0.336); // albedo
@@ -83,13 +84,13 @@ define([
       if (this.culling_)
         iVertsInRadius = this.getFrontVertices(iVertsInRadius, picking.getEyeDirection());
 
-      this.paint(iVertsInRadius, picking.getIntersectionPoint(), picking.getLocalRadius2(), intensity);
+      this.paint(iVertsInRadius, picking.getIntersectionPoint(), picking.getLocalRadius2(), intensity, this.hardness_);
 
       this.mesh_.updateDuplicateColorsAndMaterials(iVertsInRadius);
       this.mesh_.updateFlatShading(this.mesh_.getFacesFromVertices(iVertsInRadius));
     },
     /** Paint color vertices */
-    paint: function (iVerts, center, radiusSquared, intensity) {
+    paint: function (iVerts, center, radiusSquared, intensity, hardness) {
       var mesh = this.mesh_;
       var vAr = mesh.getVertices();
       var cAr = mesh.getColors();
@@ -104,14 +105,14 @@ define([
       var cx = center[0];
       var cy = center[1];
       var cz = center[2];
+      var softness = 2 * (1 - hardness);
       for (var i = 0, l = iVerts.length; i < l; ++i) {
         var ind = iVerts[i] * 3;
         var dx = vAr[ind] - cx;
         var dy = vAr[ind + 1] - cy;
         var dz = vAr[ind + 2] - cz;
         var dist = Math.sqrt(dx * dx + dy * dy + dz * dz) / radius;
-        var fallOff = dist * dist;
-        fallOff = 3.0 * fallOff * fallOff - 4.0 * fallOff * dist + 1.0;
+        var fallOff = Math.pow(1 - dist, softness);
         fallOff *= intensity;
         fallOff *= mAr[ind + 2];
         var fallOffCompl = 1.0 - fallOff;

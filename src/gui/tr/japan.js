@@ -113,6 +113,7 @@ define([], function () {
     sculptContinuous: '連続加工',
     sculptRadius: '半径 (-X)',
     sculptIntensity: '明るさ (-C)',
+    sculptHardness: 'Hardness',
     sculptCulling: 'Thin surface (front vertex only)',
     sculptNegative: 'ネガティブ (N or -Alt)',
     sculptColor: 'Albedo',

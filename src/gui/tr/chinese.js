@@ -113,6 +113,7 @@ define([], function () {
     sculptContinuous: '連續',
     sculptRadius: '半徑 (-X)',
     sculptIntensity: '強度 (-C)',
+    sculptHardness: 'Hardness',
     sculptCulling: '薄曲面 (僅前面頂點)',
     sculptNegative: '反向 (N or -Alt)',
     sculptColor: '反照率',

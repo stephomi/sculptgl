@@ -9,6 +9,7 @@ define([
 
   function Masking(states) {
     SculptBase.call(this, states);
+    this.hardness_ = 0.25;
     this.intensity_ = 1.0; // deformation intensity
     this.negative_ = true; // opposition deformation
     this.culling_ = false; // if we backface cull the vertices
@@ -29,7 +30,7 @@ define([
       Paint.prototype.stroke.call(this, picking);
     },
     /** Paint color vertices */
-    paint: function (iVerts, center, radiusSquared, intensity) {
+    paint: function (iVerts, center, radiusSquared, intensity, hardness) {
       var mesh = this.mesh_;
       var vAr = mesh.getVertices();
       var mAr = mesh.getMaterials();
@@ -37,6 +38,7 @@ define([
       var cx = center[0];
       var cy = center[1];
       var cz = center[2];
+      var softness = 2 * (1 - hardness);
       var maskIntensity = this.negative_ ? -intensity : intensity;
       for (var i = 0, l = iVerts.length; i < l; ++i) {
         var ind = iVerts[i] * 3;
@@ -44,8 +46,7 @@ define([
         var dy = vAr[ind + 1] - cy;
         var dz = vAr[ind + 2] - cz;
         var dist = Math.sqrt(dx * dx + dy * dy + dz * dz) / radius;
-        var fallOff = dist * dist;
-        fallOff = 3.0 * fallOff * fallOff - 4.0 * fallOff * dist + 1.0;
+        var fallOff = Math.pow(1 - dist, softness);
         fallOff *= maskIntensity;
         mAr[ind + 2] = Math.min(Math.max(mAr[ind + 2] + fallOff, 0.0), 1.0);
       }
