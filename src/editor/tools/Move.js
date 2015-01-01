@@ -145,7 +145,7 @@ define([
 
       if (this.negative_) {
         var len = vec3.dist(Geometry.vertexOnLine(moveData.center, vNear, vFar), moveData.center);
-        vec3.normalize(moveData.dir, picking.getPickedNormal());
+        vec3.normalize(moveData.dir, picking.computePickedNormal());
         vec3.scale(moveData.dir, moveData.dir, mouseX < this.lastMouseX_ ? -len : len);
       } else {
         vec3.sub(moveData.dir, Geometry.vertexOnLine(moveData.center, vNear, vFar), moveData.center);

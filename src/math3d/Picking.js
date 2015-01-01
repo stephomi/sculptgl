@@ -63,13 +63,6 @@ define([
     getPickedFace: function () {
       return this.pickedFace_;
     },
-    getPickedNormal: function () {
-      if (!this.mesh_ || this.pickedFace_ < 0) return;
-      var id = this.pickedFace_ * 3;
-      var fn = this.mesh_.getFaceNormals();
-      var n = vec3.set([0.0, 0.0, 0.0], fn[id], fn[id + 1], fn[id + 2]);
-      return vec3.normalize(n, n);
-    },
     /** Intersection between a ray the mouse position for every meshes */
     intersectionMouseMeshes: (function () {
       var vNearTransform = [0.0, 0.0, 0.0];
@@ -286,6 +279,33 @@ define([
     },
     project: function (vec) {
       return this.main_.getCamera().project(vec);
+    },
+    computePickedNormal: function () {
+      if (!this.mesh_ || this.pickedFace_ < 0) return;
+      var n = this.polyLerp(this.mesh_.getNormals(), [0.0, 0.0, 0.0]);
+      return vec3.normalize(n, n);
+    },
+    polyLerp: function (vField, out) {
+      var vAr = this.mesh_.getVertices();
+      var fAr = this.mesh_.getFaces();
+      var id = this.pickedFace_ * 4;
+      var iv1 = fAr[id] * 3;
+      var iv2 = fAr[id + 1] * 3;
+      var iv3 = fAr[id + 2] * 3;
+      var iv4 = fAr[id + 3] * 3;
+
+      var len1 = 1 / vec3.dist(this.interPoint_, vAr.subarray(iv1, iv1 + 3));
+      var len2 = 1 / vec3.dist(this.interPoint_, vAr.subarray(iv2, iv2 + 3));
+      var len3 = 1 / vec3.dist(this.interPoint_, vAr.subarray(iv3, iv3 + 3));
+      var len4 = iv4 >= 0 ? 1 / vec3.dist(this.interPoint_, vAr.subarray(iv4, iv4 + 3)) : 0;
+
+      var sum = len1 + len2 + len3 + len4;
+      vec3.set(out, 0.0, 0.0, 0.0);
+      vec3.scaleAndAdd(out, out, vField.subarray(iv1, iv1 + 3), len1 / sum);
+      vec3.scaleAndAdd(out, out, vField.subarray(iv2, iv2 + 3), len2 / sum);
+      vec3.scaleAndAdd(out, out, vField.subarray(iv3, iv3 + 3), len3 / sum);
+      if (iv4 >= 0) vec3.scaleAndAdd(out, out, vField.subarray(iv4, iv4 + 3), len4 / sum);
+      return out;
     }
   };
 

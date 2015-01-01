@@ -71,13 +71,8 @@ define([
         var constRadius = 50.0 * (worldRadius / picking.getScreenRadius());
         vec3.transformMat4(tra, picking.getIntersectionPoint(), mesh.getMatrix());
 
-        var idf = picking.getPickedFace() * 3;
-        var nAr = mesh.getFaceNormals();
-        axis[0] = nAr[idf];
-        axis[1] = nAr[idf + 1];
-        axis[2] = nAr[idf + 2];
-        mat3.normalFromMat4(nMat, mesh.getMatrix());
-        vec3.transformMat3(axis, axis, nMat);
+        picking.polyLerp(mesh.getNormals(), axis);
+        vec3.transformMat3(axis, axis, mat3.normalFromMat4(nMat, mesh.getMatrix()));
         vec3.normalize(axis, axis);
         var rad = Math.acos(vec3.dot(base, axis));
         vec3.cross(axis, base, axis);

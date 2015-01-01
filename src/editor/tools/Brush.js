@@ -31,7 +31,7 @@ define([
       if (this.culling_)
         iVertsInRadius = iVertsFront;
 
-      this.brush(iVertsInRadius, picking.getPickedNormal(), picking.getIntersectionPoint(), picking.getLocalRadius2(), intensity);
+      this.brush(iVertsInRadius, picking.computePickedNormal(), picking.getIntersectionPoint(), picking.getLocalRadius2(), intensity);
       if (this.clay_) {
         var aNormal = this.areaNormal(iVertsFront);
         if (!aNormal)

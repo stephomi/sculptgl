@@ -30,7 +30,7 @@ define([
     startSculpt: function (main) {
       var picking = main.getPicking();
       if (this.pickColor_)
-        return this.pickColor(picking.getPickedFace(), picking.getIntersectionPoint());
+        return this.pickColor(picking);
       this.update(main);
     },
     /** Update sculpting operation */
@@ -56,46 +56,19 @@ define([
       var picking = main.getPicking();
       picking.intersectionMouseMesh(this.mesh_, main.mouseX_, main.mouseY_);
       if (picking.getMesh())
-        this.pickColor(picking.getPickedFace(), picking.getIntersectionPoint());
+        this.pickColor(picking);
     },
     /** Pick the color under the mouse */
     setPickCallback: function (cb) {
       this.pickCallback_ = cb;
     },
-    triMean: function (color, ar, iv1, iv2, iv3, iv4, len1, len2, len3, len4) {
-      var sum = len1 + len2 + len3 + len4;
-      vec3.scaleAndAdd(color, color, ar.subarray(iv1, iv1 + 3), (sum - len1) / sum);
-      vec3.scaleAndAdd(color, color, ar.subarray(iv2, iv2 + 3), (sum - len2) / sum);
-      vec3.scaleAndAdd(color, color, ar.subarray(iv3, iv3 + 3), (sum - len3) / sum);
-      if (iv4 >= 0) vec3.scaleAndAdd(color, color, ar.subarray(iv4, iv4 + 3), (sum - len4) / sum);
-      vec3.scale(color, color, 1.0 / (iv4 >= 0 ? 3 : 2));
-    },
     /** Pick the color under the mouse */
-    pickColor: function (idFace, inter) {
-      var mesh = this.mesh_;
+    pickColor: function (picking) {
       var color = this.color_;
-      var fAr = mesh.getFaces();
-      var vAr = mesh.getVertices();
-
-      var id = idFace * 4;
-      var iv1 = fAr[id] * 3;
-      var iv2 = fAr[id + 1] * 3;
-      var iv3 = fAr[id + 2] * 3;
-      var iv4 = fAr[id + 3] * 3;
-
-      var len1 = vec3.len(vec3.sub(color, inter, vAr.subarray(iv1, iv1 + 3)));
-      var len2 = vec3.len(vec3.sub(color, inter, vAr.subarray(iv2, iv2 + 3)));
-      var len3 = vec3.len(vec3.sub(color, inter, vAr.subarray(iv3, iv3 + 3)));
-      var len4 = iv4 >= 0 ? vec3.len(vec3.sub(color, inter, vAr.subarray(iv4, iv4 + 3))) : 0;
-
-      vec3.set(color, 0.0, 0.0, 0.0);
-      this.triMean(color, mesh.getMaterials(), iv1, iv2, iv3, iv4, len1, len2, len3, len4);
+      picking.polyLerp(this.mesh_.getMaterials(), color);
       var roughness = color[0];
       var metallic = color[1];
-
-      vec3.set(color, 0.0, 0.0, 0.0);
-      this.triMean(color, mesh.getColors(), iv1, iv2, iv3, iv4, len1, len2, len3, len4);
-
+      picking.polyLerp(this.mesh_.getColors(), color);
       this.pickCallback_(color, roughness, metallic);
     },
     /** On stroke */
