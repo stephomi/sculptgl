@@ -40,9 +40,15 @@ define([
       // dynamic
       menu.addTitle(TR('dynamicTitle'));
       this.ctrlDynamic_ = menu.addCheckbox(TR('dynamicActivated'), false, this.dynamicToggleActivate.bind(this));
-      menu.addSlider(TR('dynamicSubdivision'), Topology.subFactor, this.dynamicSubdivision.bind(this), 0, 100, 1);
-      menu.addSlider(TR('dynamicDecimation'), Topology.decFactor, this.dynamicDecimation.bind(this), 0, 100, 1);
-      menu.addCheckbox(TR('dynamicLinear'), Topology.linear, this.dynamicToggleLinear.bind(this));
+      this.ctrlDynSubd_ = menu.addSlider(TR('dynamicSubdivision'), Topology.subFactor, this.dynamicSubdivision.bind(this), 0, 100, 1);
+      this.ctrlDynDec_ = menu.addSlider(TR('dynamicDecimation'), Topology.decFactor, this.dynamicDecimation.bind(this), 0, 100, 1);
+      this.ctrlDynLin_ = menu.addCheckbox(TR('dynamicLinear'), Topology.linear, this.dynamicToggleLinear.bind(this));
+      this.updateDynamicVisibility(false);
+    },
+    updateDynamicVisibility: function (bool) {
+      this.ctrlDynSubd_.setVisibility(bool);
+      this.ctrlDynDec_.setVisibility(bool);
+      this.ctrlDynLin_.setVisibility(bool);
     },
     dynamicToggleActivate: function () {
       var main = this.main_;
@@ -54,8 +60,11 @@ define([
         main.getReplayWriter().pushDynamicToggleActivate();
 
       var newMesh = !mesh.getDynamicTopology ? new MeshDynamic(mesh) : this.convertToStaticMesh(mesh);
+      this.updateDynamicVisibility(!mesh.getDynamicTopology);
+
       main.replaceMesh(mesh, newMesh);
       main.getStates().pushStateAddRemove(newMesh, mesh);
+      this.updateMeshTopology();
     },
     dynamicToggleLinear: function () {
       var main = this.main_;
@@ -252,12 +261,9 @@ define([
     /** Update topology information */
     updateMeshTopology: function () {
       this.updateMeshResolution();
-      var mesh = this.main_.getMesh();
-      if (!mesh || !mesh.getDynamicTopology) {
-        this.ctrlDynamic_.setValue(false, true);
-        return;
-      }
-      this.ctrlDynamic_.setValue(true, true);
+      var bool = this.main_.getMesh() && this.main_.getMesh().getDynamicTopology;
+      this.updateDynamicVisibility(bool);
+      this.ctrlDynamic_.setValue(bool, true);
     }
   };
 
