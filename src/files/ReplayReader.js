@@ -273,7 +273,7 @@ define([
       this.canvas_ = main.getCanvas();
       // just assign a dummy function to disable file loadings
       this.loadFiles = main.stopAndPrevent.bind(main);
-      this.loadBackground = main.stopAndPrevent.bind(main);
+      this.loadAlpha = main.stopAndPrevent.bind(main);
       this.stopAndPrevent = main.stopAndPrevent.bind(main);
       this.removeEvents();
       this.addEvents();
@@ -597,6 +597,12 @@ define([
         break;
       case Replay.MASKING_INVERT:
         main.getSculpt().getTool('MASKING').invert(main.getMesh(), main);
+        break;
+      case Replay.MASKING_CLEAR:
+        main.getSculpt().getTool('MASKING').blur(main.getMesh(), main);
+        break;
+      case Replay.MASKING_SHARPEN:
+        main.getSculpt().getTool('MASKING').sharpen(main.getMesh(), main);
         break;
       case Replay.MULTI_RESOLUTION:
         main.getGui().ctrlTopology_.onResolutionChanged(data.getUint8(sel));

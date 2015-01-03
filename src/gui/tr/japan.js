@@ -115,6 +115,8 @@ define([], function () {
     sculptIntensity: '明るさ (-C)',
     sculptHardness: 'Hardness',
     sculptCulling: 'Thin surface (front vertex only)',
+    sculptUseAlpha: 'Use alpha',
+    sculptImportAlpha: 'Import alpha tex (jpg, png...)',
     sculptNegative: 'ネガティブ (N or -Alt)',
     sculptColor: 'Albedo',
     sculptRoughness: 'Roughness',
@@ -128,6 +130,8 @@ define([], function () {
     sculptMoveAlongNormal: 'Move along normal (N or -Alt)',
     sculptMaskingClear: 'Clear (-Ctrl + Drag)',
     sculptMaskingInvert: 'Invert (-Ctrl + Click)',
+    sculptMaskingBlur: 'Blur',
+    sculptMaskingSharpen: 'Sharpen',
     sculptDeleteMesh: 'Delete the mesh ?',
 
     // states

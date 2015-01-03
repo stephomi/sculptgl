@@ -5,7 +5,8 @@ define([
 
   'use strict';
 
-  function Background(gl) {
+  function Background(gl, main) {
+    this.main_ = main;
     this.gl_ = gl; // webgl context
 
     this.vertexBuffer_ = new Buffer(gl, gl.ARRAY_BUFFER, gl.STATIC_DRAW); // vertices buffer
@@ -22,36 +23,56 @@ define([
   }
 
   Background.prototype = {
-    /** Return webgl context */
+    loadBackground: function (event) {
+      if (event.target.files.length === 0)
+        return;
+      var file = event.target.files[0];
+      if (!file.type.match('image.*'))
+        return;
+      var reader = new FileReader();
+      var canvas = this.main_.getCanvas();
+      reader.onload = function (evt) {
+        var bg = new Image();
+        bg.src = evt.target.result;
+        this.loadBackgroundTexture(bg);
+        this.onResize(canvas.width, canvas.height);
+        this.main_.render();
+        document.getElementById('backgroundopen').value = '';
+      }.bind(this);
+      reader.readAsDataURL(file);
+    },
     getGL: function () {
       return this.gl_;
     },
-    /** Return vertex buffer */
     getVertexBuffer: function () {
       return this.vertexBuffer_;
     },
-    /** Return tex coord buffer */
     getTexCoordBuffer: function () {
       return this.texCoordBuffer_;
     },
-    /** Initialize Vertex Buffer Object (VBO) */
     init: function () {
       this.initBuffer();
       this.shader_ = Shader[Shader.mode.BACKGROUND].getOrCreate(this.gl_);
+
+      var cbLoadBackground = this.loadBackground.bind(this);
+      document.getElementById('backgroundopen').addEventListener('change', cbLoadBackground, false);
+      this.removeCallback = function () {
+        document.getElementById('backgroundopen').removeEventListener('change', cbLoadBackground, false);
+      };
     },
-    /** Free gl memory */
+    removeEvents: function () {
+      if (this.removeCallback) this.removeCallback();
+    },
     release: function () {
       if (this.backgroundLoc_)
         this.gl_.deleteTexture(this.backgroundLoc_);
       this.getVertexBuffer().release();
       this.getTexCoordBuffer().release();
     },
-    /** Initialize Vertex Buffer Object (VBO) */
     initBuffer: function () {
       this.getVertexBuffer().update(this.vertCoords);
       this.getTexCoordBuffer().update(this.texCoords);
     },
-    /** On resize */
     onResize: function (width, height) {
       if (!this.tex_) return;
       var ratio = (width / height) / (this.tex_.width / this.tex_.height);
@@ -61,7 +82,6 @@ define([
       this.vertCoords.set([-x, -y, x, -y, -x, y, x, y]);
       this.getVertexBuffer().update(this.vertCoords);
     },
-    /** Load background texture */
     loadBackgroundTexture: function (tex) {
       var gl = this.gl_;
       if (this.backgroundLoc_)
@@ -75,7 +95,6 @@ define([
       gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
       gl.bindTexture(gl.TEXTURE_2D, null);
     },
-    /** Render the background */
     render: function () {
       if (!this.tex_) return;
       this.shader_.draw(this);

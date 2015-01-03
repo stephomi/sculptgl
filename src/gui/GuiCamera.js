@@ -52,7 +52,7 @@ define([
     onCameraModeChange: function (value) {
       var mode = parseInt(value, 10);
       if (!this.main_.isReplayed())
-        this.main_.getReplayWriter().pushCameraMode(mode);
+        this.main_.getReplayWriter().pushAction('CAMERA_MODE', mode);
 
       this.camera_.setMode(mode);
       this.main_.render();
@@ -61,7 +61,7 @@ define([
     onCameraTypeChange: function (value) {
       var type = parseInt(value, 10);
       if (!this.main_.isReplayed())
-        this.main_.getReplayWriter().pushCameraProjType(type);
+        this.main_.getReplayWriter().pushAction('CAMERA_PROJ_TYPE', type);
 
       this.camera_.setProjType(type);
       this.ctrlFov_.setVisibility(type === Camera.projType.PERSPECTIVE);
@@ -73,14 +73,6 @@ define([
         this.main_.getReplayWriter().pushCameraFov(value);
 
       this.camera_.setFov(value);
-      this.main_.render();
-    },
-    /** On pivot change */
-    onPivotChange: function () {
-      if (!this.main_.isReplayed())
-        this.main_.getReplayWriter().pushCameraTogglePivot();
-
-      this.camera_.toggleUsePivot();
       this.main_.render();
     },
     /** Add events */
@@ -139,10 +131,11 @@ define([
     },
     cbOnTranslation: function () {
       var main = this.main_;
+      var cam = main.getCamera();
       if (!main.isReplayed())
-        main.getReplayWriter().pushCameraFps();
+        main.getReplayWriter().pushAction('CAMERA_FPS', cam.moveX_, cam.moveZ_);
 
-      main.getCamera().updateTranslation();
+      cam.updateTranslation();
       main.render();
     },
     /** Key released event */
@@ -184,37 +177,26 @@ define([
         this.cameraTimer_ = -1;
       }
     },
-    /** Reset camera */
+    cameraAction: function (key, akey) {
+      var main = this.main_;
+      if (!main.isReplayed()) main.getReplayWriter().pushAction(akey);
+      this.camera_[key]();
+      main.render();
+    },
     resetCamera: function () {
-      if (!this.main_.isReplayed())
-        this.main_.getReplayWriter().pushCameraReset();
-
-      this.camera_.resetView();
-      this.main_.render();
+      this.cameraAction('resetView', 'CAMERA_RESET');
     },
-    /** Reset to front view */
     resetFront: function () {
-      if (!this.main_.isReplayed())
-        this.main_.getReplayWriter().pushCameraResetFront();
-
-      this.camera_.resetViewFront();
-      this.main_.render();
+      this.cameraAction('resetFront', 'CAMERA_RESET_FRONT');
     },
-    /** Reset to left view */
     resetLeft: function () {
-      if (!this.main_.isReplayed())
-        this.main_.getReplayWriter().pushCameraResetLeft();
-
-      this.camera_.resetViewLeft();
-      this.main_.render();
+      this.cameraAction('resetViewLeft', 'CAMERA_RESET_LEFT');
     },
-    /** Reset to top view */
     resetTop: function () {
-      if (!this.main_.isReplayed())
-        this.main_.getReplayWriter().pushCameraResetTop();
-
-      this.camera_.resetViewTop();
-      this.main_.render();
+      this.cameraAction('resetViewTop', 'CAMERA_RESET_TOP');
+    },
+    onPivotChange: function () {
+      this.cameraAction('toggleUsePivot', 'CAMERA_TOGGLE_PIVOT');
     }
   };
 

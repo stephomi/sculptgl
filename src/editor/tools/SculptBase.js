@@ -19,6 +19,12 @@ define([
       var mesh = picking.getMesh();
       if (!mesh)
         return;
+      picking.initAlpha();
+      var pickingSym = main.getSculpt().getSymmetry() ? main.getPickingSymmetry() : null;
+      if (pickingSym) {
+        pickingSym.intersectionMouseMesh(mesh, main.mouseX_, main.mouseY_);
+        pickingSym.initAlpha();
+      }
       if (main.getMesh() !== mesh) {
         main.mesh_ = mesh;
         main.getGui().updateMesh();
@@ -64,10 +70,10 @@ define([
       var step = 1.0 / Math.floor(dist / minSpacing);
       dx *= step;
       dy *= step;
-      var mouseX = this.lastMouseX_;
-      var mouseY = this.lastMouseY_;
+      var mouseX = this.lastMouseX_ + dx;
+      var mouseY = this.lastMouseY_ + dy;
 
-      for (var i = 0.0; i <= 1.0; i += step) {
+      for (var i = step; i <= 1.0; i += step) {
         if (!this.makeStroke(mouseX, mouseY, picking, pickingSym))
           break;
         mouseX += dx;
@@ -89,14 +95,16 @@ define([
       if (!picking.getMesh())
         return false;
       picking.pickVerticesInSphere(picking.getLocalRadius2());
+      picking.computePickedNormal();
       this.stroke(picking);
 
       if (pickingSym) {
-        pickingSym.intersectionMouseMesh(mesh, mouseX, mouseY, true);
+        pickingSym.intersectionMouseMesh(mesh, mouseX, mouseY);
         if (!pickingSym.getMesh())
           return false;
         pickingSym.setLocalRadius2(picking.getLocalRadius2());
         pickingSym.pickVerticesInSphere(pickingSym.getLocalRadius2());
+        pickingSym.computePickedNormal();
         this.stroke(pickingSym, true);
       }
       return true;
@@ -189,13 +197,13 @@ define([
       }
     },
     /** Laplacian smooth. Special rule for vertex on the edge of the mesh. */
-    laplacianSmooth: function (iVerts, smoothVerts) {
+    laplacianSmooth: function (iVerts, smoothVerts, vField) {
       var mesh = this.mesh_;
       var vrvStartCount = mesh.getVerticesRingVertStartCount();
       var vertRingVert = mesh.getVerticesRingVert();
       var ringVerts = vertRingVert instanceof Array ? vertRingVert : null;
       var vertOnEdge = mesh.getVerticesOnEdge();
-      var vAr = mesh.getVertices();
+      var vAr = vField || mesh.getVertices();
       var nbVerts = iVerts.length;
       for (var i = 0; i < nbVerts; ++i) {
         var i3 = i * 3;

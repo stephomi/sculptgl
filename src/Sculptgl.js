@@ -41,7 +41,7 @@ define([
     this.sculpt_ = new Sculpt(this.states_); // sculpting management
     this.camera_ = new Camera(); // the camera
     this.picking_ = new Picking(this); // the ray picking
-    this.pickingSym_ = new Picking(this); // the symmetrical picking
+    this.pickingSym_ = new Picking(this, true); // the symmetrical picking
 
     // renderable stuffs
     this.showGrid_ = true;
@@ -71,7 +71,7 @@ define([
       this.initWebGL();
       if (!this.gl_)
         return;
-      this.background_ = new Background(this.gl_);
+      this.background_ = new Background(this.gl_, this);
       this.selection_ = new Selection(this.gl_);
       this.grid_ = new Grid(this.gl_);
       this.rtt_ = new Rtt(this.gl_);
@@ -239,7 +239,7 @@ define([
       var newHeight = this.gl_.viewportHeight = this.camera_.height_ = this.canvas_.height;
 
       if (!this.isReplayed())
-        this.getReplayWriter().pushCameraSize(newWidth, newHeight);
+        this.getReplayWriter().pushAction('CAMERA_SIZE', newWidth, newHeight);
 
       this.background_.onResize(newWidth, newHeight);
       this.rtt_.onResize(newWidth, newHeight);
@@ -279,7 +279,6 @@ define([
       var cbContextLost = this.onContextLost.bind(this);
       var cbContextRestored = this.onContextRestored.bind(this);
       var cbLoadFiles = this.loadFiles.bind(this);
-      var cbLoadBackground = this.loadBackground.bind(this);
       var cbStopAndPrevent = this.stopAndPrevent.bind(this);
 
       // misc
@@ -289,7 +288,6 @@ define([
       window.addEventListener('dragover', cbStopAndPrevent, false);
       window.addEventListener('drop', cbLoadFiles, false);
       document.getElementById('fileopen').addEventListener('change', cbLoadFiles, false);
-      document.getElementById('backgroundopen').addEventListener('change', cbLoadBackground, false);
 
       this.removeCallback = function () {
         // mouse
@@ -315,36 +313,14 @@ define([
         window.removeEventListener('dragover', cbStopAndPrevent, false);
         window.removeEventListener('drop', cbLoadFiles, false);
         document.getElementById('fileopen').removeEventListener('change', cbLoadFiles, false);
-        document.getElementById('backgroundopen').removeEventListener('change', cbLoadBackground, false);
       };
     },
     stopAndPrevent: function (event) {
       event.stopPropagation();
       event.preventDefault();
     },
-    /** Remove events */
     removeEvents: function () {
       if (this.removeCallback) this.removeCallback();
-    },
-    /** Load background */
-    loadBackground: function (event) {
-      if (event.target.files.length === 0)
-        return;
-      var file = event.target.files[0];
-      if (!file.type.match('image.*'))
-        return;
-      var reader = new FileReader();
-      var canvas = this.getCanvas();
-      var self = this;
-      reader.onload = function (evt) {
-        var bg = new Image();
-        bg.src = evt.target.result;
-        self.getBackground().loadBackgroundTexture(bg);
-        self.getBackground().onResize(canvas.width, canvas.height);
-        self.render();
-        document.getElementById('backgroundopen').value = '';
-      };
-      reader.readAsDataURL(file);
     },
     /** Return the file type */
     getFileType: function (name) {
@@ -440,7 +416,7 @@ define([
     /** Load the sphere */
     addSphere: function () {
       if (!this.isReplayed())
-        this.getReplayWriter().pushAddSphere();
+        this.getReplayWriter().pushAction('ADD_SPHERE');
 
       // make a cube and subdivide it
       var mesh = new Mesh(this.gl_);
@@ -508,7 +484,7 @@ define([
         return;
 
       if (!this.isReplayed())
-        this.getReplayWriter().pushDeleteMesh();
+        this.getReplayWriter().pushAction('DELETE_CURRENT_MESH');
 
       this.states_.pushStateRemove(this.mesh_);
       this.meshes_.splice(this.meshes_.indexOf(this.mesh_), 1);
@@ -558,7 +534,7 @@ define([
 
       var dir = (event.detail < 0 || event.wheelDelta > 0) ? 1 : -1;
       if (!this.isReplayed())
-        this.getReplayWriter().pushDeviceWheel(dir);
+        this.getReplayWriter().pushAction('DEVICE_WHEEL', dir);
 
       this.camera_.zoom(dir * 0.02);
       Multimesh.RENDER_HINT = Multimesh.CAMERA;
@@ -674,7 +650,7 @@ define([
         else
           this.picking_.intersectionMouseMeshes(this.meshes_, mouseX, mouseY);
         if (this.sculpt_.getSymmetry() && this.mesh_)
-          this.pickingSym_.intersectionMouseMesh(this.mesh_, mouseX, mouseY, true);
+          this.pickingSym_.intersectionMouseMesh(this.mesh_, mouseX, mouseY);
       }
       if (button !== 0) {
         if (button === 4 || (button === 2 && !event.altKey)) {

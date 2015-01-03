@@ -33,7 +33,7 @@ define([
       this.initTwistData(picking, mouseX, mouseY, this.twistData_);
       if (main.getSculpt().getSymmetry()) {
         var pickingSym = main.getPickingSymmetry();
-        pickingSym.intersectionMouseMesh(this.mesh_, mouseX, mouseY, true);
+        pickingSym.intersectionMouseMesh(this.mesh_, mouseX, mouseY);
         pickingSym.setLocalRadius2(picking.getLocalRadius2());
         if (pickingSym.getMesh())
           this.initTwistData(pickingSym, mouseX, mouseY, this.twistDataSym_);

@@ -92,12 +92,14 @@ define([
       var cbKeyUp = this.onKeyUp.bind(this);
       var cbMouseUp = this.onMouseUp.bind(this);
       var cbMouseMove = this.onMouseMove.bind(this);
+      var cbLoadAlpha = this.loadAlpha.bind(this);
 
       window.addEventListener('keydown', cbKeyDown, false);
       window.addEventListener('keyup', cbKeyUp, false);
       canvas.addEventListener('mousemove', cbMouseMove, false);
       canvas.addEventListener('mouseup', cbMouseUp, false);
       canvas.addEventListener('mouseout', cbMouseUp, false);
+      document.getElementById('alphaopen').addEventListener('change', cbLoadAlpha, false);
 
       this.removeCallback = function () {
         window.removeEventListener('keydown', cbKeyDown, false);
@@ -105,6 +107,7 @@ define([
         canvas.removeEventListener('mousemove', cbMouseMove, false);
         canvas.removeEventListener('mouseup', cbMouseUp, false);
         canvas.removeEventListener('mouseout', cbMouseUp, false);
+        document.getElementById('alphaopen').removeEventListener('change', cbLoadAlpha, false);
       };
     },
     /** Remove events */
@@ -300,6 +303,37 @@ define([
       this.ctrlContinuous_.setVisibility(this.sculpt_.allowPicking() === true);
       this.ctrlSymmetry_.setVisibility(newValue !== Sculpt.tool.TRANSLATE && newValue !== Sculpt.tool.ROTATE);
       this.ctrlRadius_.setVisibility(newValue !== Sculpt.tool.TRANSLATE && newValue !== Sculpt.tool.ROTATE);
+    },
+    loadAlpha: function (event) {
+      if (event.target.files.length === 0)
+        return;
+      var file = event.target.files[0];
+      if (!file.type.match('image.*'))
+        return;
+      var reader = new FileReader();
+      var pick = this.main_.getPicking();
+      var pickSym = this.main_.getPickingSymmetry();
+      var tool = this.main_.getSculpt().getCurrentTool();
+
+      reader.onload = function (evt) {
+        var bg = new Image();
+        bg.src = evt.target.result;
+        bg.onload = function () {
+          var can = document.createElement('canvas');
+          can.width = bg.width;
+          can.height = bg.height;
+
+          var ctx = can.getContext('2d');
+          ctx.drawImage(bg, 0, 0);
+          var u8 = ctx.getImageData(0, 0, bg.width, bg.height).data;
+          tool.useAlpha_ = true;
+          pick.setAlphaTex(u8, bg.width, bg.height);
+          pickSym.setAlphaTex(u8, bg.width, bg.height);
+        };
+        // this.loadBackgroundTexture(bg);
+        document.getElementById('alphaopen').value = '';
+      };
+      reader.readAsDataURL(file);
     }
   };
 

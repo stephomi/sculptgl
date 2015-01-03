@@ -77,6 +77,8 @@ define([], function () {
   Replay.MASKING_TOGGLE_CULLING = ida++; // []
   Replay.MASKING_CLEAR = ida++; // []
   Replay.MASKING_INVERT = ida++; // []
+  Replay.MASKING_BLUR = ida++; // []
+  Replay.MASKING_SHARPEN = ida++; // []
 
   Replay.MULTI_RESOLUTION = ida++; // [res (u8)]
   Replay.MULTI_SUBDIVIDE = ida++; // []

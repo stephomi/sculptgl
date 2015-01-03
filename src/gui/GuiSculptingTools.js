@@ -46,12 +46,17 @@ define([
 
   GuiSculptingTools[Sculpt.tool.BRUSH] = {
     ctrls_: [],
+    importAlpha: function () {
+      document.getElementById('alphaopen').click();
+    },
     init: function (tool, fold) {
       this.ctrls_.push(addCtrlIntensity(tool, fold, this));
       this.ctrls_.push(addCtrlNegative(tool, fold, this));
       this.ctrls_.push(fold.addCheckbox(TR('sculptClay'), tool, 'clay_'));
       this.ctrls_.push(fold.addCheckbox(TR('sculptAccumulate'), tool, 'accumulate_'));
       this.ctrls_.push(addCtrlCulling(tool, fold));
+      this.ctrls_.push(fold.addCheckbox(TR('sculptUseAlpha'), tool, 'useAlpha_'));
+      this.ctrls_.push(fold.addButton(TR('sculptImportAlpha'), this, 'importAlpha'));
     }
   };
 
@@ -189,24 +194,27 @@ define([
       this.ctrls_.push(addCtrlCulling(tool, fold));
       this.main_ = main;
       this.tool_ = tool;
-      var bts = fold.addDualButton(TR('sculptMaskingClear'), TR('sculptMaskingInvert'), this, this, 'clear', 'invert');
-      this.ctrls_.push(bts[0], bts[1]);
+      var bci = fold.addDualButton(TR('sculptMaskingClear'), TR('sculptMaskingInvert'), this, this, 'clear', 'invert');
+      var bbs = fold.addDualButton(TR('sculptMaskingBlur'), TR('sculptMaskingSharpen'), this, this, 'blur', 'sharpen');
+      this.ctrls_.push(bci[0], bci[1], bbs[0], bbs[1]);
+    },
+    maskAction: function (key, akey) {
+      var main = this.main_;
+      if (!main.getMesh()) return;
+      if (!main.isReplayed()) main.getReplayWriter().pushAction(akey);
+      this.tool_[key](main.getMesh(), main);
+    },
+    blur: function () {
+      this.maskAction('blur', 'MASKING_BLUR');
+    },
+    sharpen: function () {
+      this.maskAction('sharpen', 'MASKING_SHARPEN');
     },
     clear: function () {
-      var main = this.main_;
-      var mesh = main.getMesh();
-      if (!mesh) return;
-      if (!main.isReplayed())
-        main.getReplayWriter().pushMaskClear();
-      this.tool_.clear(mesh, main);
+      this.maskAction('clear', 'MASKING_CLEAR');
     },
     invert: function () {
-      var main = this.main_;
-      var mesh = main.getMesh();
-      if (!mesh) return;
-      if (!main.isReplayed())
-        main.getReplayWriter().pushMaskInvert();
-      this.tool_.invert(mesh, main);
+      this.maskAction('invert', 'MASKING_INVERT');
     }
   };
 

@@ -98,7 +98,7 @@ define([
       if (main.isReplayed())
         return;
       this.sculptTimer_ = window.setInterval(function () {
-        main.getReplayWriter().pushUpdateContinuous();
+        main.getReplayWriter().pushAction('SCULPT_UPDATE_CONTINOUS');
         tool.updateContinuous(main);
       }, 16.6);
     },

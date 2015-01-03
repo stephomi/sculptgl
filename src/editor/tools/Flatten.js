@@ -9,7 +9,7 @@ define([
   function Flatten(states) {
     SculptBase.call(this, states);
     this.intensity_ = 0.75; // deformation intensity
-    this.negative_ = false; // opposition deformation
+    this.negative_ = true; // opposition deformation
     this.culling_ = false; // if we backface cull the vertices
   }
 
@@ -31,15 +31,17 @@ define([
       if (!aNormal)
         return;
       var aCenter = this.areaCenter(iVertsFront);
-      this.flatten(iVertsInRadius, aNormal, aCenter, picking.getIntersectionPoint(), picking.getLocalRadius2(), intensity);
+      picking.setUseAlpha(false);
+      this.flatten(iVertsInRadius, aNormal, aCenter, picking.getIntersectionPoint(), picking.getLocalRadius2(), intensity, picking);
 
       this.mesh_.updateGeometry(this.mesh_.getFacesFromVertices(iVertsInRadius), iVertsInRadius);
     },
     /** Flatten, projection of the sculpting vertex onto a plane defined by the barycenter and normals of all the sculpting vertices */
-    flatten: function (iVertsInRadius, aNormal, aCenter, center, radiusSquared, intensity) {
+    flatten: function (iVertsInRadius, aNormal, aCenter, center, radiusSquared, intensity, picking) {
       var vAr = this.mesh_.getVertices();
       var mAr = this.mesh_.getMaterials();
       var radius = Math.sqrt(radiusSquared);
+      var vProxy = this.accumulate_ === false ? this.mesh_.getVerticesProxy() : vAr;
       var cx = center[0];
       var cy = center[1];
       var cz = center[2];
@@ -56,19 +58,20 @@ define([
         var vy = vAr[ind + 1];
         var vz = vAr[ind + 2];
         var distToPlane = (vx - ax) * anx + (vy - ay) * any + (vz - az) * anz;
-        if (distToPlane * comp < 0.0)
+        if (distToPlane * comp > 0.0)
           continue;
-        var dx = vx - cx;
-        var dy = vy - cy;
-        var dz = vz - cz;
+        var dx = vProxy[ind] - cx;
+        var dy = vProxy[ind + 1] - cy;
+        var dz = vProxy[ind + 2] - cz;
         var dist = Math.sqrt(dx * dx + dy * dy + dz * dz) / radius;
+        if (dist >= 1.0)
+          continue;
         var fallOff = dist * dist;
         fallOff = 3.0 * fallOff * fallOff - 4.0 * fallOff * dist + 1.0;
-        fallOff *= distToPlane * intensity;
-        fallOff *= mAr[ind + 2];
-        vAr[ind] = vx - anx * fallOff;
-        vAr[ind + 1] = vy - any * fallOff;
-        vAr[ind + 2] = vz - anz * fallOff;
+        fallOff *= distToPlane * intensity * mAr[ind + 2] * picking.getAlpha(vx, vy, vz);
+        vAr[ind] -= anx * fallOff;
+        vAr[ind + 1] -= any * fallOff;
+        vAr[ind + 2] -= anz * fallOff;
       }
     },
   };

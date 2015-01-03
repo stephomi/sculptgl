@@ -35,6 +35,11 @@ define([
   };
 
   ReplayWriter.prototype = {
+    pushAction: function (str) {
+      this.stack_.push(Replay[str]);
+      for (var i = 1, nbArgs = arguments.length; i < nbArgs; ++i)
+        this.stack_.push(arguments[i]);
+    },
     checkUpload: function () {
       var nbActions = this.stack_.length;
       // 5 Mb limits
@@ -72,11 +77,11 @@ define([
       this.sculpt_ = new Sculpt();
 
       var cam = this.main_.getCamera();
-      this.pushCameraSize(cam.width_, cam.height_);
-      this.pushCameraMode(cam.getMode());
-      this.pushCameraProjType(cam.getProjType());
+      this.pushAction('CAMERA_SIZE', cam.width_, cam.height_);
+      this.pushAction('CAMERA_MODE', cam.getMode());
+      this.pushAction('CAMERA_PROJ_TYPE', cam.getProjType());
       this.pushCameraFov(cam.getFov());
-      if (cam.getUsePivot()) this.pushCameraTogglePivot();
+      if (cam.getUsePivot()) this.pushAction('CAMERA_TOGGLE_PIVOT');
     },
     setFirstReplay: function (buffer) {
       this.stack_.length = 0;
@@ -208,12 +213,6 @@ define([
         break;
       }
     },
-    pushCameraSize: function (w, h) {
-      this.stack_.push(Replay.CAMERA_SIZE, w, h);
-    },
-    pushUpdateContinuous: function () {
-      this.stack_.push(Replay.SCULPT_UPDATE_CONTINOUS);
-    },
     pushDeviceDown: function (button, x, y, event) {
       this.checkSculptTools();
       var mask = 0;
@@ -224,9 +223,6 @@ define([
     pushDeviceUp: function () {
       this.checkSculptTools();
       this.stack_.push(Replay.DEVICE_UP);
-    },
-    pushDeviceWheel: function (delta) {
-      this.stack_.push(Replay.DEVICE_WHEEL, delta);
     },
     pushDeviceMove: function (x, y, event) {
       var mask = 0;
@@ -245,22 +241,6 @@ define([
       this.checkSculptTools();
       this.stack_.push(Replay.DEVICE_MOVE, x, y, mask);
     },
-    pushUndo: function () {
-      this.stack_.push(Replay.UNDO);
-    },
-    pushRedo: function () {
-      this.stack_.push(Replay.REDO);
-    },
-    pushCameraFps: function () {
-      var cam = this.main_.getCamera();
-      this.stack_.push(Replay.CAMERA_FPS, cam.moveX_, cam.moveZ_);
-    },
-    pushCameraMode: function (mode) {
-      this.stack_.push(Replay.CAMERA_MODE, mode);
-    },
-    pushCameraProjType: function (type) {
-      this.stack_.push(Replay.CAMERA_PROJ_TYPE, type);
-    },
     pushCameraFov: function (fov) {
       // optimize a bit
       if (this.lastFov_ === this.stack_.length - 2) {
@@ -270,61 +250,10 @@ define([
       this.lastFov_ = this.stack_.length;
       this.stack_.push(Replay.CAMERA_FOV, fov);
     },
-    pushCameraTogglePivot: function () {
-      this.stack_.push(Replay.CAMERA_TOGGLE_PIVOT);
-    },
-    pushCameraReset: function () {
-      this.stack_.push(Replay.CAMERA_RESET);
-    },
-    pushCameraResetFront: function () {
-      this.stack_.push(Replay.CAMERA_RESET_FRONT);
-    },
-    pushCameraResetLeft: function () {
-      this.stack_.push(Replay.CAMERA_RESET_LEFT);
-    },
-    pushCameraResetTop: function () {
-      this.stack_.push(Replay.CAMERA_RESET_TOP);
-    },
-    pushMultiSubdivide: function () {
-      this.stack_.push(Replay.MULTI_SUBDIVIDE);
-    },
-    pushMultiReverse: function () {
-      this.stack_.push(Replay.MULTI_REVERSE);
-    },
-    pushMultiResolution: function (value) {
-      this.stack_.push(Replay.MULTI_RESOLUTION, value);
-    },
-    pushDeleteLower: function () {
-      this.stack_.push(Replay.MULTI_DEL_LOWER);
-    },
-    pushDeleteHigher: function () {
-      this.stack_.push(Replay.MULTI_DEL_HIGHER);
-    },
-    pushVoxelRemesh: function (res) {
-      this.stack_.push(Replay.VOXEL_REMESH, res);
-    },
-    pushDynamicToggleActivate: function () {
-      this.stack_.push(Replay.DYNAMIC_TOGGLE_ACTIVATE);
-    },
-    pushDynamicToggleLinear: function () {
-      this.stack_.push(Replay.DYNAMIC_TOGGLE_LINEAR);
-    },
-    pushDynamicSubdivision: function (val) {
-      this.stack_.push(Replay.DYNAMIC_SUBDIVISION, val);
-    },
-    pushDynamicDecimation: function (val) {
-      this.stack_.push(Replay.DYNAMIC_DECIMATION, val);
-    },
     pushLoadMeshes: function (meshes, fdata, type) {
       var ab = type === 'sgl' ? fdata.slice() : ExportSGL.exportSGLAsArrayBuffer(meshes);
       this.nbBytesLoadingMeshes_ += ab.byteLength;
       this.stack_.push(Replay.LOAD_MESHES, ab);
-    },
-    pushAddSphere: function () {
-      this.stack_.push(Replay.ADD_SPHERE);
-    },
-    pushDeleteMesh: function () {
-      this.stack_.push(Replay.DELETE_CURRENT_MESH);
     },
     pushExposure: function (val) {
       // optimize a bit
@@ -334,27 +263,6 @@ define([
       }
       this.lastExposure_ = this.stack_.length;
       this.stack_.push(Replay.EXPOSURE_INTENSITY, val);
-    },
-    pushShowGrid: function (bool) {
-      this.stack_.push(Replay.SHOW_GRID, bool);
-    },
-    pushFlatShading: function (bool) {
-      this.stack_.push(Replay.FLAT_SHADING, bool);
-    },
-    pushShowWireframe: function (bool) {
-      this.stack_.push(Replay.SHOW_WIREFRAME, bool);
-    },
-    pushShaderSelect: function (val) {
-      this.stack_.push(Replay.SHADER_SELECT, val);
-    },
-    pushMatcapSelect: function (val) {
-      this.stack_.push(Replay.MATCAP_SELECT, val);
-    },
-    pushMaskClear: function () {
-      this.stack_.push(Replay.MASKING_CLEAR);
-    },
-    pushMaskInvert: function () {
-      this.stack_.push(Replay.MASKING_INVERT);
     },
     export: function () {
       var stack = this.stack_;

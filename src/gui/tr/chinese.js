@@ -115,6 +115,8 @@ define([], function () {
     sculptIntensity: '強度 (-C)',
     sculptHardness: 'Hardness',
     sculptCulling: '薄曲面 (僅前面頂點)',
+    sculptUseAlpha: 'Use alpha',
+    sculptImportAlpha: 'Import alpha tex (jpg, png...)',
     sculptNegative: '反向 (N or -Alt)',
     sculptColor: '反照率',
     sculptRoughness: '粗糙度',
@@ -128,6 +130,8 @@ define([], function () {
     sculptMoveAlongNormal: 'Move along normal (N or -Alt)',
     sculptMaskingClear: 'Clear (-Ctrl + Drag)',
     sculptMaskingInvert: 'Invert (-Ctrl + Click)',
+    sculptMaskingBlur: 'Blur',
+    sculptMaskingSharpen: 'Sharpen',
     sculptDeleteMesh: '刪除此網面 ?',
 
     // states

@@ -11,7 +11,7 @@ define([
   var vec3 = glm.vec3;
   var mat4 = glm.mat4;
 
-  function Picking(main) {
+  function Picking(main, xSym) {
     this.mesh_ = null; // mesh
     this.main_ = main; // the camera
     this.pickedFace_ = -1; // face picked
@@ -21,9 +21,74 @@ define([
     this.rLocal2_ = 0.0; // radius of the selection area (local/object space)
     this.rWorld2_ = 0.0; // radius of the selection area (world space)
     this.eyeDir_ = [0.0, 0.0, 0.0]; // eye direction
+
+    this.xSym_ = !!xSym;
+
+    this.pickedNormal_ = [0.0, 0.0, 0.0];
+    // alpha stuffs
+    this.alphaOrirign_ = [0.0, 0.0, 0.0];
+    this.alphaSide_ = 0.0;
+    this.aClampX_ = 1.0;
+    this.aClampY_ = 1.0;
+    this.alphaLookAt_ = mat4.create();
+    this.alphaWidth_ = 0;
+    this.alphaTex_ = null; // f32
+    this.useAlpha_ = false;
   }
 
   Picking.prototype = {
+    setAlphaTex: function (data, width, height) {
+      this.alphaWidth_ = width;
+      this.alphaHeight_ = height;
+      var at = this.alphaTex_ = new Float32Array(data.length / 4);
+      for (var i = 0, j = 0, n = at.length; i < n; ++i, j += 4)
+        at[i] = (data[j] + data[j + 1] + data[j + 2]) / 765;
+      this.aClampX_ = Math.min(1.0, width / height);
+      this.aClampY_ = Math.min(1.0, height / width);
+    },
+    setUseAlpha: function (bool) {
+      this.useAlpha_ = bool;
+    },
+    getAlpha: function (x, y, z) {
+      if (!this.useAlpha_) return 1.0;
+      var m = this.alphaLookAt_;
+      var rs = this.alphaSide_;
+      var xn = (m[0] * x + m[4] * y + m[8] * z + m[12]) / (this.xSym_ ? -rs : rs);
+      if (Math.abs(xn) > this.aClampX_) return 0.0;
+      var yn = (m[1] * x + m[5] * y + m[9] * z + m[13]) / rs;
+      if (Math.abs(yn) > this.aClampY_) return 0.0;
+      if (!this.alphaTex_) return 1.0;
+      var aw = this.alphaWidth_;
+      xn = (0.5 + xn * 0.5) * aw;
+      yn = (0.5 - yn * 0.5) * this.alphaHeight_;
+      return this.alphaTex_[(xn | 0) + aw * (yn | 0)];
+    },
+    updateAlpha: (function () {
+      var nor = [0.0, 0.0, 0.0];
+      var dir = [0.0, 0.0, 0.0];
+      return function () {
+        var radius = Math.sqrt(this.rLocal2_);
+        this.alphaSide_ = radius * Math.SQRT1_2;
+
+        vec3.sub(dir, this.interPoint_, this.alphaOrirign_);
+        if (vec3.len(dir) === 0) return;
+        vec3.normalize(dir, dir);
+
+        var normal = this.pickedNormal_;
+        vec3.scaleAndAdd(dir, dir, normal, -vec3.dot(dir, normal));
+        vec3.normalize(dir, dir);
+
+        vec3.copy(this.alphaOrirign_, this.interPoint_);
+
+        vec3.scale(nor, normal, radius);
+        vec3.scale(dir, dir, radius);
+        mat4.lookAt(this.alphaLookAt_, this.alphaOrirign_, nor, dir);
+      };
+    })(),
+    initAlpha: function () {
+      this.computePickedNormal();
+      this.updateAlpha();
+    },
     getMesh: function () {
       return this.mesh_;
     },
@@ -63,6 +128,9 @@ define([
     getPickedFace: function () {
       return this.pickedFace_;
     },
+    getPickedNormal: function () {
+      return this.pickedNormal_;
+    },
     /** Intersection between a ray the mouse position for every meshes */
     intersectionMouseMeshes: (function () {
       var vNearTransform = [0.0, 0.0, 0.0];
@@ -100,14 +168,14 @@ define([
       };
     })(),
     /** Intersection between a ray the mouse position */
-    intersectionMouseMesh: function (mesh, mouseX, mouseY, useSymmetry) {
+    intersectionMouseMesh: function (mesh, mouseX, mouseY) {
       var vNear = this.unproject(mouseX, mouseY, 0.0);
       var vFar = this.unproject(mouseX, mouseY, 1.0);
       var matInverse = mat4.create();
       mat4.invert(matInverse, mesh.getMatrix());
       vec3.transformMat4(vNear, vNear, matInverse);
       vec3.transformMat4(vFar, vFar, matInverse);
-      this.intersectionRayMesh(mesh, vNear, vFar, mouseX, mouseY, useSymmetry);
+      this.intersectionRayMesh(mesh, vNear, vFar, mouseX, mouseY);
     },
     /** Intersection between a ray and a mesh */
     intersectionRayMesh: (function () {
@@ -117,7 +185,7 @@ define([
       var vertInter = [0.0, 0.0, 0.0];
       var vNear = [0.0, 0.0, 0.0];
       var vFar = [0.0, 0.0, 0.0];
-      return function (mesh, vNearOrig, vFarOrig, mouseX, mouseY, useSymmetry) {
+      return function (mesh, vNearOrig, vFarOrig, mouseX, mouseY) {
         // resest picking
         this.mesh_ = null;
         this.pickedFace_ = -1;
@@ -125,7 +193,7 @@ define([
         vec3.copy(vNear, vNearOrig);
         vec3.copy(vFar, vFarOrig);
         // apply symmetry
-        if (useSymmetry) {
+        if (this.xSym_) {
           var ptPlane = mesh.getCenter();
           var nPlane = mesh.getSymmetryNormal();
           Geometry.mirrorPoint(vNear, ptPlane, nPlane);
@@ -282,8 +350,8 @@ define([
     },
     computePickedNormal: function () {
       if (!this.mesh_ || this.pickedFace_ < 0) return;
-      var n = this.polyLerp(this.mesh_.getNormals(), [0.0, 0.0, 0.0]);
-      return vec3.normalize(n, n);
+      this.polyLerp(this.mesh_.getNormals(), this.pickedNormal_);
+      return vec3.normalize(this.pickedNormal_, this.pickedNormal_);
     },
     polyLerp: function (vField, out) {
       var vAr = this.mesh_.getVertices();

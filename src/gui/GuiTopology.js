@@ -57,7 +57,7 @@ define([
         return;
 
       if (!main.isReplayed())
-        main.getReplayWriter().pushDynamicToggleActivate();
+        main.getReplayWriter().pushAction('DYNAMIC_TOGGLE_ACTIVATE');
 
       var newMesh = !mesh.getDynamicTopology ? new MeshDynamic(mesh) : this.convertToStaticMesh(mesh);
       this.updateDynamicVisibility(!mesh.getDynamicTopology);
@@ -69,19 +69,19 @@ define([
     dynamicToggleLinear: function () {
       var main = this.main_;
       if (!main.isReplayed())
-        main.getReplayWriter().pushDynamicToggleLinear();
+        main.getReplayWriter().pushAction('DYNAMIC_TOGGLE_LINEAR');
       Topology.linear = !Topology.linear;
     },
     dynamicSubdivision: function (val) {
       var main = this.main_;
       if (!main.isReplayed())
-        main.getReplayWriter().pushDynamicSubdivision(val);
+        main.getReplayWriter().pushAction('DYNAMIC_SUBDIVISION', val);
       Topology.subFactor = val;
     },
     dynamicDecimation: function (val) {
       var main = this.main_;
       if (!main.isReplayed())
-        main.getReplayWriter().pushDynamicDecimation(val);
+        main.getReplayWriter().pushAction('DYNAMIC_DECIMATION', val);
       Topology.decFactor = val;
     },
     /** Remesh the mesh */
@@ -92,7 +92,7 @@ define([
         return;
 
       if (!main.isReplayed())
-        main.getReplayWriter().pushVoxelRemesh(Remesh.resolution);
+        main.getReplayWriter().pushAction('VOXEL_REMESH', Remesh.resolution);
 
       var meshes = main.getMeshes().slice();
       for (var i = 0, l = meshes.length; i < l; ++i) {
@@ -155,7 +155,7 @@ define([
       }
 
       if (!main.isReplayed())
-        main.getReplayWriter().pushMultiSubdivide();
+        main.getReplayWriter().pushAction('MULTI_SUBDIVIDE');
 
       if (mesh !== mul) {
         main.replaceMesh(mesh, mul);
@@ -188,7 +188,7 @@ define([
       }
 
       if (!main.isReplayed())
-        main.getReplayWriter().pushMultiReverse();
+        main.getReplayWriter().pushAction('MULTI_REVERSE');
 
       if (mesh !== mul) {
         main.replaceMesh(mesh, mul);
@@ -209,7 +209,7 @@ define([
       }
 
       if (!main.isReplayed())
-        main.getReplayWriter().pushDeleteLower();
+        main.getReplayWriter().pushAction('MULTI_DEL_LOWER');
 
       main.getStates().pushState(new StateMultiresolution(main, mul, StateMultiresolution.DELETE_LOWER));
       mul.deleteLower();
@@ -225,7 +225,7 @@ define([
       }
 
       if (!main.isReplayed())
-        main.getReplayWriter().pushDeleteHigher();
+        main.getReplayWriter().pushAction('MULTI_DEL_HIGHER');
 
       main.getStates().pushState(new StateMultiresolution(main, mul, StateMultiresolution.DELETE_HIGHER));
       mul.deleteHigher();
@@ -240,7 +240,7 @@ define([
         return;
 
       if (!main.isReplayed())
-        main.getReplayWriter().pushMultiResolution(value);
+        main.getReplayWriter().pushAction('MULTI_RESOLUTION', value);
 
       main.getStates().pushState(new StateMultiresolution(main, multimesh, StateMultiresolution.SELECTION));
       multimesh.selectResolution(uiRes);

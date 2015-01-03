@@ -51,28 +51,70 @@ define([
         mAr[ind + 2] = Math.min(Math.max(mAr[ind + 2] + fallOff, 0.0), 1.0);
       }
     },
-    clear: function (mesh, main) {
-      this.mesh_ = mesh;
-
-      var nbVertices = mesh.getNbVertices();
+    updateAndRenderMask: function (main) {
+      this.mesh_.updateDuplicateColorsAndMaterials();
+      this.mesh_.updateFlatShading();
+      this.updateRender(main);
+    },
+    getMaskedVertices: function () {
+      var nbVertices = this.mesh_.getNbVertices();
       var cleaned = new Uint32Array(Utils.getMemory(4 * nbVertices), 0, nbVertices);
-      var mAr = mesh.getMaterials();
+      var mAr = this.mesh_.getMaterials();
       var acc = 0;
-      var i = 0;
-      for (i = 0; i < nbVertices; ++i) {
+      for (var i = 0; i < nbVertices; ++i) {
         if (mAr[i * 3 + 2] !== 1.0)
           cleaned[acc++] = i;
       }
       if (acc === 0) return;
-      cleaned = new Uint32Array(cleaned.subarray(0, acc));
-      this.pushState();
-      this.states_.pushVertices(cleaned);
-      for (i = 0; i < acc; ++i)
-        mAr[cleaned[i] * 3 + 2] = 1.0;
+      return new Uint32Array(cleaned.subarray(0, acc));
+    },
+    blur: function (mesh, main) {
+      this.mesh_ = mesh;
+      var iVerts = this.getMaskedVertices();
+      if (!iVerts) return;
+      iVerts = mesh.expandsVertices(iVerts, 1);
 
-      mesh.updateDuplicateColorsAndMaterials();
-      mesh.updateFlatShading();
-      this.updateRender(main);
+      this.pushState();
+      this.states_.pushVertices(iVerts);
+
+      var mAr = mesh.getMaterials();
+      var nbVerts = iVerts.length;
+      var smoothVerts = new Float32Array(nbVerts * 3);
+      this.laplacianSmooth(iVerts, smoothVerts, mAr);
+      for (var i = 0; i < nbVerts; ++i)
+        mAr[iVerts[i] * 3 + 2] = smoothVerts[i * 3 + 2];
+      this.updateAndRenderMask(main);
+    },
+    sharpen: function (mesh, main) {
+      this.mesh_ = mesh;
+      var iVerts = this.getMaskedVertices();
+      if (!iVerts) return;
+
+      this.pushState();
+      this.states_.pushVertices(iVerts);
+
+      var mAr = mesh.getMaterials();
+      var nbVerts = iVerts.length;
+      for (var i = 0; i < nbVerts; ++i) {
+        var idm = iVerts[i] * 3 + 2;
+        var val = mAr[idm];
+        mAr[idm] = val > 0.5 ? Math.min(val + 0.1, 1.0) : Math.max(val - 1.0, 0.0);
+      }
+      this.updateAndRenderMask(main);
+    },
+    clear: function (mesh, main) {
+      this.mesh_ = mesh;
+      var iVerts = this.getMaskedVertices();
+      if (!iVerts) return;
+
+      this.pushState();
+      this.states_.pushVertices(iVerts);
+
+      var mAr = mesh.getMaterials();
+      for (var i = 0, nb = iVerts.length; i < nb; ++i)
+        mAr[iVerts[i] * 3 + 2] = 1.0;
+
+      this.updateAndRenderMask(main);
     },
     invert: function (mesh, main, isState) {
       this.mesh_ = mesh;
@@ -83,9 +125,7 @@ define([
       for (var i = 0, nb = mesh.getNbVertices(); i < nb; ++i)
         mAr[i * 3 + 2] = 1.0 - mAr[i * 3 + 2];
 
-      mesh.updateDuplicateColorsAndMaterials();
-      mesh.updateFlatShading();
-      this.updateRender(main);
+      this.updateAndRenderMask(main);
     }
   };
 
