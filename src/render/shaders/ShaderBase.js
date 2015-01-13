@@ -10,6 +10,7 @@ define([
 
   var ShaderBase = {};
 
+  ShaderBase.SHOW_SYMMETRY_LINE = false;
   ShaderBase.uniformNames = {};
   ShaderBase.uniformNames.symmetryLine = ['uPlaneO', 'uPlaneN', 'uScale'];
 
@@ -80,7 +81,7 @@ define([
       var gl = render.getGL();
       var mesh = render.getMesh();
       var mvMatrix = mesh.getMV();
-      var useSym = (mesh === main.getMesh()) && main.getSculpt().getSymmetry();
+      var useSym = ShaderBase.SHOW_SYMMETRY_LINE && (mesh === main.getMesh()) && main.getSculpt().getSymmetry();
 
       var uniforms = this.uniforms;
       gl.uniform3fv(uniforms.uPlaneO, vec3.transformMat4(tmp, mesh.getCenter(), mvMatrix));

@@ -144,6 +144,7 @@ define([], function () {
     // rendering
     renderingTitle: '繪算',
     renderingGrid: '顯示格線',
+    renderingSymmetryLine: 'Show Symmetry line',
     renderingMatcap: 'Matcap',
     renderingPBR: '物理式繪算(PBR)',
     renderingTransparency: '透明',

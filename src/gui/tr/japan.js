@@ -144,6 +144,7 @@ define([], function () {
     // rendering
     renderingTitle: 'Rendering',
     renderingGrid: 'Show grid',
+    renderingSymmetryLine: 'Show Symmetry line',
     renderingMatcap: 'Matcap',
     renderingPBR: 'PBR',
     renderingTransparency: '透過',

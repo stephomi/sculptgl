@@ -1,9 +1,10 @@
 define([
   'gui/GuiTR',
+  'render/Render',
   'render/Shader',
   'render/shaders/ShaderMatcap',
-  'render/Render'
-], function (TR, Shader, ShaderMatcap, Render) {
+  'render/shaders/ShaderBase'
+], function (TR, Render, Shader, ShaderMatcap, ShaderBase) {
 
   'use strict';
 
@@ -62,6 +63,9 @@ define([
 
       // display grid
       menu.addCheckbox(TR('renderingGrid'), this.main_.showGrid_, this.onShowGrid.bind(this));
+
+      // display symmetry line
+      menu.addCheckbox(TR('renderingSymmetryLine'), ShaderBase, 'SHOW_SYMMETRY_LINE');
 
       this.addEvents();
     },
