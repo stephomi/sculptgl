@@ -193,7 +193,7 @@ define([
       var canvas = document.getElementById('canvas');
       var gl = this.gl_ = canvas.getContext('webgl', attributes) || canvas.getContext('experimental-webgl', attributes);
       if (!gl) {
-        window.alert('Could not initialise WebGL.');
+        window.alert('Could not initialise WebGL. No WebGL, no SculptGL. Sorry.');
         return;
       }
       if (!gl.getExtension('OES_element_index_uint')) {
@@ -204,6 +204,8 @@ define([
       gl.clearColor(0.2, 0.2, 0.2, 1);
       gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
       gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true);
+      gl.pixelStorei(gl.UNPACK_PREMULTIPLY_ALPHA_WEBGL, false);
+      gl.pixelStorei(gl.UNPACK_COLORSPACE_CONVERSION_WEBGL, gl.NONE);
       gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
       gl.depthFunc(gl.LEQUAL);
@@ -492,11 +494,11 @@ define([
     },
     /** WebGL context is lost */
     onContextLost: function () {
-      window.alert('shit happens : context lost');
+      window.alert('Oops... WebGL context lost.');
     },
     /** WebGL context is restored */
     onContextRestored: function () {
-      window.alert('context is restored');
+      window.alert('Wow... Context is restored.');
     },
     /** Mouse over event */
     onMouseOver: function () {

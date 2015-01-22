@@ -187,7 +187,7 @@ define([
       this.cameraAction('resetView', 'CAMERA_RESET');
     },
     resetFront: function () {
-      this.cameraAction('resetFront', 'CAMERA_RESET_FRONT');
+      this.cameraAction('resetViewFront', 'CAMERA_RESET_FRONT');
     },
     resetLeft: function () {
       this.cameraAction('resetViewLeft', 'CAMERA_RESET_LEFT');

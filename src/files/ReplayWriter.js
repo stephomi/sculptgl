@@ -13,6 +13,7 @@ define([
 
   var ReplayWriter = function (main) {
     this.main_ = main; // main application
+    this.noUpload_ = false; // prevent automatic upload
 
     this.firstReplay_ = null; // first part of the replaying (if we are importing a replayer)
     this.nbBytesLoadingMeshes_ = 0; // nb bytes of loaded meshes
@@ -42,6 +43,8 @@ define([
     },
     checkUpload: function () {
       var nbActions = this.stack_.length;
+      if (this.noUpload_)
+        return;
       // 5 Mb limits
       if (this.nbBytesLoadingMeshes_ > 10000000 || nbActions === this.lastNbActions_ || nbActions < 5000) {
         this.cbCheckUpload_();

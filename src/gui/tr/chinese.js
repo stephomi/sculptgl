@@ -115,6 +115,7 @@ define([], function () {
     sculptIntensity: '強度 (-C)',
     sculptHardness: 'Hardness',
     sculptCulling: '薄曲面 (僅前面頂點)',
+    sculptAlphaTitle: 'Alpha',
     sculptUseAlpha: 'Use alpha',
     sculptImportAlpha: 'Import alpha tex (jpg, png...)',
     sculptNegative: '反向 (N or -Alt)',

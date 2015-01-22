@@ -115,6 +115,7 @@ define([], function () {
     sculptIntensity: '明るさ (-C)',
     sculptHardness: 'Hardness',
     sculptCulling: 'Thin surface (front vertex only)',
+    sculptAlphaTitle: 'Alpha',
     sculptUseAlpha: 'Use alpha',
     sculptImportAlpha: 'Import alpha tex (jpg, png...)',
     sculptNegative: 'ネガティブ (N or -Alt)',

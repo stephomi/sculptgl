@@ -123,6 +123,10 @@ define([
           url = pair[1];
           break;
         }
+        if (pair[0] === 'noreplay') {
+          this.main_.getReplayWriter().noUpload_ = true;
+          return;
+        }
       }
       if (!url)
         return;
