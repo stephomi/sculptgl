@@ -124,10 +124,12 @@ define([
     newVerts.push(avx / count, avy / count, avz / count);
   };
 
-  HoleFilling.createMesh = function (mesh, vertices, faces) {
+  HoleFilling.createMesh = function (mesh, vertices, faces, colors, materials) {
     var newMesh = new Mesh();
     newMesh.setID(mesh.getID());
     newMesh.setVertices(vertices);
+    if (colors) newMesh.setColors(colors);
+    if (materials) newMesh.setMaterials(materials);
     newMesh.setFaces(faces);
 
     // small hack
@@ -155,13 +157,20 @@ define([
     if (newVerts.length > 0)
       vertices.set(newVerts, mesh.getNbVertices() * 3);
 
+    // set colors
+    var colors = new Float32Array(mesh.getNbVertices() * 3 + newVerts.length);
+    colors.set(mesh.getColors());
+    // set materials
+    var materials = new Float32Array(mesh.getNbVertices() * 3 + newVerts.length);
+    materials.set(mesh.getMaterials());
+
     // set faces
     var faces = new Int32Array(mesh.getNbFaces() * 4 + newFaces.length);
     faces.set(mesh.getFaces());
     if (newFaces.length > 0)
       faces.set(newFaces, mesh.getNbFaces() * 4);
 
-    return HoleFilling.createMesh(mesh, vertices, faces);
+    return HoleFilling.createMesh(mesh, vertices, faces, colors, materials);
   };
 
   return HoleFilling;
