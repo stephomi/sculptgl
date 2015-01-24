@@ -655,7 +655,7 @@ define([
           this.pickingSym_.intersectionMouseMesh(this.mesh_, mouseX, mouseY);
       }
       if (button !== 0) {
-        if (button === 4 || (button === 2 && !event.altKey)) {
+        if (button === 4) {
           this.camera_.zoom((mouseX - this.lastMouseX_ + mouseY - this.lastMouseY_) / 1000);
           Multimesh.RENDER_HINT = Multimesh.CAMERA;
           this.render();
