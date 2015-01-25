@@ -633,9 +633,10 @@ define([
         main.getGui().ctrlTopology_.deleteHigher();
         break;
       case Replay.VOXEL_REMESH:
-        Remesh.resolution = data.getUint16(sel);
+        Remesh.RESOLUTION = data.getUint16(sel);
+        Remesh.BLOCK = data.getUint8(sel + 2);
         main.getGui().ctrlTopology_.remesh();
-        sel += 2;
+        sel += 3;
         nextTick = 100;
         break;
       case Replay.DYNAMIC_TOGGLE_ACTIVATE:

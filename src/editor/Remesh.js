@@ -13,8 +13,8 @@ define([
   var vec3 = glm.vec3;
 
   var Remesh = {};
-
-  Remesh.resolution = 150;
+  Remesh.RESOLUTION = 150;
+  Remesh.BLOCK = false;
 
   Remesh.floodFill = function (voxels, step) {
     var res = voxels.dims;
@@ -282,7 +282,7 @@ define([
     var box = Remesh.prepareMeshes(meshes);
     console.timeEnd('initMeshes');
 
-    var step = Math.max((box[3] - box[0]), (box[4] - box[1]), (box[5] - box[2])) / Remesh.resolution;
+    var step = Math.max((box[3] - box[0]), (box[4] - box[1]), (box[5] - box[2])) / Remesh.RESOLUTION;
     var stepMin = step * 2.5;
     var stepMax = step * 2.5;
     var dims = [
@@ -303,6 +303,7 @@ define([
     var min = [box[0] - stepMin, box[1] - stepMin, box[2] - stepMin];
     var max = [box[3] + stepMax, box[4] + stepMax, box[5] + stepMax];
     console.time('surfaceNet');
+    SurfaceNets.BLOCK = Remesh.BLOCK;
     var res = SurfaceNets.computeSurface(voxels, [min, max]);
     console.timeEnd('surfaceNet');
 

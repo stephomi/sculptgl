@@ -2,6 +2,9 @@ define([], function () {
 
   'use strict';
 
+  var SurfaceNets = {};
+  SurfaceNets.BLOCK = false;
+
   /** Based on Mikola Lysenko SurfaceNets
    * Based on: S.F. Gibson, "Constrained Elastic Surface Nets". (1998) MERL Tech Report.
    */
@@ -98,6 +101,8 @@ define([], function () {
       if (!(edgeMask & (1 << i)))
         continue;
       ++edgeCount; //If it did, increment number of edge crossings
+      if (SurfaceNets.BLOCK)
+        continue;
       //Now find the point of intersection
       var e0 = cubeEdges[i << 1]; //Unpack vertices
       var e1 = cubeEdges[(i << 1) + 1];
@@ -150,7 +155,7 @@ define([], function () {
     }
   };
 
-  var computeSurface = function (voxels, bounds) {
+  SurfaceNets.computeSurface = function (voxels, bounds) {
     var dims = voxels.dims;
     var colors = voxels.colors;
     var materials = voxels.materials;
@@ -212,7 +217,5 @@ define([], function () {
     };
   };
 
-  return {
-    computeSurface: computeSurface
-  };
+  return SurfaceNets;
 });

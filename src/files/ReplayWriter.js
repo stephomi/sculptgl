@@ -372,7 +372,8 @@ define([
           break;
         case Replay.VOXEL_REMESH:
           data.setUint16(offset, stack[++i]);
-          offset += 2;
+          data.setUint8(offset, stack[++i]);
+          offset += 3;
           break;
         case Replay.LOAD_ALPHA:
           data.setUint32(offset, stack[++i]);

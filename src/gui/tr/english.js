@@ -84,6 +84,7 @@ define([], function () {
     remeshTitle: 'Voxel Remeshing',
     remeshRemesh: 'Remesh',
     remeshResolution: 'Resolution',
+    remeshBlock: 'Block',
 
     // dynamic
     dynamicTitle: 'Dynamic Topology',

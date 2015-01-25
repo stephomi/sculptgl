@@ -34,7 +34,8 @@ define([
 
       // remeshing
       menu.addTitle(TR('remeshTitle'));
-      menu.addSlider(TR('remeshResolution'), Remesh, 'resolution', 8, 400, 1);
+      menu.addSlider(TR('remeshResolution'), Remesh, 'RESOLUTION', 8, 400, 1);
+      menu.addCheckbox(TR('remeshBlock'), Remesh, 'BLOCK');
       menu.addButton(TR('remeshRemesh'), this, 'remesh');
 
       // dynamic
@@ -92,7 +93,7 @@ define([
         return;
 
       if (!main.isReplayed())
-        main.getReplayWriter().pushAction('VOXEL_REMESH', Remesh.resolution);
+        main.getReplayWriter().pushAction('VOXEL_REMESH', Remesh.RESOLUTION, Remesh.BLOCK);
 
       var meshes = main.getMeshes().slice();
       for (var i = 0, l = meshes.length; i < l; ++i) {

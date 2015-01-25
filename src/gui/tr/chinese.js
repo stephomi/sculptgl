@@ -84,6 +84,7 @@ define([], function () {
     remeshTitle: '立體像素網面重構',
     remeshRemesh: '網面重構',
     remeshResolution: '解析度',
+    remeshBlock: 'Block',
 
     // dynamic
     dynamicTitle: '動態網面結構',

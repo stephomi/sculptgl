@@ -88,7 +88,7 @@ define([], function () {
   Replay.MULTI_DEL_LOWER = ida++; // []
   Replay.MULTI_DEL_HIGHER = ida++; // []
 
-  Replay.VOXEL_REMESH = ida++; // [res (u16)]
+  Replay.VOXEL_REMESH = ida++; // [res (u16), block (u8)]
 
   Replay.DYNAMIC_TOGGLE_ACTIVATE = ida++; // []
   Replay.DYNAMIC_TOGGLE_LINEAR = ida++; // []
