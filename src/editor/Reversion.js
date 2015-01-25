@@ -195,60 +195,63 @@ define([
         if (tag1 === 1) tagEdges[feAr[j + 1]] = iv1 + 1;
         else if (tag2 === 1) tagEdges[feAr[j + 2]] = iv2 + 1;
         else if (tag3 === 1) tagEdges[feAr[j]] = iv3 + 1;
+        continue;
+      }
+      //quad
+      var ivCorner = 0;
+      var ivCenter = 0;
+      var oppEdge = 0;
+      if (tag1 === 1) {
+        ivCorner = iv1;
+        ivCenter = iv3;
+        oppEdge = tagEdges[feAr[j + 1]] - 1;
+        tagEdges[feAr[j + 2]] = iv1 + 1;
+      } else if (tag2 === 1) {
+        ivCorner = iv2;
+        ivCenter = iv4;
+        oppEdge = tagEdges[feAr[j + 2]] - 1;
+        tagEdges[feAr[j + 3]] = iv2 + 1;
+      } else if (tag3 === 1) {
+        ivCorner = iv3;
+        ivCenter = iv1;
+        oppEdge = tagEdges[feAr[j + 3]] - 1;
+        tagEdges[feAr[j]] = iv3 + 1;
       } else {
-        //quad
-        var ivCorner = 0;
-        var ivCenter = 0;
-        var oppEdge = 0;
-        if (tag1 === 1) {
-          ivCorner = iv1;
-          ivCenter = iv3;
-          oppEdge = tagEdges[feAr[j + 1]] - 1;
-          tagEdges[feAr[j + 2]] = iv1 + 1;
-        } else if (tag2 === 1) {
-          ivCorner = iv2;
-          ivCenter = iv4;
-          oppEdge = tagEdges[feAr[j + 2]] - 1;
-          tagEdges[feAr[j + 3]] = iv2 + 1;
-        } else if (tag3 === 1) {
-          ivCorner = iv3;
-          ivCenter = iv1;
-          oppEdge = tagEdges[feAr[j + 3]] - 1;
-          tagEdges[feAr[j]] = iv3 + 1;
+        ivCorner = iv4;
+        ivCenter = iv2;
+        oppEdge = tagEdges[feAr[j]] - 1;
+        tagEdges[feAr[j + 1]] = iv4 + 1;
+      }
+      var quad = centerQuadUp[ivCenter] - 1;
+      if (quad < 0) {
+        triFaceOrQuadCenter[acc] = -ivCenter - 1;
+        fArDown[acc * 4 + 3] = ivCorner;
+        centerQuadUp[ivCenter] = ++acc;
+        continue;
+      }
+      var idQuad = quad * 4;
+      if (oppEdge < 0) {
+        // no opposite edge
+        if (fArDown[idQuad + 2] < 0) {
+          fArDown[idQuad + 2] = ivCorner;
+          fArDown[idQuad] = -2;
+        } else if (fArDown[idQuad] === -1) {
+          fArDown[idQuad + 1] = ivCorner;
         } else {
-          ivCorner = iv4;
-          ivCenter = iv2;
-          oppEdge = tagEdges[feAr[j]] - 1;
-          tagEdges[feAr[j + 1]] = iv4 + 1;
+          fArDown[idQuad + 1] = fArDown[idQuad + 2];
+          fArDown[idQuad + 2] = ivCorner;
         }
-        var quad = centerQuadUp[ivCenter] - 1;
-        if (quad < 0) {
-          triFaceOrQuadCenter[acc] = -ivCenter - 1;
-          fArDown[acc * 4 + 3] = ivCorner;
-          centerQuadUp[ivCenter] = ++acc;
+      } else {
+        // insert after oppEdge
+        if (fArDown[idQuad + 1] === oppEdge) {
+          fArDown[idQuad] = ivCorner;
         } else {
-          var idQuad = quad * 4;
-          if (oppEdge < 0) {
-            // no opposite edge
-            if (fArDown[idQuad + 2] < 0) {
-              fArDown[idQuad + 2] = ivCorner;
-            } else { // permutation !
-              fArDown[idQuad + 1] = fArDown[idQuad + 2];
-              fArDown[idQuad + 2] = ivCorner;
-            }
+          fArDown[idQuad] = fArDown[idQuad + 1];
+          if (fArDown[idQuad + 2] === oppEdge) {
+            fArDown[idQuad + 1] = ivCorner;
           } else {
-            // insert after oppEdge
-            if (fArDown[idQuad + 1] === oppEdge) {
-              fArDown[idQuad] = ivCorner;
-            } else {
-              fArDown[idQuad] = fArDown[idQuad + 1];
-              if (fArDown[idQuad + 2] === oppEdge) {
-                fArDown[idQuad + 1] = ivCorner;
-              } else {
-                fArDown[idQuad + 1] = fArDown[idQuad + 2];
-                fArDown[idQuad + 2] = ivCorner;
-              }
-            }
+            fArDown[idQuad + 1] = fArDown[idQuad + 2];
+            fArDown[idQuad + 2] = ivCorner;
           }
         }
       }
