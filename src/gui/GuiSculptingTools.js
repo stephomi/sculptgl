@@ -125,10 +125,23 @@ define([
       tool.material_[0] = roughness;
       tool.material_[1] = metallic;
     },
+    paintAll: function (main, tool) {
+      if (!main.getMesh()) return;
+      if (!main.isReplayed()) {
+        main.getReplayWriter().checkSculptTools();
+        main.getReplayWriter().pushAction('PAINT_ALL');
+      }
+      tool.paintAll(main.getMesh(), main);
+    },
     init: function (tool, fold, main) {
       this.ctrls_.push(addCtrlIntensity(tool, fold, this));
       this.ctrls_.push(addCtrlHardness(tool, fold, this));
       this.ctrls_.push(addCtrlCulling(tool, fold));
+
+      this.ctrls_.push(fold.addCheckbox(TR('sculptPickColor'), tool, 'pickColor_'));
+      this.ctrls_.push(fold.addButton(TR('sculptPaintAll'), this.paintAll.bind(this, main, tool)));
+
+      this.ctrls_.push(fold.addTitle(TR('sculptPBRTitle')));
 
       var materials = [];
       var cbMatChanged = this.onMaterialChanged.bind(this, main, tool, materials);
@@ -142,7 +155,6 @@ define([
       tool.setPickCallback(this.onPickedMaterial.bind(this, materials, tool));
 
       this.ctrls_.push(ctrlColor, ctrlRoughness, ctrlMetallic);
-      this.ctrls_.push(fold.addCheckbox(TR('sculptPickColor'), tool, 'pickColor_'));
     }
   };
 

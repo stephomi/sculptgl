@@ -301,7 +301,25 @@ define([
       mesh.updateTopology(iFaces);
       mesh.updateGeometry(iFaces, iVertsInRadius);
       return iVertsInRadius;
-    }
+    },
+    getUnmaskedVertices: function () {
+      return this.filterMaskedVertices(0.0);
+    },
+    getMaskedVertices: function () {
+      return this.filterMaskedVertices(1.0);
+    },
+    filterMaskedVertices: function (comp) {
+      var nbVertices = this.mesh_.getNbVertices();
+      var cleaned = new Uint32Array(Utils.getMemory(4 * nbVertices), 0, nbVertices);
+      var mAr = this.mesh_.getMaterials();
+      var acc = 0;
+      for (var i = 0; i < nbVertices; ++i) {
+        if (mAr[i * 3 + 2] !== comp)
+          cleaned[acc++] = i;
+      }
+      if (acc === 0) return;
+      return new Uint32Array(cleaned.subarray(0, acc));
+    },
   };
 
   return SculptBase;

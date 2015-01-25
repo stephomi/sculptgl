@@ -135,6 +135,8 @@ define([], function () {
     sculptMaskingBlur: 'Blur',
     sculptMaskingSharpen: 'Sharpen',
     sculptDeleteMesh: 'Delete the mesh ?',
+    sculptPBRTitle: 'PBR materials',
+    sculptPaintAll: 'Paint all',
 
     // states
     stateTitle: '履歴',

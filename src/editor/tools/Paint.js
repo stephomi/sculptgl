@@ -122,6 +122,35 @@ define([
         mAr[ind] = mAr[ind] * fallOffCompl + roughness * fallOff;
         mAr[ind + 1] = mAr[ind + 1] * fallOffCompl + metallic * fallOff;
       }
+    },
+    paintAll: function (mesh, main) {
+      this.mesh_ = mesh;
+      var iVerts = this.getUnmaskedVertices();
+      if (!iVerts) return;
+
+      this.pushState();
+      this.states_.pushVertices(iVerts);
+
+      var cAr = mesh.getColors();
+      var mAr = mesh.getMaterials();
+      var color = this.color_;
+      var roughness = this.material_[0];
+      var metallic = this.material_[1];
+      var cr = color[0];
+      var cg = color[1];
+      var cb = color[2];
+      for (var i = 0, nb = iVerts.length; i < nb; ++i) {
+        var ind = iVerts[i] * 3;
+        var fallOff = mAr[ind + 2];
+        var fallOffCompl = 1.0 - fallOff;
+        cAr[ind] = cAr[ind] * fallOffCompl + cr * fallOff;
+        cAr[ind + 1] = cAr[ind + 1] * fallOffCompl + cg * fallOff;
+        cAr[ind + 2] = cAr[ind + 2] * fallOffCompl + cb * fallOff;
+        mAr[ind] = mAr[ind] * fallOffCompl + roughness * fallOff;
+        mAr[ind + 1] = mAr[ind + 1] * fallOffCompl + metallic * fallOff;
+      }
+
+      this.updateRender(main);
     }
   };
 

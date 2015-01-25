@@ -56,18 +56,6 @@ define([
       this.mesh_.updateFlatShading();
       this.updateRender(main);
     },
-    getMaskedVertices: function () {
-      var nbVertices = this.mesh_.getNbVertices();
-      var cleaned = new Uint32Array(Utils.getMemory(4 * nbVertices), 0, nbVertices);
-      var mAr = this.mesh_.getMaterials();
-      var acc = 0;
-      for (var i = 0; i < nbVertices; ++i) {
-        if (mAr[i * 3 + 2] !== 1.0)
-          cleaned[acc++] = i;
-      }
-      if (acc === 0) return;
-      return new Uint32Array(cleaned.subarray(0, acc));
-    },
     blur: function (mesh, main) {
       this.mesh_ = mesh;
       var iVerts = this.getMaskedVertices();

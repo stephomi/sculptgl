@@ -135,6 +135,8 @@ define([], function () {
     sculptMaskingBlur: 'Blur',
     sculptMaskingSharpen: 'Sharpen',
     sculptDeleteMesh: '刪除此網面 ?',
+    sculptPBRTitle: 'PBR materials',
+    sculptPaintAll: 'Paint all',
 
     // states
     stateTitle: '記錄',

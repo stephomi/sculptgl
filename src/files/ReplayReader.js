@@ -603,6 +603,9 @@ define([
         tool.material_[1] = data.getFloat32(sel);
         sel += 4;
         break;
+      case Replay.PAINT_ALL:
+        tool.paintAll(main.getMesh(), main);
+        break;
       case Replay.MASKING_CLEAR:
         main.getSculpt().getTool('MASKING').clear(main.getMesh(), main);
         break;
