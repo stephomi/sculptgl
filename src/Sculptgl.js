@@ -234,6 +234,10 @@ define([
       };
       for (var i = 0, mats = ShaderMatcap.matcaps, l = mats.length; i < l; ++i)
         loadTex(mats[i].path, i);
+
+      var am = new Image();
+      am.src = 'resources/alpha/square.jpg';
+      am.onload = this.onLoadAlphaImage.bind(this, am);
     },
     /** Called when the window is resized */
     onCanvasResize: function () {
@@ -693,6 +697,23 @@ define([
       var index = this.getIndexMesh(mesh);
       if (index >= 0) this.meshes_[index] = newMesh;
       if (this.mesh_ === mesh) this.setMesh(newMesh);
+    },
+    onLoadAlphaImage: function (img, tool) {
+      var can = document.createElement('canvas');
+      can.width = img.width;
+      can.height = img.height;
+
+      var ctx = can.getContext('2d');
+      ctx.drawImage(img, 0, 0);
+      var u8 = ctx.getImageData(0, 0, img.width, img.height).data;
+      this.loadAlphaTexture(u8, img.width, img.height);
+      if (tool && tool.ctrlAlpha_) tool.ctrlAlpha_.setValue(true);
+    },
+    loadAlphaTexture: function (u8, w, h) {
+      if (!this.isReplayed())
+        this.getReplayWriter().pushLoadAlpha(u8, w, h);
+      this.getPicking().setAlphaTex(u8, w, h);
+      this.getPickingSymmetry().setAlphaTex(u8, w, h);
     }
   };
 

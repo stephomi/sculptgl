@@ -28,9 +28,10 @@ define([
     // alpha stuffs
     this.alphaOrirign_ = [0.0, 0.0, 0.0];
     this.alphaSide_ = 0.0;
+    this.alphaLookAt_ = mat4.create();
+
     this.aClampX_ = 1.0;
     this.aClampY_ = 1.0;
-    this.alphaLookAt_ = mat4.create();
     this.alphaWidth_ = 0;
     this.alphaTex_ = null; // f32
     this.useAlpha_ = false;

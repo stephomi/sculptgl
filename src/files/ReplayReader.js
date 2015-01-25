@@ -584,6 +584,13 @@ define([
       case Replay.BRUSH_TOGGLE_ACCUMULATE:
         tool.accumulate_ = !tool.accumulate_;
         break;
+      case Replay.BRUSH_TOGGLE_ALPHA:
+        tool.useAlpha_ = !tool.useAlpha_;
+        break;
+        // case Replay.BRUSH_SELECT_ALPHA:
+        //   tool.idAlpha_ = data.getInt8(sel);
+        //   sel += 1;
+        //   break;
       case Replay.PAINT_COLOR:
         vec3.set(tool.color_, data.getFloat32(sel), data.getFloat32(sel + 4), data.getFloat32(sel + 8));
         sel += 12;
@@ -644,6 +651,12 @@ define([
       case Replay.DYNAMIC_DECIMATION:
         main.getGui().ctrlTopology_.dynamicDecimation(data.getUint8(sel));
         sel += 1;
+        break;
+      case Replay.LOAD_ALPHA:
+        var nbBytesA = data.getUint32(sel + 8);
+        this.nbBytesResourcesLoaded_ += nbBytesA;
+        main.loadAlphaTexture(new Uint8Array(data.buffer.slice(sel + 12, sel + 12 + nbBytesA)), data.getUint32(sel), data.getUint32(sel + 4));
+        sel += 12 + nbBytesA;
         break;
       case Replay.LOAD_MESHES:
         var nbBytes = data.getUint32(sel);

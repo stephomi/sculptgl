@@ -56,7 +56,8 @@ define([
       this.ctrls_.push(fold.addCheckbox(TR('sculptAccumulate'), tool, 'accumulate_'));
       this.ctrls_.push(addCtrlCulling(tool, fold));
       this.ctrls_.push(fold.addTitle(TR('sculptAlphaTitle')));
-      this.ctrls_.push(fold.addCheckbox(TR('sculptUseAlpha'), tool, 'useAlpha_'));
+      this.ctrlAlpha_ = fold.addCheckbox(TR('sculptUseAlpha'), tool, 'useAlpha_');
+      this.ctrls_.push(this.ctrlAlpha_);
       this.ctrls_.push(fold.addButton(TR('sculptImportAlpha'), this, 'importAlpha'));
     }
   };

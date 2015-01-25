@@ -161,6 +161,14 @@ define([
           replaySel.accumulate_ = mainSel.accumulate_;
           this.stack_.push(Replay.BRUSH_TOGGLE_ACCUMULATE);
         }
+        if (mainSel.useAlpha_ !== replaySel.useAlpha_) {
+          replaySel.useAlpha_ = mainSel.useAlpha_;
+          this.stack_.push(Replay.BRUSH_TOGGLE_ALPHA);
+        }
+        // if (mainSel.idAlpha_ !== replaySel.idAlpha_) {
+        //   replaySel.idAlpha_ = mainSel.idAlpha_;
+        //   this.stack_.push(Replay.BRUSH_SELECT_ALPHA, mainSel.idAlpha_);
+        // }
         break;
       case Sculpt.tool.CREASE:
         this.checkIntensityNegativeCulling(mainSel, replaySel, 'CREASE');
@@ -253,6 +261,10 @@ define([
       this.lastFov_ = this.stack_.length;
       this.stack_.push(Replay.CAMERA_FOV, fov);
     },
+    pushLoadAlpha: function (u8, w, h) {
+      this.nbBytesLoadingMeshes_ += u8.byteLength;
+      this.stack_.push(Replay.LOAD_ALPHA, w, h, u8);
+    },
     pushLoadMeshes: function (meshes, fdata, type) {
       var ab = type === 'sgl' ? fdata.slice() : ExportSGL.exportSGLAsArrayBuffer(meshes);
       this.nbBytesLoadingMeshes_ += ab.byteLength;
@@ -303,6 +315,7 @@ define([
           data.setUint8(offset + 5, stack[++i]);
           offset += 6;
           break;
+          // case Replay.BRUSH_SELECT_ALPHA:
         case Replay.DEVICE_WHEEL:
           data.setInt8(offset, stack[++i]);
           offset += 1;
@@ -360,6 +373,14 @@ define([
         case Replay.VOXEL_REMESH:
           data.setUint16(offset, stack[++i]);
           offset += 2;
+          break;
+        case Replay.LOAD_ALPHA:
+          data.setUint32(offset, stack[++i]);
+          data.setUint32(offset + 4, stack[++i]);
+          var abA = stack[++i];
+          data.setUint32(offset + 8, abA.byteLength);
+          u8a.set(abA, offset + 12);
+          offset += 12 + abA.byteLength;
           break;
         case Replay.LOAD_MESHES:
           var ab = stack[++i];

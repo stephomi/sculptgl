@@ -311,26 +311,13 @@ define([
       if (!file.type.match('image.*'))
         return;
       var reader = new FileReader();
-      var pick = this.main_.getPicking();
-      var pickSym = this.main_.getPickingSymmetry();
-      var tool = this.main_.getSculpt().getCurrentTool();
+      var main = this.main_;
+      var tool = GuiSculptingTools[main.getSculpt().tool_];
 
       reader.onload = function (evt) {
-        var bg = new Image();
-        bg.src = evt.target.result;
-        bg.onload = function () {
-          var can = document.createElement('canvas');
-          can.width = bg.width;
-          can.height = bg.height;
-
-          var ctx = can.getContext('2d');
-          ctx.drawImage(bg, 0, 0);
-          var u8 = ctx.getImageData(0, 0, bg.width, bg.height).data;
-          tool.useAlpha_ = true;
-          pick.setAlphaTex(u8, bg.width, bg.height);
-          pickSym.setAlphaTex(u8, bg.width, bg.height);
-        };
-        // this.loadBackgroundTexture(bg);
+        var img = new Image();
+        img.src = evt.target.result;
+        img.onload = main.onLoadAlphaImage.bind(main, img, tool);
         document.getElementById('alphaopen').value = '';
       };
       reader.readAsDataURL(file);

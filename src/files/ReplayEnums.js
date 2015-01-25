@@ -36,6 +36,8 @@ define([], function () {
   Replay.BRUSH_TOGGLE_CLAY = ida++; // []
   Replay.BRUSH_TOGGLE_CULLING = ida++; // []
   Replay.BRUSH_TOGGLE_ACCUMULATE = ida++; // []
+  Replay.BRUSH_TOGGLE_ALPHA = ida++; // []
+  // Replay.BRUSH_SELECT_ALPHA = ida++; // [id (u8)]
 
   Replay.CREASE_INTENSITY = ida++; // [intensity (u8)]
   Replay.CREASE_TOGGLE_NEGATIVE = ida++; // []
@@ -93,6 +95,7 @@ define([], function () {
   Replay.DYNAMIC_SUBDIVISION = ida++; // [val (u8)]
   Replay.DYNAMIC_DECIMATION = ida++; // [val (u8)]
 
+  Replay.LOAD_ALPHA = ida++; // [width (u32), height (u32), len (u32)]
   Replay.LOAD_MESHES = ida++; // [len (u32)]
   Replay.ADD_SPHERE = ida++; // []
   Replay.CLEAR_SCENE = ida++; // []
