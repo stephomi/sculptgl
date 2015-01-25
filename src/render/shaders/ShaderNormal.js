@@ -12,7 +12,7 @@ define([
   ShaderNormal.attributes = {};
   ShaderNormal.program = undefined;
 
-  ShaderNormal.uniformNames = ['uMV', 'uMVP'];
+  ShaderNormal.uniformNames = ['uMV', 'uMVP', 'uN'];
   Array.prototype.push.apply(ShaderNormal.uniformNames, ShaderBase.uniformNames.symmetryLine);
 
   ShaderNormal.vertex = [
@@ -21,12 +21,13 @@ define([
     'attribute vec3 aMaterial;',
     'uniform mat4 uMV;',
     'uniform mat4 uMVP;',
+    'uniform mat3 uN;',
     'varying vec3 vVertex;',
     'varying vec3 vNormal;',
     'varying float vMasking;',
     'void main() {',
     '  vec4 vert4 = vec4(aVertex, 1.0);',
-    '  vNormal = normalize(aNormal);',
+    '  vNormal = uN * normalize(aNormal);',
     '  vVertex = vec3(uMV * vert4);',
     '  vMasking = aMaterial.z;',
     '  gl_Position = uMVP * vert4;',
@@ -40,8 +41,7 @@ define([
     ShaderBase.strings.fragColorUniforms,
     ShaderBase.strings.fragColorFunction,
     'void main() {',
-    '  vec3 fragColor = vNormal * 0.5 + 0.5;',
-    '  gl_FragColor = getFragColor(fragColor);',
+    '  gl_FragColor = getFragColor(vNormal * 0.5 + 0.5);',
     '}'
   ].join('\n');
   /** Draw */
@@ -78,6 +78,7 @@ define([
 
     gl.uniformMatrix4fv(uniforms.uMV, false, mesh.getMV());
     gl.uniformMatrix4fv(uniforms.uMVP, false, mesh.getMVP());
+    gl.uniformMatrix3fv(uniforms.uN, false, mesh.getN());
 
     ShaderBase.updateUniforms.call(this, render, main);
   };
