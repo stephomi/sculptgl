@@ -34,7 +34,7 @@ module.exports = function (grunt) {
     main: {
       files: [{
         expand: true,
-        src: ['css/*', 'lib/*', 'resources/*'],
+        src: ['css/*', 'lib/*', 'resources/**'],
         dest: 'build/',
         filter: 'isFile'
       }, {

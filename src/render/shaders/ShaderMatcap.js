@@ -11,36 +11,37 @@ define([
   var ShaderMatcap = {};
   ShaderMatcap.textures = {};
 
+  var texPath = 'resources/matcaps/';
   ShaderMatcap.getMatcaps = function () {
     ShaderMatcap.matcaps = [{
-      path: 'resources/pearl.jpg',
+      path: texPath + 'pearl.jpg',
       name: TR('matcapPearl')
     }, {
-      path: 'resources/clay.jpg',
+      path: texPath + 'clay.jpg',
       name: TR('matcapClay')
     }, {
-      path: 'resources/skin.jpg',
+      path: texPath + 'skin.jpg',
       name: TR('matcapSkin')
     }, {
-      path: 'resources/green.jpg',
+      path: texPath + 'green.jpg',
       name: TR('matcapGreen')
     }, {
-      path: 'resources/white.jpg',
+      path: texPath + 'white.jpg',
       name: TR('matcapWhite')
     }, {
-      path: 'resources/bronze.jpg',
+      path: texPath + 'bronze.jpg',
       name: TR('matcapBronze')
     }, {
-      path: 'resources/chavant.jpg',
+      path: texPath + 'chavant.jpg',
       name: TR('matcapChavant')
     }, {
-      path: 'resources/drink.jpg',
+      path: texPath + 'drink.jpg',
       name: TR('matcapDrink')
     }, {
-      path: 'resources/redvelvet.jpg',
+      path: texPath + 'redvelvet.jpg',
       name: TR('matcapRedVelvet')
     }, {
-      path: 'resources/orange.jpg',
+      path: texPath + 'orange.jpg',
       name: TR('matcapOrange')
     }];
     return ShaderMatcap.matcaps;
