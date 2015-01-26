@@ -1,14 +1,10 @@
 define([
-  'lib/glMatrix',
   'misc/Utils',
   'math3d/Geometry',
   'editor/tools/SculptBase'
-], function (glm, Utils, Geometry, SculptBase) {
+], function (Utils, Geometry, SculptBase) {
 
   'use strict';
-
-  var vec3 = glm.vec3;
-  var mat4 = glm.mat4;
 
   function Scale(states) {
     SculptBase.call(this, states);
@@ -18,25 +14,10 @@ define([
   Scale.prototype = {
     /** Start a sculpt sculpt stroke */
     startSculpt: function (main) {
-      var mesh = this.mesh_;
-      var mouseX = main.mouseX_;
-      var mouseY = main.mouseY_;
-      var picking = main.getPicking();
-      var vNear = picking.unproject(mouseX, mouseY, 0.0);
-      var vFar = picking.unproject(mouseX, mouseY, 1.0);
-      var matInverse = mat4.create();
-      mat4.invert(matInverse, mesh.getMatrix());
-      vec3.transformMat4(vNear, vNear, matInverse);
-      vec3.transformMat4(vFar, vFar, matInverse);
-      var rLocal2 = picking.getLocalRadius2();
-      picking.pickVerticesInSphere(rLocal2);
       if (main.getSculpt().getSymmetry()) {
         var pickingSym = main.getPickingSymmetry();
-        pickingSym.intersectionRayMesh(mesh, vNear, vFar, mouseX, mouseY, true);
-        if (!pickingSym.mesh_)
-          return;
-        pickingSym.setLocalRadius2(rLocal2);
-        pickingSym.pickVerticesInSphere(rLocal2);
+        pickingSym.intersectionMouseMesh(this.mesh_, main.mouseX_, main.mouseY_);
+        pickingSym.setLocalRadius2(main.getPicking().getLocalRadius2());
       }
     },
     /** Make a brush scale stroke */
@@ -46,6 +27,7 @@ define([
       var rLocal2 = picking.getLocalRadius2();
       picking.pickVerticesInSphere(rLocal2);
       this.stroke(picking, delta);
+
       if (main.getSculpt().getSymmetry()) {
         var pickingSym = main.getPickingSymmetry();
         if (pickingSym.getMesh()) {
@@ -53,11 +35,7 @@ define([
           this.stroke(pickingSym, delta);
         }
       }
-      if (main.getMesh().getDynamicTopology) {
-        main.getMesh().updateBuffers();
-      } else {
-        this.mesh_.updateGeometryBuffers();
-      }
+      this.updateRender(main);
     },
     /** On stroke */
     stroke: function (picking, delta) {
@@ -77,6 +55,7 @@ define([
     /** Scale the vertices around the mouse point intersection */
     scale: function (iVerts, center, radiusSquared, intensity) {
       var vAr = this.mesh_.getVertices();
+      var mAr = this.mesh_.getMaterials();
       var deltaScale = intensity * 0.01;
       var radius = Math.sqrt(radiusSquared);
       var cx = center[0];
@@ -94,6 +73,7 @@ define([
         var fallOff = dist * dist;
         fallOff = 3.0 * fallOff * fallOff - 4.0 * fallOff * dist + 1.0;
         fallOff *= deltaScale;
+        fallOff *= mAr[ind + 2];
         vAr[ind] = vx + dx * fallOff;
         vAr[ind + 1] = vy + dy * fallOff;
         vAr[ind + 2] = vz + dz * fallOff;

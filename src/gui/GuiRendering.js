@@ -1,9 +1,10 @@
 define([
   'gui/GuiTR',
+  'render/Render',
   'render/Shader',
   'render/shaders/ShaderMatcap',
-  'render/Render'
-], function (TR, Shader, ShaderMatcap, Render) {
+  'render/shaders/ShaderBase'
+], function (TR, Render, Shader, ShaderMatcap, ShaderBase) {
 
   'use strict';
 
@@ -63,6 +64,9 @@ define([
       // display grid
       menu.addCheckbox(TR('renderingGrid'), this.main_.showGrid_, this.onShowGrid.bind(this));
 
+      // display symmetry line
+      menu.addCheckbox(TR('renderingSymmetryLine'), ShaderBase, 'SHOW_SYMMETRY_LINE');
+
       this.addEvents();
     },
     onExposureChanged: function (val) {
@@ -81,7 +85,7 @@ define([
       var main = this.main_;
 
       if (!main.isReplayed())
-        main.getReplayWriter().pushShowGrid(bool);
+        main.getReplayWriter().pushAction('SHOW_GRID', bool);
 
       main.showGrid_ = bool;
       main.render();
@@ -98,7 +102,7 @@ define([
         } else {
 
           if (!main.isReplayed())
-            main.getReplayWriter().pushShaderSelect(value);
+            main.getReplayWriter().pushAction('SHADER_SELECT', value);
 
           mesh.setShader(val);
           main.render();
@@ -114,7 +118,7 @@ define([
         return;
 
       if (!main.isReplayed())
-        main.getReplayWriter().pushMatcapSelect(value);
+        main.getReplayWriter().pushAction('MATCAP_SELECT', value);
 
       mesh.setMatcap(value);
       main.render();
@@ -127,7 +131,7 @@ define([
         return;
 
       if (!main.isReplayed())
-        main.getReplayWriter().pushFlatShading(bool);
+        main.getReplayWriter().pushAction('FLAT_SHADING', bool);
 
       mesh.setFlatShading(bool);
       main.render();
@@ -140,7 +144,7 @@ define([
         return;
 
       if (!main.isReplayed())
-        main.getReplayWriter().pushShowWireframe(bool);
+        main.getReplayWriter().pushAction('SHOW_WIREFRAME', bool);
 
       mesh.setShowWireframe(bool);
       main.render();

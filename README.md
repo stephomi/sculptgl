@@ -11,7 +11,7 @@ Tools
 #### Dev
 
 Nothing to do.
-Simply open `index.html`.
+Simply go to `index.html` (on your local server).
 
 #### Release
 

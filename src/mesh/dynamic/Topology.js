@@ -12,7 +12,7 @@ define([
   };
 
   Topology.subFactor = 75; // subdivision factor
-  Topology.decFactor = 10; // decimation factor
+  Topology.decFactor = 0; // decimation factor
   Topology.linear = false; // linear subdivision
 
   Topology.prototype = {

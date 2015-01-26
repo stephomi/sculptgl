@@ -8,13 +8,15 @@ define([
   'math3d/Camera',
   'math3d/Picking',
   'mesh/Background',
+  'mesh/Selection',
   'mesh/Grid',
   'mesh/Mesh',
   'mesh/multiresolution/Multimesh',
   'states/States',
   'render/Render',
+  'render/Rtt',
   'render/shaders/ShaderMatcap'
-], function (Utils, Sculpt, Import, ReplayWriter, ReplayReader, Gui, Camera, Picking, Background, Grid, Mesh, Multimesh, States, Render, ShaderMatcap) {
+], function (Utils, Sculpt, Import, ReplayWriter, ReplayReader, Gui, Camera, Picking, Background, Selection, Grid, Mesh, Multimesh, States, Render, Rtt, ShaderMatcap) {
 
   'use strict';
 
@@ -27,22 +29,28 @@ define([
     this.mouseY_ = 0; // the y position
     this.lastMouseX_ = 0; // the last x position
     this.lastMouseY_ = 0; // the last y position
-    this.sumDisplacement_ = 0; // sum of the displacement mouse
     this.mouseButton_ = 0; // which mouse button is pressed
+
+    // masking
+    this.checkMask_ = false;
+    this.maskX_ = 0;
+    this.maskY_ = 0;
 
     // core of the app
     this.states_ = new States(this); // for undo-redo
     this.sculpt_ = new Sculpt(this.states_); // sculpting management
     this.camera_ = new Camera(); // the camera
     this.picking_ = new Picking(this); // the ray picking
-    this.pickingSym_ = new Picking(this); // the symmetrical picking
+    this.pickingSym_ = new Picking(this, true); // the symmetrical picking
 
     // renderable stuffs
     this.showGrid_ = true;
     this.grid_ = null; // the grid
     this.background_ = null; // the background
+    this.selection_ = null; // the selection geometry
     this.meshes_ = []; // the meshes
     this.mesh_ = null; // the selected mesh
+    this.rtt_ = null; // rtt
 
     // ui stuffs
     this.gui_ = new Gui(this); // gui
@@ -52,7 +60,9 @@ define([
     this.replayerWriter_ = new ReplayWriter(this); // the user event stack replayer
     this.replayerReader_ = new ReplayReader(this); // reader replayer
     this.isReplayed_ = false; // if we want to save the replay mode
-    this.preventRender_ = false; // prevent multiple render per render
+    this.preventRender_ = false; // prevent multiple render per frame
+
+    this.drawFullScene_ = false; // render everything on the rtt
   }
 
   SculptGL.prototype = {
@@ -61,8 +71,11 @@ define([
       this.initWebGL();
       if (!this.gl_)
         return;
-      this.background_ = new Background(this.gl_);
+      this.background_ = new Background(this.gl_, this);
+      this.selection_ = new Selection(this.gl_);
       this.grid_ = new Grid(this.gl_);
+      this.rtt_ = new Rtt(this.gl_);
+
       this.loadTextures();
       this.gui_.initGui();
       this.onCanvasResize();
@@ -117,24 +130,49 @@ define([
       this.getGui().updateMesh();
       this.render();
     },
+    renderSelectOverRtt: function () {
+      if (this.requestRender())
+        this.drawFullScene_ = false;
+    },
     /** Request a render */
     render: function () {
+      this.drawFullScene_ = true;
+      this.requestRender();
+    },
+    requestRender: function () {
       if (this.preventRender_ === true)
-        return;
+        return false; // render already requested for the next frame
       window.requestAnimationFrame(this.applyRender.bind(this));
       this.preventRender_ = true;
+      return true;
     },
     /** Render the scene */
     applyRender: function () {
       this.preventRender_ = false;
-      var gl = this.gl_;
-      gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
-      this.background_.render();
       this.computeMatricesAndSort();
-      if (this.showGrid_)
-        this.grid_.render();
-      for (var i = 0, meshes = this.meshes_, nb = meshes.length; i < nb; ++i)
-        meshes[i].render(this);
+      var gl = this.gl_;
+
+      gl.disable(gl.DEPTH_TEST);
+      // gl.enable(gl.CULL_FACE);
+      gl.bindFramebuffer(gl.FRAMEBUFFER, this.rtt_.getFramebuffer());
+
+      if (this.drawFullScene_) {
+        gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+
+        this.background_.render();
+
+        gl.enable(gl.DEPTH_TEST);
+        if (this.showGrid_)
+          this.grid_.render();
+        for (var i = 0, meshes = this.meshes_, nb = meshes.length; i < nb; ++i)
+          meshes[i].render(this);
+      }
+
+      // render to screen
+      gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+      gl.disable(gl.DEPTH_TEST);
+      this.rtt_.render();
+      this.selection_.render(this);
     },
     /** Pre compute matrices and sort meshes */
     computeMatricesAndSort: function () {
@@ -143,33 +181,35 @@ define([
       this.grid_.computeMatrices(cam);
       for (var i = 0, nb = meshes.length; i < nb; ++i)
         meshes[i].computeMatrices(cam);
+      this.selection_.computeMatrices(this);
       meshes.sort(Mesh.sortFunction);
     },
     /** Load webgl context */
     initWebGL: function () {
-      // TODO : add an option to toggle antialias if possible ?
       var attributes = {
-        antialias: true,
+        antialias: false,
         stencil: true
       };
       var canvas = document.getElementById('canvas');
       var gl = this.gl_ = canvas.getContext('webgl', attributes) || canvas.getContext('experimental-webgl', attributes);
       if (!gl) {
-        window.alert('Could not initialise WebGL. You should try Chrome or Firefox.');
+        window.alert('Could not initialise WebGL. No WebGL, no SculptGL. Sorry.');
+        return;
       }
-      if (gl) {
-        if (!gl.getExtension('OES_element_index_uint')) {
-          Render.ONLY_DRAW_ARRAYS = true;
-        }
-        gl.viewportWidth = window.innerWidth;
-        gl.viewportHeight = window.innerHeight;
-        gl.clearColor(0.2, 0.2, 0.2, 1);
-        gl.enable(gl.DEPTH_TEST);
-        gl.depthFunc(gl.LEQUAL);
-        gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
-        gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true);
-        gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+      if (!gl.getExtension('OES_element_index_uint')) {
+        Render.ONLY_DRAW_ARRAYS = true;
       }
+      gl.viewportWidth = window.innerWidth;
+      gl.viewportHeight = window.innerHeight;
+      gl.clearColor(0.2, 0.2, 0.2, 1);
+      gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
+      gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true);
+      gl.pixelStorei(gl.UNPACK_PREMULTIPLY_ALPHA_WEBGL, false);
+      gl.pixelStorei(gl.UNPACK_COLORSPACE_CONVERSION_WEBGL, gl.NONE);
+      gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+
+      gl.depthFunc(gl.LEQUAL);
+      gl.cullFace(gl.BACK);
     },
     /** Load textures (preload) */
     loadTextures: function () {
@@ -189,10 +229,27 @@ define([
           gl.generateMipmap(gl.TEXTURE_2D);
           gl.bindTexture(gl.TEXTURE_2D, null);
           ShaderMatcap.textures[idMaterial] = idTex;
+          self.render();
         };
       };
       for (var i = 0, mats = ShaderMatcap.matcaps, l = mats.length; i < l; ++i)
         loadTex(mats[i].path, i);
+
+      this.initAlphaTextures();
+    },
+    initAlphaTextures: function () {
+      var self = this;
+      var alphas = Picking.ALPHAS_PATHS;
+      var loadAlpha = function (alphas, id) {
+        var am = new Image();
+        am.src = 'resources/alpha/' + alphas[id];
+        am.onload = function () {
+          self.onLoadAlphaImage(am);
+          if (id < alphas.length - 1)
+            loadAlpha(alphas, id + 1);
+        };
+      };
+      loadAlpha(alphas, 0);
     },
     /** Called when the window is resized */
     onCanvasResize: function () {
@@ -200,9 +257,10 @@ define([
       var newHeight = this.gl_.viewportHeight = this.camera_.height_ = this.canvas_.height;
 
       if (!this.isReplayed())
-        this.getReplayWriter().pushCameraSize(newWidth, newHeight);
+        this.getReplayWriter().pushAction('CAMERA_SIZE', newWidth, newHeight);
 
       this.background_.onResize(newWidth, newHeight);
+      this.rtt_.onResize(newWidth, newHeight);
       this.gl_.viewport(0, 0, newWidth, newHeight);
       this.camera_.updateProjection();
       this.render();
@@ -239,7 +297,6 @@ define([
       var cbContextLost = this.onContextLost.bind(this);
       var cbContextRestored = this.onContextRestored.bind(this);
       var cbLoadFiles = this.loadFiles.bind(this);
-      var cbLoadBackground = this.loadBackground.bind(this);
       var cbStopAndPrevent = this.stopAndPrevent.bind(this);
 
       // misc
@@ -249,7 +306,6 @@ define([
       window.addEventListener('dragover', cbStopAndPrevent, false);
       window.addEventListener('drop', cbLoadFiles, false);
       document.getElementById('fileopen').addEventListener('change', cbLoadFiles, false);
-      document.getElementById('backgroundopen').addEventListener('change', cbLoadBackground, false);
 
       this.removeCallback = function () {
         // mouse
@@ -275,36 +331,14 @@ define([
         window.removeEventListener('dragover', cbStopAndPrevent, false);
         window.removeEventListener('drop', cbLoadFiles, false);
         document.getElementById('fileopen').removeEventListener('change', cbLoadFiles, false);
-        document.getElementById('backgroundopen').removeEventListener('change', cbLoadBackground, false);
       };
     },
     stopAndPrevent: function (event) {
       event.stopPropagation();
       event.preventDefault();
     },
-    /** Remove events */
     removeEvents: function () {
       if (this.removeCallback) this.removeCallback();
-    },
-    /** Load background */
-    loadBackground: function (event) {
-      if (event.target.files.length === 0)
-        return;
-      var file = event.target.files[0];
-      if (!file.type.match('image.*'))
-        return;
-      var reader = new FileReader();
-      var canvas = this.getCanvas();
-      var self = this;
-      reader.onload = function (evt) {
-        var bg = new Image();
-        bg.src = evt.target.result;
-        self.getBackground().loadBackgroundTexture(bg);
-        self.getBackground().onResize(canvas.width, canvas.height);
-        self.render();
-        document.getElementById('backgroundopen').value = '';
-      };
-      reader.readAsDataURL(file);
     },
     /** Return the file type */
     getFileType: function (name) {
@@ -395,11 +429,12 @@ define([
       this.states_.pushStateAdd(newMeshes);
       this.setMesh(meshes[meshes.length - 1]);
       this.camera_.resetView();
+      return newMeshes;
     },
     /** Load the sphere */
     addSphere: function () {
       if (!this.isReplayed())
-        this.getReplayWriter().pushAddSphere();
+        this.getReplayWriter().pushAction('ADD_SPHERE');
 
       // make a cube and subdivide it
       var mesh = new Mesh(this.gl_);
@@ -440,15 +475,16 @@ define([
       mesh.initRender();
 
       mesh = new Multimesh(mesh);
-      while (mesh.getNbFaces() < 20000)
+      while (mesh.getNbFaces() < 50000)
         mesh.addLevel();
       // discard the very low res
-      mesh.meshes_.splice(0, 3);
-      mesh.sel_ -= 3;
+      mesh.meshes_.splice(0, 4);
+      mesh.sel_ -= 4;
 
       this.meshes_.push(mesh);
       this.states_.pushStateAdd(mesh);
       this.setMesh(mesh);
+      return mesh;
     },
     /** Clear the scene */
     clearScene: function () {
@@ -466,7 +502,7 @@ define([
         return;
 
       if (!this.isReplayed())
-        this.getReplayWriter().pushDeleteMesh();
+        this.getReplayWriter().pushAction('DELETE_CURRENT_MESH');
 
       this.states_.pushStateRemove(this.mesh_);
       this.meshes_.splice(this.meshes_.indexOf(this.mesh_), 1);
@@ -474,11 +510,11 @@ define([
     },
     /** WebGL context is lost */
     onContextLost: function () {
-      window.alert('shit happens : context lost');
+      window.alert('Oops... WebGL context lost.');
     },
     /** WebGL context is restored */
     onContextRestored: function () {
-      window.alert('context is restored');
+      window.alert('Wow... Context is restored.');
     },
     /** Mouse over event */
     onMouseOver: function () {
@@ -500,6 +536,13 @@ define([
       this.mouseButton_ = 0;
       Multimesh.RENDER_HINT = Multimesh.NONE;
       this.sculpt_.end();
+      if (this.checkMask_) {
+        this.checkMask_ = false;
+        if (this.lastMouseX_ === this.maskX_ && this.lastMouseY_ === this.maskY_)
+          this.getSculpt().getTool('MASKING').invert(this.mesh_, this);
+        else
+          this.getSculpt().getTool('MASKING').clear(this.mesh_, this);
+      }
       this.render();
     },
     /** Mouse wheel event */
@@ -509,10 +552,18 @@ define([
 
       var dir = (event.detail < 0 || event.wheelDelta > 0) ? 1 : -1;
       if (!this.isReplayed())
-        this.getReplayWriter().pushDeviceWheel(dir);
+        this.getReplayWriter().pushAction('DEVICE_WHEEL', dir);
 
       this.camera_.zoom(dir * 0.02);
       Multimesh.RENDER_HINT = Multimesh.CAMERA;
+      this.render();
+      // workaround for "end mouse wheel" event
+      if (this.timerEndWheel_)
+        window.clearTimeout(this.timerEndWheel_);
+      this.timerEndWheel_ = window.setTimeout(this.endWheel.bind(this), 300);
+    },
+    endWheel: function () {
+      Multimesh.RENDER_HINT = Multimesh.NONE;
       this.render();
     },
     /** Set mouse position from event */
@@ -569,18 +620,22 @@ define([
       if (!this.isReplayed())
         this.getReplayWriter().pushDeviceDown(button, mouseX, mouseY, event);
 
-      if (button === 1) {
-        this.sumDisplacement_ = 0;
+      if (button === 1)
         this.sculpt_.start(this);
-      }
       var picking = this.picking_;
       var pickedMesh = picking.getMesh();
       if (button === 1 && pickedMesh)
         this.canvas_.style.cursor = 'none';
 
-      if ((!pickedMesh || button === 3) && event.ctrlKey)
+      this.checkMask_ = false;
+      if (button === 3 && event.ctrlKey)
         this.mouseButton_ = 4; // zoom camera
-      else if ((!pickedMesh || button === 3) && event.altKey)
+      else if (!pickedMesh && event.ctrlKey) {
+        this.maskX_ = mouseX;
+        this.maskY_ = mouseY;
+        this.checkMask_ = true;
+        this.mouseButton_ = 0;
+      } else if ((!pickedMesh || button === 3) && event.altKey)
         this.mouseButton_ = 2; // pan camera
       else if (button === 3 || (button === 1 && !pickedMesh)) {
         this.mouseButton_ = 3; // rotate camera
@@ -588,6 +643,7 @@ define([
           picking.intersectionMouseMeshes(this.meshes_, mouseX, mouseY);
         this.camera_.start(mouseX, mouseY, picking);
       }
+
       this.lastMouseX_ = mouseX;
       this.lastMouseY_ = mouseY;
     },
@@ -603,7 +659,7 @@ define([
       var button = this.mouseButton_;
 
       if (!this.isReplayed())
-        this.getReplayWriter().pushDeviceMove(mouseX, mouseY);
+        this.getReplayWriter().pushDeviceMove(mouseX, mouseY, event);
 
       if (button !== 1 || this.sculpt_.allowPicking()) {
         Multimesh.RENDER_HINT = Multimesh.PICKING;
@@ -612,18 +668,21 @@ define([
         else
           this.picking_.intersectionMouseMeshes(this.meshes_, mouseX, mouseY);
         if (this.sculpt_.getSymmetry() && this.mesh_)
-          this.pickingSym_.intersectionMouseMesh(this.mesh_, mouseX, mouseY, true);
+          this.pickingSym_.intersectionMouseMesh(this.mesh_, mouseX, mouseY);
       }
       if (button !== 0) {
-        if (button === 2) {
-          this.camera_.translate((mouseX - this.lastMouseX_) / 3000, (mouseY - this.lastMouseY_) / 3000);
+        if (button === 4) {
+          this.camera_.zoom((mouseX - this.lastMouseX_ + mouseY - this.lastMouseY_) / 1000);
           Multimesh.RENDER_HINT = Multimesh.CAMERA;
-        } else if (button === 4) {
-          this.camera_.zoom((mouseX - this.lastMouseX_) / 3000);
+          this.render();
+        } else if (button === 2) {
+          this.camera_.translate((mouseX - this.lastMouseX_) / 1000, (mouseY - this.lastMouseY_) / 1000);
           Multimesh.RENDER_HINT = Multimesh.CAMERA;
+          this.render();
         } else if (button === 3) {
           this.camera_.rotate(mouseX, mouseY);
           Multimesh.RENDER_HINT = Multimesh.CAMERA;
+          this.render();
         } else if (button === 1) {
           Multimesh.RENDER_HINT = Multimesh.SCULPT;
           this.sculpt_.update(this);
@@ -633,7 +692,7 @@ define([
       }
       this.lastMouseX_ = mouseX;
       this.lastMouseY_ = mouseY;
-      this.render();
+      this.renderSelectOverRtt();
     },
     getIndexMesh: function (mesh) {
       var meshes = this.meshes_;
@@ -650,6 +709,30 @@ define([
       var index = this.getIndexMesh(mesh);
       if (index >= 0) this.meshes_[index] = newMesh;
       if (this.mesh_ === mesh) this.setMesh(newMesh);
+    },
+    onLoadAlphaImage: function (img, name, tool) {
+      var can = document.createElement('canvas');
+      can.width = img.width;
+      can.height = img.height;
+
+      var ctx = can.getContext('2d');
+      ctx.drawImage(img, 0, 0);
+      var u8 = ctx.getImageData(0, 0, img.width, img.height).data;
+      this.loadAlphaTexture(u8, img.width, img.height, name);
+
+      if (!name) return;
+      var id = Picking.ALPHAS.length - 1;
+      var entry = {};
+      entry[id] = name || 'alpha_' + id;
+      this.getGui().addAlphaOptions(entry);
+      if (tool && tool.ctrlAlpha_) tool.ctrlAlpha_.setValue(id);
+    },
+    loadAlphaTexture: function (u8, w, h, name) {
+      if (!this.isReplayed())
+        this.getReplayWriter().pushLoadAlpha(u8, w, h);
+      var ans = Picking.ALPHAS_NAMES;
+      ans.push(name || 'alpha_' + ans.length);
+      return Picking.addAlpha(u8, w, h);
     }
   };
 

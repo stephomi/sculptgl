@@ -1,13 +1,15 @@
 define([
   'render/shaders/ShaderBackground',
+  'render/shaders/ShaderSelection',
   'render/shaders/ShaderGrid',
   'render/shaders/ShaderMatcap',
   'render/shaders/ShaderNormal',
   'render/shaders/ShaderPBR',
+  'render/shaders/ShaderRtt',
   'render/shaders/ShaderTransparency',
   'render/shaders/ShaderUV',
   'render/shaders/ShaderWireframe'
-], function (Sbackground, Sgrid, Smatcap, Snormal, SPBR, Stransparency, Suv, Swireframe) {
+], function (Sbackground, Sselection, Sgrid, Smatcap, Snormal, SPBR, Srtt, Stransparency, Suv, Swireframe) {
 
   'use strict';
 
@@ -26,8 +28,12 @@ define([
     UV: 5,
     MATCAP: 6,
     GRID: 7,
+    SELECTION: 8,
+    RTT: 9
   };
 
+  Shader[Shader.mode.RTT] = Srtt;
+  Shader[Shader.mode.SELECTION] = Sselection;
   Shader[Shader.mode.BACKGROUND] = Sbackground;
   Shader[Shader.mode.GRID] = Sgrid;
   Shader[Shader.mode.PBR] = SPBR;

@@ -16,15 +16,17 @@ define([
 
     this.modalBrushRadius_ = false; // modal brush radius change
     this.modalBrushIntensity_ = false; // modal brush intensity change
-    this.lastMouseX_ = 0; // last x position
+    this.lastMouseX_ = 0;
 
-    this.menu_ = null; // ui menu
-    this.ctrlSculpt_ = null; // sculpt controller
-    this.ctrlSymmetry_ = null; // symmetry controller
-    this.ctrlContinuous_ = null; // continuous controller
-    this.ctrlRadius_ = null; // radius controller
+    this.menu_ = null;
+    this.ctrlSculpt_ = null;
+    this.ctrlSymmetry_ = null;
+    this.ctrlContinuous_ = null;
+    this.ctrlRadius_ = null;
     this.init(guiParent);
   }
+
+  var uiTools = GuiSculptingTools.TOOLS;
 
   GuiSculpting.prototype = {
     /** Initialisculze */
@@ -44,6 +46,8 @@ define([
       optionsSculpt[Sculpt.tool.CREASE] = TR('sculptCrease');
       optionsSculpt[Sculpt.tool.DRAG] = TR('sculptDrag');
       optionsSculpt[Sculpt.tool.PAINT] = TR('sculptPaint');
+      optionsSculpt[Sculpt.tool.MASKING] = TR('sculptMasking');
+      optionsSculpt[Sculpt.tool.MOVE] = TR('sculptMove');
       optionsSculpt[Sculpt.tool.SCALE] = TR('sculptScale');
       optionsSculpt[Sculpt.tool.TRANSLATE] = TR('sculptTranslate');
       optionsSculpt[Sculpt.tool.ROTATE] = TR('sculptRotate');
@@ -54,18 +58,20 @@ define([
       this.ctrlRadius_ = menu.addSlider(TR('sculptRadius'), picking, 'rDisplay_', 5, 200, 1);
 
       // init all the specific subtools ui
-      this.initTool(Sculpt.tool.BRUSH, menu);
-      this.initTool(Sculpt.tool.INFLATE, menu);
-      this.initTool(Sculpt.tool.TWIST, menu);
-      this.initTool(Sculpt.tool.SMOOTH, menu);
-      this.initTool(Sculpt.tool.FLATTEN, menu);
-      this.initTool(Sculpt.tool.PINCH, menu);
-      this.initTool(Sculpt.tool.CREASE, menu);
-      this.initTool(Sculpt.tool.DRAG, menu);
-      this.initTool(Sculpt.tool.PAINT, menu, this.main_);
-      this.initTool(Sculpt.tool.SCALE, menu);
-      this.initTool(Sculpt.tool.TRANSLATE, menu);
-      this.initTool(Sculpt.tool.ROTATE, menu);
+      this.initTool(Sculpt.tool.BRUSH);
+      this.initTool(Sculpt.tool.INFLATE);
+      this.initTool(Sculpt.tool.TWIST);
+      this.initTool(Sculpt.tool.SMOOTH);
+      this.initTool(Sculpt.tool.FLATTEN);
+      this.initTool(Sculpt.tool.PINCH);
+      this.initTool(Sculpt.tool.CREASE);
+      this.initTool(Sculpt.tool.DRAG);
+      this.initTool(Sculpt.tool.PAINT);
+      this.initTool(Sculpt.tool.MASKING);
+      this.initTool(Sculpt.tool.MOVE);
+      this.initTool(Sculpt.tool.SCALE);
+      this.initTool(Sculpt.tool.TRANSLATE);
+      this.initTool(Sculpt.tool.ROTATE);
 
       menu.addTitle(TR('Extra'));
       // symmetry
@@ -88,12 +94,14 @@ define([
       var cbKeyUp = this.onKeyUp.bind(this);
       var cbMouseUp = this.onMouseUp.bind(this);
       var cbMouseMove = this.onMouseMove.bind(this);
+      var cbLoadAlpha = this.loadAlpha.bind(this);
 
       window.addEventListener('keydown', cbKeyDown, false);
       window.addEventListener('keyup', cbKeyUp, false);
       canvas.addEventListener('mousemove', cbMouseMove, false);
       canvas.addEventListener('mouseup', cbMouseUp, false);
       canvas.addEventListener('mouseout', cbMouseUp, false);
+      document.getElementById('alphaopen').addEventListener('change', cbLoadAlpha, false);
 
       this.removeCallback = function () {
         window.removeEventListener('keydown', cbKeyDown, false);
@@ -101,6 +109,7 @@ define([
         canvas.removeEventListener('mousemove', cbMouseMove, false);
         canvas.removeEventListener('mouseup', cbMouseUp, false);
         canvas.removeEventListener('mouseout', cbMouseUp, false);
+        document.getElementById('alphaopen').removeEventListener('change', cbLoadAlpha, false);
       };
     },
     /** Remove events */
@@ -111,6 +120,37 @@ define([
     getSelectedTool: function () {
       return parseInt(this.ctrlSculpt_.getValue(), 10);
     },
+    checkModifierKey: function (event) {
+      var selectedTool = this.getSelectedTool();
+
+      if (this.main_.mouseButton_ === 0) {
+        if (event.shiftKey && !event.altKey && !event.ctrlKey) {
+          // smoothing on shift key
+          if (selectedTool === Sculpt.tool.SMOOTH)
+            return true;
+          this.toolOnRelease_ = selectedTool;
+          this.ctrlSculpt_.setValue(Sculpt.tool.SMOOTH);
+          return true;
+        }
+        if (event.ctrlKey && !event.shiftKey && !event.altKey) {
+          // masking on ctrl key
+          if (selectedTool !== Sculpt.tool.MASKING) {
+            this.toolOnRelease_ = selectedTool;
+            this.ctrlSculpt_.setValue(Sculpt.tool.MASKING);
+          }
+        }
+      }
+      if (event.altKey) {
+        // invert sign on alt key
+        if (this.invertSign_ || event.shiftKey) return true;
+        this.invertSign_ = true;
+        var curTool = uiTools[selectedTool];
+        if (curTool.toggleNegative)
+          curTool.toggleNegative();
+        return true;
+      }
+      return false;
+    },
     /** Key pressed event */
     onKeyDown: function (event) {
       if (event.handled === true)
@@ -119,29 +159,14 @@ define([
       if (!this.main_.focusGui_)
         event.preventDefault();
       var key = event.which;
-      var ctrlSculpt = this.ctrlSculpt_;
       event.handled = true;
+      if (this.checkModifierKey(event))
+        return;
+
       if (this.main_.mouseButton_ !== 0)
         return;
 
-      if (event.shiftKey && !event.altKey && !event.ctrlKey) {
-        // smoothing on alt key
-        var selectedTool = this.getSelectedTool();
-        if (selectedTool === Sculpt.tool.SMOOTH)
-          return;
-        this.toolOnRelease_ = selectedTool;
-        ctrlSculpt.setValue(Sculpt.tool.SMOOTH);
-        return;
-      } else if (!event.shiftKey && event.altKey && !event.ctrlKey) {
-        // invert sign on alt key
-        if (this.invertSign_) return;
-        this.invertSign_ = true;
-        var curTool = GuiSculptingTools[this.getSelectedTool()];
-        if (curTool.toggleNegative)
-          curTool.toggleNegative();
-        return;
-      }
-
+      var ctrlSculpt = this.ctrlSculpt_;
       switch (key) {
       case 88: // X
         this.modalBrushRadius_ = this.main_.focusGui_ = true;
@@ -163,7 +188,7 @@ define([
         break;
       case 48: // 0
       case 96: // NUMPAD 0
-        ctrlSculpt.setValue(Sculpt.tool.SCALE);
+        ctrlSculpt.setValue(Sculpt.tool.MOVE);
         break;
       case 49: // 1
       case 97: // NUMPAD 1
@@ -208,7 +233,7 @@ define([
         ctrlSculpt.setValue(Sculpt.tool.ROTATE);
         break;
       case 78: // N
-        var cur = GuiSculptingTools[this.getSelectedTool()];
+        var cur = uiTools[this.getSelectedTool()];
         if (cur.toggleNegative)
           cur.toggleNegative();
         break;
@@ -216,16 +241,22 @@ define([
         event.handled = false;
       }
     },
+    releaseInvertSign: function () {
+      if (!this.invertSign_)
+        return;
+      this.invertSign_ = false;
+      var tool = uiTools[this.getSelectedTool()];
+      if (tool.toggleNegative)
+        tool.toggleNegative();
+    },
     /** Key released event */
     onKeyUp: function (event) {
-      if (this.main_.mouseButton_ === 0 && this.toolOnRelease_ !== -1) {
+      var releaseTool = this.main_.mouseButton_ === 0 && this.toolOnRelease_ !== -1 && !event.ctrlKey && !event.shiftKey;
+      if (!event.altKey || releaseTool)
+        this.releaseInvertSign();
+      if (releaseTool) {
         this.ctrlSculpt_.setValue(this.toolOnRelease_);
         this.toolOnRelease_ = -1;
-      } else if (this.invertSign_) {
-        this.invertSign_ = false;
-        var tool = GuiSculptingTools[this.getSelectedTool()];
-        if (tool.toggleNegative)
-          tool.toggleNegative();
       }
       if (event.which === 88) // X
         this.modalBrushRadius_ = this.main_.focusGui_ = false;
@@ -233,8 +264,9 @@ define([
         this.modalBrushIntensity_ = this.main_.focusGui_ = false;
     },
     /** Mouse released event */
-    onMouseUp: function () {
-      if (this.toolOnRelease_ !== -1) {
+    onMouseUp: function (event) {
+      if (this.toolOnRelease_ !== -1 && !event.ctrlKey && !event.shiftKey) {
+        this.releaseInvertSign();
         this.ctrlSculpt_.setValue(this.toolOnRelease_);
         this.toolOnRelease_ = -1;
       }
@@ -247,9 +279,9 @@ define([
         this.main_.render();
       }
       if (this.modalBrushIntensity_) {
-        var wid = GuiSculptingTools[this.getSelectedTool()];
-        if (wid.intensity_)
-          wid.intensity_.setValue(wid.intensity_.getValue() + (e.pageX - this.lastMouseX_) * 1.0);
+        var wid = uiTools[this.getSelectedTool()];
+        if (wid.ctrlIntensity_)
+          wid.ctrlIntensity_.setValue(wid.ctrlIntensity_.getValue() + (e.pageX - this.lastMouseX_) * 1.0);
       }
       this.lastMouseX_ = e.pageX;
     },
@@ -258,8 +290,8 @@ define([
       this.main_.getPicking().computeRadiusWorld2(this.main_.mouseX_, this.main_.mouseY_);
     },
     /** Initialize tool */
-    initTool: function (toolKey, foldSculpt, main) {
-      GuiSculptingTools[toolKey].init(this.sculpt_.tools_[toolKey], foldSculpt, main);
+    initTool: function (toolKey) {
+      uiTools[toolKey].init(this.sculpt_.tools_[toolKey], this.menu_, this.main_);
       GuiSculptingTools.hide(toolKey);
     },
     /** When the sculpting tool is changed */
@@ -273,6 +305,30 @@ define([
       this.ctrlContinuous_.setVisibility(this.sculpt_.allowPicking() === true);
       this.ctrlSymmetry_.setVisibility(newValue !== Sculpt.tool.TRANSLATE && newValue !== Sculpt.tool.ROTATE);
       this.ctrlRadius_.setVisibility(newValue !== Sculpt.tool.TRANSLATE && newValue !== Sculpt.tool.ROTATE);
+    },
+    loadAlpha: function (event) {
+      if (event.target.files.length === 0)
+        return;
+      var file = event.target.files[0];
+      if (!file.type.match('image.*'))
+        return;
+      var reader = new FileReader();
+      var main = this.main_;
+      var tool = uiTools[main.getSculpt().tool_];
+
+      reader.onload = function (evt) {
+        var img = new Image();
+        img.src = evt.target.result;
+        img.onload = main.onLoadAlphaImage.bind(main, img, file.name, tool);
+        document.getElementById('alphaopen').value = '';
+      };
+      reader.readAsDataURL(file);
+    },
+    addAlphaOptions: function (opts) {
+      for (var i = 0, nb = uiTools.length; i < nb; ++i) {
+        var t = uiTools[i];
+        if (t && t.ctrlAlpha_) t.ctrlAlpha_.addOptions(opts);
+      }
     }
   };
 

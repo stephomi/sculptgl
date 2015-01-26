@@ -65,6 +65,7 @@ define([
         mat4.mul(matRot, matRot, this.postTranslate_);
 
         mat4.mul(matrix, matRot, matrix);
+        main.render();
       };
     })()
   };

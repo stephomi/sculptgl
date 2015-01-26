@@ -316,14 +316,24 @@ define([
         vAr[id + 1] = (v1y + v2y) * 0.5;
         vAr[id + 2] = (v1z + v2z) * 0.5;
       } else {
-        var len = 1.0 / Math.sqrt(n1x * n1x + n1y * n1y + n1z * n1z);
-        n1x *= len;
-        n1y *= len;
-        n1z *= len;
-        len = 1.0 / Math.sqrt(n2x * n2x + n2y * n2y + n2z * n2z);
-        n2x *= len;
-        n2y *= len;
-        n2z *= len;
+        var len = n1x * n1x + n1y * n1y + n1z * n1z;
+        if (len === 0.0) {
+          n1x = 1.0;
+        } else {
+          len = 1.0 / Math.sqrt(len);
+          n1x *= len;
+          n1y *= len;
+          n1z *= len;
+        }
+        len = n2x * n2x + n2y * n2y + n2z * n2z;
+        if (len === 0.0) {
+          n2x = 1.0;
+        } else {
+          len = 1.0 / Math.sqrt(len);
+          n2x *= len;
+          n2y *= len;
+          n2z *= len;
+        }
         var dot = n1x * n2x + n1y * n2y + n1z * n2z;
         var angle = 0;
         if (dot <= -1) angle = Math.PI;
@@ -335,7 +345,9 @@ define([
         var edgez = v1z - v2z;
         offset = angle * 0.12;
         offset *= Math.sqrt(edgex * edgex + edgey * edgey + edgez * edgez);
-        offset /= Math.sqrt(n1n2x * n1n2x + n1n2y * n1n2y + n1n2z * n1n2z);
+        len = n1n2x * n1n2x + n1n2y * n1n2y + n1n2z * n1n2z;
+        if (len > 0) offset /= Math.sqrt(len);
+
         if ((edgex * (n1x - n2x) + edgey * (n1y - n2y) + edgez * (n1z - n2z)) < 0)
           offset = -offset;
         vAr[id] = (v1x + v2x) * 0.5 + n1n2x * offset;

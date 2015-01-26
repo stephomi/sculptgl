@@ -27,7 +27,7 @@ define([
     getWireframeBuffer: function () {
       return this.wireframeBuffer_;
     },
-    /** No flat shading because we can't share vertices vertices buffer with higher resolution */
+    /** No flat shading because we can't share vertices buffer with higher resolution */
     isUsingDrawArrays: function () {
       return false;
     },

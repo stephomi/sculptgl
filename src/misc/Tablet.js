@@ -30,12 +30,12 @@ define([], function () {
 
   /** Returns the pressure intensity **/
   Tablet.getPressureIntensity = function () {
-    return Tablet.useOnIntensity === true ? Tablet.pressure() : 1.0;
+    return Tablet.useOnIntensity === true ? 0.25 + Tablet.pressure() * 0.75 : 1.0;
   };
 
   /** Returns the pressure radius **/
   Tablet.getPressureRadius = function () {
-    return Tablet.useOnRadius === true ? Tablet.pressure() : 1.0;
+    return Tablet.useOnRadius === true ? 0.25 + Tablet.pressure() * 0.75 : 1.0;
   };
 
   return Tablet;

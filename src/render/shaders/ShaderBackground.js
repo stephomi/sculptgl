@@ -39,9 +39,7 @@ define([
     gl.useProgram(this.program);
     this.bindAttributes(bg);
     this.updateUniforms(bg);
-    gl.depthMask(false);
-    gl.drawArrays(gl.TRIANGLES, 0, 6);
-    gl.depthMask(true);
+    gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
   };
   /** Get or create the shader */
   ShaderBackground.getOrCreate = function (gl) {

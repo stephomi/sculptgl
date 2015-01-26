@@ -13,8 +13,8 @@ define([
   var vec3 = glm.vec3;
 
   var Remesh = {};
-
-  Remesh.resolution = 150;
+  Remesh.RESOLUTION = 150;
+  Remesh.BLOCK = false;
 
   Remesh.floodFill = function (voxels, step) {
     var res = voxels.dims;
@@ -80,9 +80,13 @@ define([
     var ry = voxels.dims[1];
     var distField = voxels.distanceField;
     var crossedEdges = voxels.crossedEdges;
+    var colors = voxels.colors;
+    var materials = voxels.materials;
 
     var iAr = mesh.getTriangles();
     var vAr = mesh.getVertices();
+    var cAr = mesh.getColors();
+    var mAr = mesh.getMaterials();
     var nbTriangles = mesh.getNbTriangles();
 
     var v1 = [0.0, 0.0, 0.0];
@@ -99,6 +103,7 @@ define([
       [0.0, 0.0, 1.0]
     ];
 
+    var inv3 = 1 / 3;
     for (var iTri = 0; iTri < nbTriangles; ++iTri) {
       var idTri = iTri * 3;
 
@@ -115,6 +120,13 @@ define([
       var v3x = v3[0] = vAr[iv3];
       var v3y = v3[1] = vAr[iv3 + 1];
       var v3z = v3[2] = vAr[iv3 + 2];
+
+      var c1x = (cAr[iv1] + cAr[iv2] + cAr[iv3]) * inv3;
+      var c1y = (cAr[iv1 + 1] + cAr[iv2 + 1] + cAr[iv3 + 1]) * inv3;
+      var c1z = (cAr[iv1 + 2] + cAr[iv2 + 2] + cAr[iv3 + 2]) * inv3;
+      var m1x = (mAr[iv1] + mAr[iv2] + mAr[iv3]) * inv3;
+      var m1y = (mAr[iv1 + 1] + mAr[iv2 + 1] + mAr[iv3 + 1]) * inv3;
+      var m1z = (mAr[iv1 + 2] + mAr[iv2 + 2] + mAr[iv3 + 2]) * inv3;
 
       // bounding box recomputation (we already have the bbox of the quad but
       // not of the triangles...)
@@ -158,8 +170,16 @@ define([
             point[2] = z;
             var newDist = Geometry.distance2PointTriangleEdges(point, triEdge1, triEdge2, v1, a00, a01, a11, closest);
             newDist = Math.sqrt(newDist);
-            if (newDist < distField[n])
+            if (newDist < distField[n]) {
               distField[n] = newDist;
+              var n3 = n * 3;
+              colors[n3] = c1x;
+              colors[n3 + 1] = c1y;
+              colors[n3 + 2] = c1z;
+              materials[n3] = m1x;
+              materials[n3 + 1] = m1y;
+              materials[n3 + 2] = m1z;
+            }
             if (newDist > step)
               continue;
 
@@ -179,30 +199,39 @@ define([
     }
   };
 
+  // grid structure
   Remesh.createVoxelData = function (dims, step) {
     var rx = 1 + Math.ceil((dims[0][1] - dims[0][0]) / step);
     var ry = 1 + Math.ceil((dims[1][1] - dims[1][0]) / step);
     var rz = 1 + Math.ceil((dims[2][1] - dims[2][0]) / step);
     var datalen = rx * ry * rz;
-    var buffer = Utils.getMemory((4 + 3) * datalen);
+    var buffer = Utils.getMemory((4 * (1 + 3 + 3) + 3) * datalen);
     var distField = new Float32Array(buffer, 0, datalen);
-    var crossedEdges = new Uint8Array(buffer, 4 * datalen, datalen * 3);
+    var colors = new Float32Array(buffer, 4 * datalen, datalen * 3);
+    var materials = new Float32Array(buffer, 16 * datalen, datalen * 3);
+    var crossedEdges = new Uint8Array(buffer, 28 * datalen, datalen * 3);
     // Initialize data
     for (var idf = 0; idf < datalen; ++idf)
       distField[idf] = Infinity;
     for (var ide = 0, datalene = datalen * 3; ide < datalene; ++ide)
       crossedEdges[ide] = 0;
+    for (var idc = 0, datalenc = datalen * 3; idc < datalenc; ++idc)
+      colors[idc] = materials[idc] = -1;
     var voxels = {};
     voxels.dims = [rx, ry, rz];
     voxels.crossedEdges = crossedEdges;
     voxels.distanceField = distField;
+    voxels.colors = colors;
+    voxels.materials = materials;
     return voxels;
   };
 
-  Remesh.createMesh = function (mesh, vertices, faces) {
+  Remesh.createMesh = function (mesh, vertices, faces, colors, materials) {
     var newMesh = new Mesh(mesh.getGL());
     newMesh.setID(mesh.getID());
     newMesh.setVertices(vertices);
+    if (colors) newMesh.setColors(colors);
+    if (materials) newMesh.setMaterials(materials);
     newMesh.setFaces(faces);
     newMesh.init();
     newMesh.setRender(mesh.getRender());
@@ -222,7 +251,7 @@ define([
       var matrix = mesh.getMatrix();
       mesh = HoleFilling.closeHoles(mesh);
       if (mesh === meshes[i])
-        mesh = HoleFilling.createMesh(mesh, new Float32Array(mesh.getVertices()), new Int32Array(mesh.getFaces()));
+        mesh = HoleFilling.createMesh(mesh, new Float32Array(mesh.getVertices()), new Int32Array(mesh.getFaces()), new Float32Array(mesh.getColors()), new Float32Array(mesh.getMaterials()));
       meshes[i] = mesh;
       var vAr = mesh.getVertices();
       for (var j = 0, nbv = mesh.getNbVertices(); j < nbv; ++j) {
@@ -246,12 +275,14 @@ define([
   };
 
   Remesh.remesh = function (mesh, meshes) {
-    meshes = meshes.slice();
-    console.time('prepareMeshes');
-    var box = Remesh.prepareMeshes(meshes);
-    console.timeEnd('prepareMeshes');
+    console.time('remesh');
 
-    var step = Math.max((box[3] - box[0]), (box[4] - box[1]), (box[5] - box[2])) / Remesh.resolution;
+    meshes = meshes.slice();
+    console.time('initMeshes');
+    var box = Remesh.prepareMeshes(meshes);
+    console.timeEnd('initMeshes');
+
+    var step = Math.max((box[3] - box[0]), (box[4] - box[1]), (box[5] - box[2])) / Remesh.RESOLUTION;
     var stepMin = step * 2.5;
     var stepMax = step * 2.5;
     var dims = [
@@ -265,17 +296,21 @@ define([
       Remesh.voxelize(meshes[i], voxels, dims, step);
     console.timeEnd('voxelization');
 
-    console.time('floodFill');
+    console.time('flood');
     Remesh.floodFill(voxels, step);
-    console.timeEnd('floodFill');
+    console.timeEnd('flood');
 
     var min = [box[0] - stepMin, box[1] - stepMin, box[2] - stepMin];
     var max = [box[3] + stepMax, box[4] + stepMax, box[5] + stepMax];
     console.time('surfaceNet');
-    var res = SurfaceNets.computeSurface(voxels.distanceField, voxels.dims, [min, max]);
+    SurfaceNets.BLOCK = Remesh.BLOCK;
+    var res = SurfaceNets.computeSurface(voxels, [min, max]);
     console.timeEnd('surfaceNet');
 
-    return Remesh.createMesh(mesh, res.vertices, res.faces);
+    var nmesh = Remesh.createMesh(mesh, res.vertices, res.faces, res.colors, res.materials);
+    console.timeEnd('remesh');
+    console.log('\n');
+    return nmesh;
   };
 
   return Remesh;

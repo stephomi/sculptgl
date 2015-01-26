@@ -131,27 +131,19 @@ define([], function () {
 
         if (cx > xcen) {
           if (cy > ycen) {
-            if (cz > zcen)
-              iFaces6.push(iFace);
-            else
-              iFaces5.push(iFace);
+            if (cz > zcen) iFaces6.push(iFace);
+            else iFaces5.push(iFace);
           } else {
-            if (cz > zcen)
-              iFaces2.push(iFace);
-            else
-              iFaces1.push(iFace);
+            if (cz > zcen) iFaces2.push(iFace);
+            else iFaces1.push(iFace);
           }
         } else {
           if (cy > ycen) {
-            if (cz > zcen)
-              iFaces7.push(iFace);
-            else
-              iFaces4.push(iFace);
+            if (cz > zcen) iFaces7.push(iFace);
+            else iFaces4.push(iFace);
           } else {
-            if (cz > zcen)
-              iFaces3.push(iFace);
-            else
-              iFaces0.push(iFace);
+            if (cz > zcen) iFaces3.push(iFace);
+            else iFaces0.push(iFace);
           }
         }
       }
@@ -263,17 +255,7 @@ define([], function () {
       return new Uint32Array(collectFaces.subarray(0, acc));
     },
     /** Add a face in the octree, subdivide the cell if necessary */
-    addFace: function (faceId, aabb, center) {
-      var cx = center[0];
-      var cy = center[1];
-      var cz = center[2];
-      var bxmin = aabb[0];
-      var bymin = aabb[1];
-      var bzmin = aabb[2];
-      var bxmax = aabb[3];
-      var bymax = aabb[4];
-      var bzmax = aabb[5];
-
+    addFace: function (faceId, bxmin, bymin, bzmin, bxmax, bymax, bzmax, cx, cy, cz) {
       var stack = OctreeCell.STACK;
       stack[0] = this;
       var curStack = 1;

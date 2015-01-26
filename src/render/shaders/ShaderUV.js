@@ -15,13 +15,14 @@ define([
   ShaderUV.program = undefined;
 
   ShaderUV.uniformNames = ['uMV', 'uMVP', 'uN', 'uTexture0'];
-  Array.prototype.push.apply(ShaderUV.uniformNames, ShaderBase.uniformNames.picking);
+  Array.prototype.push.apply(ShaderUV.uniformNames, ShaderBase.uniformNames.symmetryLine);
 
   ShaderUV.vertex = [
     'attribute vec3 aVertex;',
     'attribute vec3 aNormal;',
     'attribute vec3 aColor;',
     'attribute vec2 aTexCoord;',
+    'attribute vec3 aMaterial;',
     'uniform mat4 uMV;',
     'uniform mat4 uMVP;',
     'uniform mat3 uN;',
@@ -29,12 +30,14 @@ define([
     'varying vec3 vNormal;',
     'varying vec3 vColor;',
     'varying vec2 vTexCoord;',
+    'varying float vMasking;',
     'void main() {',
     '  vec4 vertex4 = vec4(aVertex, 1.0);',
     '  vNormal = normalize(uN * aNormal);',
     '  vVertex = vec3(uMV * vertex4);',
     '  vColor = aColor;',
     '  vTexCoord = aTexCoord;',
+    '  vMasking = aMaterial.z;',
     '  gl_Position = uMVP * vertex4;',
     '}'
   ].join('\n');
@@ -42,16 +45,15 @@ define([
   ShaderUV.fragment = [
     'precision mediump float;',
     'uniform sampler2D uTexture0;',
-    ShaderBase.strings.pickingUniforms,
     'varying vec3 vVertex;',
     'varying vec3 vNormal;',
     'varying vec3 vColor;',
     'varying vec2 vTexCoord;',
-    ShaderBase.strings.pickingFunction,
+    ShaderBase.strings.fragColorUniforms,
+    ShaderBase.strings.fragColorFunction,
     'void main() {',
     '  vec3 fragColor = texture2D(uTexture0, vTexCoord).rgb * vColor;',
-    '  fragColor = picking(fragColor);',
-    '  gl_FragColor = vec4(fragColor, 1.0);',
+    '  gl_FragColor = getFragColor(fragColor);',
     '}'
   ].join('\n');
 
@@ -73,6 +75,7 @@ define([
     attrs.aVertex = new Attribute(gl, program, 'aVertex', 3, glfloat);
     attrs.aNormal = new Attribute(gl, program, 'aNormal', 3, glfloat);
     attrs.aColor = new Attribute(gl, program, 'aColor', 3, glfloat);
+    attrs.aMaterial = new Attribute(gl, program, 'aMaterial', 3, glfloat);
     attrs.aTexCoord = new Attribute(gl, program, 'aTexCoord', 2, glfloat);
   };
   /** Bind attributes */
@@ -81,6 +84,7 @@ define([
     attrs.aVertex.bindToBuffer(render.getVertexBuffer());
     attrs.aNormal.bindToBuffer(render.getNormalBuffer());
     attrs.aColor.bindToBuffer(render.getColorBuffer());
+    attrs.aMaterial.bindToBuffer(render.getMaterialBuffer());
     attrs.aTexCoord.bindToBuffer(render.getTexCoordBuffer());
   };
   /** Updates uniforms */

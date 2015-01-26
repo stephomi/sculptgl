@@ -34,15 +34,22 @@ define([
 
       // remeshing
       menu.addTitle(TR('remeshTitle'));
-      menu.addSlider(TR('remeshResolution'), Remesh, 'resolution', 8, 400, 1);
+      menu.addSlider(TR('remeshResolution'), Remesh, 'RESOLUTION', 8, 400, 1);
+      menu.addCheckbox(TR('remeshBlock'), Remesh, 'BLOCK');
       menu.addButton(TR('remeshRemesh'), this, 'remesh');
 
       // dynamic
       menu.addTitle(TR('dynamicTitle'));
       this.ctrlDynamic_ = menu.addCheckbox(TR('dynamicActivated'), false, this.dynamicToggleActivate.bind(this));
-      menu.addSlider(TR('dynamicSubdivision'), Topology.subFactor, this.dynamicSubdivision.bind(this), 0, 100, 1);
-      menu.addSlider(TR('dynamicDecimation'), Topology.decFactor, this.dynamicDecimation.bind(this), 0, 100, 1);
-      menu.addCheckbox(TR('dynamicLinear'), Topology.linear, this.dynamicToggleLinear.bind(this));
+      this.ctrlDynSubd_ = menu.addSlider(TR('dynamicSubdivision'), Topology.subFactor, this.dynamicSubdivision.bind(this), 0, 100, 1);
+      this.ctrlDynDec_ = menu.addSlider(TR('dynamicDecimation'), Topology.decFactor, this.dynamicDecimation.bind(this), 0, 100, 1);
+      this.ctrlDynLin_ = menu.addCheckbox(TR('dynamicLinear'), Topology.linear, this.dynamicToggleLinear.bind(this));
+      this.updateDynamicVisibility(false);
+    },
+    updateDynamicVisibility: function (bool) {
+      this.ctrlDynSubd_.setVisibility(bool);
+      this.ctrlDynDec_.setVisibility(bool);
+      this.ctrlDynLin_.setVisibility(bool);
     },
     dynamicToggleActivate: function () {
       var main = this.main_;
@@ -51,28 +58,31 @@ define([
         return;
 
       if (!main.isReplayed())
-        main.getReplayWriter().pushDynamicToggleActivate();
+        main.getReplayWriter().pushAction('DYNAMIC_TOGGLE_ACTIVATE');
 
       var newMesh = !mesh.getDynamicTopology ? new MeshDynamic(mesh) : this.convertToStaticMesh(mesh);
+      this.updateDynamicVisibility(!mesh.getDynamicTopology);
+
       main.replaceMesh(mesh, newMesh);
       main.getStates().pushStateAddRemove(newMesh, mesh);
+      this.updateMeshTopology();
     },
     dynamicToggleLinear: function () {
       var main = this.main_;
       if (!main.isReplayed())
-        main.getReplayWriter().pushDynamicToggleLinear();
+        main.getReplayWriter().pushAction('DYNAMIC_TOGGLE_LINEAR');
       Topology.linear = !Topology.linear;
     },
     dynamicSubdivision: function (val) {
       var main = this.main_;
       if (!main.isReplayed())
-        main.getReplayWriter().pushDynamicSubdivision(val);
+        main.getReplayWriter().pushAction('DYNAMIC_SUBDIVISION', val);
       Topology.subFactor = val;
     },
     dynamicDecimation: function (val) {
       var main = this.main_;
       if (!main.isReplayed())
-        main.getReplayWriter().pushDynamicDecimation(val);
+        main.getReplayWriter().pushAction('DYNAMIC_DECIMATION', val);
       Topology.decFactor = val;
     },
     /** Remesh the mesh */
@@ -83,7 +93,7 @@ define([
         return;
 
       if (!main.isReplayed())
-        main.getReplayWriter().pushVoxelRemesh(Remesh.resolution);
+        main.getReplayWriter().pushAction('VOXEL_REMESH', Remesh.RESOLUTION, Remesh.BLOCK);
 
       var meshes = main.getMeshes().slice();
       for (var i = 0, l = meshes.length; i < l; ++i) {
@@ -146,7 +156,7 @@ define([
       }
 
       if (!main.isReplayed())
-        main.getReplayWriter().pushMultiSubdivide();
+        main.getReplayWriter().pushAction('MULTI_SUBDIVIDE');
 
       if (mesh !== mul) {
         main.replaceMesh(mesh, mul);
@@ -179,7 +189,7 @@ define([
       }
 
       if (!main.isReplayed())
-        main.getReplayWriter().pushMultiReverse();
+        main.getReplayWriter().pushAction('MULTI_REVERSE');
 
       if (mesh !== mul) {
         main.replaceMesh(mesh, mul);
@@ -200,7 +210,7 @@ define([
       }
 
       if (!main.isReplayed())
-        main.getReplayWriter().pushDeleteLower();
+        main.getReplayWriter().pushAction('MULTI_DEL_LOWER');
 
       main.getStates().pushState(new StateMultiresolution(main, mul, StateMultiresolution.DELETE_LOWER));
       mul.deleteLower();
@@ -216,7 +226,7 @@ define([
       }
 
       if (!main.isReplayed())
-        main.getReplayWriter().pushDeleteHigher();
+        main.getReplayWriter().pushAction('MULTI_DEL_HIGHER');
 
       main.getStates().pushState(new StateMultiresolution(main, mul, StateMultiresolution.DELETE_HIGHER));
       mul.deleteHigher();
@@ -231,7 +241,7 @@ define([
         return;
 
       if (!main.isReplayed())
-        main.getReplayWriter().pushMultiResolution(value);
+        main.getReplayWriter().pushAction('MULTI_RESOLUTION', value);
 
       main.getStates().pushState(new StateMultiresolution(main, multimesh, StateMultiresolution.SELECTION));
       multimesh.selectResolution(uiRes);
@@ -252,12 +262,9 @@ define([
     /** Update topology information */
     updateMeshTopology: function () {
       this.updateMeshResolution();
-      var mesh = this.main_.getMesh();
-      if (!mesh || !mesh.getDynamicTopology) {
-        this.ctrlDynamic_.setValue(false, true);
-        return;
-      }
-      this.ctrlDynamic_.setValue(true, true);
+      var bool = this.main_.getMesh() && this.main_.getMesh().getDynamicTopology;
+      this.updateDynamicVisibility(bool);
+      this.ctrlDynamic_.setValue(bool, true);
     }
   };
 

@@ -7,29 +7,38 @@ define([
   'use strict';
 
   function Render(gl, mesh) {
-    this.mesh_ = mesh; // webgl context
-    this.gl_ = gl; // webgl context
+    this.mesh_ = mesh;
+    this.gl_ = gl;
 
-    this.shader_ = new Shader(gl); // the program shader for the mesh
-    this.shaderWireframe_ = new Shader(gl); // the program shader for the wireframe
+    this.shader_ = new Shader(gl);
+    this.shaderWireframe_ = new Shader(gl);
 
-    this.flatShading_ = false; // use of drawArrays vs drawElements
-    this.showWireframe_ = true; // show wireframe
+    this.flatShading_ = false;
+    this.showWireframe_ = false;
 
-    this.vertexBuffer_ = new Buffer(gl, gl.ARRAY_BUFFER, gl.DYNAMIC_DRAW); // vertices buffer
-    this.normalBuffer_ = new Buffer(gl, gl.ARRAY_BUFFER, gl.DYNAMIC_DRAW); // normals buffer
-    this.colorBuffer_ = new Buffer(gl, gl.ARRAY_BUFFER, gl.DYNAMIC_DRAW); // colors buffer
-    this.materialBuffer_ = new Buffer(gl, gl.ARRAY_BUFFER, gl.DYNAMIC_DRAW); // materials buffer
-    this.texCoordBuffer_ = new Buffer(gl, gl.ARRAY_BUFFER, gl.STATIC_DRAW); // texCoords buffer
-    this.indexBuffer_ = new Buffer(gl, gl.ELEMENT_ARRAY_BUFFER, gl.STATIC_DRAW); // indices buffer
-    this.wireframeBuffer_ = new Buffer(gl, gl.ELEMENT_ARRAY_BUFFER, gl.STATIC_DRAW); // wireframe buffer
-    this.texture0_ = null; // a texture
+    this.vertexBuffer_ = new Buffer(gl, gl.ARRAY_BUFFER, gl.DYNAMIC_DRAW);
+    this.normalBuffer_ = new Buffer(gl, gl.ARRAY_BUFFER, gl.DYNAMIC_DRAW);
+    this.colorBuffer_ = new Buffer(gl, gl.ARRAY_BUFFER, gl.DYNAMIC_DRAW);
+    this.materialBuffer_ = new Buffer(gl, gl.ARRAY_BUFFER, gl.DYNAMIC_DRAW);
+    this.texCoordBuffer_ = new Buffer(gl, gl.ARRAY_BUFFER, gl.STATIC_DRAW);
+    this.indexBuffer_ = new Buffer(gl, gl.ELEMENT_ARRAY_BUFFER, gl.STATIC_DRAW);
+    this.wireframeBuffer_ = new Buffer(gl, gl.ELEMENT_ARRAY_BUFFER, gl.STATIC_DRAW);
+    this.texture0_ = null;
     this.matcap_ = 0; // the chosen matcap texture index
+
+    // local edit buffers
+    this.localVertexBuffer_ = new Buffer(gl, gl.ARRAY_BUFFER, gl.DYNAMIC_DRAW);
+    this.localNormalBuffer_ = new Buffer(gl, gl.ARRAY_BUFFER, gl.DYNAMIC_DRAW);
+    this.localColorBuffer_ = new Buffer(gl, gl.ARRAY_BUFFER, gl.DYNAMIC_DRAW);
+    this.localMaterialBuffer_ = new Buffer(gl, gl.ARRAY_BUFFER, gl.DYNAMIC_DRAW);
+    this.localTexCoordBuffer_ = new Buffer(gl, gl.ARRAY_BUFFER, gl.STATIC_DRAW);
+    this.localIndexBuffer_ = new Buffer(gl, gl.ELEMENT_ARRAY_BUFFER, gl.STATIC_DRAW);
+    this.localWireframeBuffer_ = new Buffer(gl, gl.ELEMENT_ARRAY_BUFFER, gl.STATIC_DRAW);
 
     this.exposure_ = 1.0;
     // these material values overrides the vertex attributes
     // it's here for debug or preview
-    this.albedo_ = [-1.0, -1.0, -1.0];
+    this.albedo_ = new Float32Array([-1.0, -1.0, -1.0]);
     this.roughness_ = -0.18;
     this.metallic_ = -0.78;
   }
@@ -37,6 +46,12 @@ define([
   Render.ONLY_DRAW_ARRAYS = false;
 
   Render.prototype = {
+    getGL: function () {
+      return this.gl_;
+    },
+    getMesh: function () {
+      return this.mesh_;
+    },
     getAlbedo: function () {
       return this.albedo_;
     },
@@ -63,47 +78,32 @@ define([
     setExposure: function (val) {
       this.exposure_ = val;
     },
-    /** Return webgl context */
-    getGL: function () {
-      return this.gl_;
-    },
-    /** Return the mesh */
-    getMesh: function () {
-      return this.mesh_;
-    },
     getShader: function () {
       return this.shader_;
     },
     getShaderType: function () {
       return this.getShader().getType();
     },
-    /** Return vertex buffer */
     getVertexBuffer: function () {
-      return this.vertexBuffer_;
+      return this.mesh_.isLocalEdit() ? this.localVertexBuffer_ : this.vertexBuffer_;
     },
-    /** Return normal buffer */
     getNormalBuffer: function () {
-      return this.normalBuffer_;
+      return this.mesh_.isLocalEdit() ? this.localNormalBuffer_ : this.normalBuffer_;
     },
-    /** Return color buffer */
     getColorBuffer: function () {
-      return this.colorBuffer_;
+      return this.mesh_.isLocalEdit() ? this.localColorBuffer_ : this.colorBuffer_;
     },
-    /** Return material buffer */
     getMaterialBuffer: function () {
-      return this.materialBuffer_;
+      return this.mesh_.isLocalEdit() ? this.localMaterialBuffer_ : this.materialBuffer_;
     },
-    /** Return texCoord buffer */
     getTexCoordBuffer: function () {
-      return this.texCoordBuffer_;
+      return this.mesh_.isLocalEdit() ? this.localTexCoordBuffer_ : this.texCoordBuffer_;
     },
-    /** Return index buffer */
     getIndexBuffer: function () {
-      return this.indexBuffer_;
+      return this.mesh_.isLocalEdit() ? this.localIndexBuffer_ : this.indexBuffer_;
     },
-    /** Return wireframe buffer */
     getWireframeBuffer: function () {
-      return this.wireframeBuffer_;
+      return this.mesh_.isLocalEdit() ? this.localWireframeBuffer_ : this.wireframeBuffer_;
     },
     /** Return true if the render is using drawArrays instead of drawElements */
     isUsingDrawArrays: function () {
@@ -111,45 +111,36 @@ define([
     },
     /** Return true if the shader is using UVs */
     isUsingTexCoords: function () {
-      return this.shader_.isUsingTexCoords();
+      return this.shader_.isUsingTexCoords() && !this.mesh_.isLocalEdit();
     },
-    /** Return true if the shader is using alpha transparency stuffs */
     isTransparent: function () {
       return this.shader_.isTransparent();
     },
-    /** Return flat shading */
     getFlatShading: function () {
-      return this.flatShading_;
+      return this.flatShading_ && !this.mesh_.isLocalEdit();
     },
-    /** Return show wireframe */
     getShowWireframe: function () {
       return this.showWireframe_;
     },
-    /** Return texture 0 */
     getTexture0: function () {
       return this.texture0_;
     },
-    /** Set texture 0 */
     setTexture0: function (tex) {
       this.texture0_ = tex;
     },
-    /** Set matcap texture */
     setMatcap: function (idMat) {
       this.matcap_ = idMat;
       this.setTexture0(ShaderMatcap.textures[idMat]);
     },
-    /** Set show wireframe */
     setShowWireframe: function (showWireframe) {
       this.showWireframe_ = Render.ONLY_DRAW_ARRAYS ? false : showWireframe;
       this.updateWireframeBuffer();
     },
-    /** Set flat shading */
     setFlatShading: function (flatShading) {
       this.flatShading_ = flatShading;
       this.updateFlatShading();
       this.updateBuffers();
     },
-    /** Set the shader */
     setShader: function (shaderType) {
       if (shaderType === Shader.mode.UV && !this.mesh_.hasUV())
         return;
@@ -162,12 +153,10 @@ define([
       }
       this.updateBuffers();
     },
-    /** Update flat shading buffers */
     updateFlatShading: function (iFaces) {
       if (this.isUsingDrawArrays())
         this.mesh_.updateDrawArrays(this.getFlatShading(), iFaces);
     },
-    /** Initialize rendering */
     initRender: function () {
       this.shaderWireframe_.setType(Shader.mode.WIREFRAME);
       if (this.getShaderType() === Shader.mode.MATCAP && !this.texture0_)
@@ -175,49 +164,39 @@ define([
       this.setShader(this.getShaderType());
       this.setShowWireframe(this.getShowWireframe());
     },
-    /** Render the mesh */
     render: function (main) {
       this.shader_.draw(this, main);
       if (this.getShowWireframe())
         this.shaderWireframe_.draw(this, main);
     },
-    /** Updates color buffer */
     updateVertexBuffer: function () {
       this.getVertexBuffer().update(this.mesh_.getRenderVertices());
     },
-    /** Updates color buffer */
     updateNormalBuffer: function () {
       this.getNormalBuffer().update(this.mesh_.getRenderNormals());
     },
-    /** Updates color buffer */
     updateColorBuffer: function () {
       this.getColorBuffer().update(this.mesh_.getRenderColors());
     },
-    /** Updates material buffer */
     updateMaterialBuffer: function () {
       this.getMaterialBuffer().update(this.mesh_.getRenderMaterials());
     },
-    /** Updates texCoord buffer */
     updateTexCoordBuffer: function () {
       if (this.isUsingTexCoords())
         this.getTexCoordBuffer().update(this.mesh_.getRenderTexCoords());
     },
-    /** Updates index buffer */
     updateIndexBuffer: function () {
       if (!this.isUsingDrawArrays())
         this.getIndexBuffer().update(this.mesh_.getRenderTriangles());
     },
-    /** Updates wireframe buffer */
     updateWireframeBuffer: function () {
       if (this.getShowWireframe())
         this.getWireframeBuffer().update(this.mesh_.getWireframe());
     },
-    /** Update vertices and normals the buffers */
     updateGeometryBuffers: function () {
       this.updateVertexBuffer();
       this.updateNormalBuffer();
     },
-    /** Update all the buffers */
     updateBuffers: function () {
       this.updateGeometryBuffers();
       this.updateColorBuffer();
@@ -226,7 +205,6 @@ define([
       this.updateIndexBuffer();
       this.updateWireframeBuffer();
     },
-    /** Free gl memory */
     release: function () {
       if (this.getTexture0())
         this.getGL().deleteTexture(this.getTexture0());
@@ -237,7 +215,6 @@ define([
       this.getIndexBuffer().release();
       this.getWireframeBuffer().release();
     },
-    /** Copy render configuration */
     copyRenderConfig: function (mesh) {
       this.setFlatShading(mesh.getFlatShading());
       this.setShowWireframe(mesh.getShowWireframe());

@@ -116,6 +116,9 @@ define([
           ct.removeEvents();
       }
     },
+    addAlphaOptions: function (opts) {
+      this.ctrlSculpting_.addAlphaOptions(opts);
+    },
     /** Delete the old gui */
     deleteGui: function () {
       if (!this.guiMain_ || !this.guiMain_.domMain.parentNode)

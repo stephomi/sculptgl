@@ -33,6 +33,7 @@ define([
     /** Pinch, vertices gather around intersection point */
     pinch: function (iVertsInRadius, center, radiusSquared, intensity) {
       var vAr = this.mesh_.getVertices();
+      var mAr = this.mesh_.getMaterials();
       var radius = Math.sqrt(radiusSquared);
       var cx = center[0];
       var cy = center[1];
@@ -49,7 +50,8 @@ define([
         var dist = Math.sqrt(dx * dx + dy * dy + dz * dz) / radius;
         var fallOff = dist * dist;
         fallOff = 3.0 * fallOff * fallOff - 4.0 * fallOff * dist + 1.0;
-        fallOff = fallOff * deformIntensity;
+        fallOff *= deformIntensity;
+        fallOff *= mAr[ind + 2];
         vAr[ind] = vx + dx * fallOff;
         vAr[ind + 1] = vy + dy * fallOff;
         vAr[ind + 2] = vz + dz * fallOff;

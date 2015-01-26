@@ -2,6 +2,9 @@ define([], function () {
 
   'use strict';
 
+  var SurfaceNets = {};
+  SurfaceNets.BLOCK = false;
+
   /** Based on Mikola Lysenko SurfaceNets
    * Based on: S.F. Gibson, "Constrained Elastic Surface Nets". (1998) MERL Tech Report.
    */
@@ -43,9 +46,17 @@ define([], function () {
   var cubeEdges = computeCubeEdges();
   var edgeTable = computeEdgeTable(cubeEdges);
 
-  var readScalarValues = function (data, grid, dims, n) {
+  var readScalarValues = function (data, grid, dims, n, colors, materials, cols, mats) {
     //Read in 8 field values around this vertex and store them in an array
     //Also calculate 8-bit mask, like in marching cubes, so we can speed up sign checks later
+    var c1 = 0;
+    var c2 = 0;
+    var c3 = 0;
+    var m1 = 0;
+    var m2 = 0;
+    var m3 = 0;
+    var invSum = 0;
+
     var mask = 0;
     var g = 0;
     var rx = dims[0];
@@ -53,12 +64,29 @@ define([], function () {
     for (var k = 0; k < 2; ++k) {
       for (var j = 0; j < 2; ++j) {
         for (var i = 0; i < 2; ++i) {
-          var p = data[n + i + j * rx + k * rxy];
+          var id = n + i + j * rx + k * rxy;
+          var id3 = id * 3;
+          var p = data[id];
           grid[g] = p;
           mask |= (p < 0.0) ? (1 << g) : 0;
           g++;
+          if (p !== Infinity) {
+            p = Math.min(1 / Math.abs(p), 1e15);
+            invSum += p;
+            c1 += colors[id3] * p;
+            c2 += colors[id3 + 1] * p;
+            c3 += colors[id3 + 2] * p;
+            m1 += materials[id3] * p;
+            m2 += materials[id3 + 1] * p;
+            m3 += materials[id3 + 2] * p;
+          }
         }
       }
+    }
+    if (invSum > 0 && mask !== 0 && mask !== 0xff) {
+      invSum = 1 / invSum;
+      cols.push(c1 * invSum, c2 * invSum, c3 * invSum);
+      mats.push(m1 * invSum, m2 * invSum, m3 * invSum);
     }
     return mask;
   };
@@ -73,6 +101,8 @@ define([], function () {
       if (!(edgeMask & (1 << i)))
         continue;
       ++edgeCount; //If it did, increment number of edge crossings
+      if (SurfaceNets.BLOCK)
+        continue;
       //Now find the point of intersection
       var e0 = cubeEdges[i << 1]; //Unpack vertices
       var e1 = cubeEdges[(i << 1) + 1];
@@ -125,7 +155,11 @@ define([], function () {
     }
   };
 
-  var computeSurface = function (data, dims, bounds) {
+  SurfaceNets.computeSurface = function (voxels, bounds) {
+    var dims = voxels.dims;
+    var colors = voxels.colors;
+    var materials = voxels.materials;
+    var data = voxels.distanceField;
     if (!bounds) {
       bounds = [
         [0.0, 0.0, 0.0], dims
@@ -140,6 +174,8 @@ define([], function () {
     }
 
     var vertices = [];
+    var cols = [];
+    var mats = [];
     var faces = [];
     var n = 0;
     var x = new Int32Array(3);
@@ -159,7 +195,7 @@ define([], function () {
       for (x[1] = 0; x[1] < dims[1] - 1; ++x[1], ++n, m += 2) {
         for (x[0] = 0; x[0] < dims[0] - 1; ++x[0], ++n, ++m) {
 
-          var mask = readScalarValues(data, grid, dims, n);
+          var mask = readScalarValues(data, grid, dims, n, colors, materials, cols, mats);
           //Check for early termination if cell does not intersect boundary
           if (mask === 0 || mask === 0xff)
             continue;
@@ -174,12 +210,12 @@ define([], function () {
 
     //All done!  Return the result
     return {
+      colors: new Float32Array(cols),
+      materials: new Float32Array(mats),
       vertices: new Float32Array(vertices),
       faces: new Int32Array(faces)
     };
   };
 
-  return {
-    computeSurface: computeSurface
-  };
+  return SurfaceNets;
 });

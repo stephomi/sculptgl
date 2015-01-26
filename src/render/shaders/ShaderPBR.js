@@ -1,23 +1,19 @@
 define([
-  'lib/glMatrix',
   'render/shaders/ShaderBase',
   'render/Attribute'
-], function (glm, ShaderBase, Attribute) {
+], function (ShaderBase, Attribute) {
 
   'use strict';
-
-  var mat4 = glm.mat4;
 
   var glfloat = 0x1406;
 
   var ShaderPBR = {};
-  ShaderPBR.texPath = 'https://labs.sketchfab.com/siggraph2014/assets/3d/textures/terrace_near_the_granaries/solid/rgbe/terrace_near_the_granaries_mip.png';
   ShaderPBR.uniforms = {};
   ShaderPBR.attributes = {};
   ShaderPBR.program = undefined;
 
   ShaderPBR.uniformNames = ['uMV', 'uMVP', 'uN', 'uIblTransform', 'uTexture0', 'uAlbedo', 'uRoughness', 'uMetallic', 'uExposure'];
-  Array.prototype.push.apply(ShaderPBR.uniformNames, ShaderBase.uniformNames.picking);
+  Array.prototype.push.apply(ShaderPBR.uniformNames, ShaderBase.uniformNames.symmetryLine);
 
   ShaderPBR.vertex = [
     'precision mediump float;',
@@ -36,6 +32,7 @@ define([
     'varying vec3 vAlbedo;',
     'varying float vRoughness;',
     'varying float vMetallic;',
+    'varying float vMasking;',
     'void main() {',
     '  vec4 vertex4 = vec4(aVertex, 1.0);',
     '  vNormal = normalize(uN * aNormal);',
@@ -43,6 +40,7 @@ define([
     '  vRoughness = uRoughness >= 0.0 ? uRoughness : aMaterial.x;',
     '  vMetallic = uMetallic >= 0.0 ? uMetallic : aMaterial.y;',
     '  vVertex = vec3(uMV * vertex4);',
+    '  vMasking = aMaterial.z;',
     '  gl_Position = uMVP * vertex4;',
     '}'
   ].join('\n');
@@ -54,41 +52,23 @@ define([
     'varying vec3 vAlbedo;',
     'varying float vRoughness;',
     'varying float vMetallic;',
-    ShaderBase.strings.pickingUniforms,
-    ShaderBase.strings.pickingFunction,
-    '',
+    ShaderBase.strings.fragColorUniforms,
+    ShaderBase.strings.fragColorFunction,
     '#define PI 3.1415926535897932384626433832795',
     '#define PI_2 (2.0*3.1415926535897932384626433832795)',
     '#define INV_PI 1.0/PI',
     '#define INV_LOG2 1.4426950408889634073599246810019',
     '#define DefaultGamma 2.4',
     '',
-    'uniform mat4 uIblTransform;',
+    'uniform mat4 uIblTransform; ',
     'uniform sampler2D uTexture0;',
     'uniform float uExposure;',
     '',
-    '// uniform vec2 environmentSize;',
-    'vec2 environmentSize = vec2(512, 512);',
-    'float MaxLOD = log ( environmentSize[0] ) * INV_LOG2 - 1.0;',
+    'vec2 environmentSize = vec2(1024, 512);',
+    'vec2 environmentLodRange = vec2(10, 5);',
+    'mat3 environmentTransform;',
     '',
-    'const vec3 nullVec3 = vec3(0.0);',
-    '',
-    'vec3 MaterialAlbedo, MaterialSpecular;',
-    'float MaterialRoughness;',
-    '',
-    'float NdotV, Alpha, Alpha2;',
-    '',
-    'vec4 computeUVForMipmap( const in float level, const in vec2 uv, const in vec2 size ) {',
-    '  // our texture is square, so each level is width x height/2',
-    '  float heightInTextureSpace = pow( 2.0, level )/size.y; // rescale to the size of the mipmap lev',
-    '  float maxU = 2.0 * heightInTextureSpace;',
-    '  float u = uv[0] * maxU;',
-    '  float v = uv[1] * maxU + heightInTextureSpace;',
-    '  return vec4( u, v , maxU, maxU );',
-    '}',
-    '',
-    '',
-    'float linearTosRGB(const in float c, const in float gamma) {',
+    'float linearrgb_to_srgb1(const in float c, const in float gamma) {',
     '  float v = 0.0;',
     '  if(c < 0.0031308) {',
     '    if ( c > 0.0)',
@@ -99,20 +79,21 @@ define([
     '  return v;',
     '}',
     '',
+    '// coding style should be camel case except for acronyme like SRGB or HDR',
     'vec4 linearTosRGB(const in vec4 col_from, const in float gamma) {',
     '  vec4 col_to;',
-    '  col_to.r = linearTosRGB(col_from.r, gamma);',
-    '  col_to.g = linearTosRGB(col_from.g, gamma);',
-    '  col_to.b = linearTosRGB(col_from.b, gamma);',
+    '  col_to.r = linearrgb_to_srgb1(col_from.r, gamma);',
+    '  col_to.g = linearrgb_to_srgb1(col_from.g, gamma);',
+    '  col_to.b = linearrgb_to_srgb1(col_from.b, gamma);',
     '  col_to.a = col_from.a;',
     '  return col_to;',
     '}',
     '',
     'vec3 linearTosRGB(const in vec3 col_from, const in float gamma) {',
     '  vec3 col_to;',
-    '  col_to.r = linearTosRGB(col_from.r, gamma);',
-    '  col_to.g = linearTosRGB(col_from.g, gamma);',
-    '  col_to.b = linearTosRGB(col_from.b, gamma);',
+    '  col_to.r = linearrgb_to_srgb1(col_from.r, gamma);',
+    '  col_to.g = linearrgb_to_srgb1(col_from.g, gamma);',
+    '  col_to.b = linearrgb_to_srgb1(col_from.b, gamma);',
     '  return col_to;',
     '}',
     '',
@@ -142,146 +123,103 @@ define([
     '  return col_to;',
     '}',
     '',
-    'vec3 textureRGBE(const in sampler2D texture, const in vec2 uv) {',
-    '  vec4 rgbe = texture2D(texture, uv );',
-    '  return rgbe.rgb * 255.0 * pow(2.0, rgbe.w * 255.0 - (128.0 + 8.0));',
+    'const mat3 LUVInverse = mat3( 6.0013, -2.700, -1.7995, -1.332, 3.1029, -5.7720, 0.3007, -1.088, 5.6268 );',
+    'vec3 LUVToRGB( const in vec4 vLogLuv ) {',
+    '  float Le = vLogLuv.z * 255.0 + vLogLuv.w;',
+    '  vec3 Xp_Y_XYZp;',
+    '  Xp_Y_XYZp.y = exp2((Le - 127.0) / 2.0);',
+    '  Xp_Y_XYZp.z = Xp_Y_XYZp.y / vLogLuv.y;',
+    '  Xp_Y_XYZp.x = vLogLuv.x * Xp_Y_XYZp.z;',
+    '  return max(LUVInverse * Xp_Y_XYZp, 0.0);',
     '}',
     '',
-    'vec2 normalToSphericalUV( const in vec3 n ) {',
-    '  float EPS = 1e-5;',
-    '  if ( n.y > (1.0-EPS) ) return vec2( 0.5, 0.0);',
-    '  else if ( n.y < -(1.0-EPS) ) return vec2( 0.5, 1.0-EPS);',
-    '',
-    '  float yaw = acos(n.y) * INV_PI;',
-    '  float pitch;',
-    '  float y = n.z;',
-    '  if ( abs( y ) < EPS )',
-    '    y = EPS;',
-    '  pitch = ( atan(n.x, y) + PI) * 0.5 * INV_PI;',
-    '  return vec2( pitch, yaw );',
+    'vec2 computeUVForMipmap( const in float level, const in vec2 uv, const in float size, const in float maxLOD ) {',
+    '  float widthForLevel = exp2( maxLOD - level);',
+    '  vec2 uvSpaceLocal =  vec2(1.0) + uv * vec2(widthForLevel - 2.0, widthForLevel * 0.5 - 2.0);',
+    '  uvSpaceLocal.y += size - widthForLevel;',
+    '  return uvSpaceLocal / size;',
     '}',
     '',
-    'vec3 textureRGBELinearPanoramic(const in sampler2D texture, const in vec2 size, const in vec2 uv, const in vec2 maxBox ) {',
-    '  vec2 t = 1.0 / size;',
-    '',
-    '  float maxX = mod(uv.x+t.x, maxBox.x);',
-    '  float maxY = min(uv.y+t.y, maxBox.y-t.y); // clamp to one pixel befo',
-    '',
-    '  vec3 a = textureRGBE(texture, uv ),',
-    '    b = textureRGBE(texture, vec2( maxX, uv.y) ),',
-    '    c = textureRGBE(texture, vec2( uv.x, maxY) ),',
-    '    d = textureRGBE(texture, vec2( maxX, maxY) );',
-    '  vec2 f = fract(uv * size);',
-    '  vec3 A = mix(a, b, f.x),',
-    '    B = mix(c, d, f.x);',
-    '  return mix(A, B, f.y);',
+    'vec2 normalToPanoramaUVY( const in vec3 dir ) {',
+    '  float n = length(dir.xz);',
+    '  vec2 pos = vec2( (n>0.0000001) ? max(-1.0,dir.x / n) : 0.0, dir.y);',
+    '  if ( pos.x > 0.0 ) pos.x = min( 0.999999, pos.x );',
+    '  pos = acos(pos)*INV_PI;',
+    '  pos.x = (dir.z > 0.0) ? pos.x*0.5 : 1.0-(pos.x*0.5);',
+    '  pos.x = mod(pos.x-0.25+1.0, 1.0 );',
+    '  pos.y = 1.0-pos.y;',
+    '  return pos;',
     '}',
     '',
-    'vec3 texturePanoramicRGBELod(const in sampler2D texture, const in vec2 size , const in vec3 direction, const float lodInput) {',
-    '  vec2 uvBase = normalToSphericalUV( direction );',
-    '  uvBase.y *= 0.5;',
-    '  float lod = max(1.0, MaxLOD-lodInput);',
-    '  float lod0 = floor(lod);',
-    '  vec4 uv0 = computeUVForMipmap(lod0, uvBase, size );',
-    '  vec3 texel0 = textureRGBELinearPanoramic( texture, size, uv0.xy, uv0.zw);',
-    '',
-    '  float lod1 = ceil(lod);',
-    '  vec4 uv1 = computeUVForMipmap(lod1, uvBase, size );',
-    '  vec3 texel1 = textureRGBELinearPanoramic( texture, size, uv1.xy, uv1.zw);',
-    '',
+    'vec3 texturePanoramaLod(const in sampler2D texture, const in vec2 size , const in vec3 direction, const in float lodInput, const in float maxLOD ) {',
+    '  float lod = min( maxLOD, lodInput );',
+    '  vec2 uvBase = normalToPanoramaUVY( direction );',
+    '  vec3 texel0 = LUVToRGB(texture2D( texture, computeUVForMipmap(floor(lod), uvBase, size.x, maxLOD )));',
+    '  vec3 texel1 = LUVToRGB(texture2D( texture, computeUVForMipmap(ceil(lod), uvBase, size.x, maxLOD )));',
     '  return mix(texel0, texel1, fract( lod ) );',
     '}',
     '',
-    'vec3 textureRGBELinear(const in sampler2D texture, const in vec2 size, const in vec2 uv) {',
-    '  vec2 t = 1.0 / size;',
-    '',
-    '  vec3 a = textureRGBE(texture, uv ),',
-    '    b = textureRGBE(texture, uv + vec2(t.x, 0.0) ),',
-    '    c = textureRGBE(texture, uv + vec2(0.0, t.y) ),',
-    '    d = textureRGBE(texture, uv + vec2(t.x, t.y) );',
-    '',
-    '  vec2 f = fract(uv * size);',
-    '  vec3 A = mix(a, b, f.x),',
-    '    B = mix(c, d, f.x);',
-    '  return mix(A, B, f.y);',
+    'vec3 integrateBRDFApprox(const in vec3 specular, float roughness, float NoV) {',
+    '  const vec4 c0 = vec4(-1, -0.0275, -0.572, 0.022);',
+    '  const vec4 c1 = vec4(1, 0.0425, 1.04, -0.04);',
+    '  vec4 r = roughness * c0 + c1;',
+    '  float a004 = min(r.x * r.x, exp2(-9.28 * NoV)) * r.x + r.y;',
+    '  vec2 AB = vec2(-1.04, 1.04) * a004 + r.zw;',
+    '  return specular * AB.x + AB.y;',
     '}',
     '',
-    'vec3 textureSpheremapRGBE(const in sampler2D texture, const in vec2 size, const in vec3 normal) {',
-    '  return textureRGBELinear(texture, size, normalToSphericalUV( normal ) ).rgb;',
+    'vec3 approximateSpecularIBL( const in vec3 specularColor, float rLinear, const in vec3 N, const in vec3 V ) {',
+    '  float NoV = clamp( dot( N, V ), 0.0, 1.0 );',
+    '  vec3 R = normalize( (2.0 * NoV ) * N - V);',
+    '  vec3 prefilteredColor = texturePanoramaLod( uTexture0, environmentSize, environmentTransform * R, rLinear * environmentLodRange[1], environmentLodRange[0] );',
+    '  return prefilteredColor * integrateBRDFApprox(specularColor, rLinear, NoV);',
     '}',
     '',
-    'mat3 getIBLTransfrom( mat4 transform ) {',
+    '// expect shCoefs uniform',
+    '// https://github.com/cedricpinson/envtools/blob/master/Cubemap.cpp#L523',
+    'vec3 sph0 = vec3(0.23990666937971933, 0.22656132897048073, 0.24382270927912433);',
+    'vec3 sph1 = vec3(0.02277244385301296, 0.07715619985961389, 0.1724356440907309);',
+    'vec3 sph2 = vec3(0.02608399623768619, 0.025898669304921414, 0.026569813715271264);',
+    'vec3 sph3 = vec3(0.1321752857124422, 0.12603794956042963, 0.11169990884863842);',
+    'vec3 sph4 = vec3(-0.05930221775442135, -0.02676011647502097, 0.00796566135260379);',
+    'vec3 sph5 = vec3(-0.006821490008666235, -0.0021131962489668935, 0.002244323911606555);',
+    'vec3 sph6 = vec3(-0.04824954782702628, -0.04224386164148779, -0.04050826185790317);',
+    'vec3 sph7 = vec3(0.07057130854176336, 0.06650123787327868, 0.061894944435059406);',
+    'vec3 sph8 = vec3(0.11603028215152471, 0.08130308401094016, 0.0375649834342044);',
+    'vec3 sphericalHarmonics( const in vec3 normal ) {',
+    '  float x = normal.x;',
+    '  float y = normal.y;',
+    '  float z = normal.z;',
+    '  vec3 result = sph0 + sph1 * y + sph2 * z + sph3 * x + sph4 * y * x + sph5 * y * z + sph6 * (3.0 * z * z - 1.0) + sph7 * (z * x) + sph8 * (x*x - y*y);',
+    '  return max(result, vec3(0.0));',
+    '}',
+    '',
+    'vec3 computeIBL_UE4( const in vec3 normal, const in vec3 view, const in vec3 albedo, const in float roughness, const in vec3 specular) {',
+    '  vec3 color = vec3(0.0);',
+    '  if ( albedo != color )',
+    '    color += albedo * sphericalHarmonics( environmentTransform * normal );',
+    '  color += approximateSpecularIBL(specular, roughness, normal, view);',
+    '  return color;',
+    '}',
+    '',
+    'mat3 getEnvironmentTransform( const in mat4 transform ) {',
     '  vec3 x = vec3(transform[0][0], transform[1][0], transform[2][0]);',
     '  vec3 y = vec3(transform[0][1], transform[1][1], transform[2][1]);',
     '  vec3 z = vec3(transform[0][2], transform[1][2], transform[2][2]);',
-    '  mat3 m = mat3(x,y,z);',
-    '  return m;',
+    '  return mat3(x, y, z);',
     '}',
     '',
-    'float distortion(const in vec3 Wn) {',
-    '  return 1.0/max(0.0000001, sqrt(1.0-Wn.y*Wn.y));',
-    '}',
+    'void main(void) {',
+    '  vec3 normal = normalize(vNormal);',
+    '  vec3 eye = normalize(vVertex);',
+    '  environmentTransform = getEnvironmentTransform( uIblTransform );',
     '',
-    'float computeLOD(const in vec3 Ln, const in float p) {',
-    '  return max(0.0, (MaxLOD-1.5) - 0.5*(log( p * distortion(Ln) ))* INV_LOG2);',
-    '}',
+    '  float roughness = max( 0.0001, vRoughness );',
+    '  vec3 albedo = vAlbedo * (1.0 - vMetallic);',
+    '  vec3 specular = mix( vec3(0.04), vAlbedo, vMetallic);',
     '',
-    'float G1( float ndw, float k ) {',
-    '  return 1.0 / mix( ndw, 1.0, k);',
-    '}',
-    '',
-    'vec3 F_Schlick( const in vec3 f0, const in float vdh ) {',
-    '  float sphg = pow(2.0, (-5.55473*vdh - 6.98316) * vdh);',
-    '  return mix(vec3(sphg), vec3(1.0), f0);',
-    '}',
-    '',
-    'void evaluateIBLDiffuseOptimSample0( const in mat3 iblTransform, const in vec3 N, out vec3 color) {',
-    '  vec3 dir = iblTransform * N;',
-    '  float lod = computeLOD(N, INV_PI);',
-    '  color = texturePanoramicRGBELod( uTexture0, environmentSize, dir, lod );',
-    '}',
-    '',
-    'void evaluateIBLSpecularOptimSample0(const in mat3 iblTransform, const in vec3 N, const in vec3 V, out vec3 color ) {',
-    '',
-    '  vec3 L = normalize(2.0 * NdotV * N - V);',
-    '  float NdotL = max( 0.0, dot(L, N));',
-    '  float pdf = INV_PI / (4.0 * NdotL * Alpha * Alpha);',
-    '',
-    '  if ( NdotL > 0.0 && pdf > 0.0 ) {',
-    '    float k = Alpha * 0.5;',
-    '    vec3 weight = F_Schlick(MaterialSpecular, NdotL) * G1(NdotL, k) * G1(NdotV, k) * NdotL * NdotL;',
-    '    float lod = MaterialRoughness < 0.01 ? 0.0 : computeLOD( L, pdf );',
-    '    color = texturePanoramicRGBELod( uTexture0, environmentSize, iblTransform * L, lod ) * weight;',
-    '  }',
-    '}',
-    '',
-    'vec3 evaluateIBLOptim( const in mat3 iblTransform, const in vec3 N, const in vec3 V ) {',
-    '  // if dont simplify the math you can get a rougness of 0 and it will',
-    '  // produce an error on D_GGX / 0.0',
-    '  NdotV = max( 0.0, dot(V, N));',
-    '  Alpha = MaterialRoughness * MaterialRoughness;',
-    '',
-    '  vec3 diffuse = nullVec3;',
-    '  vec3 specular = nullVec3;',
-    '  if ( MaterialAlbedo[0] != 0.0 || MaterialAlbedo[1] != 0.0 || MaterialAlbedo[2] != 0.0 )',
-    '    evaluateIBLDiffuseOptimSample0( iblTransform, N, diffuse);',
-    '  evaluateIBLSpecularOptimSample0( iblTransform, N, V, specular );',
-    '  return diffuse * MaterialAlbedo + specular;',
-    '}',
-    '',
-    'vec3 solid2( const in mat3 iblTransform, const in vec3 normal, const in vec3 view) {',
-    '  vec3 color = evaluateIBLOptim( iblTransform, normal, view ) * uExposure;',
-    '  return linearTosRGB( color, DefaultGamma);',
-    '}',
-    '',
-    'void main() {',
-    '  vec3 fragNormal = normalize(vNormal);',
-    '  vec3 fragEye = normalize(vVertex);',
-    '  MaterialRoughness = max( 0.05 , vRoughness );',
-    '  MaterialAlbedo = vAlbedo * (1.0 - vMetallic);',
-    '  MaterialSpecular = mix( vec3(0.04), vAlbedo, vMetallic);',
-    '  vec3 fragColor = picking(solid2( getIBLTransfrom( uIblTransform ), fragNormal, -fragEye ));',
-    '  gl_FragColor = vec4( fragColor, 1.0);',
+    '  vec3 color = uExposure * computeIBL_UE4( normal, -eye, albedo, roughness, specular );',
+    '  gl_FragColor = getFragColor( linearTosRGB(color, DefaultGamma ));',
     '}'
   ].join('\n');
 
@@ -313,79 +251,55 @@ define([
     attrs.aColor.bindToBuffer(render.getColorBuffer());
     attrs.aMaterial.bindToBuffer(render.getMaterialBuffer());
   };
-
-  /** Get or create hammerSequence */
-  ShaderPBR.getOrCreateHammersleySequence = function (size) {
-    var hammersley = ShaderPBR['hammersley' + size];
-    if (hammersley) return hammersley;
-    hammersley = ShaderPBR['hammersley' + size] = new Float32Array(size * 2);
-    for (var i = 0; i < size; i++) {
-      var a = i;
-      a = (a << 16 | a >>> 16) >>> 0;
-      a = ((a & 1431655765) << 1 | (a & 2863311530) >>> 1) >>> 0;
-      a = ((a & 858993459) << 2 | (a & 3435973836) >>> 2) >>> 0;
-      a = ((a & 252645135) << 4 | (a & 4042322160) >>> 4) >>> 0;
-      a = (((a & 16711935) << 8 | (a & 4278255360) >>> 8) >>> 0) / 4294967296;
-      hammersley[i * 2] = i / size;
-      hammersley[i * 2 + 1] = a;
-    }
-    return hammersley;
-  };
-  ShaderPBR.onLoadEnvironment = function (gl, tex, main) {
+  ShaderPBR.onLoadEnvironment = function (xhr, gl, main) {
+    if (xhr.status !== 200)
+      return;
     this.texture0 = gl.createTexture();
     gl.bindTexture(gl.TEXTURE_2D, this.texture0);
-    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, tex);
-    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
-    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
-    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, 1024, 1024, 0, gl.RGBA, gl.UNSIGNED_BYTE, new Uint8Array(xhr.response));
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.REPEAT);
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
     gl.bindTexture(gl.TEXTURE_2D, null);
     if (main)
       main.render();
   };
-  /** Return or create texture0 */
-  ShaderPBR.getOrCreateEnvironment = function (gl, texPath, main) {
-    if (this.texture0)
-      return this.texture0;
-    if (this.texture0 === null) // download
-      return;
+  ShaderPBR.getOrCreateEnvironment = function (gl, main) {
+    if (this.texture0 !== undefined) return this.texture0;
     this.texture0 = null;
-    var tex = new Image();
-    tex.crossOrigin = 'Anonymous';
-    tex.src = texPath;
-    tex.onload = ShaderPBR.onLoadEnvironment.bind(this, gl, tex, main);
+
+    var xhr = new XMLHttpRequest();
+    xhr.open('GET', 'http://stephaneginier.com/archive/panorama_prefilter_luv.bin', true);
+    xhr.responseType = 'arraybuffer';
+    xhr.onload = ShaderPBR.onLoadEnvironment.bind(this, xhr, gl, main);
+    xhr.send(null);
+
     return false;
   };
   /** Updates uniforms */
-  ShaderPBR.updateUniforms = (function () {
-    var tmpMat = mat4.create();
-    mat4.rotateZ(tmpMat, tmpMat, Math.PI);
-    mat4.rotateY(tmpMat, tmpMat, Math.PI);
-    return function (render, main) {
-      var gl = render.getGL();
-      var uniforms = this.uniforms;
-      var mesh = render.getMesh();
+  ShaderPBR.updateUniforms = function (render, main) {
+    var gl = render.getGL();
+    var uniforms = this.uniforms;
+    var mesh = render.getMesh();
 
-      gl.uniformMatrix4fv(uniforms.uMV, false, mesh.getMV());
-      gl.uniformMatrix4fv(uniforms.uMVP, false, mesh.getMVP());
-      gl.uniformMatrix3fv(uniforms.uN, false, mesh.getN());
+    gl.uniformMatrix4fv(uniforms.uMV, false, mesh.getMV());
+    gl.uniformMatrix4fv(uniforms.uMVP, false, mesh.getMVP());
+    gl.uniformMatrix3fv(uniforms.uN, false, mesh.getN());
 
-      gl.uniformMatrix4fv(uniforms.uIblTransform, false, tmpMat);
+    gl.uniformMatrix4fv(uniforms.uIblTransform, false, main.getCamera().view_);
 
-      gl.uniform3fv(uniforms.uAlbedo, render.getAlbedo());
-      gl.uniform1f(uniforms.uRoughness, render.getRoughness());
-      gl.uniform1f(uniforms.uMetallic, render.getMetallic());
-      gl.uniform1f(uniforms.uExposure, render.getExposure());
+    gl.uniform3fv(uniforms.uAlbedo, render.getAlbedo());
+    gl.uniform1f(uniforms.uRoughness, render.getRoughness());
+    gl.uniform1f(uniforms.uMetallic, render.getMetallic());
+    gl.uniform1f(uniforms.uExposure, render.getExposure());
 
-      gl.activeTexture(gl.TEXTURE0);
-      var tex = ShaderPBR.getOrCreateEnvironment(gl, ShaderPBR.texPath, main);
-      if (tex)
-        gl.bindTexture(gl.TEXTURE_2D, tex);
-      gl.uniform1i(uniforms.uTexture0, 0);
+    gl.activeTexture(gl.TEXTURE0);
+    gl.bindTexture(gl.TEXTURE_2D, ShaderPBR.getOrCreateEnvironment(gl, main) || null);
+    gl.uniform1i(uniforms.uTexture0, 0);
 
-      ShaderBase.updateUniforms.call(this, render, main);
-    };
-  })();
+    ShaderBase.updateUniforms.call(this, render, main);
+  };
 
   return ShaderPBR;
 });

@@ -36,22 +36,25 @@ define([
     smooth: function (iVerts, intensity) {
       var mesh = this.mesh_;
       var vAr = mesh.getVertices();
+      var mAr = mesh.getMaterials();
       var nbVerts = iVerts.length;
       var smoothVerts = new Float32Array(nbVerts * 3);
       this.laplacianSmooth(iVerts, smoothVerts);
-      var intComp = 1.0 - intensity;
       for (var i = 0; i < nbVerts; ++i) {
         var ind = iVerts[i] * 3;
         var i3 = i * 3;
-        vAr[ind] = vAr[ind] * intComp + smoothVerts[i3] * intensity;
-        vAr[ind + 1] = vAr[ind + 1] * intComp + smoothVerts[i3 + 1] * intensity;
-        vAr[ind + 2] = vAr[ind + 2] * intComp + smoothVerts[i3 + 2] * intensity;
+        var mIntensity = intensity * mAr[ind + 2];
+        var intComp = 1.0 - mIntensity;
+        vAr[ind] = vAr[ind] * intComp + smoothVerts[i3] * mIntensity;
+        vAr[ind + 1] = vAr[ind + 1] * intComp + smoothVerts[i3 + 1] * mIntensity;
+        vAr[ind + 2] = vAr[ind + 2] * intComp + smoothVerts[i3 + 2] * mIntensity;
       }
     },
     /** Smooth a group of vertices. Reproject the position on each vertex normals plane */
     smoothTangent: function (iVerts, intensity) {
       var mesh = this.mesh_;
       var vAr = mesh.getVertices();
+      var mAr = mesh.getMaterials();
       var nAr = mesh.getNormals();
       var nbVerts = iVerts.length;
       var smoothVerts = new Float32Array(nbVerts * 3);
@@ -64,7 +67,10 @@ define([
         var nx = nAr[ind];
         var ny = nAr[ind + 1];
         var nz = nAr[ind + 2];
-        var len = 1.0 / Math.sqrt(nx * nx + ny * ny + nz * nz);
+        var len = nx * nx + ny * ny + nz * nz;
+        if (len === 0.0)
+          continue;
+        len = 1.0 / Math.sqrt(len);
         nx *= len;
         ny *= len;
         nz *= len;
@@ -73,15 +79,17 @@ define([
         var smy = smoothVerts[i3 + 1];
         var smz = smoothVerts[i3 + 2];
         var dot = nx * (smx - vx) + ny * (smy - vy) + nz * (smz - vz);
-        vAr[ind] = vx + (smx - nx * dot - vx) * intensity;
-        vAr[ind + 1] = vy + (smy - ny * dot - vy) * intensity;
-        vAr[ind + 2] = vz + (smz - nz * dot - vz) * intensity;
+        var mIntensity = intensity * mAr[ind + 2];
+        vAr[ind] = vx + (smx - nx * dot - vx) * mIntensity;
+        vAr[ind + 1] = vy + (smy - ny * dot - vy) * mIntensity;
+        vAr[ind + 2] = vz + (smz - nz * dot - vz) * mIntensity;
       }
     },
     /** Smooth a group of vertices along their normals */
     smoothAlongNormals: function (iVerts, intensity) {
       var mesh = this.mesh_;
       var vAr = mesh.getVertices();
+      var mAr = mesh.getMaterials();
       var nAr = mesh.getNormals();
       var nbVerts = iVerts.length;
       var smoothVerts = new Float32Array(nbVerts * 3);
@@ -98,6 +106,7 @@ define([
         var len = 1.0 / ((nx * nx + ny * ny + nz * nz));
         var dot = nx * (smoothVerts[i3] - vx) + ny * (smoothVerts[i3 + 1] - vy) + nz * (smoothVerts[i3 + 2] - vz);
         dot *= len * intensity;
+        dot *= mAr[ind + 2];
         vAr[ind] = vx + nx * dot;
         vAr[ind + 1] = vy + ny * dot;
         vAr[ind + 2] = vz + nz * dot;

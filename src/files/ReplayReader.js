@@ -5,11 +5,12 @@ define([
   'files/ExportSGL',
   'files/ReplayEnums',
   'math3d/Camera',
+  'math3d/Picking',
   'misc/Tablet',
   'editor/Sculpt',
   'editor/Remesh',
   'render/Shader'
-], function (glm, yagui, TR, ExportSGL, Replay, Camera, Tablet, Sculpt, Remesh, Shader) {
+], function (glm, yagui, TR, ExportSGL, Replay, Camera, Picking, Tablet, Sculpt, Remesh, Shader) {
 
   'use strict';
 
@@ -123,6 +124,10 @@ define([
           url = pair[1];
           break;
         }
+        if (pair[0] === 'noreplay') {
+          this.main_.getReplayWriter().noUpload_ = true;
+          return;
+        }
       }
       if (!url)
         return;
@@ -152,14 +157,14 @@ define([
       this.iframe_.remove();
       var main = this.main_;
       document.body.appendChild(main.getCanvas());
+      this.endReplay();
       main.clearScene();
       main.loadScene(arraysgl, 'sgl');
-      this.endReplay();
     },
     loadVersion: function (version) {
       var iframe = this.iframe_ = document.createElement('iframe');
       iframe.id = 'sglframe' + version;
-      iframe.src = 'http://stephaneginier.com/sculptgl';
+      iframe.src = 'http://stephaneginier.com/archive/sculptgl' + version;
       iframe.frameborder = 0;
       // css full screen iframe
       iframe.style.position = 'absolute';
@@ -187,6 +192,7 @@ define([
       main.getReplayWriter().autoUpload_ = false;
 
       // basically it's a soft reset
+      Picking.ALPHAS_NAMES.length = Picking.ALPHAS.length = 1;
       Tablet.overridePressure = 1.0;
       this.virtualCamera_ = new Camera();
       main.sculpt_ = new Sculpt(main.getStates());
@@ -273,7 +279,7 @@ define([
       this.canvas_ = main.getCanvas();
       // just assign a dummy function to disable file loadings
       this.loadFiles = main.stopAndPrevent.bind(main);
-      this.loadBackground = main.stopAndPrevent.bind(main);
+      this.loadAlpha = main.stopAndPrevent.bind(main);
       this.stopAndPrevent = main.stopAndPrevent.bind(main);
       this.removeEvents();
       this.addEvents();
@@ -334,9 +340,9 @@ define([
       var button = this.mouseButton_;
 
       if (button === 2)
-        this.realCamera_.translate((mouseX - this.lastMouseX_) / 3000, (mouseY - this.lastMouseY_) / 3000);
+        this.realCamera_.translate((mouseX - this.lastMouseX_) / 1000, (mouseY - this.lastMouseY_) / 1000);
       else if (button === 4)
-        this.realCamera_.zoom((mouseX - this.lastMouseX_) / 3000);
+        this.realCamera_.zoom((mouseX - this.lastMouseX_) / 1000);
       else if (button === 3)
         this.realCamera_.rotate(mouseX, mouseY);
 
@@ -357,6 +363,10 @@ define([
         if (mesh.getShaderType() !== ren.shader_)
           mesh.setShader(ren.shader_);
       }
+    },
+    getOrCreateRenderMeshes: function (meshes) {
+      for (var i = 0, l = meshes.length; i < l; ++i)
+        this.getOrCreateRenderMesh(meshes[i]);
     },
     getOrCreateRenderMesh: function (mesh) {
       var rmid = this.virtualRender_[mesh.getID()];
@@ -439,16 +449,19 @@ define([
       case Replay.DEVICE_MOVE:
         main.mouseX_ = data.getUint16(sel);
         main.mouseY_ = data.getUint16(sel + 2);
+        var mask0 = data.getUint8(sel + 4);
+        ev.altKey = mask0 & Replay.ALT;
+        ev.ctrlKey = mask0 & Replay.CTRL;
         main.onDeviceMove(ev);
-        sel += 4;
+        sel += 5;
         break;
       case Replay.DEVICE_DOWN:
         ev.which = data.getUint8(sel);
         main.mouseX_ = data.getUint16(sel + 1);
         main.mouseY_ = data.getUint16(sel + 3);
-        var mask = data.getUint8(sel + 5);
-        ev.altKey = mask & Replay.ALT;
-        ev.ctrlKey = mask & Replay.CTRL;
+        var mask1 = data.getUint8(sel + 5);
+        ev.altKey = mask1 & Replay.ALT;
+        ev.ctrlKey = mask1 & Replay.CTRL;
         main.onDeviceDown(ev);
         sel += 6;
         break;
@@ -521,7 +534,7 @@ define([
         sculpt.continuous_ = !sculpt.continuous_;
         break;
       case Replay.SCULPT_UPDATE_CONTINOUS:
-        tool.update(main);
+        tool.updateContinuous(main);
         break;
       case Replay.BRUSH_INTENSITY:
       case Replay.CREASE_INTENSITY:
@@ -530,7 +543,14 @@ define([
       case Replay.PINCH_INTENSITY:
       case Replay.SMOOTH_INTENSITY:
       case Replay.PAINT_INTENSITY:
+      case Replay.MOVE_INTENSITY:
+      case Replay.MASKING_INTENSITY:
         tool.intensity_ = data.getUint8(sel) / 100;
+        sel += 1;
+        break;
+      case Replay.PAINT_HARDNESS:
+      case Replay.MASKING_HARDNESS:
+        tool.hardness_ = data.getUint8(sel) / 100;
         sel += 1;
         break;
       case Replay.BRUSH_TOGGLE_NEGATIVE:
@@ -538,6 +558,8 @@ define([
       case Replay.FLATTEN_TOGGLE_NEGATIVE:
       case Replay.PINCH_TOGGLE_NEGATIVE:
       case Replay.INFLATE_TOGGLE_NEGATIVE:
+      case Replay.MASKING_TOGGLE_NEGATIVE:
+      case Replay.MOVE_TOGGLE_NEGATIVE:
         tool.negative_ = !tool.negative_;
         break;
       case Replay.BRUSH_TOGGLE_CULLING:
@@ -549,16 +571,24 @@ define([
       case Replay.SCALE_TOGGLE_CULLING:
       case Replay.TWIST_TOGGLE_CULLING:
       case Replay.PAINT_TOGGLE_CULLING:
+      case Replay.MASKING_TOGGLE_CULLING:
         tool.culling_ = !tool.culling_;
         break;
       case Replay.SMOOTH_TOGGLE_TANGENT:
         tool.tangent_ = !tool.tangent_;
+        break;
+      case Replay.MOVE_TOGGLE_TOPOCHECK:
+        tool.topoCheck_ = !tool.topoCheck_;
         break;
       case Replay.BRUSH_TOGGLE_CLAY:
         tool.clay_ = !tool.clay_;
         break;
       case Replay.BRUSH_TOGGLE_ACCUMULATE:
         tool.accumulate_ = !tool.accumulate_;
+        break;
+      case Replay.BRUSH_SELECT_ALPHA:
+        tool.idAlpha_ = data.getInt8(sel);
+        sel += 1;
         break;
       case Replay.PAINT_COLOR:
         vec3.set(tool.color_, data.getFloat32(sel), data.getFloat32(sel + 4), data.getFloat32(sel + 8));
@@ -571,6 +601,21 @@ define([
       case Replay.PAINT_METALLIC:
         tool.material_[1] = data.getFloat32(sel);
         sel += 4;
+        break;
+      case Replay.PAINT_ALL:
+        tool.paintAll(main.getMesh(), main);
+        break;
+      case Replay.MASKING_CLEAR:
+        main.getSculpt().getTool('MASKING').clear(main.getMesh(), main);
+        break;
+      case Replay.MASKING_INVERT:
+        main.getSculpt().getTool('MASKING').invert(main.getMesh(), main);
+        break;
+      case Replay.MASKING_CLEAR:
+        main.getSculpt().getTool('MASKING').blur(main.getMesh(), main);
+        break;
+      case Replay.MASKING_SHARPEN:
+        main.getSculpt().getTool('MASKING').sharpen(main.getMesh(), main);
         break;
       case Replay.MULTI_RESOLUTION:
         main.getGui().ctrlTopology_.onResolutionChanged(data.getUint8(sel));
@@ -590,9 +635,10 @@ define([
         main.getGui().ctrlTopology_.deleteHigher();
         break;
       case Replay.VOXEL_REMESH:
-        Remesh.resolution = data.getUint16(sel);
+        Remesh.RESOLUTION = data.getUint16(sel);
+        Remesh.BLOCK = data.getUint8(sel + 2);
         main.getGui().ctrlTopology_.remesh();
-        sel += 2;
+        sel += 3;
         nextTick = 100;
         break;
       case Replay.DYNAMIC_TOGGLE_ACTIVATE:
@@ -609,14 +655,22 @@ define([
         main.getGui().ctrlTopology_.dynamicDecimation(data.getUint8(sel));
         sel += 1;
         break;
+      case Replay.LOAD_ALPHA:
+        var nbBytesA = data.getUint32(sel + 8);
+        this.nbBytesResourcesLoaded_ += nbBytesA;
+        main.loadAlphaTexture(new Uint8Array(data.buffer.slice(sel + 12, sel + 12 + nbBytesA)), data.getUint32(sel), data.getUint32(sel + 4));
+        sel += 12 + nbBytesA;
+        break;
       case Replay.LOAD_MESHES:
         var nbBytes = data.getUint32(sel);
         main.loadScene(data.buffer.slice(sel + 4, sel + 4 + nbBytes), 'sgl');
         this.nbBytesResourcesLoaded_ += nbBytes;
         sel += 4 + nbBytes;
+        this.getOrCreateRenderMeshes(main.getMeshes());
         break;
       case Replay.ADD_SPHERE:
         main.addSphere();
+        this.getOrCreateRenderMesh(main.getMesh());
         break;
       case Replay.DELETE_CURRENT_MESH:
         main.deleteCurrentMesh();

@@ -7,6 +7,8 @@ define([
   function SculptBase(states) {
     this.states_ = states; // for undo-redo
     this.mesh_ = null; // the current edited mesh
+    this.lastMouseX_ = 0.0;
+    this.lastMouseY_ = 0.0;
   }
 
   SculptBase.prototype = {
@@ -17,13 +19,28 @@ define([
       var mesh = picking.getMesh();
       if (!mesh)
         return;
+      picking.initAlpha();
+      var pickingSym = main.getSculpt().getSymmetry() ? main.getPickingSymmetry() : null;
+      if (pickingSym) {
+        pickingSym.intersectionMouseMesh(mesh, main.mouseX_, main.mouseY_);
+        pickingSym.initAlpha();
+      }
       if (main.getMesh() !== mesh) {
         main.mesh_ = mesh;
         main.getGui().updateMesh();
       }
       this.mesh_ = mesh;
       this.pushState();
+      this.lastMouseX_ = main.mouseX_;
+      this.lastMouseY_ = main.mouseY_;
       this.startSculpt(main);
+    },
+    /** End sculpting */
+    end: function () {
+      if (this.mesh_) {
+        this.updateMeshBuffers();
+        this.mesh_.checkLeavesUpdate();
+      }
     },
     /** Push undo operation */
     pushState: function () {
@@ -38,60 +55,71 @@ define([
       this.sculptStroke(main);
     },
     /** Make a brush stroke */
-    sculptStroke: function (main, colorState) {
-      var mesh = this.mesh_;
-      var mouseX = main.mouseX_;
-      var mouseY = main.mouseY_;
+    sculptStroke: function (main) {
       var picking = main.getPicking();
-      var pickingSym = main.getPickingSymmetry();
-      var lx = main.lastMouseX_;
-      var ly = main.lastMouseY_;
-      var dx = mouseX - lx;
-      var dy = mouseY - ly;
+      var pickingSym = main.getSculpt().getSymmetry() ? main.getPickingSymmetry() : null;
+
+      var dx = main.mouseX_ - this.lastMouseX_;
+      var dy = main.mouseY_ - this.lastMouseY_;
       var dist = Math.sqrt(dx * dx + dy * dy);
-      main.sumDisplacement_ += dist;
-      var sumDisp = main.sumDisplacement_;
       var minSpacing = 0.15 * picking.getScreenRadius();
-      var step = dist / Math.floor(dist / minSpacing);
-      dx /= dist;
-      dy /= dist;
-      if (!main.continuous_) {
-        mouseX = lx;
-        mouseY = ly;
-      } else {
-        sumDisp = 0.0;
-        dist = 0.0;
+
+      if (dist <= minSpacing)
+        return;
+
+      var step = 1.0 / Math.floor(dist / minSpacing);
+      dx *= step;
+      dy *= step;
+      var mouseX = this.lastMouseX_ + dx;
+      var mouseY = this.lastMouseY_ + dy;
+
+      for (var i = step; i <= 1.0; i += step) {
+        if (!this.makeStroke(mouseX, mouseY, picking, pickingSym))
+          break;
+        mouseX += dx;
+        mouseY += dy;
       }
-      var sym = main.getSculpt().getSymmetry();
-      if (sumDisp > minSpacing || sumDisp === 0.0) {
-        sumDisp = 0.0;
-        for (var i = 0; i <= dist; i += step) {
-          picking.intersectionMouseMesh(mesh, mouseX, mouseY);
-          if (!picking.getMesh())
-            break;
-          picking.pickVerticesInSphere(picking.getLocalRadius2());
-          this.stroke(picking);
-          if (sym) {
-            pickingSym.intersectionMouseMesh(mesh, mouseX, mouseY, true);
-            if (!pickingSym.getMesh())
-              break;
-            pickingSym.setLocalRadius2(picking.getLocalRadius2());
-            pickingSym.pickVerticesInSphere(pickingSym.getLocalRadius2());
-            this.stroke(pickingSym, true);
-          }
-          mouseX += dx * step;
-          mouseY += dy * step;
-        }
-        if (main.getMesh().getDynamicTopology) {
-          main.getMesh().updateBuffers();
-        } else if (colorState) {
-          main.getMesh().updateColorBuffer();
-          main.getMesh().updateMaterialBuffer();
-        } else {
-          main.getMesh().updateGeometryBuffers();
-        }
+
+      this.updateRender(main);
+
+      this.lastMouseX_ = main.mouseX_;
+      this.lastMouseY_ = main.mouseY_;
+    },
+    updateRender: function (main) {
+      this.updateMeshBuffers();
+      main.render();
+    },
+    makeStroke: function (mouseX, mouseY, picking, pickingSym) {
+      var mesh = this.mesh_;
+      picking.intersectionMouseMesh(mesh, mouseX, mouseY);
+      if (!picking.getMesh())
+        return false;
+      picking.pickVerticesInSphere(picking.getLocalRadius2());
+      picking.computePickedNormal();
+      this.stroke(picking);
+
+      if (pickingSym) {
+        pickingSym.intersectionMouseMesh(mesh, mouseX, mouseY);
+        if (!pickingSym.getMesh())
+          return false;
+        pickingSym.setLocalRadius2(picking.getLocalRadius2());
+        pickingSym.pickVerticesInSphere(pickingSym.getLocalRadius2());
+        pickingSym.computePickedNormal();
+        this.stroke(pickingSym, true);
       }
-      main.sumDisplacement_ = sumDisp;
+      return true;
+    },
+    updateMeshBuffers: function () {
+      if (this.mesh_.getDynamicTopology)
+        this.mesh_.updateBuffers();
+      else
+        this.mesh_.updateGeometryBuffers();
+    },
+    updateContinuous: function (main) {
+      var picking = main.getPicking();
+      var pickingSym = main.getSculpt().getSymmetry() ? main.getPickingSymmetry() : null;
+      this.makeStroke(main.mouseX_, main.mouseY_, picking, pickingSym);
+      this.updateRender(main);
     },
     /** Return the vertices that point toward the camera */
     getFrontVertices: function (iVertsInRadius, eyeDir) {
@@ -113,14 +141,16 @@ define([
     /** Compute average normal of a group of vertices with culling */
     areaNormal: function (iVerts) {
       var nAr = this.mesh_.getNormals();
+      var mAr = this.mesh_.getMaterials();
       var anx = 0.0;
       var any = 0.0;
       var anz = 0.0;
       for (var i = 0, l = iVerts.length; i < l; ++i) {
         var ind = iVerts[i] * 3;
-        anx += nAr[ind];
-        any += nAr[ind + 1];
-        anz += nAr[ind + 2];
+        var f = mAr[ind + 2];
+        anx += nAr[ind] * f;
+        any += nAr[ind + 1] * f;
+        anz += nAr[ind + 2] * f;
       }
       var len = Math.sqrt(anx * anx + any * any + anz * anz);
       if (len === 0.0)
@@ -131,17 +161,21 @@ define([
     /** Compute average center of a group of vertices (with culling) */
     areaCenter: function (iVerts) {
       var vAr = this.mesh_.getVertices();
+      var mAr = this.mesh_.getMaterials();
       var nbVerts = iVerts.length;
       var ax = 0.0;
       var ay = 0.0;
       var az = 0.0;
+      var acc = 0;
       for (var i = 0; i < nbVerts; ++i) {
         var ind = iVerts[i] * 3;
-        ax += vAr[ind];
-        ay += vAr[ind + 1];
-        az += vAr[ind + 2];
+        var f = mAr[ind + 2];
+        acc += f;
+        ax += vAr[ind] * f;
+        ay += vAr[ind + 1] * f;
+        az += vAr[ind + 2] * f;
       }
-      return [ax / nbVerts, ay / nbVerts, az / nbVerts];
+      return [ax / acc, ay / acc, az / acc];
     },
     /** Updates the vertices original coords that are sculpted for the first time in this stroke */
     updateProxy: function (iVerts) {
@@ -163,13 +197,13 @@ define([
       }
     },
     /** Laplacian smooth. Special rule for vertex on the edge of the mesh. */
-    laplacianSmooth: function (iVerts, smoothVerts) {
+    laplacianSmooth: function (iVerts, smoothVerts, vField) {
       var mesh = this.mesh_;
       var vrvStartCount = mesh.getVerticesRingVertStartCount();
       var vertRingVert = mesh.getVerticesRingVert();
       var ringVerts = vertRingVert instanceof Array ? vertRingVert : null;
       var vertOnEdge = mesh.getVerticesOnEdge();
-      var vAr = mesh.getVertices();
+      var vAr = vField || mesh.getVertices();
       var nbVerts = iVerts.length;
       for (var i = 0; i < nbVerts; ++i) {
         var i3 = i * 3;
@@ -267,7 +301,25 @@ define([
       mesh.updateTopology(iFaces);
       mesh.updateGeometry(iFaces, iVertsInRadius);
       return iVertsInRadius;
-    }
+    },
+    getUnmaskedVertices: function () {
+      return this.filterMaskedVertices(0.0);
+    },
+    getMaskedVertices: function () {
+      return this.filterMaskedVertices(1.0);
+    },
+    filterMaskedVertices: function (comp) {
+      var nbVertices = this.mesh_.getNbVertices();
+      var cleaned = new Uint32Array(Utils.getMemory(4 * nbVertices), 0, nbVertices);
+      var mAr = this.mesh_.getMaterials();
+      var acc = 0;
+      for (var i = 0; i < nbVertices; ++i) {
+        if (mAr[i * 3 + 2] !== comp)
+          cleaned[acc++] = i;
+      }
+      if (acc === 0) return;
+      return new Uint32Array(cleaned.subarray(0, acc));
+    },
   };
 
   return SculptBase;

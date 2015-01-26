@@ -6,7 +6,7 @@ define([], function () {
 
   var ida = 0;
   // id action (u8)
-  Replay.DEVICE_MOVE = ida++; // [x (u16), y (u16)]
+  Replay.DEVICE_MOVE = ida++; // [x (u16), y (u16), mask (u8)]
   Replay.DEVICE_DOWN = ida++; // [button (u8), x (u16), y (u16), mask (u8)]
   Replay.DEVICE_UP = ida++; // []
   Replay.DEVICE_WHEEL = ida++; // [dir (i8)]
@@ -36,6 +36,7 @@ define([], function () {
   Replay.BRUSH_TOGGLE_CLAY = ida++; // []
   Replay.BRUSH_TOGGLE_CULLING = ida++; // []
   Replay.BRUSH_TOGGLE_ACCUMULATE = ida++; // []
+  Replay.BRUSH_SELECT_ALPHA = ida++; // [id (u8)]
 
   Replay.CREASE_INTENSITY = ida++; // [intensity (u8)]
   Replay.CREASE_TOGGLE_NEGATIVE = ida++; // []
@@ -61,10 +62,26 @@ define([], function () {
   Replay.TWIST_TOGGLE_CULLING = ida++; // []
 
   Replay.PAINT_INTENSITY = ida++; // [intensity (u8)]
+  Replay.PAINT_HARDNESS = ida++; // [hardness (u8)]
   Replay.PAINT_COLOR = ida++; // [r (f32), g (f32), b (f32)]
   Replay.PAINT_ROUGHNESS = ida++; // [roughness (f32)]
   Replay.PAINT_METALLIC = ida++; // [metallic (f32)]
   Replay.PAINT_TOGGLE_CULLING = ida++; // []
+  Replay.PAINT_SELECT_ALPHA = ida++; // [id (u8)]
+  Replay.PAINT_ALL = ida++; // []
+
+  Replay.MOVE_INTENSITY = ida++; // [intensity (u8)]
+  Replay.MOVE_TOGGLE_TOPOCHECK = ida++; // []
+  Replay.MOVE_TOGGLE_NEGATIVE = ida++; // []
+
+  Replay.MASKING_INTENSITY = ida++; // [intensity (u8)]
+  Replay.MASKING_HARDNESS = ida++; // [hardness (u8)]
+  Replay.MASKING_TOGGLE_NEGATIVE = ida++; // []
+  Replay.MASKING_TOGGLE_CULLING = ida++; // []
+  Replay.MASKING_CLEAR = ida++; // []
+  Replay.MASKING_INVERT = ida++; // []
+  Replay.MASKING_BLUR = ida++; // []
+  Replay.MASKING_SHARPEN = ida++; // []
 
   Replay.MULTI_RESOLUTION = ida++; // [res (u8)]
   Replay.MULTI_SUBDIVIDE = ida++; // []
@@ -72,13 +89,14 @@ define([], function () {
   Replay.MULTI_DEL_LOWER = ida++; // []
   Replay.MULTI_DEL_HIGHER = ida++; // []
 
-  Replay.VOXEL_REMESH = ida++; // [res (u16)]
+  Replay.VOXEL_REMESH = ida++; // [res (u16), block (u8)]
 
   Replay.DYNAMIC_TOGGLE_ACTIVATE = ida++; // []
   Replay.DYNAMIC_TOGGLE_LINEAR = ida++; // []
   Replay.DYNAMIC_SUBDIVISION = ida++; // [val (u8)]
   Replay.DYNAMIC_DECIMATION = ida++; // [val (u8)]
 
+  Replay.LOAD_ALPHA = ida++; // [width (u32), height (u32), len (u32)]
   Replay.LOAD_MESHES = ida++; // [len (u32)]
   Replay.ADD_SPHERE = ida++; // []
   Replay.CLEAR_SCENE = ida++; // []
@@ -100,7 +118,7 @@ define([], function () {
   Replay.SHIFT = 1 << 2;
 
   Replay.CODE = 59821876; // code
-  Replay.VERSION = 1; // version
+  Replay.VERSION = 2; // version
 
   return Replay;
 });
