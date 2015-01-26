@@ -155,6 +155,8 @@ define([
         mAr[ind + 1] = mAr[ind + 1] * fallOffCompl + metallic * fallOff;
       }
 
+      mesh.updateDuplicateColorsAndMaterials();
+      mesh.updateFlatShading();
       this.updateRender(main);
     }
   };
