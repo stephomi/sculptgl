@@ -164,7 +164,7 @@ define([
     loadVersion: function (version) {
       var iframe = this.iframe_ = document.createElement('iframe');
       iframe.id = 'sglframe' + version;
-      iframe.src = 'http://stephaneginier.com/sculptgl';
+      iframe.src = 'http://stephaneginier.com/archive/sculptgl/' + version;
       iframe.frameborder = 0;
       // css full screen iframe
       iframe.style.position = 'absolute';
