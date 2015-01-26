@@ -31,7 +31,7 @@ define([
       if (!aNormal)
         return;
       var aCenter = this.areaCenter(iVertsFront);
-      picking.setUseAlpha(false);
+      picking.setIdAlpha(0);
       this.flatten(iVertsInRadius, aNormal, aCenter, picking.getIntersectionPoint(), picking.getLocalRadius2(), intensity, picking);
 
       this.mesh_.updateGeometry(this.mesh_.getFacesFromVertices(iVertsInRadius), iVertsInRadius);

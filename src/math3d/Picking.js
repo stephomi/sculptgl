@@ -29,40 +29,44 @@ define([
     this.alphaOrirign_ = [0.0, 0.0, 0.0];
     this.alphaSide_ = 0.0;
     this.alphaLookAt_ = mat4.create();
-
-    this.aClampX_ = 1.0;
-    this.aClampY_ = 1.0;
-    this.alphaWidth_ = 0;
-    this.alphaTex_ = null; // f32
-    this.useAlpha_ = false;
+    this.alpha_ = null;
   }
 
+  Picking.ALPHAS_NAMES = ['None', 'Square', 'Skin'];
+  Picking.ALPHAS_PATHS = ['square.jpg', 'skin.jpg'];
+  Picking.ALPHAS = [null];
+  Picking.addAlpha = function (data, width, height) {
+    var at = new Float32Array(data.length / 4);
+    for (var i = 0, j = 0, n = at.length; i < n; ++i, j += 4)
+      at[i] = (data[j] + data[j + 1] + data[j + 2]) / 765;
+    var newAlpha = {};
+    newAlpha.texture_ = at;
+    newAlpha.ratioX_ = Math.min(1.0, width / height);
+    newAlpha.ratioY_ = Math.min(1.0, height / width);
+    newAlpha.width_ = width;
+    newAlpha.height_ = height;
+    Picking.ALPHAS.push(newAlpha);
+    return newAlpha;
+  };
+
   Picking.prototype = {
-    setAlphaTex: function (data, width, height) {
-      this.alphaWidth_ = width;
-      this.alphaHeight_ = height;
-      var at = this.alphaTex_ = new Float32Array(data.length / 4);
-      for (var i = 0, j = 0, n = at.length; i < n; ++i, j += 4)
-        at[i] = (data[j] + data[j + 1] + data[j + 2]) / 765;
-      this.aClampX_ = Math.min(1.0, width / height);
-      this.aClampY_ = Math.min(1.0, height / width);
-    },
-    setUseAlpha: function (bool) {
-      this.useAlpha_ = bool;
+    setIdAlpha: function (id) {
+      this.alpha_ = Picking.ALPHAS[id];
     },
     getAlpha: function (x, y, z) {
-      if (!this.useAlpha_) return 1.0;
+      var alpha = this.alpha_;
+      if (!alpha || !alpha.texture_) return 1.0;
+
       var m = this.alphaLookAt_;
       var rs = this.alphaSide_;
       var xn = (m[0] * x + m[4] * y + m[8] * z + m[12]) / (this.xSym_ ? -rs : rs);
-      if (Math.abs(xn) > this.aClampX_) return 0.0;
+      if (Math.abs(xn) > alpha.ratioX_) return 0.0;
       var yn = (m[1] * x + m[5] * y + m[9] * z + m[13]) / rs;
-      if (Math.abs(yn) > this.aClampY_) return 0.0;
-      if (!this.alphaTex_) return 1.0;
-      var aw = this.alphaWidth_;
+      if (Math.abs(yn) > alpha.ratioY_) return 0.0;
+      var aw = alpha.width_;
       xn = (0.5 + xn * 0.5) * aw;
-      yn = (0.5 - yn * 0.5) * this.alphaHeight_;
-      return this.alphaTex_[(xn | 0) + aw * (yn | 0)];
+      yn = (0.5 - yn * 0.5) * alpha.height_;
+      return alpha.texture_[(xn | 0) + aw * (yn | 0)];
     },
     updateAlpha: (function () {
       var nor = [0.0, 0.0, 0.0];

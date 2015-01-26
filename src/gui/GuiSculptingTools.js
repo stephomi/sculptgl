@@ -1,8 +1,9 @@
 define([
   'lib/glMatrix',
   'gui/GuiTR',
-  'editor/Sculpt'
-], function (glm, TR, Sculpt) {
+  'editor/Sculpt',
+  'math3d/Picking'
+], function (glm, TR, Sculpt, Picking) {
 
   'use strict';
 
@@ -10,13 +11,15 @@ define([
 
   var GuiSculptingTools = {};
 
+  var tools = GuiSculptingTools.TOOLS = [];
+
   GuiSculptingTools.hide = function (toolKey) {
-    for (var i = 0, ctrls = GuiSculptingTools[toolKey].ctrls_, nbCtrl = ctrls.length; i < nbCtrl; ++i)
+    for (var i = 0, ctrls = tools[toolKey].ctrls_, nbCtrl = ctrls.length; i < nbCtrl; ++i)
       ctrls[i].setVisibility(false);
   };
 
   GuiSculptingTools.show = function (toolKey) {
-    for (var i = 0, ctrls = GuiSculptingTools[toolKey].ctrls_, nbCtrl = ctrls.length; i < nbCtrl; ++i)
+    for (var i = 0, ctrls = tools[toolKey].ctrls_, nbCtrl = ctrls.length; i < nbCtrl; ++i)
       ctrls[i].setVisibility(true);
   };
 
@@ -27,7 +30,7 @@ define([
   // some helper functions
   var addCtrlIntensity = function (tool, fold, widget) {
     var ctrl = fold.addSlider(TR('sculptIntensity'), tool.intensity_ * 100, setOnChange.bind(tool, 'intensity_', 100), 0, 100, 1);
-    widget.intensity_ = ctrl;
+    widget.ctrlIntensity_ = ctrl;
     return ctrl;
   };
   var addCtrlHardness = function (tool, fold) {
@@ -44,25 +47,29 @@ define([
     return ctrl;
   };
 
-  GuiSculptingTools[Sculpt.tool.BRUSH] = {
+  var importAlpha = function () {
+    document.getElementById('alphaopen').click();
+  };
+  var addCtrlAlpha = function (ctrls, fold, tool, ui) {
+    ctrls.push(fold.addTitle(TR('sculptAlphaTitle')));
+    ui.ctrlAlpha_ = fold.addCombobox(TR('sculptAlphaTex'), tool, 'idAlpha_', Picking.ALPHAS_NAMES);
+    ctrls.push(ui.ctrlAlpha_);
+    ctrls.push(fold.addButton(TR('sculptImportAlpha'), importAlpha));
+  };
+
+  tools[Sculpt.tool.BRUSH] = {
     ctrls_: [],
-    importAlpha: function () {
-      document.getElementById('alphaopen').click();
-    },
     init: function (tool, fold) {
       this.ctrls_.push(addCtrlIntensity(tool, fold, this));
       this.ctrls_.push(addCtrlNegative(tool, fold, this));
       this.ctrls_.push(fold.addCheckbox(TR('sculptClay'), tool, 'clay_'));
       this.ctrls_.push(fold.addCheckbox(TR('sculptAccumulate'), tool, 'accumulate_'));
       this.ctrls_.push(addCtrlCulling(tool, fold));
-      this.ctrls_.push(fold.addTitle(TR('sculptAlphaTitle')));
-      this.ctrlAlpha_ = fold.addCheckbox(TR('sculptUseAlpha'), tool, 'useAlpha_');
-      this.ctrls_.push(this.ctrlAlpha_);
-      this.ctrls_.push(fold.addButton(TR('sculptImportAlpha'), this, 'importAlpha'));
+      addCtrlAlpha(this.ctrls_, fold, tool, this);
     }
   };
 
-  GuiSculptingTools[Sculpt.tool.CREASE] = {
+  tools[Sculpt.tool.CREASE] = {
     ctrls_: [],
     init: function (tool, fold) {
       this.ctrls_.push(addCtrlIntensity(tool, fold, this));
@@ -71,12 +78,12 @@ define([
     }
   };
 
-  GuiSculptingTools[Sculpt.tool.DRAG] = {
+  tools[Sculpt.tool.DRAG] = {
     ctrls_: [],
     init: function () {}
   };
 
-  GuiSculptingTools[Sculpt.tool.FLATTEN] = {
+  tools[Sculpt.tool.FLATTEN] = {
     ctrls_: [],
     init: function (tool, fold) {
       this.ctrls_.push(addCtrlIntensity(tool, fold, this));
@@ -85,7 +92,7 @@ define([
     }
   };
 
-  GuiSculptingTools[Sculpt.tool.INFLATE] = {
+  tools[Sculpt.tool.INFLATE] = {
     ctrls_: [],
     init: function (tool, fold) {
       this.ctrls_.push(addCtrlIntensity(tool, fold, this));
@@ -94,7 +101,7 @@ define([
     }
   };
 
-  GuiSculptingTools[Sculpt.tool.PAINT] = {
+  tools[Sculpt.tool.PAINT] = {
     ctrls_: [],
     onMaterialChanged: function (main, tool, materials) {
       vec3.copy(tool.color_, materials[0].getValue());
@@ -155,10 +162,11 @@ define([
       tool.setPickCallback(this.onPickedMaterial.bind(this, materials, tool));
 
       this.ctrls_.push(ctrlColor, ctrlRoughness, ctrlMetallic);
+      addCtrlAlpha(this.ctrls_, fold, tool, this);
     }
   };
 
-  GuiSculptingTools[Sculpt.tool.PINCH] = {
+  tools[Sculpt.tool.PINCH] = {
     ctrls_: [],
     init: function (tool, fold) {
       this.ctrls_.push(addCtrlIntensity(tool, fold, this));
@@ -167,21 +175,21 @@ define([
     }
   };
 
-  GuiSculptingTools[Sculpt.tool.TWIST] = {
+  tools[Sculpt.tool.TWIST] = {
     ctrls_: [],
     init: function (tool, fold) {
       this.ctrls_.push(addCtrlCulling(tool, fold));
     }
   };
 
-  GuiSculptingTools[Sculpt.tool.SCALE] = {
+  tools[Sculpt.tool.SCALE] = {
     ctrls_: [],
     init: function (tool, fold) {
       this.ctrls_.push(addCtrlCulling(tool, fold));
     }
   };
 
-  GuiSculptingTools[Sculpt.tool.MOVE] = {
+  tools[Sculpt.tool.MOVE] = {
     ctrls_: [],
     init: function (tool, fold) {
       this.ctrls_.push(addCtrlIntensity(tool, fold, this));
@@ -190,7 +198,7 @@ define([
     }
   };
 
-  GuiSculptingTools[Sculpt.tool.SMOOTH] = {
+  tools[Sculpt.tool.SMOOTH] = {
     ctrls_: [],
     init: function (tool, fold) {
       this.ctrls_.push(addCtrlIntensity(tool, fold, this));
@@ -199,7 +207,7 @@ define([
     }
   };
 
-  GuiSculptingTools[Sculpt.tool.MASKING] = {
+  tools[Sculpt.tool.MASKING] = {
     ctrls_: [],
     init: function (tool, fold, main) {
       this.ctrls_.push(addCtrlIntensity(tool, fold, this));
@@ -232,12 +240,12 @@ define([
     }
   };
 
-  GuiSculptingTools[Sculpt.tool.TRANSLATE] = {
+  tools[Sculpt.tool.TRANSLATE] = {
     ctrls_: [],
     init: function () {}
   };
 
-  GuiSculptingTools[Sculpt.tool.ROTATE] = {
+  tools[Sculpt.tool.ROTATE] = {
     ctrls_: [],
     init: function () {}
   };

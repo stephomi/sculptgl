@@ -235,9 +235,21 @@ define([
       for (var i = 0, mats = ShaderMatcap.matcaps, l = mats.length; i < l; ++i)
         loadTex(mats[i].path, i);
 
-      var am = new Image();
-      am.src = 'resources/alpha/square.jpg';
-      am.onload = this.onLoadAlphaImage.bind(this, am);
+      this.initAlphaTextures();
+    },
+    initAlphaTextures: function () {
+      var self = this;
+      var alphas = Picking.ALPHAS_PATHS;
+      var loadAlpha = function (alphas, id) {
+        var am = new Image();
+        am.src = 'resources/alpha/' + alphas[id];
+        am.onload = function () {
+          self.onLoadAlphaImage(am);
+          if (id < alphas.length - 1)
+            loadAlpha(alphas, id + 1);
+        };
+      };
+      loadAlpha(alphas, 0);
     },
     /** Called when the window is resized */
     onCanvasResize: function () {
@@ -698,7 +710,7 @@ define([
       if (index >= 0) this.meshes_[index] = newMesh;
       if (this.mesh_ === mesh) this.setMesh(newMesh);
     },
-    onLoadAlphaImage: function (img, tool) {
+    onLoadAlphaImage: function (img, name, tool) {
       var can = document.createElement('canvas');
       can.width = img.width;
       can.height = img.height;
@@ -706,14 +718,21 @@ define([
       var ctx = can.getContext('2d');
       ctx.drawImage(img, 0, 0);
       var u8 = ctx.getImageData(0, 0, img.width, img.height).data;
-      this.loadAlphaTexture(u8, img.width, img.height);
-      if (tool && tool.ctrlAlpha_) tool.ctrlAlpha_.setValue(true);
+      this.loadAlphaTexture(u8, img.width, img.height, name);
+
+      if (!name) return;
+      var id = Picking.ALPHAS.length - 1;
+      var entry = {};
+      entry[id] = name || 'alpha_' + id;
+      this.getGui().addAlphaOptions(entry);
+      if (tool && tool.ctrlAlpha_) tool.ctrlAlpha_.setValue(id);
     },
-    loadAlphaTexture: function (u8, w, h) {
+    loadAlphaTexture: function (u8, w, h, name) {
       if (!this.isReplayed())
         this.getReplayWriter().pushLoadAlpha(u8, w, h);
-      this.getPicking().setAlphaTex(u8, w, h);
-      this.getPickingSymmetry().setAlphaTex(u8, w, h);
+      var ans = Picking.ALPHAS_NAMES;
+      ans.push(name || 'alpha_' + ans.length);
+      return Picking.addAlpha(u8, w, h);
     }
   };
 

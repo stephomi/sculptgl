@@ -12,41 +12,37 @@ define([
   ShaderMatcap.textures = {};
 
   var texPath = 'resources/matcaps/';
-  ShaderMatcap.getMatcaps = function () {
-    ShaderMatcap.matcaps = [{
-      path: texPath + 'pearl.jpg',
-      name: TR('matcapPearl')
-    }, {
-      path: texPath + 'clay.jpg',
-      name: TR('matcapClay')
-    }, {
-      path: texPath + 'skin.jpg',
-      name: TR('matcapSkin')
-    }, {
-      path: texPath + 'green.jpg',
-      name: TR('matcapGreen')
-    }, {
-      path: texPath + 'white.jpg',
-      name: TR('matcapWhite')
-    }, {
-      path: texPath + 'bronze.jpg',
-      name: TR('matcapBronze')
-    }, {
-      path: texPath + 'chavant.jpg',
-      name: TR('matcapChavant')
-    }, {
-      path: texPath + 'drink.jpg',
-      name: TR('matcapDrink')
-    }, {
-      path: texPath + 'redvelvet.jpg',
-      name: TR('matcapRedVelvet')
-    }, {
-      path: texPath + 'orange.jpg',
-      name: TR('matcapOrange')
-    }];
-    return ShaderMatcap.matcaps;
-  };
-  ShaderMatcap.matcaps = ShaderMatcap.getMatcaps();
+  ShaderMatcap.matcaps = [{
+    path: texPath + 'pearl.jpg',
+    name: TR('matcapPearl')
+  }, {
+    path: texPath + 'clay.jpg',
+    name: TR('matcapClay')
+  }, {
+    path: texPath + 'skin.jpg',
+    name: TR('matcapSkin')
+  }, {
+    path: texPath + 'green.jpg',
+    name: TR('matcapGreen')
+  }, {
+    path: texPath + 'white.jpg',
+    name: TR('matcapWhite')
+  }, {
+    path: texPath + 'bronze.jpg',
+    name: TR('matcapBronze')
+  }, {
+    path: texPath + 'chavant.jpg',
+    name: TR('matcapChavant')
+  }, {
+    path: texPath + 'drink.jpg',
+    name: TR('matcapDrink')
+  }, {
+    path: texPath + 'redvelvet.jpg',
+    name: TR('matcapRedVelvet')
+  }, {
+    path: texPath + 'orange.jpg',
+    name: TR('matcapOrange')
+  }];
 
   ShaderMatcap.uniforms = {};
   ShaderMatcap.attributes = {};

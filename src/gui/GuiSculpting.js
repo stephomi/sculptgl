@@ -26,6 +26,8 @@ define([
     this.init(guiParent);
   }
 
+  var uiTools = GuiSculptingTools.TOOLS;
+
   GuiSculpting.prototype = {
     /** Initialisculze */
     init: function (guiParent) {
@@ -142,7 +144,7 @@ define([
         // invert sign on alt key
         if (this.invertSign_ || event.shiftKey) return true;
         this.invertSign_ = true;
-        var curTool = GuiSculptingTools[selectedTool];
+        var curTool = uiTools[selectedTool];
         if (curTool.toggleNegative)
           curTool.toggleNegative();
         return true;
@@ -231,7 +233,7 @@ define([
         ctrlSculpt.setValue(Sculpt.tool.ROTATE);
         break;
       case 78: // N
-        var cur = GuiSculptingTools[this.getSelectedTool()];
+        var cur = uiTools[this.getSelectedTool()];
         if (cur.toggleNegative)
           cur.toggleNegative();
         break;
@@ -243,7 +245,7 @@ define([
       if (!this.invertSign_)
         return;
       this.invertSign_ = false;
-      var tool = GuiSculptingTools[this.getSelectedTool()];
+      var tool = uiTools[this.getSelectedTool()];
       if (tool.toggleNegative)
         tool.toggleNegative();
     },
@@ -277,9 +279,9 @@ define([
         this.main_.render();
       }
       if (this.modalBrushIntensity_) {
-        var wid = GuiSculptingTools[this.getSelectedTool()];
-        if (wid.intensity_)
-          wid.intensity_.setValue(wid.intensity_.getValue() + (e.pageX - this.lastMouseX_) * 1.0);
+        var wid = uiTools[this.getSelectedTool()];
+        if (wid.ctrlIntensity_)
+          wid.ctrlIntensity_.setValue(wid.ctrlIntensity_.getValue() + (e.pageX - this.lastMouseX_) * 1.0);
       }
       this.lastMouseX_ = e.pageX;
     },
@@ -289,7 +291,7 @@ define([
     },
     /** Initialize tool */
     initTool: function (toolKey) {
-      GuiSculptingTools[toolKey].init(this.sculpt_.tools_[toolKey], this.menu_, this.main_);
+      uiTools[toolKey].init(this.sculpt_.tools_[toolKey], this.menu_, this.main_);
       GuiSculptingTools.hide(toolKey);
     },
     /** When the sculpting tool is changed */
@@ -312,15 +314,21 @@ define([
         return;
       var reader = new FileReader();
       var main = this.main_;
-      var tool = GuiSculptingTools[main.getSculpt().tool_];
+      var tool = uiTools[main.getSculpt().tool_];
 
       reader.onload = function (evt) {
         var img = new Image();
         img.src = evt.target.result;
-        img.onload = main.onLoadAlphaImage.bind(main, img, tool);
+        img.onload = main.onLoadAlphaImage.bind(main, img, file.name, tool);
         document.getElementById('alphaopen').value = '';
       };
       reader.readAsDataURL(file);
+    },
+    addAlphaOptions: function (opts) {
+      for (var i = 0, nb = uiTools.length; i < nb; ++i) {
+        var t = uiTools[i];
+        if (t && t.ctrlAlpha_) t.ctrlAlpha_.addOptions(opts);
+      }
     }
   };
 

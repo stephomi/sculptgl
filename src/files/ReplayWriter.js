@@ -90,7 +90,7 @@ define([
       this.stack_.length = 0;
       this.firstReplay_ = buffer;
     },
-    checkIntensityNegativeCulling: function (mainSel, replaySel, name) {
+    checkCommonSculptAttributes: function (mainSel, replaySel, name) {
       if (mainSel.intensity_ !== undefined && mainSel.intensity_ !== replaySel.intensity_) {
         replaySel.intensity_ = mainSel.intensity_;
         this.stack_.push(Replay[name + '_INTENSITY'], mainSel.intensity_ * 100);
@@ -106,6 +106,10 @@ define([
       if (mainSel.culling_ !== undefined && mainSel.culling_ !== replaySel.culling_) {
         replaySel.culling_ = mainSel.culling_;
         this.stack_.push(Replay[name + '_TOGGLE_CULLING']);
+      }
+      if (mainSel.idAlpha_ !== undefined && mainSel.idAlpha_ !== replaySel.idAlpha_) {
+        replaySel.idAlpha_ = mainSel.idAlpha_;
+        this.stack_.push(Replay[name + '_SELECT_ALPHA'], mainSel.idAlpha_);
       }
     },
     checkSculptTools: function () {
@@ -152,7 +156,7 @@ define([
 
       switch (tool) {
       case Sculpt.tool.BRUSH:
-        this.checkIntensityNegativeCulling(mainSel, replaySel, 'BRUSH');
+        this.checkCommonSculptAttributes(mainSel, replaySel, 'BRUSH');
         if (mainSel.clay_ !== replaySel.clay_) {
           replaySel.clay_ = mainSel.clay_;
           this.stack_.push(Replay.BRUSH_TOGGLE_CLAY);
@@ -161,29 +165,21 @@ define([
           replaySel.accumulate_ = mainSel.accumulate_;
           this.stack_.push(Replay.BRUSH_TOGGLE_ACCUMULATE);
         }
-        if (mainSel.useAlpha_ !== replaySel.useAlpha_) {
-          replaySel.useAlpha_ = mainSel.useAlpha_;
-          this.stack_.push(Replay.BRUSH_TOGGLE_ALPHA);
-        }
-        // if (mainSel.idAlpha_ !== replaySel.idAlpha_) {
-        //   replaySel.idAlpha_ = mainSel.idAlpha_;
-        //   this.stack_.push(Replay.BRUSH_SELECT_ALPHA, mainSel.idAlpha_);
-        // }
         break;
       case Sculpt.tool.CREASE:
-        this.checkIntensityNegativeCulling(mainSel, replaySel, 'CREASE');
+        this.checkCommonSculptAttributes(mainSel, replaySel, 'CREASE');
         break;
       case Sculpt.tool.INFLATE:
-        this.checkIntensityNegativeCulling(mainSel, replaySel, 'INFLATE');
+        this.checkCommonSculptAttributes(mainSel, replaySel, 'INFLATE');
         break;
       case Sculpt.tool.FLATTEN:
-        this.checkIntensityNegativeCulling(mainSel, replaySel, 'FLATTEN');
+        this.checkCommonSculptAttributes(mainSel, replaySel, 'FLATTEN');
         break;
       case Sculpt.tool.PINCH:
-        this.checkIntensityNegativeCulling(mainSel, replaySel, 'PINCH');
+        this.checkCommonSculptAttributes(mainSel, replaySel, 'PINCH');
         break;
       case Sculpt.tool.SMOOTH:
-        this.checkIntensityNegativeCulling(mainSel, replaySel, 'SMOOTH');
+        this.checkCommonSculptAttributes(mainSel, replaySel, 'SMOOTH');
         if (mainSel.tangent_ !== replaySel.tangent_) {
           replaySel.tangent_ = mainSel.tangent_;
           this.stack_.push(Replay.SMOOTH_TOGGLE_TANGENT);
@@ -196,19 +192,19 @@ define([
         }
         break;
       case Sculpt.tool.MASKING:
-        this.checkIntensityNegativeCulling(mainSel, replaySel, 'MASKING');
+        this.checkCommonSculptAttributes(mainSel, replaySel, 'MASKING');
         break;
       case Sculpt.tool.TWIST:
-        this.checkIntensityNegativeCulling(mainSel, replaySel, 'TWIST');
+        this.checkCommonSculptAttributes(mainSel, replaySel, 'TWIST');
         break;
       case Sculpt.tool.SCALE:
-        this.checkIntensityNegativeCulling(mainSel, replaySel, 'SCALE');
+        this.checkCommonSculptAttributes(mainSel, replaySel, 'SCALE');
         break;
       case Sculpt.tool.PAINT:
         // optimize a bit
         if (mainSel.pickColor_)
           break;
-        this.checkIntensityNegativeCulling(mainSel, replaySel, 'PAINT');
+        this.checkCommonSculptAttributes(mainSel, replaySel, 'PAINT');
         if (mainSel.material_[0] !== replaySel.material_[0]) {
           replaySel.material_[0] = mainSel.material_[0];
           this.stack_.push(Replay.PAINT_ROUGHNESS, mainSel.material_[0]);
@@ -315,7 +311,6 @@ define([
           data.setUint8(offset + 5, stack[++i]);
           offset += 6;
           break;
-          // case Replay.BRUSH_SELECT_ALPHA:
         case Replay.DEVICE_WHEEL:
           data.setInt8(offset, stack[++i]);
           offset += 1;
@@ -355,6 +350,8 @@ define([
         case Replay.FLAT_SHADING:
         case Replay.SHADER_SELECT:
         case Replay.MATCAP_SELECT:
+        case Replay.BRUSH_SELECT_ALPHA:
+        case Replay.PAINT_SELECT_ALPHA:
           data.setUint8(offset, stack[++i]);
           offset += 1;
           break;

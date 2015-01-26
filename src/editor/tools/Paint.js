@@ -19,6 +19,7 @@ define([
     this.pickColor_ = false; // color picking
     this.global_ = false; // global material
     this.pickCallback_ = null; // callback function after picking a color
+    this.idAlpha_ = 0;
   }
 
   Paint.prototype = {
@@ -84,13 +85,15 @@ define([
       if (this.culling_)
         iVertsInRadius = this.getFrontVertices(iVertsInRadius, picking.getEyeDirection());
 
-      this.paint(iVertsInRadius, picking.getIntersectionPoint(), picking.getLocalRadius2(), intensity, this.hardness_);
+      picking.updateAlpha();
+      picking.setIdAlpha(this.idAlpha_);
+      this.paint(iVertsInRadius, picking.getIntersectionPoint(), picking.getLocalRadius2(), intensity, this.hardness_, picking);
 
       this.mesh_.updateDuplicateColorsAndMaterials(iVertsInRadius);
       this.mesh_.updateFlatShading(this.mesh_.getFacesFromVertices(iVertsInRadius));
     },
     /** Paint color vertices */
-    paint: function (iVerts, center, radiusSquared, intensity, hardness) {
+    paint: function (iVerts, center, radiusSquared, intensity, hardness, picking) {
       var mesh = this.mesh_;
       var vAr = mesh.getVertices();
       var cAr = mesh.getColors();
@@ -108,13 +111,15 @@ define([
       var softness = 2 * (1 - hardness);
       for (var i = 0, l = iVerts.length; i < l; ++i) {
         var ind = iVerts[i] * 3;
-        var dx = vAr[ind] - cx;
-        var dy = vAr[ind + 1] - cy;
-        var dz = vAr[ind + 2] - cz;
+        var vx = vAr[ind];
+        var vy = vAr[ind + 1];
+        var vz = vAr[ind + 2];
+        var dx = vx - cx;
+        var dy = vy - cy;
+        var dz = vz - cz;
         var dist = Math.sqrt(dx * dx + dy * dy + dz * dz) / radius;
         var fallOff = Math.pow(1 - dist, softness);
-        fallOff *= intensity;
-        fallOff *= mAr[ind + 2];
+        fallOff *= intensity * mAr[ind + 2] * picking.getAlpha(vx, vy, vz);
         var fallOffCompl = 1.0 - fallOff;
         cAr[ind] = cAr[ind] * fallOffCompl + cr * fallOff;
         cAr[ind + 1] = cAr[ind + 1] * fallOffCompl + cg * fallOff;

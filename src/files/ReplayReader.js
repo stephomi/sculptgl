@@ -5,11 +5,12 @@ define([
   'files/ExportSGL',
   'files/ReplayEnums',
   'math3d/Camera',
+  'math3d/Picking',
   'misc/Tablet',
   'editor/Sculpt',
   'editor/Remesh',
   'render/Shader'
-], function (glm, yagui, TR, ExportSGL, Replay, Camera, Tablet, Sculpt, Remesh, Shader) {
+], function (glm, yagui, TR, ExportSGL, Replay, Camera, Picking, Tablet, Sculpt, Remesh, Shader) {
 
   'use strict';
 
@@ -191,6 +192,7 @@ define([
       main.getReplayWriter().autoUpload_ = false;
 
       // basically it's a soft reset
+      Picking.ALPHAS_NAMES.length = Picking.ALPHAS.length = 1;
       Tablet.overridePressure = 1.0;
       this.virtualCamera_ = new Camera();
       main.sculpt_ = new Sculpt(main.getStates());
@@ -584,13 +586,10 @@ define([
       case Replay.BRUSH_TOGGLE_ACCUMULATE:
         tool.accumulate_ = !tool.accumulate_;
         break;
-      case Replay.BRUSH_TOGGLE_ALPHA:
-        tool.useAlpha_ = !tool.useAlpha_;
+      case Replay.BRUSH_SELECT_ALPHA:
+        tool.idAlpha_ = data.getInt8(sel);
+        sel += 1;
         break;
-        // case Replay.BRUSH_SELECT_ALPHA:
-        //   tool.idAlpha_ = data.getInt8(sel);
-        //   sel += 1;
-        //   break;
       case Replay.PAINT_COLOR:
         vec3.set(tool.color_, data.getFloat32(sel), data.getFloat32(sel + 4), data.getFloat32(sel + 8));
         sel += 12;

@@ -17,7 +17,7 @@ define([
     this.clay_ = true;
     this.culling_ = false; // if we backface cull the vertices
     this.accumulate_ = true; // if we ignore the proxy
-    this.useAlpha_ = true;
+    this.idAlpha_ = 0;
   }
 
   Brush.prototype = {
@@ -36,7 +36,7 @@ define([
 
       var r2 = picking.getLocalRadius2();
       picking.updateAlpha();
-      picking.setUseAlpha(this.useAlpha_);
+      picking.setIdAlpha(this.idAlpha_);
       if (!this.clay_) {
         this.brush(iVertsInRadius, picking.getPickedNormal(), picking.getIntersectionPoint(), r2, intensity, picking);
       } else {
