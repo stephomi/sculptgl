@@ -1,5 +1,6 @@
 define([
   'lib/yagui',
+  'gui/GuiTR',
   'gui/GuiBackground',
   'gui/GuiCamera',
   'gui/GuiConfig',
@@ -11,7 +12,7 @@ define([
   'gui/GuiSculpting',
   'gui/GuiStates',
   'gui/GuiTablet'
-], function (yagui, GuiBackground, GuiCamera, GuiConfig, GuiFiles, GuiMesh, GuiTopology, GuiRendering, GuiScene, GuiSculpting, GuiStates, GuiTablet) {
+], function (yagui, TR, GuiBackground, GuiCamera, GuiConfig, GuiFiles, GuiMesh, GuiTopology, GuiRendering, GuiScene, GuiSculpting, GuiStates, GuiTablet) {
 
   'use strict';
 
@@ -68,9 +69,17 @@ define([
 
       // gui extra
       this.topbar_.addExtra();
+      this.addDonateButton();
 
       this.updateMesh();
       this.setVisibility(true);
+    },
+    addDonateButton: function () {
+      var ctrlDonate = this.topbar_.addMenu();
+      ctrlDonate.domContainer.innerHTML = TR('donate');
+      ctrlDonate.domContainer.addEventListener('mousedown', function () {
+        document.getElementById('donate').submit();
+      });
     },
     /** Return simple widget */
     getWidgetNotification: function () {

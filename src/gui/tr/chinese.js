@@ -187,7 +187,9 @@ define([], function () {
       return 'Sketchfab 上傳錯誤 :\n' + error;
     },
     sketchfabUploadSuccess: '上傳成功 !\n這是你的連結 :',
-    sketchfabAbort: '中止最近一次的上傳 ?'
+    sketchfabAbort: '中止最近一次的上傳 ?',
+
+    donate: 'Donate !'
   };
 
   return TR;

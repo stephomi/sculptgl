@@ -187,7 +187,9 @@ define([], function () {
       return 'Sketchfab upload error :\n' + error;
     },
     sketchfabUploadSuccess: 'Upload success !\nHere is your link :',
-    sketchfabAbort: 'Abort the last upload ?'
+    sketchfabAbort: 'Abort the last upload ?',
+
+    donate: 'Donate !'
   };
 
   return TR;
