@@ -28,9 +28,13 @@ define([
       // multires
       menu.addTitle(TR('multiresTitle'));
       this.ctrlResolution_ = menu.addSlider(TR('multiresResolution'), 1, this.onResolutionChanged.bind(this), 1, 1, 1);
-      menu.addDualButton(TR('multiresReverse'), TR('multiresSubdivide'), this, this, 'reverse', 'subdivide');
-      var res = menu.addDualButton(TR('multiresDelLower'), TR('multiresDelHigher'), this, this, 'deleteLower', 'deleteHigher');
-      res[0].domButton.style.background = res[1].domButton.style.background = 'rgba(230,53,59,0.35)';
+      var dual = menu.addDualButton(TR('multiresReverse'), TR('multiresSubdivide'), this, this, 'reverse', 'subdivide');
+      this.ctrlReverse_ = dual[0];
+      this.ctrlSubdivide_ = dual[1];
+      dual = this.dualButtonDel_ = menu.addDualButton(TR('multiresDelLower'), TR('multiresDelHigher'), this, this, 'deleteLower', 'deleteHigher');
+      this.ctrlDelLower_ = dual[0];
+      this.ctrlDelHigher_ = dual[1];
+      this.ctrlDelLower_.domButton.style.background = this.ctrlDelHigher_.domButton.style.background = 'rgba(230,53,59,0.35)';
 
       // remeshing
       menu.addTitle(TR('remeshTitle'));
@@ -110,7 +114,7 @@ define([
     },
     /** Check if the mesh is a multiresolution one */
     isMultimesh: function (mesh) {
-      return mesh && mesh.meshes_ !== undefined;
+      return !!(mesh && mesh.meshes_);
     },
     convertToStaticMesh: function (mesh) {
       if (!mesh.getDynamicTopology) // already static
@@ -237,7 +241,16 @@ define([
       var uiRes = value - 1;
       var main = this.main_;
       var multimesh = main.getMesh();
-      if (!this.isMultimesh(multimesh) || multimesh.sel_ === uiRes)
+      if (!multimesh) return;
+      var isMulti = this.isMultimesh(multimesh);
+      var isLast = isMulti && multimesh.meshes_.length - 1 === uiRes;
+
+      this.ctrlReverse_.setEnable(!isMulti || uiRes === 0);
+      this.ctrlSubdivide_.setEnable(!isMulti || isLast);
+      this.ctrlDelLower_.setEnable(isMulti && uiRes !== 0);
+      this.ctrlDelHigher_.setEnable(isMulti && !isLast);
+
+      if (!isMulti || multimesh.sel_ === uiRes)
         return;
 
       if (!main.isReplayed())

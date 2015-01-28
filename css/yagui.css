@@ -242,12 +242,17 @@ body {
   border: 0 none !important;
 }
 
-.gui-button:hover {
+.gui-button:enabled:hover {
   color: #fff;
 }
 
 .gui-button:active {
   box-shadow: 0 1px 0 hsla(0,0%,100%,.1), inset 0 1px 4px hsla(0,0%,0%,.8);
+}
+
+.gui-button:disabled {
+  background: #444;
+  color: #555;
 }
 
 /****** widget color ******/
