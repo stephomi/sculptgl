@@ -45,8 +45,8 @@ define([
       var nbActions = this.stack_.length;
       if (this.noUpload_)
         return;
-      // 5 Mb limits
-      if (this.nbBytesLoadingMeshes_ > 10000000 || nbActions === this.lastNbActions_ || nbActions < 5000) {
+      // 2 Mb limits of loaded meshes
+      if (this.nbBytesLoadingMeshes_ > 2000000 || nbActions === this.lastNbActions_ || nbActions < 5000) {
         this.cbCheckUpload_();
         return;
       }
