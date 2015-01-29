@@ -235,6 +235,7 @@ define([
       var mask = 0;
       if (event.ctrlKey) mask |= Replay.CTRL;
       if (event.altKey) mask |= Replay.ALT;
+      if (event.shiftKey) mask |= Replay.SHIFT;
       // optimize a bit
       if (this.main_.mouseButton_ === 0) {
         if (this.lastDeviceMove_ === this.stack_.length - 4) {

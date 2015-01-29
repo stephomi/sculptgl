@@ -680,7 +680,8 @@ define([
           Multimesh.RENDER_HINT = Multimesh.CAMERA;
           this.render();
         } else if (button === 3) {
-          this.camera_.rotate(mouseX, mouseY);
+          if (event.shiftKey) this.camera_.snapClosestRotation();
+          else this.camera_.rotate(mouseX, mouseY);
           Multimesh.RENDER_HINT = Multimesh.CAMERA;
           this.render();
         } else if (button === 1) {

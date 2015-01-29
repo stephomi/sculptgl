@@ -113,7 +113,8 @@ define([
       var axisRot = [0.0, 0.0, 0.0];
       var quatTmp = [0.0, 0.0, 0.0, 0.0];
 
-      return function (mouseX, mouseY) {
+      return function (mouseX, mouseY, snap) {
+        if (snap) return this.snapClosestRotation();
         var normalizedMouseXY = Geometry.normalizedMouse(mouseX, mouseY, this.width_, this.height_);
         if (this.mode_ === Camera.mode.ORBIT) {
           vec2.sub(diff, normalizedMouseXY, this.lastNormalizedMouseXY_);
@@ -216,25 +217,54 @@ define([
       vec3.set(this.center_, 0.0, 0.0, 0.0);
       this.zoom(-0.6);
     },
-    /** Reset view front */
     resetViewFront: function () {
       this.rotX_ = this.rotY_ = 0.0;
-      quat.identity(this.quatRot_);
+      quat.set(this.quatRot_, 0, 0, 0, 1);
       this.updateView();
     },
-    /** Reset view top */
+    resetViewBack: function () {
+      this.rotX_ = 0.0;
+      this.rotY_ = Math.PI;
+      quat.set(this.quatRot_, 0, 1, 0, 0);
+      this.updateView();
+    },
     resetViewTop: function () {
       this.rotX_ = Math.PI * 0.5;
       this.rotY_ = 0.0;
-      this.quatRot_ = quat.rotateX(this.quatRot_, quat.create(), Math.PI * 0.5);
+      quat.set(this.quatRot_, Math.SQRT1_2, 0, 0, Math.SQRT1_2);
       this.updateView();
     },
-    /** Reset view left */
+    resetViewBottom: function () {
+      this.rotX_ = -Math.PI * 0.5;
+      this.rotY_ = 0.0;
+      quat.set(this.quatRot_, -Math.SQRT1_2, 0, 0, Math.SQRT1_2);
+      this.updateView();
+    },
     resetViewLeft: function () {
       this.rotX_ = 0.0;
       this.rotY_ = -Math.PI * 0.5;
-      this.quatRot_ = quat.rotateY(this.quatRot_, quat.create(), -Math.PI * 0.5);
+      quat.set(this.quatRot_, 0, -Math.SQRT1_2, 0, Math.SQRT1_2);
       this.updateView();
+    },
+    resetViewRight: function () {
+      this.rotX_ = 0.0;
+      this.rotY_ = Math.PI * 0.5;
+      quat.set(this.quatRot_, 0, Math.SQRT1_2, 0, Math.SQRT1_2);
+      this.updateView();
+    },
+    toggleViewFront: function () {
+      if (this.quatRot_[3] > 0.99) this.resetViewBack();
+      else this.resetViewFront();
+    },
+    toggleViewTop: function () {
+      var dot = this.quatRot_[0] * Math.SQRT1_2 + this.quatRot_[3] * Math.SQRT1_2;
+      if (dot * dot > 0.99) this.resetViewBottom();
+      else this.resetViewTop();
+    },
+    toggleViewLeft: function () {
+      var dot = -this.quatRot_[1] * Math.SQRT1_2 + this.quatRot_[3] * Math.SQRT1_2;
+      if (dot * dot > 0.99) this.resetViewRight();
+      else this.resetViewLeft();
     },
     /** Project the mouse coordinate into the world coordinate at a given z */
     unproject: (function () {
@@ -264,6 +294,62 @@ define([
         var w = vec[3];
         var height = this.height_;
         return [(vec[0] / w + 1) * this.width_ * 0.5, height - (vec[1] / w + 1.0) * height * 0.5, (vec[2] / w + 1.0) * 0.5];
+      };
+    })(),
+    snapClosestRotation: (function () {
+      var sq = Math.SQRT1_2;
+      var d = 0.5;
+      var qComp = [
+        quat.fromValues(1, 0, 0, 0),
+        quat.fromValues(0, 1, 0, 0),
+        quat.fromValues(0, 0, 1, 0),
+        quat.fromValues(0, 0, 0, 1),
+        quat.fromValues(sq, sq, 0, 0),
+        quat.fromValues(sq, -sq, 0, 0),
+        quat.fromValues(sq, 0, sq, 0),
+        quat.fromValues(sq, 0, -sq, 0),
+        quat.fromValues(sq, 0, 0, sq),
+        quat.fromValues(sq, 0, 0, -sq),
+        quat.fromValues(0, sq, sq, 0),
+        quat.fromValues(0, sq, -sq, 0),
+        quat.fromValues(0, sq, 0, sq),
+        quat.fromValues(0, sq, 0, -sq),
+        quat.fromValues(0, 0, sq, sq),
+        quat.fromValues(0, 0, sq, -sq),
+        quat.fromValues(d, d, d, d),
+        quat.fromValues(d, d, d, -d),
+        quat.fromValues(d, d, -d, d),
+        quat.fromValues(d, d, -d, -d),
+        quat.fromValues(d, -d, d, d),
+        quat.fromValues(d, -d, d, -d),
+        quat.fromValues(d, -d, -d, d),
+        quat.fromValues(-d, d, d, d),
+      ];
+      var nbQComp = qComp.length;
+      return function () {
+        // probably not the fastest way to do this thing :)
+        var qrot = this.quatRot_;
+        var min = 50;
+        var id = 0;
+        for (var i = 0; i < nbQComp; ++i) {
+          var dot = quat.dot(qrot, qComp[i]);
+          dot = 1 - dot * dot;
+          if (min < dot)
+            continue;
+          min = dot;
+          id = i;
+        }
+        quat.copy(qrot, qComp[id]);
+        if (this.mode_ === Camera.mode.ORBIT) {
+          var qx = qrot[3];
+          var qy = qrot[1];
+          var qz = qrot[2];
+          var qw = qrot[0];
+          // find back euler values
+          this.rotY_ = Math.atan2(2 * (qx * qy + qz * qw), 1 - 2 * (qy * qy + qz * qz));
+          this.rotX_ = Math.atan2(2 * (qx * qw + qy * qz), 1 - 2 * (qz * qz + qw * qw));
+        }
+        this.updateView();
       };
     })(),
     copyCamera: function (cam) {

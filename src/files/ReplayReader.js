@@ -100,7 +100,7 @@ define([
       canvas.width = 1024;
       canvas.height = 768;
       this.main_.onCanvasResize();
-      this.main_.getCamera().resetViewFront();
+      this.main_.getCamera().forceViewFront();
       this.main_.applyRender();
 
       var dataUrl = canvas.toDataURL('image/jpeg');
@@ -452,6 +452,7 @@ define([
         var mask0 = data.getUint8(sel + 4);
         ev.altKey = mask0 & Replay.ALT;
         ev.ctrlKey = mask0 & Replay.CTRL;
+        ev.shiftKey = mask0 & Replay.SHIFT;
         main.onDeviceMove(ev);
         sel += 5;
         break;
@@ -507,14 +508,17 @@ define([
       case Replay.CAMERA_RESET:
         vcam.resetView();
         break;
-      case Replay.CAMERA_RESET_FRONT:
-        vcam.resetViewFront();
+      case Replay.CAMERA_TOGGLE_FRONT:
+        vcam.toggleViewFront();
         break;
-      case Replay.CAMERA_RESET_LEFT:
-        vcam.resetViewLeft();
+      case Replay.CAMERA_TOGGLE_LEFT:
+        vcam.toggleViewLeft();
         break;
-      case Replay.CAMERA_RESET_TOP:
-        vcam.resetViewTop();
+      case Replay.CAMERA_TOGGLE_TOP:
+        vcam.toggleViewTop();
+        break;
+      case Replay.CAMERA_SNAP:
+        vcam.snapClosestRotation();
         break;
       case Replay.CAMERA_TOGGLE_PIVOT:
         vcam.toggleUsePivot();

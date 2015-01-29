@@ -95,14 +95,17 @@ define([
       if (event.handled === true)
         return;
       event.stopPropagation();
-      if (!this.main_.focusGui_)
-        event.preventDefault();
-      else
+      if (this.main_.focusGui_)
         return;
+      event.preventDefault();
       var key = event.which;
       var main = this.main_;
       var camera = main.getCamera();
       event.handled = true;
+      if (event.shiftKey && main.mouseButton_ === 3) {
+        camera.snapClosestRotation();
+        main.render();
+      }
       switch (key) {
       case 37: // LEFT
       case 81: // Q
@@ -187,13 +190,13 @@ define([
       this.cameraAction('resetView', 'CAMERA_RESET');
     },
     resetFront: function () {
-      this.cameraAction('resetViewFront', 'CAMERA_RESET_FRONT');
+      this.cameraAction('toggleViewFront', 'CAMERA_TOGGLE_FRONT');
     },
     resetLeft: function () {
-      this.cameraAction('resetViewLeft', 'CAMERA_RESET_LEFT');
+      this.cameraAction('toggleViewLeft', 'CAMERA_TOGGLE_LEFT');
     },
     resetTop: function () {
-      this.cameraAction('resetViewTop', 'CAMERA_RESET_TOP');
+      this.cameraAction('toggleViewTop', 'CAMERA_TOGGLE_TOP');
     },
     onPivotChange: function () {
       this.cameraAction('toggleUsePivot', 'CAMERA_TOGGLE_PIVOT');
