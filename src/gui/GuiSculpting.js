@@ -319,7 +319,7 @@ define([
       reader.onload = function (evt) {
         var img = new Image();
         img.src = evt.target.result;
-        img.onload = main.onLoadAlphaImage.bind(main, img, file.name, tool);
+        img.onload = main.onLoadAlphaImage.bind(main, img, file.name || 'new alpha', tool);
         document.getElementById('alphaopen').value = '';
       };
       reader.readAsDataURL(file);

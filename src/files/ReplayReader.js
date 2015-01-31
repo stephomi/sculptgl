@@ -192,7 +192,7 @@ define([
       main.getReplayWriter().autoUpload_ = false;
 
       // basically it's a soft reset
-      Picking.ALPHAS_NAMES.length = Picking.ALPHAS.length = 1;
+      Picking.ALPHAS_NAMES.length = Picking.ALPHAS.length = 1 + Picking.ALPHAS_PATHS.length;
       Tablet.overridePressure = 1.0;
       this.virtualCamera_ = new Camera();
       main.sculpt_ = new Sculpt(main.getStates());

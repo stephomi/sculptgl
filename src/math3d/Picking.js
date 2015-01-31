@@ -35,12 +35,9 @@ define([
   Picking.ALPHAS_NAMES = ['None', 'Square', 'Skin'];
   Picking.ALPHAS_PATHS = ['square.jpg', 'skin.jpg'];
   Picking.ALPHAS = [null];
-  Picking.addAlpha = function (data, width, height) {
-    var at = new Float32Array(data.length / 4);
-    for (var i = 0, j = 0, n = at.length; i < n; ++i, j += 4)
-      at[i] = (data[j] + data[j + 1] + data[j + 2]) / 765;
+  Picking.addAlpha = function (u8, width, height) {
     var newAlpha = {};
-    newAlpha.texture_ = at;
+    newAlpha.texture_ = u8;
     newAlpha.ratioX_ = Math.min(1.0, width / height);
     newAlpha.ratioY_ = Math.min(1.0, height / width);
     newAlpha.width_ = width;
@@ -66,7 +63,7 @@ define([
       var aw = alpha.width_;
       xn = (0.5 + xn * 0.5) * aw;
       yn = (0.5 - yn * 0.5) * alpha.height_;
-      return alpha.texture_[(xn | 0) + aw * (yn | 0)];
+      return alpha.texture_[(xn | 0) + aw * (yn | 0)] / 255.0;
     },
     updateAlpha: (function () {
       var nor = [0.0, 0.0, 0.0];

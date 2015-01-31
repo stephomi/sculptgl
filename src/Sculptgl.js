@@ -718,18 +718,22 @@ define([
 
       var ctx = can.getContext('2d');
       ctx.drawImage(img, 0, 0);
-      var u8 = ctx.getImageData(0, 0, img.width, img.height).data;
-      this.loadAlphaTexture(u8, img.width, img.height, name);
+      var u8rgba = ctx.getImageData(0, 0, img.width, img.height).data;
+      var u8lum = u8rgba.subarray(0, u8rgba.length / 4);
+      for (var i = 0, j = 0, n = u8lum.length; i < n; ++i, j += 4)
+        u8lum[i] = Math.round((u8rgba[j] + u8rgba[j + 1] + u8rgba[j + 2]) / 3);
+
+      this.loadAlphaTexture(u8lum, img.width, img.height, name);
 
       if (!name) return;
       var id = Picking.ALPHAS.length - 1;
       var entry = {};
-      entry[id] = name || 'alpha_' + id;
+      entry[id] = name;
       this.getGui().addAlphaOptions(entry);
       if (tool && tool.ctrlAlpha_) tool.ctrlAlpha_.setValue(id);
     },
     loadAlphaTexture: function (u8, w, h, name) {
-      if (!this.isReplayed())
+      if (!this.isReplayed() && name)
         this.getReplayWriter().pushLoadAlpha(u8, w, h);
       var ans = Picking.ALPHAS_NAMES;
       ans.push(name || 'alpha_' + ans.length);
