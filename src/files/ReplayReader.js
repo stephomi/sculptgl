@@ -100,7 +100,7 @@ define([
       canvas.width = 1024;
       canvas.height = 768;
       this.main_.onCanvasResize();
-      this.main_.getCamera().resetViewFront();
+      this.main_.getCamera().forceViewFront();
       this.main_.applyRender();
 
       var dataUrl = canvas.toDataURL('image/jpeg');
@@ -192,7 +192,7 @@ define([
       main.getReplayWriter().autoUpload_ = false;
 
       // basically it's a soft reset
-      Picking.ALPHAS_NAMES.length = Picking.ALPHAS.length = 1;
+      Picking.ALPHAS_NAMES.length = Picking.ALPHAS.length = 1 + Picking.ALPHAS_PATHS.length;
       Tablet.overridePressure = 1.0;
       this.virtualCamera_ = new Camera();
       main.sculpt_ = new Sculpt(main.getStates());
@@ -200,17 +200,24 @@ define([
       main.setReplayed(true);
       main.clearScene();
 
-      if (this.data_.getUint32(0) !== Replay.CODE)
-        return;
-      var version = this.data_.getUint32(4);
-      this.nbBytesResourcesToLoad_ = this.data_.getUint32(8);
-      this.nbBytesResourcesLoaded_ = 0;
-      this.sel_ = 12;
+      // (I thought DataView setters/getters were in little endian by default)
+      // ... so early version of replay files have some data in big endian :(
+      var version;
+      if (this.data_.getUint32(0, true) !== Replay.CODE) {
+        if (this.data_.getUint32(0, false) !== Replay.CODE)
+          return;
+        version = this.data_.getUint32(4, false);
+      } else {
+        version = this.data_.getUint32(4, true);
+      }
       if (version !== Replay.VERSION) {
         main.getCanvas().remove();
         this.loadVersion(version);
         return;
       }
+      this.nbBytesResourcesToLoad_ = this.data_.getUint32(8, true);
+      this.nbBytesResourcesLoaded_ = 0;
+      this.sel_ = 12;
       main.getReplayWriter().setFirstReplay(data);
 
       // to make sure all the undo/redo actions are executed
@@ -223,8 +230,10 @@ define([
       this.replayAction();
     },
     initGui: function () {
-      if (this.guiReplay_)
+      if (this.guiReplay_) {
         this.guiReplay_.setVisibility(true);
+        return;
+      }
       this.guiReplay_ = new yagui.GuiMain(this.main_.getCanvas(), this.main_.onCanvasResize.bind(this.main_));
       var topbar = this.guiReplay_.addTopbar();
       var menu = topbar.addMenu(TR('replayTitle'));
@@ -430,7 +439,7 @@ define([
       var ev = this.event_;
       var main = this.main_;
       var data = this.data_;
-      var ac = data.getUint8(this.sel_++);
+      var ac = data.getUint8(this.sel_++, true);
       var sel = this.sel_;
 
       // no render
@@ -447,19 +456,20 @@ define([
         console.log(invEnums[ac]);
       switch (ac) {
       case Replay.DEVICE_MOVE:
-        main.mouseX_ = data.getUint16(sel);
-        main.mouseY_ = data.getUint16(sel + 2);
-        var mask0 = data.getUint8(sel + 4);
+        main.mouseX_ = data.getUint16(sel, true);
+        main.mouseY_ = data.getUint16(sel + 2, true);
+        var mask0 = data.getUint8(sel + 4, true);
         ev.altKey = mask0 & Replay.ALT;
         ev.ctrlKey = mask0 & Replay.CTRL;
+        ev.shiftKey = mask0 & Replay.SHIFT;
         main.onDeviceMove(ev);
         sel += 5;
         break;
       case Replay.DEVICE_DOWN:
-        ev.which = data.getUint8(sel);
-        main.mouseX_ = data.getUint16(sel + 1);
-        main.mouseY_ = data.getUint16(sel + 3);
-        var mask1 = data.getUint8(sel + 5);
+        ev.which = data.getUint8(sel, true);
+        main.mouseX_ = data.getUint16(sel + 1, true);
+        main.mouseY_ = data.getUint16(sel + 3, true);
+        var mask1 = data.getUint8(sel + 5, true);
         ev.altKey = mask1 & Replay.ALT;
         ev.ctrlKey = mask1 & Replay.CTRL;
         main.onDeviceDown(ev);
@@ -469,7 +479,7 @@ define([
         main.onMouseUp(ev);
         break;
       case Replay.DEVICE_WHEEL:
-        ev.wheelDelta = data.getInt8(sel);
+        ev.wheelDelta = data.getInt8(sel, true);
         main.onMouseWheel(ev);
         sel += 1;
         break;
@@ -480,51 +490,54 @@ define([
         main.getGui().ctrlStates_.onRedo();
         break;
       case Replay.CAMERA_SIZE:
-        vcam.width_ = data.getUint16(sel);
-        vcam.height_ = data.getUint16(sel + 2);
+        vcam.width_ = data.getUint16(sel, true);
+        vcam.height_ = data.getUint16(sel + 2, true);
         vcam.updateProjection();
         vcam.updateView();
         sel += 4;
         break;
       case Replay.CAMERA_FPS:
-        vcam.moveX_ = data.getInt8(sel);
-        vcam.moveZ_ = data.getInt8(sel + 1);
+        vcam.moveX_ = data.getInt8(sel, true);
+        vcam.moveZ_ = data.getInt8(sel + 1, true);
         vcam.updateTranslation();
         sel += 2;
         break;
       case Replay.CAMERA_MODE:
-        vcam.setMode(data.getUint8(sel));
+        vcam.setMode(data.getUint8(sel, true));
         sel += 1;
         break;
       case Replay.CAMERA_PROJ_TYPE:
-        vcam.setProjType(data.getUint8(sel));
+        vcam.setProjType(data.getUint8(sel, true));
         sel += 1;
         break;
       case Replay.CAMERA_FOV:
-        vcam.setFov(data.getUint8(sel));
+        vcam.setFov(data.getUint8(sel, true));
         sel += 1;
         break;
       case Replay.CAMERA_RESET:
         vcam.resetView();
         break;
-      case Replay.CAMERA_RESET_FRONT:
-        vcam.resetViewFront();
+      case Replay.CAMERA_TOGGLE_FRONT:
+        vcam.toggleViewFront();
         break;
-      case Replay.CAMERA_RESET_LEFT:
-        vcam.resetViewLeft();
+      case Replay.CAMERA_TOGGLE_LEFT:
+        vcam.toggleViewLeft();
         break;
-      case Replay.CAMERA_RESET_TOP:
-        vcam.resetViewTop();
+      case Replay.CAMERA_TOGGLE_TOP:
+        vcam.toggleViewTop();
+        break;
+      case Replay.CAMERA_SNAP:
+        vcam.snapClosestRotation();
         break;
       case Replay.CAMERA_TOGGLE_PIVOT:
         vcam.toggleUsePivot();
         break;
       case Replay.SCULPT_RADIUS:
-        main.getPicking().rDisplay_ = data.getUint8(sel);
+        main.getPicking().rDisplay_ = data.getUint8(sel, true);
         sel += 1;
         break;
       case Replay.SCULPT_TOOL:
-        sculpt.tool_ = data.getUint8(sel);
+        sculpt.tool_ = data.getUint8(sel, true);
         sel += 1;
         break;
       case Replay.SCULPT_TOGGLE_SYMMETRY:
@@ -545,12 +558,12 @@ define([
       case Replay.PAINT_INTENSITY:
       case Replay.MOVE_INTENSITY:
       case Replay.MASKING_INTENSITY:
-        tool.intensity_ = data.getUint8(sel) / 100;
+        tool.intensity_ = data.getUint8(sel, true) / 100;
         sel += 1;
         break;
       case Replay.PAINT_HARDNESS:
       case Replay.MASKING_HARDNESS:
-        tool.hardness_ = data.getUint8(sel) / 100;
+        tool.hardness_ = data.getUint8(sel, true) / 100;
         sel += 1;
         break;
       case Replay.BRUSH_TOGGLE_NEGATIVE:
@@ -587,19 +600,19 @@ define([
         tool.accumulate_ = !tool.accumulate_;
         break;
       case Replay.BRUSH_SELECT_ALPHA:
-        tool.idAlpha_ = data.getInt8(sel);
+        tool.idAlpha_ = data.getInt8(sel, true);
         sel += 1;
         break;
       case Replay.PAINT_COLOR:
-        vec3.set(tool.color_, data.getFloat32(sel), data.getFloat32(sel + 4), data.getFloat32(sel + 8));
+        vec3.set(tool.color_, data.getFloat32(sel, true), data.getFloat32(sel + 4, true), data.getFloat32(sel + 8, true));
         sel += 12;
         break;
       case Replay.PAINT_ROUGHNESS:
-        tool.material_[0] = data.getFloat32(sel);
+        tool.material_[0] = data.getFloat32(sel, true);
         sel += 4;
         break;
       case Replay.PAINT_METALLIC:
-        tool.material_[1] = data.getFloat32(sel);
+        tool.material_[1] = data.getFloat32(sel, true);
         sel += 4;
         break;
       case Replay.PAINT_ALL:
@@ -618,7 +631,7 @@ define([
         main.getSculpt().getTool('MASKING').sharpen(main.getMesh(), main);
         break;
       case Replay.MULTI_RESOLUTION:
-        main.getGui().ctrlTopology_.onResolutionChanged(data.getUint8(sel));
+        main.getGui().ctrlTopology_.onResolutionChanged(data.getUint8(sel, true));
         sel += 1;
         break;
       case Replay.MULTI_SUBDIVIDE:
@@ -635,8 +648,8 @@ define([
         main.getGui().ctrlTopology_.deleteHigher();
         break;
       case Replay.VOXEL_REMESH:
-        Remesh.RESOLUTION = data.getUint16(sel);
-        Remesh.BLOCK = data.getUint8(sel + 2);
+        Remesh.RESOLUTION = data.getUint16(sel, true);
+        Remesh.BLOCK = data.getUint8(sel + 2, true);
         main.getGui().ctrlTopology_.remesh();
         sel += 3;
         nextTick = 100;
@@ -648,21 +661,21 @@ define([
         main.getGui().ctrlTopology_.dynamicToggleLinear();
         break;
       case Replay.DYNAMIC_SUBDIVISION:
-        main.getGui().ctrlTopology_.dynamicSubdivision(data.getUint8(sel));
+        main.getGui().ctrlTopology_.dynamicSubdivision(data.getUint8(sel, true));
         sel += 1;
         break;
       case Replay.DYNAMIC_DECIMATION:
-        main.getGui().ctrlTopology_.dynamicDecimation(data.getUint8(sel));
+        main.getGui().ctrlTopology_.dynamicDecimation(data.getUint8(sel, true));
         sel += 1;
         break;
       case Replay.LOAD_ALPHA:
-        var nbBytesA = data.getUint32(sel + 8);
+        var nbBytesA = data.getUint32(sel + 8, true);
         this.nbBytesResourcesLoaded_ += nbBytesA;
-        main.loadAlphaTexture(new Uint8Array(data.buffer.slice(sel + 12, sel + 12 + nbBytesA)), data.getUint32(sel), data.getUint32(sel + 4));
+        main.loadAlphaTexture(new Uint8Array(data.buffer.slice(sel + 12, sel + 12 + nbBytesA)), data.getUint32(sel, true), data.getUint32(sel + 4, true));
         sel += 12 + nbBytesA;
         break;
       case Replay.LOAD_MESHES:
-        var nbBytes = data.getUint32(sel);
+        var nbBytes = data.getUint32(sel, true);
         main.loadScene(data.buffer.slice(sel + 4, sel + 4 + nbBytes), 'sgl');
         this.nbBytesResourcesLoaded_ += nbBytes;
         sel += 4 + nbBytes;
@@ -676,31 +689,31 @@ define([
         main.deleteCurrentMesh();
         break;
       case Replay.EXPOSURE_INTENSITY:
-        main.getGui().ctrlRendering_.onExposureChanged(data.getUint8(sel));
+        main.getGui().ctrlRendering_.onExposureChanged(data.getUint8(sel, true));
         sel += 1;
         break;
       case Replay.SHOW_GRID:
-        main.getGui().ctrlRendering_.onShowGrid(data.getUint8(sel));
+        main.getGui().ctrlRendering_.onShowGrid(data.getUint8(sel, true));
         this.virtualGrid_ = main.showGrid_;
         sel += 1;
         break;
       case Replay.SHOW_WIREFRAME:
-        main.getGui().ctrlRendering_.onShowWireframe(data.getUint8(sel));
+        main.getGui().ctrlRendering_.onShowWireframe(data.getUint8(sel, true));
         this.getOrCreateRenderMesh(main.getMesh()).wireframe_ = main.getMesh().getShowWireframe();
         sel += 1;
         break;
       case Replay.FLAT_SHADING:
-        main.getGui().ctrlRendering_.onFlatShading(data.getUint8(sel));
+        main.getGui().ctrlRendering_.onFlatShading(data.getUint8(sel, true));
         this.getOrCreateRenderMesh(main.getMesh()).flatShading_ = main.getMesh().getFlatShading();
         sel += 1;
         break;
       case Replay.SHADER_SELECT:
-        main.getGui().ctrlRendering_.onShaderChanged(data.getUint8(sel));
+        main.getGui().ctrlRendering_.onShaderChanged(data.getUint8(sel, true));
         this.getOrCreateRenderMesh(main.getMesh()).shader_ = main.getMesh().getShaderType();
         sel += 1;
         break;
       case Replay.MATCAP_SELECT:
-        main.getGui().ctrlRendering_.onMatcapChanged(data.getUint8(sel));
+        main.getGui().ctrlRendering_.onMatcapChanged(data.getUint8(sel, true));
         sel += 1;
         break;
       case Replay.TABLET_TOGGLE_INTENSITY:
@@ -710,7 +723,7 @@ define([
         Tablet.useOnRadius = !Tablet.useOnRadius;
         break;
       case Replay.TABLET_PRESSURE:
-        Tablet.overridePressure = data.getFloat32(sel);
+        Tablet.overridePressure = data.getFloat32(sel, true);
         sel += 4;
         break;
       }
@@ -722,6 +735,8 @@ define([
       return nextTick;
     },
     endReplay: function () {
+      if (this.guiReplay_)
+        this.guiReplay_.setVisibility(false);
       this.removeEvents();
       var main = this.main_;
       main.camera_ = this.virtualCamera_;

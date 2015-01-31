@@ -20,9 +20,9 @@ define([], function () {
   Replay.CAMERA_PROJ_TYPE = ida++; // [type (u8)]
   Replay.CAMERA_FOV = ida++; // [fov (u8)]
   Replay.CAMERA_RESET = ida++; // []
-  Replay.CAMERA_RESET_FRONT = ida++; // []
-  Replay.CAMERA_RESET_LEFT = ida++; // []
-  Replay.CAMERA_RESET_TOP = ida++; // []
+  Replay.CAMERA_TOGGLE_FRONT = ida++; // []
+  Replay.CAMERA_TOGGLE_LEFT = ida++; // []
+  Replay.CAMERA_TOGGLE_TOP = ida++; // []
   Replay.CAMERA_TOGGLE_PIVOT = ida++; // []
 
   Replay.SCULPT_TOOL = ida++; // [tool (u8)]
@@ -118,7 +118,7 @@ define([], function () {
   Replay.SHIFT = 1 << 2;
 
   Replay.CODE = 59821876; // code
-  Replay.VERSION = 2; // version
+  Replay.VERSION = 3; // version
 
   return Replay;
 });
