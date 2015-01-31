@@ -289,41 +289,41 @@ define([
       if (this.firstReplay_)
         u8a.set(new Uint8Array(this.firstReplay_));
       else {
-        data.setUint32(0, Replay.CODE);
-        data.setUint32(4, Replay.VERSION);
+        data.setUint32(0, Replay.CODE, true);
+        data.setUint32(4, Replay.VERSION, true);
         offset += 8 + 4; // code(4o) + version(4o) + nbytes (4o)
       }
-      data.setUint32(8, data.getUint32(8) + this.nbBytesLoadingMeshes_);
+      data.setUint32(8, data.getUint32(8, true) + this.nbBytesLoadingMeshes_, true);
 
       for (var i = 0; i < nb; ++i) {
         var ac = stack[i];
-        data.setUint8(offset++, ac);
+        data.setUint8(offset++, ac, true);
         switch (ac) {
         case Replay.DEVICE_MOVE:
-          data.setUint16(offset, stack[++i]);
-          data.setUint16(offset + 2, stack[++i]);
-          data.setUint8(offset + 4, stack[++i]);
+          data.setUint16(offset, stack[++i], true);
+          data.setUint16(offset + 2, stack[++i], true);
+          data.setUint8(offset + 4, stack[++i], true);
           offset += 5;
           break;
         case Replay.DEVICE_DOWN:
-          data.setUint8(offset, stack[++i]);
-          data.setUint16(offset + 1, stack[++i]);
-          data.setUint16(offset + 3, stack[++i]);
-          data.setUint8(offset + 5, stack[++i]);
+          data.setUint8(offset, stack[++i], true);
+          data.setUint16(offset + 1, stack[++i], true);
+          data.setUint16(offset + 3, stack[++i], true);
+          data.setUint8(offset + 5, stack[++i], true);
           offset += 6;
           break;
         case Replay.DEVICE_WHEEL:
-          data.setInt8(offset, stack[++i]);
+          data.setInt8(offset, stack[++i], true);
           offset += 1;
           break;
         case Replay.CAMERA_SIZE:
-          data.setUint16(offset, stack[++i]);
-          data.setUint16(offset + 2, stack[++i]);
+          data.setUint16(offset, stack[++i], true);
+          data.setUint16(offset + 2, stack[++i], true);
           offset += 4;
           break;
         case Replay.CAMERA_FPS:
-          data.setInt8(offset, stack[++i]);
-          data.setInt8(offset + 1, stack[++i]);
+          data.setInt8(offset, stack[++i], true);
+          data.setInt8(offset + 1, stack[++i], true);
           offset += 2;
           break;
         case Replay.CAMERA_MODE:
@@ -353,37 +353,37 @@ define([
         case Replay.MATCAP_SELECT:
         case Replay.BRUSH_SELECT_ALPHA:
         case Replay.PAINT_SELECT_ALPHA:
-          data.setUint8(offset, stack[++i]);
+          data.setUint8(offset, stack[++i], true);
           offset += 1;
           break;
         case Replay.PAINT_COLOR:
-          data.setFloat32(offset, stack[++i]);
-          data.setFloat32(offset + 4, stack[++i]);
-          data.setFloat32(offset + 8, stack[++i]);
+          data.setFloat32(offset, stack[++i], true);
+          data.setFloat32(offset + 4, stack[++i], true);
+          data.setFloat32(offset + 8, stack[++i], true);
           offset += 12;
           break;
         case Replay.PAINT_ROUGHNESS:
         case Replay.PAINT_METALLIC:
         case Replay.TABLET_PRESSURE:
-          data.setFloat32(offset, stack[++i]);
+          data.setFloat32(offset, stack[++i], true);
           offset += 4;
           break;
         case Replay.VOXEL_REMESH:
-          data.setUint16(offset, stack[++i]);
-          data.setUint8(offset, stack[++i]);
+          data.setUint16(offset, stack[++i], true);
+          data.setUint8(offset, stack[++i], true);
           offset += 3;
           break;
         case Replay.LOAD_ALPHA:
-          data.setUint32(offset, stack[++i]);
-          data.setUint32(offset + 4, stack[++i]);
+          data.setUint32(offset, stack[++i], true);
+          data.setUint32(offset + 4, stack[++i], true);
           var abA = stack[++i];
-          data.setUint32(offset + 8, abA.byteLength);
+          data.setUint32(offset + 8, abA.byteLength, true);
           u8a.set(abA, offset + 12);
           offset += 12 + abA.byteLength;
           break;
         case Replay.LOAD_MESHES:
           var ab = stack[++i];
-          data.setUint32(offset, ab.byteLength);
+          data.setUint32(offset, ab.byteLength, true);
           u8a.set(new Uint8Array(ab), offset + 4);
           offset += 4 + ab.byteLength;
           break;
