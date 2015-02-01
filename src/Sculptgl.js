@@ -630,11 +630,13 @@ define([
       this.checkMask_ = false;
       if (button === 3 && event.ctrlKey)
         this.mouseButton_ = 4; // zoom camera
+      else if (button === 2)
+        this.mouseButton_ = 5; // pan camera (wheel mode)
       else if (!pickedMesh && event.ctrlKey) {
         this.maskX_ = mouseX;
         this.maskY_ = mouseY;
         this.checkMask_ = true;
-        this.mouseButton_ = 0;
+        this.mouseButton_ = 0; // mask edit mode
       } else if ((!pickedMesh || button === 3) && event.altKey)
         this.mouseButton_ = 2; // pan camera
       else if (button === 3 || (button === 1 && !pickedMesh)) {
@@ -671,11 +673,11 @@ define([
           this.pickingSym_.intersectionMouseMesh(this.mesh_, mouseX, mouseY);
       }
       if (button !== 0) {
-        if (button === 4) {
+        if (button === 4 || (button === 2 && !event.altKey)) {
           this.camera_.zoom((mouseX - this.lastMouseX_ + mouseY - this.lastMouseY_) / 1000);
           Multimesh.RENDER_HINT = Multimesh.CAMERA;
           this.render();
-        } else if (button === 2) {
+        } else if (button === 2 || button === 5) {
           this.camera_.translate((mouseX - this.lastMouseX_) / 1000, (mouseY - this.lastMouseY_) / 1000);
           Multimesh.RENDER_HINT = Multimesh.CAMERA;
           this.render();
