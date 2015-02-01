@@ -122,6 +122,10 @@ define([
         var pair = vars[i].split('=');
         if (pair[0] === 'replay') {
           url = pair[1];
+          if (url === '0') {
+            this.main_.getReplayWriter().noUpload_ = true;
+            return;
+          }
           break;
         }
         if (pair[0] === 'noreplay') {

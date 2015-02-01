@@ -54,6 +54,27 @@ define([
     update: function (main) {
       this.sculptStroke(main);
     },
+    /** Update lock position */
+    updateSculptLock: function (main) {
+      this.states_.getCurrentState().undo(); // I can't believe it actually worked
+
+      var picking = main.getPicking();
+      var origRad = picking.getScreenRadius();
+      var pickingSym = main.getSculpt().getSymmetry() ? main.getPickingSymmetry() : null;
+
+      var dx = main.mouseX_ - this.lastMouseX_;
+      var dy = main.mouseY_ - this.lastMouseY_;
+      picking.rDisplay_ = Math.sqrt(dx * dx + dy * dy);
+      // it's a bit hacky... I just simulate another stroke with a very small offset
+      // so that the stroke still has a direction (the mask can be rotated correctly then)
+      var offx = dx / picking.rDisplay_;
+      var offy = dy / picking.rDisplay_;
+      this.makeStroke(this.lastMouseX_ + offx * 1e-3, this.lastMouseY_ + offy * 1e-3, picking, pickingSym);
+      picking.rDisplay_ = origRad;
+
+      this.updateRender(main);
+      main.getCanvas().style.cursor = 'default';
+    },
     /** Make a brush stroke */
     sculptStroke: function (main) {
       var picking = main.getPicking();
@@ -92,22 +113,26 @@ define([
     makeStroke: function (mouseX, mouseY, picking, pickingSym) {
       var mesh = this.mesh_;
       picking.intersectionMouseMesh(mesh, mouseX, mouseY);
-      if (!picking.getMesh())
-        return false;
-      picking.pickVerticesInSphere(picking.getLocalRadius2());
-      picking.computePickedNormal();
-      this.stroke(picking);
+      var pick1 = picking.getMesh();
+      if (pick1) {
+        picking.pickVerticesInSphere(picking.getLocalRadius2());
+        picking.computePickedNormal();
+      }
 
+      var pick2;
       if (pickingSym) {
         pickingSym.intersectionMouseMesh(mesh, mouseX, mouseY);
-        if (!pickingSym.getMesh())
-          return false;
-        pickingSym.setLocalRadius2(picking.getLocalRadius2());
-        pickingSym.pickVerticesInSphere(pickingSym.getLocalRadius2());
-        pickingSym.computePickedNormal();
-        this.stroke(pickingSym, true);
+        pick2 = pickingSym.getMesh();
+        if (pick2) {
+          pickingSym.setLocalRadius2(picking.getLocalRadius2());
+          pickingSym.pickVerticesInSphere(pickingSym.getLocalRadius2());
+          pickingSym.computePickedNormal();
+        }
       }
-      return true;
+
+      if (pick1) this.stroke(picking);
+      if (pick2) this.stroke(pickingSym, true);
+      return pick1 || pick2;
     },
     updateMeshBuffers: function () {
       if (this.mesh_.getDynamicTopology)

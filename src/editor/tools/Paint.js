@@ -20,6 +20,7 @@ define([
     this.global_ = false; // global material
     this.pickCallback_ = null; // callback function after picking a color
     this.idAlpha_ = 0;
+    this.lockPosition_ = false;
   }
 
   Paint.prototype = {
@@ -33,13 +34,17 @@ define([
       var picking = main.getPicking();
       if (this.pickColor_)
         return this.pickColor(picking);
+      if (this.lockPosition_)
+        return;
       this.update(main);
     },
     /** Update sculpting operation */
     update: function (main) {
       if (this.pickColor_ === true)
         return this.updatePickColor(main);
-      this.sculptStroke(main);
+      if (this.lockPosition_ === false)
+        return this.sculptStroke(main);
+      this.updateSculptLock(main);
     },
     updateContinuous: function (main) {
       if (this.pickColor_ === true)
@@ -85,12 +90,13 @@ define([
       if (this.culling_)
         iVertsInRadius = this.getFrontVertices(iVertsInRadius, picking.getEyeDirection());
 
-      picking.updateAlpha();
+      picking.updateAlpha(this.lockPosition_);
       picking.setIdAlpha(this.idAlpha_);
       this.paint(iVertsInRadius, picking.getIntersectionPoint(), picking.getLocalRadius2(), intensity, this.hardness_, picking);
 
       this.mesh_.updateDuplicateColorsAndMaterials(iVertsInRadius);
-      this.mesh_.updateFlatShading(this.mesh_.getFacesFromVertices(iVertsInRadius));
+      var idFaces = this.mesh_.getFacesFromVertices(iVertsInRadius);
+      this.mesh_.updateFlatShading(idFaces);
     },
     /** Paint color vertices */
     paint: function (iVerts, center, radiusSquared, intensity, hardness, picking) {

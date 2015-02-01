@@ -52,6 +52,7 @@ define([
   };
   var addCtrlAlpha = function (ctrls, fold, tool, ui) {
     ctrls.push(fold.addTitle(TR('sculptAlphaTitle')));
+    ctrls.push(fold.addCheckbox(TR('sculptLockPositon'), tool, 'lockPosition_'));
     ui.ctrlAlpha_ = fold.addCombobox(TR('sculptAlphaTex'), tool, 'idAlpha_', Picking.ALPHAS_NAMES);
     ctrls.push(ui.ctrlAlpha_);
     ctrls.push(fold.addButton(TR('sculptImportAlpha'), importAlpha));

@@ -111,7 +111,7 @@ body {
 }
 
 .gui-sidebar > ul[opened=true] {
-  max-height: 500px;
+  max-height: 700px;
 }
 
 .gui-sidebar > ul[opened=false] {

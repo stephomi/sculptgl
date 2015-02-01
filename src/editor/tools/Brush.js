@@ -18,32 +18,46 @@ define([
     this.culling_ = false; // if we backface cull the vertices
     this.accumulate_ = true; // if we ignore the proxy
     this.idAlpha_ = 0;
+    this.lockPosition_ = false;
   }
 
   Brush.prototype = {
+    startSculpt: function (main) {
+      if (this.lockPosition_)
+        return;
+      this.sculptStroke(main);
+    },
+    update: function (main) {
+      if (this.lockPosition_ === false)
+        return this.sculptStroke(main);
+      this.updateSculptLock(main);
+    },
     stroke: function (picking) {
       var iVertsInRadius = picking.getPickedVertices();
       var intensity = this.intensity_ * Tablet.getPressureIntensity();
 
-      this.updateProxy(iVertsInRadius);
+      if (!this.accumulate_ && !this.lockPosition_)
+        this.updateProxy(iVertsInRadius);
       // undo-redo
       this.states_.pushVertices(iVertsInRadius);
-      iVertsInRadius = this.dynamicTopology(picking);
+      if (!this.lockPosition_)
+        iVertsInRadius = this.dynamicTopology(picking);
 
       var iVertsFront = this.getFrontVertices(iVertsInRadius, picking.getEyeDirection());
       if (this.culling_)
         iVertsInRadius = iVertsFront;
 
       var r2 = picking.getLocalRadius2();
-      picking.updateAlpha();
+      picking.updateAlpha(this.lockPosition_);
       picking.setIdAlpha(this.idAlpha_);
+
       if (!this.clay_) {
         this.brush(iVertsInRadius, picking.getPickedNormal(), picking.getIntersectionPoint(), r2, intensity, picking);
       } else {
         var aNormal = this.areaNormal(iVertsFront);
         if (!aNormal)
           return;
-        var aCenter = this.areaCenter(iVertsFront);
+        var aCenter = this.lockPosition_ ? picking.getIntersectionPoint() : this.areaCenter(iVertsFront);
         var off = Math.sqrt(r2) * 0.1;
         vec3.scaleAndAdd(aCenter, aCenter, aNormal, this.negative_ ? -off : off);
         Flatten.prototype.flatten.call(this, iVertsInRadius, aNormal, aCenter, picking.getIntersectionPoint(), r2, intensity, picking);
@@ -55,7 +69,7 @@ define([
       var mesh = this.mesh_;
       var vAr = mesh.getVertices();
       var mAr = mesh.getMaterials();
-      var vProxy = this.accumulate_ ? vAr : mesh.getVerticesProxy();
+      var vProxy = this.accumulate_ || this.lockPosition_ ? vAr : mesh.getVerticesProxy();
       var radius = Math.sqrt(radiusSquared);
       var deformIntensityBrush = intensity * radius * 0.1;
       if (this.negative_)

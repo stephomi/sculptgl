@@ -68,7 +68,7 @@ define([
     updateAlpha: (function () {
       var nor = [0.0, 0.0, 0.0];
       var dir = [0.0, 0.0, 0.0];
-      return function () {
+      return function (keepOrigin) {
         var radius = Math.sqrt(this.rLocal2_);
         this.alphaSide_ = radius * Math.SQRT1_2;
 
@@ -80,7 +80,8 @@ define([
         vec3.scaleAndAdd(dir, dir, normal, -vec3.dot(dir, normal));
         vec3.normalize(dir, dir);
 
-        vec3.copy(this.alphaOrirign_, this.interPoint_);
+        if (!keepOrigin)
+          vec3.copy(this.alphaOrirign_, this.interPoint_);
 
         vec3.scale(nor, normal, radius);
         vec3.scale(dir, dir, radius);

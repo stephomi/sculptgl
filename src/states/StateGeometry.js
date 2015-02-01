@@ -13,8 +13,9 @@ define([
 
   StateGeometry.prototype = {
     /** On undo */
-    undo: function () {
+    undo: function (skipUpdate) {
       this.pullVertices();
+      if (skipUpdate) return;
       var mesh = this.mesh_;
       mesh.updateGeometry(mesh.getFacesFromVertices(this.idVertState_), this.idVertState_);
       mesh.updateGeometryBuffers();
