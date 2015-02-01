@@ -39,6 +39,8 @@ define([
       var cy = center[1];
       var cz = center[2];
       var deformIntensity = intensity * 0.05;
+      if (this.negative_)
+        deformIntensity = -deformIntensity;
       for (var i = 0, l = iVertsInRadius.length; i < l; ++i) {
         var ind = iVertsInRadius[i] * 3;
         var vx = vAr[ind];
