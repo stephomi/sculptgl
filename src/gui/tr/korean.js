@@ -78,7 +78,7 @@ define([], function () {
           '만약 당신이 무엇을 하는지 안다면 "세분화"를 다시 클릭하세요.';
     },
     multiresNotReversible: '이 메쉬는 리버싱할 수 없습니다.\n' +
-    'The mesh is not a product of a (loop-catmull) subdivision surface on a manifold mesh.',
+    '이 메쉬는 여러가지 메쉬의 표면의 세분화를 product한 것이 아닙니다.(loop-catmull)',
 
     // remesh
     remeshTitle: 'Voxel Remeshing',
@@ -95,7 +95,7 @@ define([], function () {
 
     // sculpt
     sculptTitle: 'Sculpting & Painting',
-    sculptBrush: 'Brush (1)',
+    sculptBrush: '브러쉬 (1)',
     sculptInflate: 'Inflate (2)',
     sculptTwist: 'Twist (3)',
     sculptSmooth: 'Smooth (4 or -Shift)',
@@ -178,8 +178,8 @@ define([], function () {
     matcapOrange: 'Orange',
 
     // sketchfab
-    sketchfabTitle: 'Go to Sketchfab !',
-    sketchfabUpload: 'Upload',
+    sketchfabTitle: 'Sketchfab으로 가기 !',
+    sketchfabUpload: '올리기',
     sketchfabUploadMessage: 'Please enter your sketchfab API Key.\n' +
     'You can also leave "guest" to upload anonymously.\n' +
     '(a new window will pop up when the uploading and processing is finished)',
