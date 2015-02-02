@@ -10,7 +10,7 @@ define([], function () {
     backgroundTitle: '배경',
     backgroundReset: '초기화',
     backgroundImport: '배경 (jpg, png...)',
-    backgroundFill: '체우기',
+    backgroundFill: '채우기',
 
     // camera
     cameraTitle: '카메라',
