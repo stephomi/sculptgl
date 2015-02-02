@@ -2,8 +2,8 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="5c3cf476-741f-44f0-a25f-27a10a1f6557" name="Default" comment="">
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/src/gui/tr/korean.js" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/gui/GuiTR.js" afterPath="$PROJECT_DIR$/src/gui/GuiTR.js" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.gitignore" afterPath="$PROJECT_DIR$/.gitignore" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
     </list>
     <ignored path="sculptgl.iws" />
     <ignored path=".idea/workspace.xml" />
@@ -27,16 +27,6 @@
   </component>
   <component name="FileEditorManager">
     <leaf>
-      <file leaf-file-name="index.html" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/tools/index.html">
-          <provider selected="true" editor-type-id="text-editor">
-            <state vertical-scroll-proportion="-0.0" vertical-offset="0" max-vertical-offset="990">
-              <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
-              <folding />
-            </state>
-          </provider>
-        </entry>
-      </file>
       <file leaf-file-name="almond.js" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/tools/almond.js">
           <provider selected="true" editor-type-id="text-editor">
@@ -59,11 +49,21 @@
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="korean.js" pinned="false" current-in-tab="true">
+      <file leaf-file-name="korean.js" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/src/gui/tr/korean.js">
           <provider selected="true" editor-type-id="text-editor">
-            <state vertical-scroll-proportion="0.13274336" vertical-offset="2145" max-vertical-offset="3015">
+            <state vertical-scroll-proportion="0.0" vertical-offset="2145" max-vertical-offset="3015">
               <caret line="148" column="24" selection-start-line="148" selection-start-column="24" selection-end-line="148" selection-end-column="24" />
+              <folding />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name=".gitignore" pinned="false" current-in-tab="true">
+        <entry file="file://$PROJECT_DIR$/.gitignore">
+          <provider selected="true" editor-type-id="text-editor">
+            <state vertical-scroll-proportion="0.16666667" vertical-offset="0" max-vertical-offset="540">
+              <caret line="6" column="7" selection-start-line="6" selection-start-column="7" selection-end-line="6" selection-end-column="7" />
               <folding />
             </state>
           </provider>
@@ -139,6 +139,7 @@
       <list>
         <option value="$PROJECT_DIR$/src/gui/GuiTR.js" />
         <option value="$PROJECT_DIR$/src/gui/tr/korean.js" />
+        <option value="$PROJECT_DIR$/.gitignore" />
       </list>
     </option>
   </component>
@@ -405,7 +406,7 @@
         <state vertical-scroll-proportion="0.0" vertical-offset="0" max-vertical-offset="859">
           <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
           <folding>
-            <element signature="n#!!doc" expanded="true" />
+            <element signature="n#!!doc" expanded="false" />
           </folding>
         </state>
       </provider>
@@ -486,8 +487,16 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/src/gui/tr/korean.js">
       <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.13274336" vertical-offset="2145" max-vertical-offset="3015">
+        <state vertical-scroll-proportion="0.0" vertical-offset="2145" max-vertical-offset="3015">
           <caret line="148" column="24" selection-start-line="148" selection-start-column="24" selection-end-line="148" selection-end-column="24" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/.gitignore">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.16666667" vertical-offset="0" max-vertical-offset="540">
+          <caret line="6" column="7" selection-start-line="6" selection-start-column="7" selection-end-line="6" selection-end-column="7" />
           <folding />
         </state>
       </provider>

@@ -4,3 +4,4 @@ nodewebkit/*
 cache/*
 node_modules
 *~
+.idea/*
