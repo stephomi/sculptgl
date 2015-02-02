@@ -26,7 +26,7 @@ define([], function () {
     cameraProjection: '투사',
     cameraPerspective: '원근법',
     cameraOrthographic: '정사영법',
-    cameraFov: '화',
+    cameraFov: '시야각',
     cameraPivot: '피봇 고르기',
 
     // file
@@ -46,7 +46,7 @@ define([], function () {
     // replayer
     replayTitle: '리플레이 환경설정',
     replayPaused: '정지',
-    replaySpeed: '리플레이 속',
+    replaySpeed: '리플레이 속도',
     replayOverride: '덮기',
 
     // scene
@@ -60,7 +60,7 @@ define([], function () {
     meshNbFaces: '면들 : ',
 
     // topology
-    topologyTitle: '토폴로',
+    topologyTitle: '토폴로지',
 
     //multires
     multiresTitle: '다중 해상도',
@@ -71,10 +71,10 @@ define([], function () {
     multiresNoHigher: '더 높은 해상도가 존재하지 않습니다.',
     multiresDelHigher: '더 높은 것을 삭제',
     multiresDelLower: '더 낮은 것을 삭제',
-    multiresSelectLowest: '리버싱 하기 전에 더 낮은 해상도를 고르시오.',
-    multiresSelectHighest: '세분화 하기 전에 더 높은 해상도를 고르시오',
+    multiresSelectLowest: '리버싱 하기 전에 더 낮은 해상도를 고르세요.',
+    multiresSelectHighest: '세분화 하기 전에 더 높은 해상도를 고르세요',
     multiresWarnBigMesh: function (nbFacesNext) {
-      return '다음 세분화 레벨은 ' + nbFacesNext + ' 면만큼 도달할 것이다.\n' +
+      return '다음 세분화 레벨은 ' + nbFacesNext + ' 면만큼 도달할 것입니다.\n' +
           '만약 당신이 무엇을 하는지 안다면 "세분화"를 다시 클릭하세요.';
     },
     multiresNotReversible: '이 메쉬는 리버싱할 수 없습니다.\n' +
