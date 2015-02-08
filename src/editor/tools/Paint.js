@@ -25,8 +25,8 @@ define([
 
   Paint.prototype = {
     /** Push undo operation */
-    pushState: function () {
-      if (!this.pickColor_)
+    pushState: function (force) {
+      if (!this.pickColor_ || force)
         this.states_.pushStateColorAndMaterial(this.mesh_);
     },
     /** Start sculpting operation */
@@ -139,7 +139,7 @@ define([
       var iVerts = this.getUnmaskedVertices();
       if (!iVerts) return;
 
-      this.pushState();
+      this.pushState(true);
       this.states_.pushVertices(iVerts);
 
       var cAr = mesh.getColors();
