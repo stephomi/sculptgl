@@ -14,7 +14,7 @@ define([
 
     this.center_ = vec3.create(); // center of the mesh (local space, before transformation)
     this.matrix_ = mat4.create(); // transformation matrix of the mesh
-    this.scale_ = 1.0; // the scale is already applied in the matrix transform
+    this.editMatrix_ = mat4.create(); // edit matrix
 
     this.symmetryNormal_ = [1.0, 0.0, 0.0]; // symmetry normal
 
@@ -23,6 +23,7 @@ define([
     this.cacheMV_ = mat4.create(); // MV matrix
     this.cacheMVP_ = mat4.create(); // MVP matrix
     this.cacheN_ = mat3.create(); // N matrix
+    this.cacheEN_ = mat3.create(); // Editmatrix N matrix
     this.cacheDepth_ = 0.0; // depth of center
   }
 
@@ -39,17 +40,21 @@ define([
     getN: function () {
       return this.cacheN_;
     },
+    getEN: function () {
+      return this.cacheEN_;
+    },
     getDepth: function () {
       return this.cacheDepth_;
     },
     getMatrix: function () {
       return this.matrix_;
     },
-    getScale: function () {
-      return this.scale_;
+    getEditMatrix: function () {
+      return this.editMatrix_;
     },
-    setScale: function (scale) {
-      this.scale_ = scale;
+    getScale: function () {
+      var m = this.matrix_;
+      return Math.sqrt(m[0] * m[0] + m[4] * m[4] + m[8] * m[8]);
     },
     getSymmetryNormal: function () {
       return this.symmetryNormal_;
@@ -61,6 +66,7 @@ define([
     },
     /** Pre compute mv and mvp matrices as well as the depth center */
     computeMatrices: function (camera) {
+      mat3.normalFromMat4(this.cacheEN_, this.editMatrix_);
       mat4.mul(this.cacheMV_, camera.view_, this.matrix_);
       mat3.normalFromMat4(this.cacheN_, this.cacheMV_);
       mat4.mul(this.cacheMVP_, camera.proj_, this.cacheMV_);
@@ -75,7 +81,7 @@ define([
       var diag = vec3.dist([box[0], box[1], box[2]], [box[3], box[4], box[5]]);
       var scale = Utils.SCALE / diag;
       // f32 cast for sgl exporter consistency
-      scale = this.scale_ = new Float32Array([scale])[0];
+      scale = new Float32Array([scale])[0];
       mat4.scale(this.matrix_, this.matrix_, [scale, scale, scale]);
     },
     translate: function (trans) {

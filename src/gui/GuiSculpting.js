@@ -48,9 +48,10 @@ define([
       optionsSculpt[Sculpt.tool.PAINT] = TR('sculptPaint');
       optionsSculpt[Sculpt.tool.MASKING] = TR('sculptMasking');
       optionsSculpt[Sculpt.tool.MOVE] = TR('sculptMove');
-      optionsSculpt[Sculpt.tool.SCALE] = TR('sculptScale');
+      optionsSculpt[Sculpt.tool.LOCALSCALE] = TR('sculptLocalScale');
       optionsSculpt[Sculpt.tool.TRANSLATE] = TR('sculptTranslate');
       optionsSculpt[Sculpt.tool.ROTATE] = TR('sculptRotate');
+      optionsSculpt[Sculpt.tool.SCALE] = TR('sculptScale');
       this.ctrlSculpt_ = menu.addCombobox(TR('sculptTool'), this.sculpt_.tool_, this.onChangeTool.bind(this), optionsSculpt);
 
       // radius
@@ -69,9 +70,10 @@ define([
       this.initTool(Sculpt.tool.PAINT);
       this.initTool(Sculpt.tool.MASKING);
       this.initTool(Sculpt.tool.MOVE);
-      this.initTool(Sculpt.tool.SCALE);
+      this.initTool(Sculpt.tool.LOCALSCALE);
       this.initTool(Sculpt.tool.TRANSLATE);
       this.initTool(Sculpt.tool.ROTATE);
+      this.initTool(Sculpt.tool.SCALE);
 
       menu.addTitle(TR('Extra'));
       // symmetry
@@ -232,6 +234,9 @@ define([
       case 82: // R
         ctrlSculpt.setValue(Sculpt.tool.ROTATE);
         break;
+      case 71: // G
+        ctrlSculpt.setValue(Sculpt.tool.SCALE);
+        break;
       case 78: // N
         var cur = uiTools[this.getSelectedTool()];
         if (cur.toggleNegative)
@@ -303,8 +308,9 @@ define([
       this.sculpt_.tool_ = newValue;
       GuiSculptingTools.show(newValue);
       this.ctrlContinuous_.setVisibility(this.sculpt_.allowPicking() === true);
-      this.ctrlSymmetry_.setVisibility(newValue !== Sculpt.tool.TRANSLATE && newValue !== Sculpt.tool.ROTATE);
-      this.ctrlRadius_.setVisibility(newValue !== Sculpt.tool.TRANSLATE && newValue !== Sculpt.tool.ROTATE);
+      var show = newValue !== Sculpt.tool.TRANSLATE && newValue !== Sculpt.tool.ROTATE && newValue !== Sculpt.tool.SCALE;
+      this.ctrlSymmetry_.setVisibility(show);
+      this.ctrlRadius_.setVisibility(show);
     },
     loadAlpha: function (event) {
       if (event.target.files.length === 0)

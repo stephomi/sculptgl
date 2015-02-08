@@ -42,6 +42,20 @@ define([
         this.mesh_.checkLeavesUpdate();
       }
     },
+    endTransform: function () {
+      var mesh = this.mesh_;
+      if (!mesh)
+        return;
+      var em = mesh.getEditMatrix();
+      // check identity
+      if ((em[0] * em[5] * em[10]) === 1.0 && em[12] === 0.0 && em[13] === 0.0 && em[14] === 0.0)
+        return;
+      var iVerts = this.getUnmaskedVertices();
+      this.states_.pushVertices(iVerts);
+
+      this.applyEditMatrix(iVerts);
+      this.updateMeshBuffers();
+    },
     /** Push undo operation */
     pushState: function () {
       this.states_.pushStateGeometry(this.mesh_);

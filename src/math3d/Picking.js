@@ -341,8 +341,9 @@ define([
       var z = this.project(interPointTransformed)[2];
       var vCircle = this.unproject(mouseX + (this.rDisplay_ * Tablet.getPressureRadius()), mouseY, z);
       this.rWorld2_ = vec3.sqrDist(interPointTransformed, vCircle);
-      vec3.scale(interPointTransformed, interPointTransformed, 1.0 / mesh.getScale());
-      vec3.scale(vCircle, vCircle, 1.0 / mesh.getScale());
+      var invScale = 1.0 / mesh.getScale();
+      vec3.scale(interPointTransformed, interPointTransformed, invScale);
+      vec3.scale(vCircle, vCircle, invScale);
       this.rLocal2_ = vec3.sqrDist(interPointTransformed, vCircle);
     },
     unproject: function (x, y, z) {

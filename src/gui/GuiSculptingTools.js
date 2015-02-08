@@ -183,7 +183,7 @@ define([
     }
   };
 
-  tools[Sculpt.tool.SCALE] = {
+  tools[Sculpt.tool.LOCALSCALE] = {
     ctrls_: [],
     init: function (tool, fold) {
       this.ctrls_.push(addCtrlCulling(tool, fold));
@@ -247,6 +247,11 @@ define([
   };
 
   tools[Sculpt.tool.ROTATE] = {
+    ctrls_: [],
+    init: function () {}
+  };
+
+  tools[Sculpt.tool.SCALE] = {
     ctrls_: [],
     init: function () {}
   };

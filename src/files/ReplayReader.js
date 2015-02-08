@@ -585,7 +585,7 @@ define([
       case Replay.INFLATE_TOGGLE_CULLING:
       case Replay.PINCH_TOGGLE_CULLING:
       case Replay.SMOOTH_TOGGLE_CULLING:
-      case Replay.SCALE_TOGGLE_CULLING:
+      case Replay.LOCALSCALE_TOGGLE_CULLING:
       case Replay.TWIST_TOGGLE_CULLING:
       case Replay.PAINT_TOGGLE_CULLING:
       case Replay.MASKING_TOGGLE_CULLING:

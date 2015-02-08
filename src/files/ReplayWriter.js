@@ -197,8 +197,8 @@ define([
       case Sculpt.tool.TWIST:
         this.checkCommonSculptAttributes(mainSel, replaySel, 'TWIST');
         break;
-      case Sculpt.tool.SCALE:
-        this.checkCommonSculptAttributes(mainSel, replaySel, 'SCALE');
+      case Sculpt.tool.LOCALSCALE:
+        this.checkCommonSculptAttributes(mainSel, replaySel, 'LOCALSCALE');
         break;
       case Sculpt.tool.PAINT:
         // optimize a bit

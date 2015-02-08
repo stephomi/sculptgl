@@ -29,7 +29,7 @@ define([
       off += 3;
       mesh.getMatrix().set(f32a.subarray(off, off + 16));
       off += 16;
-      mesh.setScale(f32a[off++]);
+      off++; // scale
 
       // vertices
       var nbElts = u32a[off++];

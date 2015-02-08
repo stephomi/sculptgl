@@ -48,27 +48,28 @@ define([
   ShaderMatcap.attributes = {};
   ShaderMatcap.program = undefined;
 
-  ShaderMatcap.uniformNames = ['uMV', 'uMVP', 'uN', 'uTexture0'];
-  Array.prototype.push.apply(ShaderMatcap.uniformNames, ShaderBase.uniformNames.symmetryLine);
+  ShaderMatcap.uniformNames = ['uTexture0'];
+  Array.prototype.push.apply(ShaderMatcap.uniformNames, ShaderBase.uniformNames.commonUniforms);
 
   ShaderMatcap.vertex = [
+    'precision mediump float;',
     'attribute vec3 aVertex;',
     'attribute vec3 aNormal;',
     'attribute vec3 aColor;',
     'attribute vec3 aMaterial;',
-    'uniform mat4 uMV;',
-    'uniform mat4 uMVP;',
-    'uniform mat3 uN;',
+    ShaderBase.strings.vertUniforms,
     'varying vec3 vVertex;',
     'varying vec3 vNormal;',
     'varying vec3 vColor;',
     'varying float vMasking;',
     'void main() {',
-    '  vec4 vertex4 = vec4(aVertex, 1.0);',
-    '  vNormal = normalize(uN * aNormal);',
-    '  vVertex = vec3(uMV * vertex4);',
     '  vColor = aColor;',
     '  vMasking = aMaterial.z;',
+    '  vNormal = mix(aNormal, uEN * aNormal, vMasking);',
+    '  vNormal = normalize(uN * vNormal);',
+    '  vec4 vertex4 = vec4(aVertex, 1.0);',
+    '  vertex4 = mix(vertex4, uEM *vertex4, vMasking);',
+    '  vVertex = vec3(uMV * vertex4);',
     '  gl_Position = uMVP * vertex4;',
     '}'
   ].join('\n');
@@ -123,11 +124,6 @@ define([
   ShaderMatcap.updateUniforms = function (render, main) {
     var gl = render.getGL();
     var uniforms = this.uniforms;
-    var mesh = render.getMesh();
-
-    gl.uniformMatrix4fv(uniforms.uMV, false, mesh.getMV());
-    gl.uniformMatrix4fv(uniforms.uMVP, false, mesh.getMVP());
-    gl.uniformMatrix3fv(uniforms.uN, false, mesh.getN());
 
     gl.activeTexture(gl.TEXTURE0);
     gl.bindTexture(gl.TEXTURE_2D, render.getTexture0() || ShaderMatcap.textures[0]);

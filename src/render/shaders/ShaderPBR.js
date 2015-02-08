@@ -12,8 +12,8 @@ define([
   ShaderPBR.attributes = {};
   ShaderPBR.program = undefined;
 
-  ShaderPBR.uniformNames = ['uMV', 'uMVP', 'uN', 'uIblTransform', 'uTexture0', 'uAlbedo', 'uRoughness', 'uMetallic', 'uExposure'];
-  Array.prototype.push.apply(ShaderPBR.uniformNames, ShaderBase.uniformNames.symmetryLine);
+  ShaderPBR.uniformNames = ['uIblTransform', 'uTexture0', 'uAlbedo', 'uRoughness', 'uMetallic', 'uExposure'];
+  Array.prototype.push.apply(ShaderPBR.uniformNames, ShaderBase.uniformNames.commonUniforms);
 
   ShaderPBR.vertex = [
     'precision mediump float;',
@@ -21,9 +21,7 @@ define([
     'attribute vec3 aNormal;',
     'attribute vec3 aColor;',
     'attribute vec3 aMaterial;',
-    'uniform mat4 uMV;',
-    'uniform mat4 uMVP;',
-    'uniform mat3 uN;',
+    ShaderBase.strings.vertUniforms,
     'uniform float uRoughness;',
     'uniform float uMetallic;',
     'uniform vec3 uAlbedo;',
@@ -34,13 +32,15 @@ define([
     'varying float vMetallic;',
     'varying float vMasking;',
     'void main() {',
-    '  vec4 vertex4 = vec4(aVertex, 1.0);',
-    '  vNormal = normalize(uN * aNormal);',
     '  vAlbedo = uAlbedo.x >= 0.0 ? uAlbedo : aColor;',
     '  vRoughness = uRoughness >= 0.0 ? uRoughness : aMaterial.x;',
     '  vMetallic = uMetallic >= 0.0 ? uMetallic : aMaterial.y;',
-    '  vVertex = vec3(uMV * vertex4);',
     '  vMasking = aMaterial.z;',
+    '  vNormal = mix(aNormal, uEN * aNormal, vMasking);',
+    '  vNormal = normalize(uN * vNormal);',
+    '  vec4 vertex4 = vec4(aVertex, 1.0);',
+    '  vertex4 = mix(vertex4, uEM * vertex4, vMasking);',
+    '  vVertex = vec3(uMV * vertex4);',
     '  gl_Position = uMVP * vertex4;',
     '}'
   ].join('\n');
@@ -281,11 +281,6 @@ define([
   ShaderPBR.updateUniforms = function (render, main) {
     var gl = render.getGL();
     var uniforms = this.uniforms;
-    var mesh = render.getMesh();
-
-    gl.uniformMatrix4fv(uniforms.uMV, false, mesh.getMV());
-    gl.uniformMatrix4fv(uniforms.uMVP, false, mesh.getMVP());
-    gl.uniformMatrix3fv(uniforms.uN, false, mesh.getN());
 
     gl.uniformMatrix4fv(uniforms.uIblTransform, false, main.getCamera().view_);
 

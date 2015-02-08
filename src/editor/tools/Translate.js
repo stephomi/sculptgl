@@ -14,37 +14,51 @@ define([
     SculptBase.call(this, states);
     this.origin_ = [0.0, 0.0, 0.0]; // plane origin
     this.normal_ = [0.0, 0.0, 0.0]; // plane normal
-    this.matrix_ = mat4.create(); // origin matrix
     this.matrixInv_ = mat4.create(); // origin matrix inverse
   }
 
   Translate.prototype = {
-    /** Push undo operation */
-    pushState: function () {
-      this.states_.pushStateTransform(this.mesh_);
+    end: function () {
+      SculptBase.prototype.endTransform.apply(this, arguments);
+    },
+    applyEditMatrix: function (iVerts) {
+      var mesh = this.mesh_;
+      var em = mesh.getEditMatrix();
+      var mAr = mesh.getMaterials();
+      var vAr = mesh.getVertices();
+      var tx = em[12];
+      var ty = em[13];
+      var tz = em[14];
+      for (var i = 0, nb = iVerts.length; i < nb; ++i) {
+        var j = iVerts[i] * 3;
+        var mask = mAr[j + 2];
+        vAr[j] += tx * mask;
+        vAr[j + 1] += ty * mask;
+        vAr[j + 2] += tz * mask;
+      }
+      mat4.identity(em);
+      if (iVerts.length === mesh.getNbVertices()) mesh.updateGeometry();
+      else mesh.updateGeometry(mesh.getFacesFromVertices(iVerts), iVerts);
     },
     /** Start sculpting operation */
     startSculpt: function (main) {
       var picking = main.getPicking();
       var camera = main.getCamera();
-      var matrix = this.matrix_;
       var matrixInv = this.matrixInv_;
 
-      mat4.copy(matrix, this.mesh_.getMatrix());
       vec3.copy(this.origin_, picking.getIntersectionPoint());
 
       var near = camera.unproject(camera.width_ * 0.5, camera.height_ * 0.5, 0.0);
       var far = camera.unproject(camera.width_ * 0.5, camera.height_ * 0.5, 1.0);
-      mat4.invert(matrixInv, matrix);
+      mat4.invert(matrixInv, this.mesh_.getMatrix());
       vec3.transformMat4(near, near, matrixInv);
       vec3.transformMat4(far, far, matrixInv);
       vec3.sub(this.normal_, far, near);
     },
     /** Update sculpting operation */
     update: (function () {
-      var inter = [0.0, 0.0, 0.0];
+      var tra = [0.0, 0.0, 0.0];
       return function (main) {
-        var mesh = this.mesh_;
         var mouseX = main.mouseX_;
         var mouseY = main.mouseY_;
         var camera = main.getCamera();
@@ -53,9 +67,13 @@ define([
 
         vec3.transformMat4(vNear, vNear, this.matrixInv_);
         vec3.transformMat4(vFar, vFar, this.matrixInv_);
-        Geometry.intersectLinePlane(vNear, vFar, this.origin_, this.normal_, inter);
+        Geometry.intersectLinePlane(vNear, vFar, this.origin_, this.normal_, tra);
+        vec3.sub(tra, tra, this.origin_);
 
-        mat4.translate(mesh.getMatrix(), this.matrix_, vec3.sub(inter, inter, this.origin_));
+        var m = this.mesh_.getEditMatrix();
+        m[12] = tra[0];
+        m[13] = tra[1];
+        m[14] = tra[2];
         main.render();
       };
     })()
