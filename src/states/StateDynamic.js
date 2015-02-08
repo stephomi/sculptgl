@@ -24,7 +24,7 @@ define([
 
   StateDynamic.prototype = {
     /** On undo */
-    undo: function () {
+    undo: function (skipUpdate) {
       this.pullVertices();
       this.pullFaces();
       var mesh = this.mesh_;
@@ -33,6 +33,7 @@ define([
       mesh.setNbVertices(this.nbVerticesState_);
       mesh.setNbFaces(this.nbFacesState_);
 
+      if (skipUpdate) return;
       mesh.updateGeometry( /*this.idFaceState_, this.idVertState_*/ ); // TODO local update ?
       mesh.updateTopology( /*this.idFaceState_*/ ); // TODO local update ?
       mesh.updateDuplicateColorsAndMaterials();

@@ -14,8 +14,9 @@ define([
 
   StateColorAndMaterial.prototype = {
     /** On undo */
-    undo: function () {
+    undo: function (skipUpdate) {
       this.pullVertices();
+      if (skipUpdate) return;
       var mesh = this.mesh_;
       mesh.updateDuplicateColorsAndMaterials();
       mesh.updateFlatShading();

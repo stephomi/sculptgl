@@ -68,7 +68,7 @@ define([
     updateAlpha: (function () {
       var nor = [0.0, 0.0, 0.0];
       var dir = [0.0, 0.0, 0.0];
-      return function () {
+      return function (keepOrigin) {
         var radius = Math.sqrt(this.rLocal2_);
         this.alphaSide_ = radius * Math.SQRT1_2;
 
@@ -80,7 +80,8 @@ define([
         vec3.scaleAndAdd(dir, dir, normal, -vec3.dot(dir, normal));
         vec3.normalize(dir, dir);
 
-        vec3.copy(this.alphaOrirign_, this.interPoint_);
+        if (!keepOrigin)
+          vec3.copy(this.alphaOrirign_, this.interPoint_);
 
         vec3.scale(nor, normal, radius);
         vec3.scale(dir, dir, radius);
@@ -340,8 +341,9 @@ define([
       var z = this.project(interPointTransformed)[2];
       var vCircle = this.unproject(mouseX + (this.rDisplay_ * Tablet.getPressureRadius()), mouseY, z);
       this.rWorld2_ = vec3.sqrDist(interPointTransformed, vCircle);
-      vec3.scale(interPointTransformed, interPointTransformed, 1.0 / mesh.getScale());
-      vec3.scale(vCircle, vCircle, 1.0 / mesh.getScale());
+      var invScale = 1.0 / mesh.getScale();
+      vec3.scale(interPointTransformed, interPointTransformed, invScale);
+      vec3.scale(vCircle, vCircle, invScale);
       this.rLocal2_ = vec3.sqrDist(interPointTransformed, vCircle);
     },
     unproject: function (x, y, z) {

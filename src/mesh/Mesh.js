@@ -12,16 +12,6 @@ define([
     this.octree_ = new Octree(this); // octree
     this.render_ = gl ? new Render(gl, this) : null; // octree
     this.id_ = Mesh.ID++; // useful id to retrieve a mesh (dynamic mesh, multires mesh, voxel mesh)
-
-    // dirty local edited part of the mesh
-    this.updateLocalEdit_ = false;
-    this.localStackEditFaces_ = [];
-
-    this.localVerticesXYZ_ = null;
-    this.localColorsRGB_ = null;
-    this.localMaterialsPBR_ = null;
-    this.localNormalsXYZ_ = null;
-    this.localTrianglesABC_ = null;
   }
 
   Mesh.ID = 0;
@@ -59,31 +49,19 @@ define([
     setRender: function (render) {
       this.render_ = render;
     },
-    setIsLocalEdit: function (bool) {
-      this.isLocalEdit_ = bool;
-      if (!bool)
-        this.localStackEditFaces_.length = 0;
-    },
-    isLocalEdit: function () {
-      return this.isLocalEdit_;
-    },
     getRenderVertices: function () {
-      if (this.isLocalEdit()) return this.localVerticesXYZ_;
       if (this.isUsingDrawArrays()) return this.getVerticesDrawArrays();
       return this.isUsingTexCoords() ? this.getVerticesTexCoord() : this.getVertices();
     },
     getRenderNormals: function () {
-      if (this.isLocalEdit()) return this.localNormalsXYZ_;
       if (this.isUsingDrawArrays()) return this.getNormalsDrawArrays();
       return this.isUsingTexCoords() ? this.getNormalsTexCoord() : this.getNormals();
     },
     getRenderColors: function () {
-      if (this.isLocalEdit()) return this.localColorsRGB_;
       if (this.isUsingDrawArrays()) return this.getColorsDrawArrays();
       return this.isUsingTexCoords() ? this.getColorsTexCoord() : this.getColors();
     },
     getRenderMaterials: function () {
-      if (this.isLocalEdit()) return this.localMaterialsPBR_;
       if (this.isUsingDrawArrays()) return this.getMaterialsDrawArrays();
       return this.isUsingTexCoords() ? this.getMaterialsTexCoord() : this.getMaterials();
     },
@@ -91,11 +69,9 @@ define([
       return this.isUsingDrawArrays() ? this.getTexCoordsDrawArrays() : this.getTexCoords();
     },
     getRenderTriangles: function () {
-      if (this.isLocalEdit()) return this.localTrianglesABC_;
       return this.isUsingTexCoords() ? this.getTrianglesTexCoord() : this.getTriangles();
     },
     getRenderNbTriangles: function () {
-      if (this.isLocalEdit()) return this.localTrianglesABC_.length / 3;
       return this.getNbTriangles();
     },
     getRenderNbEdges: function () {
@@ -125,8 +101,6 @@ define([
       this.updateOctree(iFaces);
       this.updateDuplicateGeometry(iVerts);
       this.updateFlatShading(iFaces);
-      if (iFaces)
-        this.localStackEditFaces_.push(iFaces);
     },
     /** Allocate mesh resources */
     allocateArrays: function () {

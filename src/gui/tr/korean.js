@@ -75,10 +75,10 @@ define([], function () {
     multiresSelectHighest: '세분화 하기 전에 더 높은 해상도를 고르세요',
     multiresWarnBigMesh: function (nbFacesNext) {
       return '다음 세분화 레벨은 ' + nbFacesNext + ' 면만큼 도달할 것입니다.\n' +
-          '만약 당신이 무엇을 하는지 안다면 "세분화"를 다시 클릭하세요.';
+        '만약 당신이 무엇을 하는지 안다면 "세분화"를 다시 클릭하세요.';
     },
     multiresNotReversible: '이 메쉬는 리버싱할 수 없습니다.\n' +
-    '이 메쉬는 여러가지 메쉬의 표면의 세분화를 product한 것이 아닙니다.(loop-catmull)',
+      '이 메쉬는 여러가지 메쉬의 표면의 세분화를 product한 것이 아닙니다.(loop-catmull)',
 
     // remesh
     remeshTitle: 'Voxel Remeshing',
@@ -106,7 +106,8 @@ define([], function () {
     sculptPaint: 'Paint (9)',
     sculptMasking: 'Masking (-Ctrl)',
     sculptMove: 'Move (0)',
-    sculptScale: 'Scale',
+    sculptLocalScale: 'Local scale',
+    sculptScale: 'Scale (G)',
     sculptTranslate: 'Translate (E)',
     sculptRotate: 'Rotate (R)',
     sculptTool: 'Tool',
@@ -117,6 +118,7 @@ define([], function () {
     sculptHardness: 'Hardness',
     sculptCulling: 'Thin surface (front vertex only)',
     sculptAlphaTitle: 'Alpha',
+    sculptLockPositon: 'Lock position',
     sculptAlphaTex: 'Texture',
     sculptImportAlpha: 'Import alpha tex (jpg, png...)',
     sculptNegative: 'Negative (N or -Alt)',
@@ -181,8 +183,8 @@ define([], function () {
     sketchfabTitle: 'Sketchfab으로 가기 !',
     sketchfabUpload: '올리기',
     sketchfabUploadMessage: 'Please enter your sketchfab API Key.\n' +
-    'You can also leave "guest" to upload anonymously.\n' +
-    '(a new window will pop up when the uploading and processing is finished)',
+      'You can also leave "guest" to upload anonymously.\n' +
+      '(a new window will pop up when the uploading and processing is finished)',
     sketchfabUploadError: function (error) {
       return 'Sketchfab upload error :\n' + error;
     },

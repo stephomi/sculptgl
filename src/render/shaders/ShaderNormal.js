@@ -12,25 +12,26 @@ define([
   ShaderNormal.attributes = {};
   ShaderNormal.program = undefined;
 
-  ShaderNormal.uniformNames = ['uMV', 'uMVP', 'uN'];
-  Array.prototype.push.apply(ShaderNormal.uniformNames, ShaderBase.uniformNames.symmetryLine);
+  ShaderNormal.uniformNames = [];
+  Array.prototype.push.apply(ShaderNormal.uniformNames, ShaderBase.uniformNames.commonUniforms);
 
   ShaderNormal.vertex = [
+    'precision mediump float;',
     'attribute vec3 aVertex;',
     'attribute vec3 aNormal;',
     'attribute vec3 aMaterial;',
-    'uniform mat4 uMV;',
-    'uniform mat4 uMVP;',
-    'uniform mat3 uN;',
+    ShaderBase.strings.vertUniforms,
     'varying vec3 vVertex;',
     'varying vec3 vNormal;',
     'varying float vMasking;',
     'void main() {',
-    '  vec4 vert4 = vec4(aVertex, 1.0);',
-    '  vNormal = uN * normalize(aNormal);',
-    '  vVertex = vec3(uMV * vert4);',
     '  vMasking = aMaterial.z;',
-    '  gl_Position = uMVP * vert4;',
+    '  vNormal = mix(aNormal, uEN * aNormal, vMasking);',
+    '  vNormal = normalize(uN * vNormal);',
+    '  vec4 vertex4 = vec4(aVertex, 1.0);',
+    '  vertex4 = mix(vertex4, uEM *vertex4, vMasking);',
+    '  vVertex = vec3(uMV * vertex4);',
+    '  gl_Position = uMVP * vertex4;',
     '}'
   ].join('\n');
 
@@ -72,14 +73,6 @@ define([
   };
   /** Updates uniforms */
   ShaderNormal.updateUniforms = function (render, main) {
-    var gl = render.getGL();
-    var uniforms = this.uniforms;
-    var mesh = render.getMesh();
-
-    gl.uniformMatrix4fv(uniforms.uMV, false, mesh.getMV());
-    gl.uniformMatrix4fv(uniforms.uMVP, false, mesh.getMVP());
-    gl.uniformMatrix3fv(uniforms.uN, false, mesh.getN());
-
     ShaderBase.updateUniforms.call(this, render, main);
   };
 

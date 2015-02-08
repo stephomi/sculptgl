@@ -5,9 +5,8 @@ define([
   'states/StateGeometry',
   'states/StateDynamic',
   'states/StateMultiresolution',
-  'states/StateTransform',
   'states/StateCustom'
-], function (Utils, StAddRemove, StColorAndMaterial, StGeometry, StDynamic, StMultiresolution, StTransform, StCustom) {
+], function (Utils, StAddRemove, StColorAndMaterial, StGeometry, StDynamic, StMultiresolution, StCustom) {
 
   'use strict';
 
@@ -49,9 +48,6 @@ define([
     },
     pushStateMultiresolution: function (multimesh, type) {
       this.pushState(new StMultiresolution(this.main_, multimesh, type));
-    },
-    pushStateTransform: function (mesh) {
-      this.pushState(new StTransform(this.main_, mesh));
     },
     setNewMaxStack: function (maxStack) {
       States.STACK_LENGTH = maxStack;

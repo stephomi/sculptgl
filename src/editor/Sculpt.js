@@ -10,10 +10,11 @@ define([
   'editor/tools/Paint',
   'editor/tools/Move',
   'editor/tools/Masking',
-  'editor/tools/Scale',
+  'editor/tools/LocalScale',
   'editor/tools/Translate',
-  'editor/tools/Rotate'
-], function (Brush, Inflate, Twist, Smooth, Flatten, Pinch, Crease, Drag, Paint, Move, Masking, Scale, Translate, Rotate) {
+  'editor/tools/Rotate',
+  'editor/tools/Scale'
+], function (Brush, Inflate, Twist, Smooth, Flatten, Pinch, Crease, Drag, Paint, Move, Masking, LocalScale, Translate, Rotate, Scale) {
 
   'use strict';
 
@@ -46,9 +47,10 @@ define([
     PAINT: 8,
     MOVE: 9,
     MASKING: 10,
-    SCALE: 11,
+    LOCALSCALE: 11,
     TRANSLATE: 12,
-    ROTATE: 13
+    ROTATE: 13,
+    SCALE: 14
   };
 
   Sculpt.prototype = {
@@ -74,15 +76,16 @@ define([
       this.tools_[Sculpt.tool.PAINT] = new Paint(states);
       this.tools_[Sculpt.tool.MOVE] = new Move(states);
       this.tools_[Sculpt.tool.MASKING] = new Masking(states);
-      this.tools_[Sculpt.tool.SCALE] = new Scale(states);
+      this.tools_[Sculpt.tool.LOCALSCALE] = new LocalScale(states);
       this.tools_[Sculpt.tool.TRANSLATE] = new Translate(states);
       this.tools_[Sculpt.tool.ROTATE] = new Rotate(states);
+      this.tools_[Sculpt.tool.SCALE] = new Scale(states);
     },
     /** Return true if the current tool doesn't prevent picking */
     allowPicking: function () {
       var tool = this.tool_;
       var st = Sculpt.tool;
-      return tool !== st.TWIST && tool !== st.MOVE && tool !== st.DRAG && tool !== st.SCALE && tool !== st.TRANSLATE && tool !== st.ROTATE;
+      return tool !== st.TWIST && tool !== st.MOVE && tool !== st.DRAG && tool !== st.LOCALSCALE && tool !== st.TRANSLATE && tool !== st.ROTATE && tool !== st.SCALE;
     },
     /** Return true if the current tool is using continous sculpting */
     isUsingContinuous: function () {

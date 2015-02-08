@@ -38,10 +38,11 @@ define([
     },
     /** Flatten, projection of the sculpting vertex onto a plane defined by the barycenter and normals of all the sculpting vertices */
     flatten: function (iVertsInRadius, aNormal, aCenter, center, radiusSquared, intensity, picking) {
-      var vAr = this.mesh_.getVertices();
-      var mAr = this.mesh_.getMaterials();
+      var mesh = this.mesh_;
+      var vAr = mesh.getVertices();
+      var mAr = mesh.getMaterials();
       var radius = Math.sqrt(radiusSquared);
-      var vProxy = this.accumulate_ === false ? this.mesh_.getVerticesProxy() : vAr;
+      var vProxy = this.accumulate_ === false && this.lockPosition_ === false ? this.mesh_.getVerticesProxy() : vAr;
       var cx = center[0];
       var cy = center[1];
       var cz = center[2];

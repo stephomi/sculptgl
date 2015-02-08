@@ -6,15 +6,21 @@ define([
   'use strict';
 
   var vec3 = glm.vec3;
-  var mat3 = glm.mat3;
 
   var ShaderBase = {};
 
   ShaderBase.SHOW_SYMMETRY_LINE = false;
   ShaderBase.uniformNames = {};
-  ShaderBase.uniformNames.symmetryLine = ['uPlaneO', 'uPlaneN', 'uScale'];
+  ShaderBase.uniformNames.commonUniforms = ['uMV', 'uMVP', 'uN', 'uEM', 'uEN', 'uPlaneO', 'uPlaneN', 'uScale'];
 
   ShaderBase.strings = {};
+  ShaderBase.strings.vertUniforms = [
+    'uniform mat4 uMV;',
+    'uniform mat4 uMVP;',
+    'uniform mat3 uN;',
+    'uniform mat4 uEM;',
+    'uniform mat3 uEN;'
+  ].join('\n');
   ShaderBase.strings.fragColorUniforms = [
     'uniform vec3 uPlaneN;',
     'uniform vec3 uPlaneO;',
@@ -76,16 +82,21 @@ define([
   /** Updates uniforms */
   ShaderBase.updateUniforms = (function () {
     var tmp = [0.0, 0.0, 0.0];
-    var nMat = mat3.create();
     return function (render, main) {
       var gl = render.getGL();
       var mesh = render.getMesh();
-      var mvMatrix = mesh.getMV();
       var useSym = ShaderBase.SHOW_SYMMETRY_LINE && (mesh === main.getMesh()) && main.getSculpt().getSymmetry();
 
       var uniforms = this.uniforms;
-      gl.uniform3fv(uniforms.uPlaneO, vec3.transformMat4(tmp, mesh.getCenter(), mvMatrix));
-      gl.uniform3fv(uniforms.uPlaneN, vec3.transformMat3(tmp, mesh.getSymmetryNormal(), mat3.normalFromMat4(nMat, mvMatrix)));
+
+      gl.uniformMatrix4fv(uniforms.uEM, false, mesh.getEditMatrix());
+      gl.uniformMatrix3fv(uniforms.uEN, false, mesh.getEN());
+      gl.uniformMatrix4fv(uniforms.uMV, false, mesh.getMV());
+      gl.uniformMatrix4fv(uniforms.uMVP, false, mesh.getMVP());
+      gl.uniformMatrix3fv(uniforms.uN, false, mesh.getN());
+
+      gl.uniform3fv(uniforms.uPlaneO, vec3.transformMat4(tmp, mesh.getCenter(), mesh.getMV()));
+      gl.uniform3fv(uniforms.uPlaneN, vec3.transformMat3(tmp, mesh.getSymmetryNormal(), mesh.getN()));
       gl.uniform1f(uniforms.uScale, useSym ? mesh.getScale() : -1.0);
     };
   })();

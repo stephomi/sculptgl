@@ -52,6 +52,7 @@ define([
   };
   var addCtrlAlpha = function (ctrls, fold, tool, ui) {
     ctrls.push(fold.addTitle(TR('sculptAlphaTitle')));
+    ctrls.push(fold.addCheckbox(TR('sculptLockPositon'), tool, 'lockPosition_'));
     ui.ctrlAlpha_ = fold.addCombobox(TR('sculptAlphaTex'), tool, 'idAlpha_', Picking.ALPHAS_NAMES);
     ctrls.push(ui.ctrlAlpha_);
     ctrls.push(fold.addButton(TR('sculptImportAlpha'), importAlpha));
@@ -182,7 +183,7 @@ define([
     }
   };
 
-  tools[Sculpt.tool.SCALE] = {
+  tools[Sculpt.tool.LOCALSCALE] = {
     ctrls_: [],
     init: function (tool, fold) {
       this.ctrls_.push(addCtrlCulling(tool, fold));
@@ -246,6 +247,11 @@ define([
   };
 
   tools[Sculpt.tool.ROTATE] = {
+    ctrls_: [],
+    init: function () {}
+  };
+
+  tools[Sculpt.tool.SCALE] = {
     ctrls_: [],
     init: function () {}
   };

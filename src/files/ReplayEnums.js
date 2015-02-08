@@ -58,7 +58,7 @@ define([], function () {
   Replay.SMOOTH_TOGGLE_CULLING = ida++; // []
   Replay.SMOOTH_TOGGLE_TANGENT = ida++; // []
 
-  Replay.SCALE_TOGGLE_CULLING = ida++; // []
+  Replay.LOCALSCALE_TOGGLE_CULLING = ida++; // []
   Replay.TWIST_TOGGLE_CULLING = ida++; // []
 
   Replay.PAINT_INTENSITY = ida++; // [intensity (u8)]
@@ -118,7 +118,7 @@ define([], function () {
   Replay.SHIFT = 1 << 2;
 
   Replay.CODE = 59821876; // code
-  Replay.VERSION = 3; // version
+  Replay.VERSION = 4; // version
 
   return Replay;
 });
