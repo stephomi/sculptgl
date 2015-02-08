@@ -370,7 +370,7 @@ define([
           break;
         case Replay.VOXEL_REMESH:
           data.setUint16(offset, stack[++i], true);
-          data.setUint8(offset, stack[++i], true);
+          data.setUint8(offset + 2, stack[++i], true);
           offset += 3;
           break;
         case Replay.LOAD_ALPHA:
