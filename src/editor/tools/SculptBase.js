@@ -132,6 +132,10 @@ define([
         picking.pickVerticesInSphere(picking.getLocalRadius2());
         picking.computePickedNormal();
       }
+      // if dyn topo, we need to the picking and the sculpting altogether
+      var dynTopo = mesh.getDynamicTopology && !this.lockPosition_;
+      if (dynTopo && pick1)
+        this.stroke(picking);
 
       var pick2;
       if (pickingSym) {
@@ -144,7 +148,7 @@ define([
         }
       }
 
-      if (pick1) this.stroke(picking);
+      if (!dynTopo && pick1) this.stroke(picking);
       if (pick2) this.stroke(pickingSym, true);
       return pick1 || pick2;
     },
