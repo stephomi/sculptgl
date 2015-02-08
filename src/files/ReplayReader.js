@@ -591,6 +591,10 @@ define([
       case Replay.MASKING_TOGGLE_CULLING:
         tool.culling_ = !tool.culling_;
         break;
+      case Replay.BRUSH_TOGGLE_LOCK_POSITION:
+      case Replay.PAINT_TOGGLE_LOCK_POSITION:
+        tool.lockPosition_ = !tool.lockPosition_;
+        break;
       case Replay.SMOOTH_TOGGLE_TANGENT:
         tool.tangent_ = !tool.tangent_;
         break;

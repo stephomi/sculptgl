@@ -107,6 +107,10 @@ define([
         replaySel.culling_ = mainSel.culling_;
         this.stack_.push(Replay[name + '_TOGGLE_CULLING']);
       }
+      if (mainSel.lockPosition_ !== undefined && mainSel.lockPosition_ !== replaySel.lockPosition_) {
+        replaySel.lockPosition_ = mainSel.lockPosition_;
+        this.stack_.push(Replay[name + '_TOGGLE_LOCK_POSITION']);
+      }
       if (mainSel.idAlpha_ !== undefined && mainSel.idAlpha_ !== replaySel.idAlpha_) {
         replaySel.idAlpha_ = mainSel.idAlpha_;
         this.stack_.push(Replay[name + '_SELECT_ALPHA'], mainSel.idAlpha_);

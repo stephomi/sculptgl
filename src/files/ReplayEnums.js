@@ -36,6 +36,7 @@ define([], function () {
   Replay.BRUSH_TOGGLE_CLAY = ida++; // []
   Replay.BRUSH_TOGGLE_CULLING = ida++; // []
   Replay.BRUSH_TOGGLE_ACCUMULATE = ida++; // []
+  Replay.BRUSH_TOGGLE_LOCK_POSITION = ida++; // []
   Replay.BRUSH_SELECT_ALPHA = ida++; // [id (u8)]
 
   Replay.CREASE_INTENSITY = ida++; // [intensity (u8)]
@@ -67,6 +68,7 @@ define([], function () {
   Replay.PAINT_ROUGHNESS = ida++; // [roughness (f32)]
   Replay.PAINT_METALLIC = ida++; // [metallic (f32)]
   Replay.PAINT_TOGGLE_CULLING = ida++; // []
+  Replay.PAINT_TOGGLE_LOCK_POSITION = ida++; // []
   Replay.PAINT_SELECT_ALPHA = ida++; // [id (u8)]
   Replay.PAINT_ALL = ida++; // []
 
