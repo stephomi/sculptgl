@@ -46,10 +46,11 @@ define([
       if (this.noUpload_)
         return;
       // 2 Mb limits of loaded meshes
-      if (this.nbBytesLoadingMeshes_ > 2000000 || nbActions === this.lastNbActions_ || nbActions < 5000) {
-        this.cbCheckUpload_();
-        return;
-      }
+      if (this.nbBytesLoadingMeshes_ > 2e6 || nbActions === this.lastNbActions_ || nbActions < 5000)
+        return this.cbCheckUpload_();
+      // 4 Mb limits with previous replay
+      if (this.firstReplay_ && this.firstReplay_.byteLength > 4e6)
+        return this.cbCheckUpload_();
       parent.location.hash = this.uid_;
       this.lastNbActions_ = nbActions;
 

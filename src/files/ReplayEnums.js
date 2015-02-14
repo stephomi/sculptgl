@@ -101,7 +101,6 @@ define([], function () {
   Replay.LOAD_ALPHA = ida++; // [width (u32), height (u32), len (u32)]
   Replay.LOAD_MESHES = ida++; // [len (u32)]
   Replay.ADD_SPHERE = ida++; // []
-  Replay.CLEAR_SCENE = ida++; // []
   Replay.DELETE_CURRENT_MESH = ida++; // []
 
   Replay.EXPOSURE_INTENSITY = ida++; // [val (u8)]
