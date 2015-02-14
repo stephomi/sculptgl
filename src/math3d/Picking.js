@@ -197,7 +197,7 @@ define([
         vec3.copy(vFar, vFarOrig);
         // apply symmetry
         if (this.xSym_) {
-          var ptPlane = mesh.getCenter();
+          var ptPlane = mesh.getSymmetryOrigin();
           var nPlane = mesh.getSymmetryNormal();
           Geometry.mirrorPoint(vNear, ptPlane, nPlane);
           Geometry.mirrorPoint(vFar, ptPlane, nPlane);

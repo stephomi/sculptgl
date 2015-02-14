@@ -56,6 +56,9 @@ define([
       var m = this.matrix_;
       return Math.sqrt(m[0] * m[0] + m[4] * m[4] + m[8] * m[8]);
     },
+    getSymmetryOrigin: function () {
+      return this.center_;
+    },
     getSymmetryNormal: function () {
       return this.symmetryNormal_;
     },

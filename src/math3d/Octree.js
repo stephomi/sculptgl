@@ -66,7 +66,6 @@ define([
         this.updateOctreeAdd(this.updateOctreeRemove(iFaces));
       else
         this.computeOctree(undefined, 0.3);
-      this.mesh_.computeCenter();
     },
     /** Compute Aabb */
     computeAabb: function () {

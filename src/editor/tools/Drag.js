@@ -41,7 +41,7 @@ define([
       if (pickingSym) {
         pickingSym.mesh_ = mesh;
         vec3.copy(pickingSym.getIntersectionPoint(), picking.getIntersectionPoint());
-        Geometry.mirrorPoint(pickingSym.getIntersectionPoint(), mesh.getCenter(), mesh.getSymmetryNormal());
+        Geometry.mirrorPoint(pickingSym.getIntersectionPoint(), mesh.getSymmetryOrigin(), mesh.getSymmetryNormal());
       }
 
       for (var i = 0.0; i < 1.0; i += step) {
@@ -129,7 +129,7 @@ define([
       var dir = this.dragDir_;
       if (useSymmetry) {
         dir = this.dragDirSym_;
-        var ptPlane = mesh.getCenter();
+        var ptPlane = mesh.getSymmetryOrigin();
         var nPlane = mesh.getSymmetryNormal();
         Geometry.mirrorPoint(vNear, ptPlane, nPlane);
         Geometry.mirrorPoint(vFar, ptPlane, nPlane);

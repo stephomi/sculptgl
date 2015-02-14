@@ -138,7 +138,7 @@ define([
 
       var moveData = useSymmetry ? this.moveDataSym_ : this.moveData_;
       if (useSymmetry) {
-        var ptPlane = mesh.getCenter();
+        var ptPlane = mesh.getSymmetryOrigin();
         var nPlane = mesh.getSymmetryNormal();
         Geometry.mirrorPoint(vNear, ptPlane, nPlane);
         Geometry.mirrorPoint(vFar, ptPlane, nPlane);
