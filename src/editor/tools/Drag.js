@@ -57,17 +57,22 @@ define([
       this.lastMouseY_ = main.mouseY_;
     },
     makeStroke: function (mouseX, mouseY, picking, pickingSym) {
-      var localRadius2 = picking.getLocalRadius2();
+      var mesh = this.mesh_;
       this.updateDragDir(picking, mouseX, mouseY);
-      picking.pickVerticesInSphere(localRadius2);
-      this.stroke(picking);
+      picking.pickVerticesInSphere(picking.getLocalRadius2());
+      picking.computePickedNormal();
+      // if dyn topo, we need to the picking and the sculpting altogether
+      if (mesh.getDynamicTopology)
+        this.stroke(picking);
 
       if (pickingSym) {
         this.updateDragDir(pickingSym, mouseX, mouseY, true);
-        pickingSym.setLocalRadius2(localRadius2);
-        pickingSym.pickVerticesInSphere(localRadius2);
-        this.stroke(pickingSym, true);
+        pickingSym.setLocalRadius2(picking.getLocalRadius2());
+        pickingSym.pickVerticesInSphere(pickingSym.getLocalRadius2());
       }
+
+      if (!mesh.getDynamicTopology) this.stroke(picking);
+      if (pickingSym) this.stroke(pickingSym, true);
       return true;
     },
     /** On stroke */
