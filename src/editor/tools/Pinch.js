@@ -11,6 +11,8 @@ define([
     this.intensity_ = 0.75; // deformation intensity
     this.negative_ = false; // opposition deformation
     this.culling_ = false; // if we backface cull the vertices
+    this.idAlpha_ = 0;
+    this.lockPosition_ = false;
   };
 
   Pinch.prototype = {
@@ -26,12 +28,14 @@ define([
       if (this.culling_)
         iVertsInRadius = this.getFrontVertices(iVertsInRadius, picking.getEyeDirection());
 
-      this.pinch(iVertsInRadius, picking.getIntersectionPoint(), picking.getLocalRadius2(), intensity);
+      picking.updateAlpha(this.lockPosition_);
+      picking.setIdAlpha(this.idAlpha_);
+      this.pinch(iVertsInRadius, picking.getIntersectionPoint(), picking.getLocalRadius2(), intensity, picking);
 
       this.mesh_.updateGeometry(this.mesh_.getFacesFromVertices(iVertsInRadius), iVertsInRadius);
     },
     /** Pinch, vertices gather around intersection point */
-    pinch: function (iVertsInRadius, center, radiusSquared, intensity) {
+    pinch: function (iVertsInRadius, center, radiusSquared, intensity, picking) {
       var vAr = this.mesh_.getVertices();
       var mAr = this.mesh_.getMaterials();
       var radius = Math.sqrt(radiusSquared);
@@ -52,8 +56,7 @@ define([
         var dist = Math.sqrt(dx * dx + dy * dy + dz * dz) / radius;
         var fallOff = dist * dist;
         fallOff = 3.0 * fallOff * fallOff - 4.0 * fallOff * dist + 1.0;
-        fallOff *= deformIntensity;
-        fallOff *= mAr[ind + 2];
+        fallOff *= deformIntensity * mAr[ind + 2] * picking.getAlpha(vx, vy, vz);
         vAr[ind] = vx + dx * fallOff;
         vAr[ind + 1] = vy + dy * fallOff;
         vAr[ind + 2] = vz + dz * fallOff;

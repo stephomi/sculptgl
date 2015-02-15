@@ -52,7 +52,8 @@ define([
   };
   var addCtrlAlpha = function (ctrls, fold, tool, ui) {
     ctrls.push(fold.addTitle(TR('sculptAlphaTitle')));
-    ctrls.push(fold.addCheckbox(TR('sculptLockPositon'), tool, 'lockPosition_'));
+    if (tool.lockPosition_ !== undefined)
+      ctrls.push(fold.addCheckbox(TR('sculptLockPositon'), tool, 'lockPosition_'));
     ui.ctrlAlpha_ = fold.addCombobox(TR('sculptAlphaTex'), tool, 'idAlpha_', Picking.ALPHAS_NAMES);
     ctrls.push(ui.ctrlAlpha_);
     ctrls.push(fold.addButton(TR('sculptImportAlpha'), importAlpha));
@@ -76,12 +77,15 @@ define([
       this.ctrls_.push(addCtrlIntensity(tool, fold, this));
       this.ctrls_.push(addCtrlNegative(tool, fold, this));
       this.ctrls_.push(addCtrlCulling(tool, fold));
+      addCtrlAlpha(this.ctrls_, fold, tool, this);
     }
   };
 
   tools[Sculpt.tool.DRAG] = {
     ctrls_: [],
-    init: function () {}
+    init: function (tool, fold) {
+      addCtrlAlpha(this.ctrls_, fold, tool, this);
+    }
   };
 
   tools[Sculpt.tool.FLATTEN] = {
@@ -90,6 +94,7 @@ define([
       this.ctrls_.push(addCtrlIntensity(tool, fold, this));
       this.ctrls_.push(addCtrlNegative(tool, fold, this));
       this.ctrls_.push(addCtrlCulling(tool, fold));
+      addCtrlAlpha(this.ctrls_, fold, tool, this);
     }
   };
 
@@ -99,6 +104,7 @@ define([
       this.ctrls_.push(addCtrlIntensity(tool, fold, this));
       this.ctrls_.push(addCtrlNegative(tool, fold, this));
       this.ctrls_.push(addCtrlCulling(tool, fold));
+      addCtrlAlpha(this.ctrls_, fold, tool, this);
     }
   };
 
@@ -173,6 +179,7 @@ define([
       this.ctrls_.push(addCtrlIntensity(tool, fold, this));
       this.ctrls_.push(addCtrlNegative(tool, fold, this));
       this.ctrls_.push(addCtrlCulling(tool, fold));
+      addCtrlAlpha(this.ctrls_, fold, tool, this);
     }
   };
 
@@ -180,6 +187,7 @@ define([
     ctrls_: [],
     init: function (tool, fold) {
       this.ctrls_.push(addCtrlCulling(tool, fold));
+      addCtrlAlpha(this.ctrls_, fold, tool, this);
     }
   };
 
@@ -187,6 +195,7 @@ define([
     ctrls_: [],
     init: function (tool, fold) {
       this.ctrls_.push(addCtrlCulling(tool, fold));
+      addCtrlAlpha(this.ctrls_, fold, tool, this);
     }
   };
 
@@ -196,6 +205,7 @@ define([
       this.ctrls_.push(addCtrlIntensity(tool, fold, this));
       this.ctrls_.push(fold.addCheckbox(TR('sculptTopologicalCheck'), tool, 'topoCheck_'));
       this.ctrls_.push(addCtrlNegative(tool, fold, this, TR('sculptMoveAlongNormal')));
+      addCtrlAlpha(this.ctrls_, fold, tool, this);
     }
   };
 
@@ -205,6 +215,7 @@ define([
       this.ctrls_.push(addCtrlIntensity(tool, fold, this));
       this.ctrls_.push(fold.addCheckbox(TR('sculptTangentialSmoothing'), tool, 'tangent_'));
       this.ctrls_.push(addCtrlCulling(tool, fold));
+      addCtrlAlpha(this.ctrls_, fold, tool, this);
     }
   };
 
@@ -220,6 +231,7 @@ define([
       var bci = fold.addDualButton(TR('sculptMaskingClear'), TR('sculptMaskingInvert'), this, this, 'clear', 'invert');
       var bbs = fold.addDualButton(TR('sculptMaskingBlur'), TR('sculptMaskingSharpen'), this, this, 'blur', 'sharpen');
       this.ctrls_.push(bci[0], bci[1], bbs[0], bbs[1]);
+      addCtrlAlpha(this.ctrls_, fold, tool, this);
     },
     maskAction: function (key, akey) {
       var main = this.main_;

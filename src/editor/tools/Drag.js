@@ -15,6 +15,7 @@ define([
     SculptBase.call(this, states);
     this.dragDir_ = [0.0, 0.0, 0.0]; // direction of deformation
     this.dragDirSym_ = [0.0, 0.0, 0.0]; // direction of deformation
+    this.idAlpha_ = 0;
   };
 
   Drag.prototype = {
@@ -63,7 +64,7 @@ define([
       picking.computePickedNormal();
       // if dyn topo, we need to the picking and the sculpting altogether
       if (mesh.getDynamicTopology)
-        this.stroke(picking);
+        this.stroke(picking, false);
 
       if (pickingSym) {
         this.updateDragDir(pickingSym, mouseX, mouseY, true);
@@ -71,7 +72,7 @@ define([
         pickingSym.pickVerticesInSphere(pickingSym.getLocalRadius2());
       }
 
-      if (!mesh.getDynamicTopology) this.stroke(picking);
+      if (!mesh.getDynamicTopology) this.stroke(picking, false);
       if (pickingSym) this.stroke(pickingSym, true);
       return true;
     },
@@ -83,13 +84,15 @@ define([
       this.states_.pushVertices(iVertsInRadius);
       iVertsInRadius = this.dynamicTopology(picking);
 
-      this.drag(iVertsInRadius, picking.getIntersectionPoint(), picking.getLocalRadius2(), sym);
-      Smooth.prototype.smoothTangent.call(this, iVertsInRadius, 1.0);
+      picking.updateAlpha(this.lockPosition_);
+      picking.setIdAlpha(this.idAlpha_);
+      this.drag(iVertsInRadius, picking.getIntersectionPoint(), picking.getLocalRadius2(), sym, picking);
+      Smooth.prototype.smoothTangent.call(this, iVertsInRadius, 1.0, picking);
 
       this.mesh_.updateGeometry(this.mesh_.getFacesFromVertices(iVertsInRadius), iVertsInRadius);
     },
     /** Drag deformation */
-    drag: function (iVerts, center, radiusSquared, sym) {
+    drag: function (iVerts, center, radiusSquared, sym, picking) {
       var vAr = this.mesh_.getVertices();
       var mAr = this.mesh_.getMaterials();
       var radius = Math.sqrt(radiusSquared);
@@ -111,7 +114,7 @@ define([
         var dist = Math.sqrt(dx * dx + dy * dy + dz * dz) / radius;
         var fallOff = dist * dist;
         fallOff = 3.0 * fallOff * fallOff - 4.0 * fallOff * dist + 1.0;
-        fallOff *= mAr[ind + 2];
+        fallOff *= mAr[ind + 2] * picking.getAlpha(vx, vy, vz);
         vAr[ind] = vx + dirx * fallOff;
         vAr[ind + 1] = vy + diry * fallOff;
         vAr[ind + 2] = vz + dirz * fallOff;

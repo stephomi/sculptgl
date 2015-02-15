@@ -11,6 +11,8 @@ define([
     this.intensity_ = 0.75; // deformation intensity
     this.negative_ = true; // opposition deformation
     this.culling_ = false; // if we backface cull the vertices
+    this.idAlpha_ = 0;
+    this.lockPosition_ = false;
   };
 
   Flatten.prototype = {
@@ -31,7 +33,8 @@ define([
       if (!aNormal)
         return;
       var aCenter = this.areaCenter(iVertsFront);
-      picking.setIdAlpha(0);
+      picking.updateAlpha(this.lockPosition_);
+      picking.setIdAlpha(this.idAlpha_);
       this.flatten(iVertsInRadius, aNormal, aCenter, picking.getIntersectionPoint(), picking.getLocalRadius2(), intensity, picking);
 
       this.mesh_.updateGeometry(this.mesh_.getFacesFromVertices(iVertsInRadius), iVertsInRadius);

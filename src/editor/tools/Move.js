@@ -25,6 +25,7 @@ define([
       dir: [0.0, 0.0],
       vProxy: null
     };
+    this.idAlpha_ = 0;
   };
 
   Move.prototype = {
@@ -78,6 +79,14 @@ define([
       var picking = main.getPicking();
       var pickingSym = main.getPickingSymmetry();
       var useSym = main.getSculpt().getSymmetry() && pickingSym.getMesh();
+
+      picking.updateAlpha(this.lockPosition_);
+      picking.setIdAlpha(this.idAlpha_);
+      if (useSym) {
+        pickingSym.updateAlpha(false);
+        pickingSym.setIdAlpha(this.idAlpha_);
+      }
+
       this.copyVerticesProxy(picking, this.moveData_);
       if (useSym)
         this.copyVerticesProxy(pickingSym, this.moveDataSym_);
@@ -85,11 +94,11 @@ define([
       var mouseX = main.mouseX_;
       var mouseY = main.mouseY_;
       this.updateMoveDir(picking, mouseX, mouseY);
-      this.move(picking.getPickedVertices(), picking.getIntersectionPoint(), picking.getLocalRadius2(), this.moveData_);
+      this.move(picking.getPickedVertices(), picking.getIntersectionPoint(), picking.getLocalRadius2(), this.moveData_, picking);
 
       if (useSym) {
         this.updateMoveDir(pickingSym, mouseX, mouseY, true);
-        this.move(pickingSym.getPickedVertices(), pickingSym.getIntersectionPoint(), pickingSym.getLocalRadius2(), this.moveDataSym_);
+        this.move(pickingSym.getPickedVertices(), pickingSym.getIntersectionPoint(), pickingSym.getLocalRadius2(), this.moveDataSym_, pickingSym);
       }
       this.mesh_.updateGeometry(this.mesh_.getFacesFromVertices(picking.getPickedVertices()), picking.getPickedVertices());
       if (useSym)
@@ -97,7 +106,7 @@ define([
       this.updateRender(main);
       main.getCanvas().style.cursor = 'default';
     },
-    move: function (iVerts, center, radiusSquared, moveData) {
+    move: function (iVerts, center, radiusSquared, moveData, picking) {
       var vAr = this.mesh_.getVertices();
       var mAr = this.mesh_.getMaterials();
       var radius = Math.sqrt(radiusSquared);
@@ -121,7 +130,7 @@ define([
         var dist = Math.sqrt(dx * dx + dy * dy + dz * dz) / radius;
         var fallOff = dist * dist;
         fallOff = 3.0 * fallOff * fallOff - 4.0 * fallOff * dist + 1.0;
-        fallOff *= mAr[ind + 2];
+        fallOff *= mAr[ind + 2] * picking.getAlpha(vx, vy, vz);
         vAr[ind] += dirx * fallOff;
         vAr[ind + 1] += diry * fallOff;
         vAr[ind + 2] += dirz * fallOff;

@@ -13,6 +13,8 @@ define([
     this.intensity_ = 1.0; // deformation intensity
     this.negative_ = true; // opposition deformation
     this.culling_ = false; // if we backface cull the vertices
+    this.idAlpha_ = 0;
+    this.lockPosition_ = false;
   };
 
   Masking.prototype = {
@@ -30,7 +32,7 @@ define([
       Paint.prototype.stroke.call(this, picking);
     },
     /** Paint color vertices */
-    paint: function (iVerts, center, radiusSquared, intensity, hardness) {
+    paint: function (iVerts, center, radiusSquared, intensity, hardness, picking) {
       var mesh = this.mesh_;
       var vAr = mesh.getVertices();
       var mAr = mesh.getMaterials();
@@ -42,12 +44,15 @@ define([
       var maskIntensity = this.negative_ ? -intensity : intensity;
       for (var i = 0, l = iVerts.length; i < l; ++i) {
         var ind = iVerts[i] * 3;
-        var dx = vAr[ind] - cx;
-        var dy = vAr[ind + 1] - cy;
-        var dz = vAr[ind + 2] - cz;
+        var vx = vAr[ind];
+        var vy = vAr[ind + 1];
+        var vz = vAr[ind + 2];
+        var dx = vx - cx;
+        var dy = vy - cy;
+        var dz = vz - cz;
         var dist = Math.sqrt(dx * dx + dy * dy + dz * dz) / radius;
         var fallOff = Math.pow(1 - dist, softness);
-        fallOff *= maskIntensity;
+        fallOff *= maskIntensity * picking.getAlpha(vx, vy, vz);
         mAr[ind + 2] = Math.min(Math.max(mAr[ind + 2] + fallOff, 0.0), 1.0);
       }
     },

@@ -592,7 +592,13 @@ define([
         tool.culling_ = !tool.culling_;
         break;
       case Replay.BRUSH_TOGGLE_LOCK_POSITION:
+      case Replay.CREASE_TOGGLE_LOCK_POSITION:
+      case Replay.FLATTEN_TOGGLE_LOCK_POSITION:
+      case Replay.INFLATE_TOGGLE_LOCK_POSITION:
+      case Replay.PINCH_TOGGLE_LOCK_POSITION:
+      case Replay.SMOOTH_TOGGLE_LOCK_POSITION:
       case Replay.PAINT_TOGGLE_LOCK_POSITION:
+      case Replay.MASKING_TOGGLE_LOCK_POSITION:
         tool.lockPosition_ = !tool.lockPosition_;
         break;
       case Replay.SMOOTH_TOGGLE_TANGENT:
@@ -608,6 +614,17 @@ define([
         tool.accumulate_ = !tool.accumulate_;
         break;
       case Replay.BRUSH_SELECT_ALPHA:
+      case Replay.CREASE_SELECT_ALPHA:
+      case Replay.FLATTEN_SELECT_ALPHA:
+      case Replay.INFLATE_SELECT_ALPHA:
+      case Replay.PINCH_SELECT_ALPHA:
+      case Replay.SMOOTH_SELECT_ALPHA:
+      case Replay.LOCALSCALE_SELECT_ALPHA:
+      case Replay.TWIST_SELECT_ALPHA:
+      case Replay.DRAG_SELECT_ALPHA:
+      case Replay.PAINT_SELECT_ALPHA:
+      case Replay.MASKING_SELECT_ALPHA:
+      case Replay.MOVE_SELECT_ALPHA:
         tool.idAlpha_ = data.getInt8(sel, true);
         sel += 1;
         break;

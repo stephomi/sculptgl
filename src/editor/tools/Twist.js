@@ -22,6 +22,7 @@ define([
       normal: [0.0, 0.0, 0.0], // normal of rotation plane
       center: [0.0, 0.0] // 2D center of rotation 
     };
+    this.idAlpha_ = 0;
   };
 
   Twist.prototype = {
@@ -77,12 +78,14 @@ define([
       if (this.culling_)
         iVertsInRadius = this.getFrontVertices(iVertsInRadius, picking.getEyeDirection());
 
-      this.twist(iVertsInRadius, picking.getIntersectionPoint(), picking.getLocalRadius2(), mx, my, lx, ly, twistData);
+      picking.updateAlpha(false);
+      picking.setIdAlpha(this.idAlpha_);
+      this.twist(iVertsInRadius, picking.getIntersectionPoint(), picking.getLocalRadius2(), mx, my, lx, ly, twistData, picking);
 
       this.mesh_.updateGeometry(this.mesh_.getFacesFromVertices(iVertsInRadius), iVertsInRadius);
     },
     /** Twist the vertices around the mouse point intersection */
-    twist: function (iVerts, center, radiusSquared, mouseX, mouseY, lastMouseX, lastMouseY, twistData) {
+    twist: function (iVerts, center, radiusSquared, mouseX, mouseY, lastMouseX, lastMouseY, twistData, picking) {
       var mesh = this.mesh_;
       var mouseCenter = twistData.center;
       var vecMouse = [mouseX - mouseCenter[0], mouseY - mouseCenter[1]];
@@ -96,7 +99,7 @@ define([
       var angle = Geometry.signedAngle2d(vecMouse, vecOldMouse);
       var vAr = mesh.getVertices();
       var mAr = mesh.getMaterials();
-      var radius = Math.sqrt(radiusSquared);
+      var invRadius = 1.0 / Math.sqrt(radiusSquared);
       var cx = center[0];
       var cy = center[1];
       var cz = center[2];
@@ -109,10 +112,11 @@ define([
         var dx = vx - cx;
         var dy = vy - cy;
         var dz = vz - cz;
-        var dist = Math.sqrt(dx * dx + dy * dy + dz * dz) / radius;
+        var dist = Math.sqrt(dx * dx + dy * dy + dz * dz) * invRadius;
         var fallOff = dist * dist;
         fallOff = 3.0 * fallOff * fallOff - 4.0 * fallOff * dist + 1.0;
-        quat.setAxisAngle(rot, nPlane, angle * fallOff * mAr[ind + 2]);
+        fallOff *= angle * mAr[ind + 2] * picking.getAlpha(vx, vy, vz);
+        quat.setAxisAngle(rot, nPlane, fallOff);
         vec3.set(coord, vx, vy, vz);
         vec3.sub(coord, coord, center);
         vec3.transformQuat(coord, coord, rot);

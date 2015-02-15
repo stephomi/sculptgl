@@ -22,16 +22,6 @@ define([
   };
 
   Brush.prototype = {
-    startSculpt: function (main) {
-      if (this.lockPosition_)
-        return;
-      this.sculptStroke(main);
-    },
-    update: function (main) {
-      if (this.lockPosition_ === false)
-        return this.sculptStroke(main);
-      this.updateSculptLock(main);
-    },
     stroke: function (picking) {
       var iVertsInRadius = picking.getPickedVertices();
       var intensity = this.intensity_ * Tablet.getPressureIntensity();

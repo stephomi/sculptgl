@@ -202,6 +202,9 @@ define([
       case Sculpt.tool.TWIST:
         this.checkCommonSculptAttributes(mainSel, replaySel, 'TWIST');
         break;
+      case Sculpt.tool.DRAG:
+        this.checkCommonSculptAttributes(mainSel, replaySel, 'DRAG');
+        break;
       case Sculpt.tool.LOCALSCALE:
         this.checkCommonSculptAttributes(mainSel, replaySel, 'LOCALSCALE');
         break;
@@ -357,7 +360,17 @@ define([
         case Replay.SHADER_SELECT:
         case Replay.MATCAP_SELECT:
         case Replay.BRUSH_SELECT_ALPHA:
+        case Replay.CREASE_SELECT_ALPHA:
+        case Replay.FLATTEN_SELECT_ALPHA:
+        case Replay.INFLATE_SELECT_ALPHA:
+        case Replay.PINCH_SELECT_ALPHA:
+        case Replay.SMOOTH_SELECT_ALPHA:
+        case Replay.LOCALSCALE_SELECT_ALPHA:
+        case Replay.TWIST_SELECT_ALPHA:
+        case Replay.DRAG_SELECT_ALPHA:
         case Replay.PAINT_SELECT_ALPHA:
+        case Replay.MASKING_SELECT_ALPHA:
+        case Replay.MOVE_SELECT_ALPHA:
           data.setUint8(offset, stack[++i], true);
           offset += 1;
           break;

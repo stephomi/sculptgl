@@ -11,6 +11,8 @@ define([
     this.intensity_ = 0.75; // deformation intensity
     this.negative_ = true; // opposition deformation
     this.culling_ = false; // if we backface cull the vertices
+    this.idAlpha_ = 0;
+    this.lockPosition_ = false;
   };
 
   Crease.prototype = {
@@ -28,12 +30,14 @@ define([
       if (this.culling_)
         iVertsInRadius = iVertsFront;
 
-      this.crease(iVertsInRadius, picking.getPickedNormal(), picking.getIntersectionPoint(), picking.getLocalRadius2(), intensity);
+      picking.updateAlpha(this.lockPosition_);
+      picking.setIdAlpha(this.idAlpha_);
+      this.crease(iVertsInRadius, picking.getPickedNormal(), picking.getIntersectionPoint(), picking.getLocalRadius2(), intensity, picking);
 
       this.mesh_.updateGeometry(this.mesh_.getFacesFromVertices(iVertsInRadius), iVertsInRadius);
     },
     /** Pinch+brush-like sculpt */
-    crease: function (iVertsInRadius, aNormal, center, radiusSquared, intensity) {
+    crease: function (iVertsInRadius, aNormal, center, radiusSquared, intensity, picking) {
       var mesh = this.mesh_;
       var vAr = mesh.getVertices();
       var mAr = mesh.getMaterials();
@@ -57,14 +61,17 @@ define([
         var dist = Math.sqrt(dx * dx + dy * dy + dz * dz) / radius;
         if (dist >= 1.0)
           continue;
+        var vx = vAr[ind];
+        var vy = vAr[ind + 1];
+        var vz = vAr[ind + 2];
         var fallOff = dist * dist;
         fallOff = 3.0 * fallOff * fallOff - 4.0 * fallOff * dist + 1.0;
+        fallOff *= mAr[ind + 2] * picking.getAlpha(vx, vy, vz);
         var brushModifier = Math.pow(fallOff, 5) * brushFactor;
-        fallOff = fallOff * deformIntensity;
-        fallOff *= mAr[ind + 2];
-        vAr[ind] += dx * fallOff + anx * brushModifier;
-        vAr[ind + 1] += dy * fallOff + any * brushModifier;
-        vAr[ind + 2] += dz * fallOff + anz * brushModifier;
+        fallOff *= deformIntensity;
+        vAr[ind] = vx + dx * fallOff + anx * brushModifier;
+        vAr[ind + 1] = vy + dy * fallOff + any * brushModifier;
+        vAr[ind + 2] = vz + dz * fallOff + anz * brushModifier;
       }
     }
   };

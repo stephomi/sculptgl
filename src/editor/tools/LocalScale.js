@@ -9,6 +9,7 @@ define([
   var LocalScale = function (states) {
     SculptBase.call(this, states);
     this.culling_ = false; // if we backface cull the vertices
+    this.idAlpha_ = 0;
   };
 
   LocalScale.prototype = {
@@ -48,12 +49,14 @@ define([
       if (this.culling_)
         iVertsInRadius = this.getFrontVertices(iVertsInRadius, picking.getEyeDirection());
 
-      this.scale(iVertsInRadius, picking.getIntersectionPoint(), picking.getLocalRadius2(), delta);
+      picking.updateAlpha(false);
+      picking.setIdAlpha(this.idAlpha_);
+      this.scale(iVertsInRadius, picking.getIntersectionPoint(), picking.getLocalRadius2(), delta, picking);
 
       this.mesh_.updateGeometry(this.mesh_.getFacesFromVertices(iVertsInRadius), iVertsInRadius);
     },
     /** Scale the vertices around the mouse point intersection */
-    scale: function (iVerts, center, radiusSquared, intensity) {
+    scale: function (iVerts, center, radiusSquared, intensity, picking) {
       var vAr = this.mesh_.getVertices();
       var mAr = this.mesh_.getMaterials();
       var deltaScale = intensity * 0.01;
@@ -72,8 +75,7 @@ define([
         var dist = Math.sqrt(dx * dx + dy * dy + dz * dz) / radius;
         var fallOff = dist * dist;
         fallOff = 3.0 * fallOff * fallOff - 4.0 * fallOff * dist + 1.0;
-        fallOff *= deltaScale;
-        fallOff *= mAr[ind + 2];
+        fallOff *= deltaScale * mAr[ind + 2] * picking.getAlpha(vx, vy, vz);
         vAr[ind] = vx + dx * fallOff;
         vAr[ind + 1] = vy + dy * fallOff;
         vAr[ind + 2] = vz + dz * fallOff;

@@ -31,20 +31,15 @@ define([
     },
     /** Start sculpting operation */
     startSculpt: function (main) {
-      var picking = main.getPicking();
       if (this.pickColor_)
-        return this.pickColor(picking);
-      if (this.lockPosition_)
-        return;
-      this.update(main);
+        return this.pickColor(main.getPicking());
+      SculptBase.prototype.startSculpt.call(this, main);
     },
     /** Update sculpting operation */
     update: function (main) {
       if (this.pickColor_ === true)
         return this.updatePickColor(main);
-      if (this.lockPosition_ === false)
-        return this.sculptStroke(main);
-      this.updateSculptLock(main);
+      SculptBase.prototype.update.call(this, main);
     },
     updateContinuous: function (main) {
       if (this.pickColor_ === true)

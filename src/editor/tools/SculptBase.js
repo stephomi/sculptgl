@@ -62,10 +62,14 @@ define([
     },
     /** Start sculpting operation */
     startSculpt: function (main) {
+      if (this.lockPosition_ === true)
+        return;
       this.sculptStroke(main);
     },
     /** Update sculpting operation */
     update: function (main) {
+      if (this.lockPosition_ === true)
+        return this.updateSculptLock(main);
       this.sculptStroke(main);
     },
     /** Update lock position */
@@ -135,7 +139,7 @@ define([
       // if dyn topo, we need to the picking and the sculpting altogether
       var dynTopo = mesh.getDynamicTopology && !this.lockPosition_;
       if (dynTopo && pick1)
-        this.stroke(picking);
+        this.stroke(picking, false);
 
       var pick2;
       if (pickingSym) {
@@ -148,7 +152,7 @@ define([
         }
       }
 
-      if (!dynTopo && pick1) this.stroke(picking);
+      if (!dynTopo && pick1) this.stroke(picking, false);
       if (pick2) this.stroke(pickingSym, true);
       return pick1 || pick2;
     },

@@ -12,6 +12,8 @@ define([
     this.intensity_ = 0.3; // deformation intensity
     this.negative_ = false; // opposition deformation
     this.culling_ = false; // if we backface cull the vertices
+    this.idAlpha_ = 0;
+    this.lockPosition_ = false;
   };
 
   Inflate.prototype = {
@@ -28,13 +30,15 @@ define([
       if (this.culling_)
         iVertsInRadius = this.getFrontVertices(iVertsInRadius, picking.getEyeDirection());
 
-      this.inflate(iVertsInRadius, picking.getIntersectionPoint(), picking.getLocalRadius2(), intensity);
-      Smooth.prototype.smoothTangent.call(this, iVertsInRadius, 1.0);
+      picking.updateAlpha(this.lockPosition_);
+      picking.setIdAlpha(this.idAlpha_);
+      this.inflate(iVertsInRadius, picking.getIntersectionPoint(), picking.getLocalRadius2(), intensity, picking);
+      Smooth.prototype.smoothTangent.call(this, iVertsInRadius, 1.0, picking);
 
       this.mesh_.updateGeometry(this.mesh_.getFacesFromVertices(iVertsInRadius), iVertsInRadius);
     },
     /** Inflate a group of vertices */
-    inflate: function (iVerts, center, radiusSquared, intensity) {
+    inflate: function (iVerts, center, radiusSquared, intensity, picking) {
       var mesh = this.mesh_;
       var vAr = mesh.getVertices();
       var mAr = mesh.getMaterials();
@@ -58,14 +62,17 @@ define([
         var fallOff = dist * dist;
         fallOff = 3.0 * fallOff * fallOff - 4.0 * fallOff * dist + 1.0;
         fallOff = deformIntensity * fallOff;
+        var vx = vAr[ind];
+        var vy = vAr[ind + 1];
+        var vz = vAr[ind + 2];
         var nx = nAr[ind];
         var ny = nAr[ind + 1];
         var nz = nAr[ind + 2];
         fallOff /= Math.sqrt(nx * nx + ny * ny + nz * nz);
-        fallOff *= mAr[ind + 2];
-        vAr[ind] += nx * fallOff;
-        vAr[ind + 1] += ny * fallOff;
-        vAr[ind + 2] += nz * fallOff;
+        fallOff *= mAr[ind + 2] * picking.getAlpha(vx, vy, vz);
+        vAr[ind] = vx + nx * fallOff;
+        vAr[ind + 1] = vy + ny * fallOff;
+        vAr[ind + 2] = vz + nz * fallOff;
       }
     }
   };

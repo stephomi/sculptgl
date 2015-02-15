@@ -42,25 +42,40 @@ define([], function () {
   Replay.CREASE_INTENSITY = ida++; // [intensity (u8)]
   Replay.CREASE_TOGGLE_NEGATIVE = ida++; // []
   Replay.CREASE_TOGGLE_CULLING = ida++; // []
+  Replay.CREASE_TOGGLE_LOCK_POSITION = ida++; // []
+  Replay.CREASE_SELECT_ALPHA = ida++; // [id (u8)]
 
   Replay.FLATTEN_INTENSITY = ida++; // [intensity (u8)]
   Replay.FLATTEN_TOGGLE_NEGATIVE = ida++; // []
   Replay.FLATTEN_TOGGLE_CULLING = ida++; // []
+  Replay.FLATTEN_TOGGLE_LOCK_POSITION = ida++; // []
+  Replay.FLATTEN_SELECT_ALPHA = ida++; // [id (u8)]
 
   Replay.INFLATE_INTENSITY = ida++; // [intensity (u8)]
   Replay.INFLATE_TOGGLE_NEGATIVE = ida++; // []
   Replay.INFLATE_TOGGLE_CULLING = ida++; // []
+  Replay.INFLATE_TOGGLE_LOCK_POSITION = ida++; // []
+  Replay.INFLATE_SELECT_ALPHA = ida++; // [id (u8)]
 
   Replay.PINCH_INTENSITY = ida++; // [intensity (u8)]
   Replay.PINCH_TOGGLE_NEGATIVE = ida++; // []
   Replay.PINCH_TOGGLE_CULLING = ida++; // []
+  Replay.PINCH_TOGGLE_LOCK_POSITION = ida++; // []
+  Replay.PINCH_SELECT_ALPHA = ida++; // [id (u8)]
 
   Replay.SMOOTH_INTENSITY = ida++; // [intensity (u8)]
   Replay.SMOOTH_TOGGLE_CULLING = ida++; // []
   Replay.SMOOTH_TOGGLE_TANGENT = ida++; // []
+  Replay.SMOOTH_TOGGLE_LOCK_POSITION = ida++; // []
+  Replay.SMOOTH_SELECT_ALPHA = ida++; // [id (u8)]
 
   Replay.LOCALSCALE_TOGGLE_CULLING = ida++; // []
+  Replay.LOCALSCALE_SELECT_ALPHA = ida++; // [id (u8)]
+
   Replay.TWIST_TOGGLE_CULLING = ida++; // []
+  Replay.TWIST_SELECT_ALPHA = ida++; // [id (u8)]
+
+  Replay.DRAG_SELECT_ALPHA = ida++; // [id (u8)]
 
   Replay.PAINT_INTENSITY = ida++; // [intensity (u8)]
   Replay.PAINT_HARDNESS = ida++; // [hardness (u8)]
@@ -75,6 +90,7 @@ define([], function () {
   Replay.MOVE_INTENSITY = ida++; // [intensity (u8)]
   Replay.MOVE_TOGGLE_TOPOCHECK = ida++; // []
   Replay.MOVE_TOGGLE_NEGATIVE = ida++; // []
+  Replay.MOVE_SELECT_ALPHA = ida++; // [id (u8)]
 
   Replay.MASKING_INTENSITY = ida++; // [intensity (u8)]
   Replay.MASKING_HARDNESS = ida++; // [hardness (u8)]
@@ -84,6 +100,8 @@ define([], function () {
   Replay.MASKING_INVERT = ida++; // []
   Replay.MASKING_BLUR = ida++; // []
   Replay.MASKING_SHARPEN = ida++; // []
+  Replay.MASKING_TOGGLE_LOCK_POSITION = ida++; // []
+  Replay.MASKING_SELECT_ALPHA = ida++; // [id (u8)]
 
   Replay.MULTI_RESOLUTION = ida++; // [res (u8)]
   Replay.MULTI_SUBDIVIDE = ida++; // []
