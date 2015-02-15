@@ -13,11 +13,11 @@ define([
 
   'use strict';
 
-  function Shader(gl) {
+  var Shader = function (gl) {
     this.gl_ = gl; // webgl context
     this.type_ = Shader.mode.PBR; // type of shader
     this.shaderObject_ = null; // the shader
-  }
+  };
 
   Shader.mode = {
     PBR: 0,

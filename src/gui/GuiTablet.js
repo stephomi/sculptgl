@@ -5,10 +5,10 @@ define([
 
   'use strict';
 
-  function GuiTablet(guiParent) {
+  var GuiTablet = function (guiParent) {
     this.menu_ = null; // ui menu
     this.init(guiParent);
-  }
+  };
 
   GuiTablet.prototype = {
     /** Initialize */

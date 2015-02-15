@@ -11,7 +11,7 @@ define([
 
   'use strict';
 
-  function MeshData(mesh) {
+  var MeshData = function (mesh) {
     this.mesh_ = mesh; // the mesh
 
     this.drawArraysData_ = new DrawArraysData(mesh); // the wireframe data
@@ -21,7 +21,7 @@ define([
     this.vertexData_ = new VertexData(mesh); // the vertex data
     this.wireframeData_ = new WireframeData(mesh); // the wireframe data
     this.transformData_ = new TransformData(mesh); // the transform data
-  }
+  };
 
   MeshData.prototype = {
     getDrawArraysData: function () {

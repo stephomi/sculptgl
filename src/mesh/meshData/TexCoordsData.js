@@ -4,7 +4,7 @@ define([
 
   'use strict';
 
-  function TexCoordsData(mesh) {
+  var TexCoordsData = function (mesh) {
     this.mesh_ = mesh; // the mesh
 
     this.texCoordsST_ = null; // tex coords (Float32Array)
@@ -16,7 +16,7 @@ define([
     this.UVcolorsRGB_ = null; // color vertices + duplicates (Float32Array)
     this.UVmaterialsPBR_ = null; // materials vertices + duplicates (Float32Array)
     this.UVnormalsXYZ_ = null; // normals + duplicates (Float32Array)
-  }
+  };
 
   TexCoordsData.prototype = {
     hasUV: function () {

@@ -10,12 +10,12 @@ define([
 
   'use strict';
 
-  function States(main) {
+  var States = function (main) {
     this.main_ = main; // main
     this.undos_ = []; // undo actions
     this.redos_ = []; // redo actions
     this.curUndoIndex_ = -1; // current index in undo
-  }
+  };
 
   States.STACK_LENGTH = 15;
 

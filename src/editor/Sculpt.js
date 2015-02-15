@@ -18,7 +18,7 @@ define([
 
   'use strict';
 
-  function Sculpt(states) {
+  var Sculpt = function (states) {
     this.states_ = states; // for undo-redo
 
     this.tool_ = Sculpt.tool.BRUSH; // sculpting mode
@@ -32,7 +32,7 @@ define([
     this.sculptTimer_ = -1; // continuous interval timer
 
     this.init();
-  }
+  };
 
   // the sculpting tools
   Sculpt.tool = {

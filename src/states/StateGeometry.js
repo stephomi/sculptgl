@@ -4,12 +4,12 @@ define([
 
   'use strict';
 
-  function StateGeometry(main, mesh) {
+  var StateGeometry = function (main, mesh) {
     this.main_ = main; // main application
     this.mesh_ = mesh; // the mesh
     this.idVertState_ = []; // ids of vertices
     this.vArState_ = []; // copies of vertices coordinates
-  }
+  };
 
   StateGeometry.prototype = {
     /** On undo */

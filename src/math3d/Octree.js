@@ -5,14 +5,14 @@ define([
 
   'use strict';
 
-  function Octree(mesh) {
+  var Octree = function (mesh) {
     this.mesh_ = mesh; // the mesh
     this.root_ = null; // root octree cell
 
     this.facePosInLeaf_ = null; // position index in the leaf (Uint32Array)
     this.faceLeaf_ = []; // octree leaf
     this.leavesUpdate_ = []; // leaves of the octree to check
-  }
+  };
 
   Octree.prototype = {
     getFacePosInLeaf: function () {

@@ -4,7 +4,7 @@ define([
 
   'use strict';
 
-  function StateDynamic(main, mesh) {
+  var StateDynamic = function (main, mesh) {
     this.main_ = main; // main application
     this.mesh_ = mesh; // the mesh
 
@@ -20,7 +20,7 @@ define([
 
     this.idFaceState_ = []; // ids of faces
     this.fArState_ = []; // copies of face indices
-  }
+  };
 
   StateDynamic.prototype = {
     /** On undo */

@@ -4,10 +4,10 @@ define([
 
   'use strict';
 
-  function GuiScene(guiParent, ctrlGui) {
+  var GuiScene = function (guiParent, ctrlGui) {
     this.main_ = ctrlGui.main_; // main application
     this.init(guiParent);
-  }
+  };
 
   GuiScene.prototype = {
     /** Initialize */

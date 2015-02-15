@@ -5,7 +5,7 @@ define([
 
   'use strict';
 
-  function Rtt(gl) {
+  var Rtt = function (gl) {
     this.gl_ = gl; // webgl context
 
     this.vertexBuffer_ = new Buffer(gl, gl.ARRAY_BUFFER, gl.STATIC_DRAW);
@@ -17,7 +17,7 @@ define([
     this.shader_ = null; // the shader
 
     this.init();
-  }
+  };
 
   Rtt.prototype = {
     getGL: function () {

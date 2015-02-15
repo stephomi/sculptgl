@@ -9,7 +9,7 @@ define([
 
   var vec3 = glm.vec3;
 
-  function Paint(states) {
+  var Paint = function (states) {
     SculptBase.call(this, states);
     this.hardness_ = 0.75;
     this.intensity_ = 0.75; // deformation intensity
@@ -21,7 +21,7 @@ define([
     this.pickCallback_ = null; // callback function after picking a color
     this.idAlpha_ = 0;
     this.lockPosition_ = false;
-  }
+  };
 
   Paint.prototype = {
     /** Push undo operation */

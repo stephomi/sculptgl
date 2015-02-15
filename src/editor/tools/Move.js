@@ -10,7 +10,7 @@ define([
   var vec3 = glm.vec3;
   var mat4 = glm.mat4;
 
-  function Move(states) {
+  var Move = function (states) {
     SculptBase.call(this, states);
     this.intensity_ = 1.0;
     this.topoCheck_ = true;
@@ -25,7 +25,7 @@ define([
       dir: [0.0, 0.0],
       vProxy: null
     };
-  }
+  };
 
   Move.prototype = {
     startSculpt: function (main) {

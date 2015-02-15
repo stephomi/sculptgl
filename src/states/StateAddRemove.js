@@ -2,11 +2,11 @@ define([], function () {
 
   'use strict';
 
-  function StateAddRemove(main, addedMeshes, removedMeshes) {
+  var StateAddRemove = function (main, addedMeshes, removedMeshes) {
     this.main_ = main; // main application
     this.addedMeshes_ = addedMeshes.length !== undefined ? addedMeshes : [addedMeshes]; // the added meshes
     this.removedMeshes_ = removedMeshes.length !== undefined ? removedMeshes : [removedMeshes]; // the deleted meshes
-  }
+  };
 
   StateAddRemove.prototype = {
     /** On undo */

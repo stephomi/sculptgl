@@ -2,7 +2,7 @@ define([], function () {
 
   'use strict';
 
-  function DrawArraysData(mesh) {
+  var DrawArraysData = function (mesh) {
     this.mesh_ = mesh; // the mesh
 
     this.verticesXYZ_ = null; // vertices (Float32Array)
@@ -10,7 +10,7 @@ define([], function () {
     this.colorsRGB_ = null; // color vertices (Float32Array)
     this.materialsPBR_ = null; // material vertices (Float32Array)
     this.texCoordsST_ = null; // texCoords (Float32Array)
-  }
+  };
 
   DrawArraysData.prototype = {
     getVerticesDrawArrays: function () {

@@ -2,11 +2,11 @@ define([], function () {
 
   'use strict';
 
-  function EdgeData(mesh) {
+  var EdgeData = function (mesh) {
     this.mesh_ = mesh; // the mesh
 
     this.edges_ = null; // edges (Uint8Array) (1 => outer edge, 0 or 2 => inner edge, >=3 non manifold)
-  }
+  };
 
   EdgeData.prototype = {
     getEdges: function () {
@@ -114,7 +114,7 @@ define([], function () {
       }
       var eAr = this.edges_ = new Uint8Array(nbEdges);
       for (var k = 0, nbFaceEdges = feAr.length; k < nbFaceEdges; ++k)
-        eAr[feAr[k]]++;
+        eAr[feAr[k]] ++;
     }
   };
 

@@ -20,7 +20,7 @@ define([
 
   'use strict';
 
-  function SculptGL() {
+  var SculptGL = function () {
     this.gl_ = null; // webgl context
     this.canvas_ = document.getElementById('canvas');
 
@@ -63,7 +63,7 @@ define([
     this.preventRender_ = false; // prevent multiple render per frame
 
     this.drawFullScene_ = false; // render everything on the rtt
-  }
+  };
 
   SculptGL.prototype = {
     /** Initialization */

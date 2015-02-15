@@ -4,11 +4,11 @@ define([
 
   'use strict';
 
-  function GuiBackground(guiParent, ctrlGui) {
+  var GuiBackground = function (guiParent, ctrlGui) {
     this.main_ = ctrlGui.main_; // main application
     this.menu_ = null; // ui menu
     this.init(guiParent);
-  }
+  };
 
   GuiBackground.prototype = {
     /** Initialize */

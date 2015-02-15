@@ -4,14 +4,14 @@ define([
 
   'use strict';
 
-  function GuiMesh(guiParent, ctrlGui) {
+  var GuiMesh = function (guiParent, ctrlGui) {
     this.main_ = ctrlGui.main_; // main application
 
     this.domVerts = null; // ctrl nb vertices
     this.domFaces = null; // ctrl nb faces
     this.domUl = null;
     this.init(guiParent);
-  }
+  };
 
   GuiMesh.prototype = {
     /** Initialize */

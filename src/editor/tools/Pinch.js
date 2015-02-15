@@ -6,12 +6,12 @@ define([
 
   'use strict';
 
-  function Pinch(states) {
+  var Pinch = function (states) {
     SculptBase.call(this, states);
     this.intensity_ = 0.75; // deformation intensity
     this.negative_ = false; // opposition deformation
     this.culling_ = false; // if we backface cull the vertices
-  }
+  };
 
   Pinch.prototype = {
     /** On stroke */

@@ -6,12 +6,12 @@ define([
 
   'use strict';
 
-  function Crease(states) {
+  var Crease = function (states) {
     SculptBase.call(this, states);
     this.intensity_ = 0.75; // deformation intensity
     this.negative_ = true; // opposition deformation
     this.culling_ = false; // if we backface cull the vertices
-  }
+  };
 
   Crease.prototype = {
     /** On stroke */

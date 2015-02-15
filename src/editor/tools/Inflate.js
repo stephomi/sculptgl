@@ -7,12 +7,12 @@ define([
 
   'use strict';
 
-  function Inflate(states) {
+  var Inflate = function (states) {
     SculptBase.call(this, states);
     this.intensity_ = 0.3; // deformation intensity
     this.negative_ = false; // opposition deformation
     this.culling_ = false; // if we backface cull the vertices
-  }
+  };
 
   Inflate.prototype = {
     /** On stroke */

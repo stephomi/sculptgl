@@ -9,7 +9,7 @@ define([
   var mat3 = glm.mat3;
   var mat4 = glm.mat4;
 
-  function TransformData(mesh) {
+  var TransformData = function (mesh) {
     this.mesh_ = mesh; // the mesh
 
     this.center_ = vec3.create(); // center of the mesh (local space, before transformation)
@@ -25,7 +25,7 @@ define([
     this.cacheN_ = mat3.create(); // N matrix
     this.cacheEN_ = mat3.create(); // Editmatrix N matrix
     this.cacheDepth_ = 0.0; // depth of center
-  }
+  };
 
   TransformData.prototype = {
     getCenter: function () {

@@ -11,11 +11,11 @@ define([
   var vec3 = glm.vec3;
   var mat4 = glm.mat4;
 
-  function Drag(states) {
+  var Drag = function (states) {
     SculptBase.call(this, states);
     this.dragDir_ = [0.0, 0.0, 0.0]; // direction of deformation
     this.dragDirSym_ = [0.0, 0.0, 0.0]; // direction of deformation
-  }
+  };
 
   Drag.prototype = {
     /** Make a brush stroke */

@@ -10,12 +10,12 @@ define([
   var vec3 = glm.vec3;
   var mat4 = glm.mat4;
 
-  function Translate(states) {
+  var Translate = function (states) {
     SculptBase.call(this, states);
     this.origin_ = [0.0, 0.0, 0.0]; // plane origin
     this.normal_ = [0.0, 0.0, 0.0]; // plane normal
     this.matrixInv_ = mat4.create(); // origin matrix inverse
-  }
+  };
 
   Translate.prototype = {
     end: function () {

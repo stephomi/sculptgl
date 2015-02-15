@@ -10,7 +10,7 @@ define([
 
   var vec3 = glm.vec3;
 
-  function Brush(states) {
+  var Brush = function (states) {
     SculptBase.call(this, states);
     this.intensity_ = 0.5;
     this.negative_ = false;
@@ -19,7 +19,7 @@ define([
     this.accumulate_ = true; // if we ignore the proxy
     this.idAlpha_ = 0;
     this.lockPosition_ = false;
-  }
+  };
 
   Brush.prototype = {
     startSculpt: function (main) {

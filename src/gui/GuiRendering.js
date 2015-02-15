@@ -8,7 +8,7 @@ define([
 
   'use strict';
 
-  function GuiRendering(guiParent, ctrlGui) {
+  var GuiRendering = function (guiParent, ctrlGui) {
     this.main_ = ctrlGui.main_; // main application
 
     // ui rendering
@@ -20,7 +20,7 @@ define([
     this.ctrlUV_ = null; // upload a texture
 
     this.init(guiParent);
-  }
+  };
 
   GuiRendering.prototype = {
     /** Initialize */

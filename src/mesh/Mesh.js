@@ -7,12 +7,12 @@ define([
 
   'use strict';
 
-  function Mesh(gl) {
+  var Mesh = function (gl) {
     this.meshData_ = new MeshData(this); // the mesh data
     this.octree_ = new Octree(this); // octree
     this.render_ = gl ? new Render(gl, this) : null; // octree
     this.id_ = Mesh.ID++; // useful id to retrieve a mesh (dynamic mesh, multires mesh, voxel mesh)
-  }
+  };
 
   Mesh.ID = 0;
   Mesh.sortFunction = function (meshA, meshB) {

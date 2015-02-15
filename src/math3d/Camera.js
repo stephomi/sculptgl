@@ -13,7 +13,7 @@ define([
   var mat4 = glm.mat4;
   var quat = glm.quat;
 
-  function Camera() {
+  var Camera = function () {
     this.mode_ = Camera.mode.ORBIT; // camera mode
     this.projType_ = Camera.projType.PERSPECTIVE; // the projection type
 
@@ -46,7 +46,7 @@ define([
     this.rotX_ = 0.0; // x rot for orbit camera
     this.rotY_ = 0.0; // y rot for orbit camera
     this.resetView();
-  }
+  };
 
   // the camera modes
   Camera.mode = {

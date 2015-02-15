@@ -6,12 +6,12 @@ define([
 
   'use strict';
 
-  function Smooth(states) {
+  var Smooth = function (states) {
     SculptBase.call(this, states);
     this.intensity_ = 0.75; // deformation intensity
     this.culling_ = false; // if we backface cull the vertices
     this.tangent_ = false; // tangent smoothing
-  }
+  };
 
   Smooth.prototype = {
     /** On stroke */

@@ -2,7 +2,7 @@ define([], function () {
 
   'use strict';
 
-  function StateMultiresolution(main, multimesh, type, isRedo) {
+  var StateMultiresolution = function (main, multimesh, type, isRedo) {
     this.main_ = main; // main application
     this.multimesh_ = multimesh; // the multires mesh
     this.mesh_ = multimesh.getCurrentMesh(); // the sub multimesh
@@ -27,7 +27,7 @@ define([], function () {
       }
       break;
     }
-  }
+  };
 
   StateMultiresolution.SUBDIVISION = 0; // subdivision of the mesh
   StateMultiresolution.REVERSION = 1; // reversion of the mesh

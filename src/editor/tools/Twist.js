@@ -11,7 +11,7 @@ define([
   var vec3 = glm.vec3;
   var quat = glm.quat;
 
-  function Twist(states) {
+  var Twist = function (states) {
     SculptBase.call(this, states);
     this.culling_ = false; // if we backface cull the vertices
     this.twistData_ = {
@@ -22,7 +22,7 @@ define([
       normal: [0.0, 0.0, 0.0], // normal of rotation plane
       center: [0.0, 0.0] // 2D center of rotation 
     };
-  }
+  };
 
   Twist.prototype = {
     /** Start a twist sculpt stroke */

@@ -11,7 +11,7 @@ define([
   var mat4 = glm.mat4;
   var vec3 = glm.vec3;
 
-  function Selection(gl) {
+  var Selection = function (gl) {
     this.gl_ = gl;
 
     this.circleBuffer_ = new Buffer(gl, gl.ARRAY_BUFFER, gl.STATIC_DRAW);
@@ -24,7 +24,7 @@ define([
 
     this.shader_ = null;
     this.init();
-  }
+  };
 
   Selection.prototype = {
     getGL: function () {

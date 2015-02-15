@@ -4,12 +4,12 @@ define([
 
   'use strict';
 
-  function SculptBase(states) {
+  var SculptBase = function (states) {
     this.states_ = states; // for undo-redo
     this.mesh_ = null; // the current edited mesh
     this.lastMouseX_ = 0.0;
     this.lastMouseY_ = 0.0;
-  }
+  };
 
   SculptBase.prototype = {
     /** Start sculpting */

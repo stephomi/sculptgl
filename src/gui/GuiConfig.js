@@ -4,11 +4,11 @@ define([
 
   'use strict';
 
-  function GuiConfig(guiParent, ctrlGui) {
+  var GuiConfig = function (guiParent, ctrlGui) {
     this.ctrlGui_ = ctrlGui;
     this.menu_ = null; // ui menu
     this.init(guiParent);
-  }
+  };
 
   GuiConfig.prototype = {
     /** Initialize */

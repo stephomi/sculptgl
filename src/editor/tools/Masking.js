@@ -7,13 +7,13 @@ define([
 
   'use strict';
 
-  function Masking(states) {
+  var Masking = function (states) {
     SculptBase.call(this, states);
     this.hardness_ = 0.25;
     this.intensity_ = 1.0; // deformation intensity
     this.negative_ = true; // opposition deformation
     this.culling_ = false; // if we backface cull the vertices
-  }
+  };
 
   Masking.prototype = {
     pushState: function () {

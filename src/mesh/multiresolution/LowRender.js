@@ -6,13 +6,13 @@ define([
 
   'use strict';
 
-  function LowRender(render) {
+  var LowRender = function (render) {
     this.renderOrigin_ = render; // the base render
 
     var gl = render.getGL(); // webgl context
     this.indexBuffer_ = new Buffer(gl, gl.ELEMENT_ARRAY_BUFFER, gl.STATIC_DRAW); // index buffer
     this.wireframeBuffer_ = new Buffer(gl, gl.ELEMENT_ARRAY_BUFFER, gl.STATIC_DRAW); // wireframe buffer
-  }
+  };
 
   LowRender.prototype = {
     /** Return base render */

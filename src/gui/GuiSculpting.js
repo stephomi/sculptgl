@@ -7,7 +7,7 @@ define([
 
   'use strict';
 
-  function GuiSculpting(guiParent, ctrlGui) {
+  var GuiSculpting = function (guiParent, ctrlGui) {
     this.main_ = ctrlGui.main_; // main application
     this.ctrlGui_ = ctrlGui; // main gui
     this.sculpt_ = ctrlGui.main_.getSculpt(); // sculpting management
@@ -24,7 +24,7 @@ define([
     this.ctrlContinuous_ = null;
     this.ctrlRadius_ = null;
     this.init(guiParent);
-  }
+  };
 
   var uiTools = GuiSculptingTools.TOOLS;
 

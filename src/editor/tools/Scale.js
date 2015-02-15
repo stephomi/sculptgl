@@ -9,9 +9,9 @@ define([
 
   var mat4 = glm.mat4;
 
-  function Scale(states) {
+  var Scale = function (states) {
     SculptBase.call(this, states);
-  }
+  };
 
   Scale.prototype = {
     end: function () {

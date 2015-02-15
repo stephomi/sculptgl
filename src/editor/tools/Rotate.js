@@ -13,13 +13,13 @@ define([
   var mat4 = glm.mat4;
   var quat = glm.quat;
 
-  function Rotate(states) {
+  var Rotate = function (states) {
     SculptBase.call(this, states);
     this.lastNormalizedMouseXY_ = [0.0, 0.0]; // last mouse position ( 0..1 )
     this.matrixInv_ = mat4.create(); // origin matrix inverse
     this.preTranslate_ = mat4.create(); // pre translate matrix
     this.postTranslate_ = mat4.create(); // post translate matrix
-  }
+  };
 
   Rotate.prototype = {
     end: function () {

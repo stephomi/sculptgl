@@ -5,7 +5,7 @@ define([
 
   'use strict';
 
-  function Background(gl, main) {
+  var Background = function (gl, main) {
     this.main_ = main;
     this.gl_ = gl; // webgl context
 
@@ -20,7 +20,7 @@ define([
 
     this.shader_ = null; // the shader
     this.init();
-  }
+  };
 
   Background.prototype = {
     loadBackground: function (event) {

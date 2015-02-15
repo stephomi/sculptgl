@@ -6,7 +6,7 @@ define([
 
   'use strict';
 
-  function Render(gl, mesh) {
+  var Render = function (gl, mesh) {
     this.mesh_ = mesh;
     this.gl_ = gl;
 
@@ -32,7 +32,7 @@ define([
     this.albedo_ = new Float32Array([-1.0, -1.0, -1.0]);
     this.roughness_ = -0.18;
     this.metallic_ = -0.78;
-  }
+  };
 
   Render.ONLY_DRAW_ARRAYS = false;
 

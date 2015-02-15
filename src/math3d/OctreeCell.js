@@ -2,7 +2,7 @@ define([], function () {
 
   'use strict';
 
-  function OctreeCell(parent) {
+  var OctreeCell = function (parent) {
     this.parent_ = parent ? parent : null; // parent
     this.depth_ = parent ? parent.depth_ + 1 : 0; // depth of current node
     this.children_ = []; // children
@@ -11,7 +11,7 @@ define([], function () {
     // boundary in order to store exactly the face according to their center
     this.aabbSplit_ = [Infinity, Infinity, Infinity, -Infinity, -Infinity, -Infinity];
     this.iFaces_ = []; // faces (if cell is a leaf)
-  }
+  };
 
   OctreeCell.MAX_DEPTH = 8; // maximum depth
   OctreeCell.MAX_FACES = 100; // maximum faces per cell

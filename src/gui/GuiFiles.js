@@ -6,13 +6,13 @@ define([
 
   'use strict';
 
-  function GuiFiles(guiParent, ctrlGui) {
+  var GuiFiles = function (guiParent, ctrlGui) {
     this.main_ = ctrlGui.main_; // main application
     this.ctrlGui_ = ctrlGui;
     this.menu_ = null; // ui menu
     this.parent_ = guiParent;
     this.init(guiParent);
-  }
+  };
 
   GuiFiles.prototype = {
     /** Initialize */

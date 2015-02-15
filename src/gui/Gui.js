@@ -16,7 +16,7 @@ define([
 
   'use strict';
 
-  function Gui(main) {
+  var Gui = function (main) {
     this.main_ = main;
 
     this.guiMain_ = null;
@@ -37,7 +37,7 @@ define([
     this.ctrlNotification_ = null;
 
     this.ctrls_ = []; // list of controllers
-  }
+  };
 
   Gui.prototype = {
     /** Initialize dat-gui stuffs */

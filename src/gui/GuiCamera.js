@@ -5,14 +5,14 @@ define([
 
   'use strict';
 
-  function GuiCamera(guiParent, ctrlGui) {
+  var GuiCamera = function (guiParent, ctrlGui) {
     this.main_ = ctrlGui.main_; // main application
     this.menu_ = null; // ui menu
     this.camera_ = this.main_.getCamera(); // the camera
     this.cameraTimer_ = -1; // interval id (used for zqsd/wasd/arrow moves)
     this.cbTranslation_ = this.cbOnTranslation.bind(this);
     this.init(guiParent);
-  }
+  };
 
   GuiCamera.prototype = {
     /** Initialize */

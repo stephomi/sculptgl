@@ -2,10 +2,10 @@ define([], function () {
 
   'use strict';
 
-  function StateCustom(undocb, redocb) {
+  var StateCustom = function (undocb, redocb) {
     this.undocb_ = undocb;
     this.redocb_ = redocb ? redocb : undocb;
-  }
+  };
 
   StateCustom.prototype = {
     undo: function () {

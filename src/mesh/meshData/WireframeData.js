@@ -2,11 +2,11 @@ define([], function () {
 
   'use strict';
 
-  function WireframeData(mesh) {
+  var WireframeData = function (mesh) {
     this.mesh_ = mesh; // the mesh
     this.drawArraysWireframe_ = null; // array for the wireframe (base on drawArrays vertices)
     this.drawElementsWireframe_ = null; // array for the wireframe (base on drawElements vertices)
-  }
+  };
 
   WireframeData.prototype = {
     /** Return wireframe array (or compute it if not up to date) */

@@ -11,7 +11,7 @@ define([
   var vec3 = glm.vec3;
   var mat4 = glm.mat4;
 
-  function Picking(main, xSym) {
+  var Picking = function (main, xSym) {
     this.mesh_ = null; // mesh
     this.main_ = main; // the camera
     this.pickedFace_ = -1; // face picked
@@ -30,7 +30,7 @@ define([
     this.alphaSide_ = 0.0;
     this.alphaLookAt_ = mat4.create();
     this.alpha_ = null;
-  }
+  };
 
   Picking.ALPHAS_NAMES = ['None', 'Square', 'Skin'];
   Picking.ALPHAS_PATHS = ['square.jpg', 'skin.jpg'];

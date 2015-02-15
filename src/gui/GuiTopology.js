@@ -10,14 +10,14 @@ define([
 
   'use strict';
 
-  function GuiMultiresolution(guiParent, ctrlGui) {
+  var GuiMultiresolution = function (guiParent, ctrlGui) {
     this.ctrlGui_ = ctrlGui;
     this.main_ = ctrlGui.main_; // main application
     this.menu_ = null; // ui menu
     this.ctrlResolution_ = null; // multiresolution controller
     this.ctrlDynamic_ = null; // dynamic topology controller
     this.init(guiParent);
-  }
+  };
 
   GuiMultiresolution.prototype = {
     /** Initialize */

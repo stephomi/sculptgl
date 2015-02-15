@@ -4,7 +4,7 @@ define([
 
   'use strict';
 
-  function VertexData(mesh) {
+  var VertexData = function (mesh) {
     this.mesh_ = mesh; // the mesh
 
     // attributes vertex ( no duplicates )
@@ -30,7 +30,7 @@ define([
     this.vertStateFlags_ = null; // state flags (<= Utils.STATE_FLAG) (Int32Array)
 
     this.vertProxy_ = null; // vertex proxy (Float32Array)
-  }
+  };
 
   VertexData.prototype = {
     setVertices: function (vAr) {

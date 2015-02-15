@@ -10,7 +10,7 @@ define([
 
   var mat4 = glm.mat4;
 
-  function Grid(gl) {
+  var Grid = function (gl) {
     this.gl_ = gl; // webgl context
 
     this.vertexBuffer_ = new Buffer(gl, gl.ARRAY_BUFFER, gl.STATIC_DRAW); // vertices buffer
@@ -21,7 +21,7 @@ define([
 
     this.shader_ = null; // the shader
     this.init();
-  }
+  };
 
   Grid.prototype = {
     /** Return webgl context */

@@ -4,7 +4,7 @@ define([
 
   'use strict';
 
-  function IndexData(mesh) {
+  var IndexData = function (mesh) {
     this.mesh_ = mesh; // the mesh
 
     this.facesABCD_ = null; // faces (Int32Array)
@@ -19,7 +19,7 @@ define([
     this.trianglesABC_ = null; // triangles (Uint32Array)
 
     this.facesTagFlags_ = null; // triangles tag (<= Utils.TAG_FLAG) (Int32Array)
-  }
+  };
 
   IndexData.prototype = {
     setFaces: function (fAr) {

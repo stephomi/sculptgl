@@ -6,10 +6,10 @@ define([
 
   'use strict';
 
-  function LocalScale(states) {
+  var LocalScale = function (states) {
     SculptBase.call(this, states);
     this.culling_ = false; // if we backface cull the vertices
-  }
+  };
 
   LocalScale.prototype = {
     /** Start a sculpt sculpt stroke */

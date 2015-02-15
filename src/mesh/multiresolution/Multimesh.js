@@ -8,14 +8,14 @@ define([
 
   'use strict';
 
-  function Multimesh(mesh) {
+  var Multimesh = function (mesh) {
     // every submeshes will share the same render/transformData
     mesh.getRender().mesh_ = this;
     mesh.getTransformData().mesh_ = this;
     this.meshes_ = [new MeshResolution(mesh.getTransformData(), mesh.getRender(), mesh)];
     this.sel_ = 0;
     this.lowRender_ = new LowRender(mesh.getRender());
-  }
+  };
 
   Multimesh.RENDER_HINT = 0;
   Multimesh.NONE = 0;

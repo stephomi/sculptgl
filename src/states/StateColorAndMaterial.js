@@ -4,13 +4,13 @@ define([
 
   'use strict';
 
-  function StateColorAndMaterial(main, mesh) {
+  var StateColorAndMaterial = function (main, mesh) {
     this.main_ = main; // main application
     this.mesh_ = mesh; // the mesh
     this.idVertState_ = []; // ids of vertices
     this.cArState_ = []; // copies of color vertices
     this.mArState_ = []; // copies of material vertices
-  }
+  };
 
   StateColorAndMaterial.prototype = {
     /** On undo */
