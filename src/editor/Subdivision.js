@@ -52,7 +52,7 @@ define([
       var ivMid = testEdge === -1 ? this.nbVertices_++ : testEdge;
       var idMid = ivMid * 3;
       var edgeValue = eAr[ide];
-      if (edgeValue === 1 || edgeValue >= 3) { // mid edge vertex or non manifold shit
+      if (edgeValue === 1 || edgeValue >= 3 || Subdivision.LINEAR) { // mid edge vertex or non manifold shit
         if (testEdge !== -1) // no need to recompute weird non manifold stuffs
           return ivMid;
         tagEdges[ide] = ivMid + 1;
@@ -112,7 +112,7 @@ define([
       var ivMid = testEdge === -1 ? this.nbVertices_++ : testEdge;
       var idMid = ivMid * 3;
       var edgeValue = eAr[ide];
-      if (edgeValue === 1 || edgeValue >= 3) { // mid edge vertex or non manifold shit
+      if (edgeValue === 1 || edgeValue >= 3 || Subdivision.LINEAR) { // mid edge vertex or non manifold shit
         if (testEdge !== -1) // no need to recompute weird non manifold stuffs
           return ivMid;
         tagEdges[ide] = ivMid + 1;
@@ -184,6 +184,7 @@ define([
   };
 
   var Subdivision = {};
+  Subdivision.LINEAR = false;
 
   /** Apply a complete subdivision (by updating the topology) */
   Subdivision.fullSubdivision = function (baseMesh, newMesh) {
@@ -231,7 +232,7 @@ define([
       var k = 0;
       var id = 0;
       // edge vertex
-      if (vertOnEdgeOld[i]) {
+      if (vertOnEdgeOld[i] || Subdivision.LINEAR) {
         var startF = vrfStartCount[i * 2];
         var endF = startF + vrfStartCount[i * 2 + 1];
         for (k = startF; k < endF; ++k) {
@@ -387,7 +388,6 @@ define([
         ivMid3 = oddComputer.computeQuadEdgeVertex(iv3, iv4, iv1, iv2, feAr[id + 2]);
         ivMid4 = oddComputer.computeQuadEdgeVertex(iv4, iv1, iv2, iv3, feAr[id + 3]);
         ivCen = oddComputer.computeFaceVertex(iv1, iv2, iv3, iv4);
-        // 837322 418833
       } else {
         ivMid1 = oddComputer.computeTriangleEdgeVertex(iv1, iv2, iv3, feAr[id]);
         ivMid2 = oddComputer.computeTriangleEdgeVertex(iv2, iv3, iv1, feAr[id + 1]);

@@ -53,6 +53,7 @@ define([], function () {
     sceneTitle: 'Scene',
     sceneReset: 'Clear scene',
     sceneAddSphere: 'Add sphere',
+    sceneAddCube: 'Add cube',
 
     // mesh
     meshTitle: 'メッシュ',

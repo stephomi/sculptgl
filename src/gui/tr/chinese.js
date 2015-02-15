@@ -53,6 +53,7 @@ define([], function () {
     sceneTitle: '場景',
     sceneReset: '清除場景',
     sceneAddSphere: '加入球體',
+    sceneAddCube: 'Add cube',
 
     // mesh
     meshTitle: '網面',

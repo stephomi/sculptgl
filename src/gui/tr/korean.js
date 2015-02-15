@@ -53,6 +53,7 @@ define([], function () {
     sceneTitle: '장면',
     sceneReset: '장면 초기화',
     sceneAddSphere: '구 추가하기 ',
+    sceneAddCube: 'Add cube',
 
     // mesh
     meshTitle: '메쉬',

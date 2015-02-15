@@ -693,6 +693,10 @@ define([
         main.addSphere();
         this.getOrCreateRenderMesh(main.getMesh());
         break;
+      case Replay.ADD_CUBE:
+        main.addCube();
+        this.getOrCreateRenderMesh(main.getMesh());
+        break;
       case Replay.DELETE_CURRENT_MESH:
         main.deleteCurrentMesh();
         break;

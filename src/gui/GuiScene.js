@@ -17,6 +17,7 @@ define([
       // scene
       menu.addButton(TR('sceneReset'), this.main_, 'clearScene');
       menu.addButton(TR('sceneAddSphere'), this.main_, 'addSphere');
+      menu.addButton(TR('sceneAddCube'), this.main_, 'addCube');
     }
   };
 
