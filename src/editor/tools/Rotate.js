@@ -19,6 +19,13 @@ define([
     this.matrixInv_ = mat4.create(); // origin matrix inverse
     this.preTranslate_ = mat4.create(); // pre translate matrix
     this.postTranslate_ = mat4.create(); // post translate matrix
+    this.dir_ = [0.0, 0.0, 0.0];
+    this.negative_ = false;
+    this.isNegative_ = false;
+    this.refMX_ = 0.0;
+    this.refMY_ = 0.0;
+    this.appliedRot_ = mat4.create();
+    this.editRot_ = mat4.create();
   };
 
   Rotate.prototype = {
@@ -60,8 +67,20 @@ define([
         mat4.invert(this.matrixInv_, matrix);
         vec3.transformMat3(tmp, this.mesh_.getCenter(), mat3.fromMat4(rot, matrix));
         vec3.set(tmp, tmp[0] + matrix[12], tmp[1] + matrix[13], tmp[2] + matrix[14]);
+        quat.identity(qu);
         mat4.fromRotationTranslation(this.preTranslate_, qu, tmp);
         mat4.fromRotationTranslation(this.postTranslate_, qu, vec3.negate(tmp, tmp));
+
+        var near = camera.unproject(camera.width_ * 0.5, camera.height_ * 0.5, 0.0);
+        var far = camera.unproject(camera.width_ * 0.5, camera.height_ * 0.5, 1.0);
+        quat.invert(qu, camera.quatRot_);
+        vec3.transformQuat(near, near, qu);
+        vec3.transformQuat(far, far, qu);
+        vec3.normalize(this.dir_, vec3.sub(this.dir_, far, near));
+        this.refMX_ = main.mouseX_;
+        this.refMY_ = main.mouseY_;
+        mat4.identity(this.appliedRot_);
+        this.isNegative_ = this.negative_;
       };
     })(),
     /** Update sculpting operation */
@@ -72,17 +91,35 @@ define([
       return function (main) {
         var mesh = this.mesh_;
         var camera = main.getCamera();
-        var lastNormalized = this.lastNormalizedMouseXY_;
 
-        var normalizedMouseXY = Geometry.normalizedMouse(main.mouseX_, main.mouseY_, camera.width_, camera.height_);
-        var length = vec2.dist(lastNormalized, normalizedMouseXY);
-        vec3.set(axis, lastNormalized[1] - normalizedMouseXY[1], normalizedMouseXY[0] - lastNormalized[0], 0.0);
-        vec3.normalize(axis, axis);
+        if (this.isNegative_ !== this.negative_)
+          mat4.copy(this.appliedRot_, this.editRot_);
 
-        vec3.transformQuat(axis, axis, quat.invert(qu, camera.quatRot_));
-        mat4.fromQuat(matRot, quat.setAxisAngle(qu, axis, length * 2.0));
+        if (this.negative_) {
+          var angle = (main.mouseX_ - this.refMX_ + main.mouseY_ - this.refMY_) / 100.0;
+          vec3.transformQuat(axis, this.dir_, camera.quatRot_);
+          mat4.fromQuat(this.editRot_, quat.setAxisAngle(qu, axis, angle));
 
-        mat4.mul(matRot, this.preTranslate_, matRot);
+          this.isNegative_ = true;
+          this.lastNormalizedMouseXY_ = Geometry.normalizedMouse(main.mouseX_, main.mouseY_, camera.width_, camera.height_);
+        } else {
+          var lastNormalized = this.lastNormalizedMouseXY_;
+          var normalizedMouseXY = Geometry.normalizedMouse(main.mouseX_, main.mouseY_, camera.width_, camera.height_);
+          var length = vec2.dist(lastNormalized, normalizedMouseXY);
+          vec3.set(axis, lastNormalized[1] - normalizedMouseXY[1], normalizedMouseXY[0] - lastNormalized[0], 0.0);
+          vec3.normalize(axis, axis);
+
+          vec3.transformQuat(axis, axis, quat.invert(qu, camera.quatRot_));
+          mat4.fromQuat(this.editRot_, quat.setAxisAngle(qu, axis, length * 2.0));
+
+          this.refMX_ = main.mouseX_;
+          this.refMY_ = main.mouseY_;
+          this.isNegative_ = false;
+        }
+
+        mat4.mul(this.editRot_, this.editRot_, this.appliedRot_);
+
+        mat4.mul(matRot, this.preTranslate_, this.editRot_);
         mat4.mul(matRot, matRot, this.postTranslate_);
 
         var matrix = mesh.getEditMatrix();

@@ -577,6 +577,8 @@ define([
       case Replay.INFLATE_TOGGLE_NEGATIVE:
       case Replay.MASKING_TOGGLE_NEGATIVE:
       case Replay.MOVE_TOGGLE_NEGATIVE:
+      case Replay.TRANSLATE_TOGGLE_NEGATIVE:
+      case Replay.ROTATE_TOGGLE_NEGATIVE:
         tool.negative_ = !tool.negative_;
         break;
       case Replay.BRUSH_TOGGLE_CULLING:

@@ -255,12 +255,16 @@ define([
 
   tools[Sculpt.tool.TRANSLATE] = {
     ctrls_: [],
-    init: function () {}
+    init: function (tool, fold) {
+      this.ctrls_.push(addCtrlNegative(tool, fold, this, TR('sculptTranslateDepth')));
+    }
   };
 
   tools[Sculpt.tool.ROTATE] = {
     ctrls_: [],
-    init: function () {}
+    init: function (tool, fold) {
+      this.ctrls_.push(addCtrlNegative(tool, fold, this, TR('sculptRotateRoll')));
+    }
   };
 
   tools[Sculpt.tool.SCALE] = {

@@ -7,6 +7,7 @@ define([
 
   'use strict';
 
+  var vec3 = glm.vec3;
   var mat4 = glm.mat4;
 
   var Scale = function (states) {
@@ -30,6 +31,7 @@ define([
         vAr[j + 1] *= val;
         vAr[j + 2] *= val;
       }
+      vec3.scale(mesh.getCenter(), mesh.getCenter(), em[0]);
       mat4.identity(em);
       if (iVerts.length === mesh.getNbVertices()) mesh.updateGeometry();
       else mesh.updateGeometry(mesh.getFacesFromVertices(iVerts), iVerts);

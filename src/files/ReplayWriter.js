@@ -205,6 +205,12 @@ define([
       case Sculpt.tool.DRAG:
         this.checkCommonSculptAttributes(mainSel, replaySel, 'DRAG');
         break;
+      case Sculpt.tool.TRANSLATE:
+        this.checkCommonSculptAttributes(mainSel, replaySel, 'TRANSLATE');
+        break;
+      case Sculpt.tool.ROTATE:
+        this.checkCommonSculptAttributes(mainSel, replaySel, 'ROTATE');
+        break;
       case Sculpt.tool.LOCALSCALE:
         this.checkCommonSculptAttributes(mainSel, replaySel, 'LOCALSCALE');
         break;

@@ -77,6 +77,10 @@ define([], function () {
 
   Replay.DRAG_SELECT_ALPHA = ida++; // [id (u8)]
 
+  Replay.TRANSLATE_TOGGLE_NEGATIVE = ida++; // []
+
+  Replay.ROTATE_TOGGLE_NEGATIVE = ida++; // []
+
   Replay.PAINT_INTENSITY = ida++; // [intensity (u8)]
   Replay.PAINT_HARDNESS = ida++; // [hardness (u8)]
   Replay.PAINT_COLOR = ida++; // [r (f32), g (f32), b (f32)]

@@ -140,6 +140,8 @@ define([], function () {
     sculptDeleteMesh: '刪除此網面 ?',
     sculptPBRTitle: 'PBR materials',
     sculptPaintAll: 'Paint all',
+    sculptTranslateDepth: 'Depth translate (N or -Alt)',
+    sculptRotateRoll: 'Roll rotate (N or -Alt)',
 
     // states
     stateTitle: '記錄',
