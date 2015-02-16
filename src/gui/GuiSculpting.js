@@ -303,8 +303,6 @@ define([
     onChangeTool: function (newValue) {
       newValue = parseInt(newValue, 10);
       GuiSculptingTools.hide(this.sculpt_.tool_);
-      if (newValue === Sculpt.tool.PAINT)
-        this.ctrlGui_.ctrlRendering_.ctrlShaders_.setValue(Shader.mode.PBR);
       this.sculpt_.tool_ = newValue;
       GuiSculptingTools.show(newValue);
       this.ctrlContinuous_.setVisibility(this.sculpt_.allowPicking() === true);
