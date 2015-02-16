@@ -1,15 +1,13 @@
 define([
+  'lib/glMatrix',
   'misc/Utils'
-], function (Utils) {
+], function (glm, Utils) {
 
   'use strict';
 
-  var Export = {};
+  var vec3 = glm.vec3;
 
-  /** Export PLY file */
-  Export.exportPLY = function (mesh) {
-    return Export.exportBinaryPLY(mesh);
-  };
+  var Export = {};
 
   /** Export Ascii PLY file */
   Export.exportAsciiPLY = function (mesh) {
@@ -44,14 +42,67 @@ define([
   };
 
   /** Export binary PLY file */
-  Export.exportBinaryPLY = function (mesh) {
-    var vAr = mesh.getVertices();
-    var cAr = mesh.getColors();
-    var fAr = mesh.getFaces();
-    var nbVertices = mesh.getNbVertices();
-    var nbQuads = mesh.getNbQuads();
-    var nbTriangles = mesh.getNbTriangles();
-    var nbFaces = mesh.getNbFaces();
+  Export.exportBinaryPLY = function (meshOrMeshes, isSketchfab) {
+    var meshes = meshOrMeshes.length ? meshOrMeshes : [meshOrMeshes];
+    var nbMeshes = meshes.length;
+    var i = 0;
+    var j = 0;
+    var k = 0;
+
+    var nbVertices = 0;
+    var nbFaces = 0;
+    var nbQuads = 0;
+    var nbTriangles = 0;
+    for (i = 0; i < nbMeshes; ++i) {
+      nbVertices += meshes[i].getNbVertices();
+      nbFaces += meshes[i].getNbFaces();
+      nbQuads += meshes[i].getNbQuads();
+      nbTriangles += meshes[i].getNbTriangles();
+    }
+
+    var vAr = !isSketchfab ? meshes[0].getVertices() : new Float32Array(nbVertices * 3);
+    var cAr = !isSketchfab ? meshes[0].getColors() : new Float32Array(nbVertices * 3);
+    var fAr = !isSketchfab ? meshes[0].getFaces() : new Int32Array(nbFaces * 4);
+    if (isSketchfab) {
+      // multiple meshes => swap xy (sketchfab)
+      var ver = [0.0, 0.0, 0.0];
+      var offsetVerts = 0;
+      var offsetFaces = 0;
+      var offsetIndex = 0;
+      for (i = 0; i < nbMeshes; ++i) {
+        var mesh = meshes[i];
+        var mVerts = mesh.getVertices();
+        var mCols = mesh.getColors();
+        var mFaces = mesh.getFaces();
+        var mNbVertices = mesh.getNbVertices();
+        var mNbFaces = mesh.getNbFaces();
+        var matrix = mesh.getMatrix();
+        for (j = 0; j < mNbVertices; ++j) {
+          k = j * 3;
+          ver[0] = mVerts[k];
+          ver[1] = mVerts[k + 1];
+          ver[2] = mVerts[k + 2];
+          vec3.transformMat4(ver, ver, matrix);
+          vAr[offsetVerts + k] = ver[0];
+          vAr[offsetVerts + k + 1] = -ver[2];
+          vAr[offsetVerts + k + 2] = ver[1];
+          cAr[offsetVerts + k] = mCols[k];
+          cAr[offsetVerts + k + 1] = mCols[k + 1];
+          cAr[offsetVerts + k + 2] = mCols[k + 2];
+        }
+        offsetVerts += mNbVertices * 3;
+        for (j = 0; j < mNbFaces; ++j) {
+          k = j * 4;
+          fAr[offsetFaces + k] = mFaces[k] + offsetIndex;
+          fAr[offsetFaces + k + 1] = mFaces[k + 1] + offsetIndex;
+          fAr[offsetFaces + k + 2] = mFaces[k + 2] + offsetIndex;
+          fAr[offsetFaces + k + 3] = mFaces[k + 3] >= 0 ? mFaces[k + 3] + offsetIndex : -1;
+        }
+        offsetIndex += mNbVertices;
+        offsetFaces = mNbFaces * 4;
+      }
+    }
+
     var endian = Utils.littleEndian ? 'little' : 'big';
     var header = 'ply\nformat binary_' + endian + '_endian 1.0\ncomment created by SculptGL\n';
     header += 'element vertex ' + nbVertices + '\n';
@@ -60,9 +111,6 @@ define([
     header += 'element face ' + nbFaces + '\n';
     header += 'property list uchar uint vertex_indices\nend_header\n';
 
-    var i = 0;
-    var j = 0;
-    var k = 0;
     var inc = 0;
 
     var headerSize = header.length;

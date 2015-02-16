@@ -9,11 +9,24 @@ module.exports = function (grunt) {
     files: ['Gruntfile.js', 'src/**/*.js']
   };
 
+  var uglify = {
+    my_target: {
+      files: [{
+        'build/sculptgl.min.js': ['lib/*.js', 'build/sculptgl.min.js']
+      }, {
+        expand: true,
+        cwd: 'worker/',
+        src: '*.js',
+        dest: 'build/worker/'
+      }]
+    }
+  };
+
   var requirejs = {
     compile: {
       options: {
         preserveLicenseComments: false,
-        optimize: 'uglify2',
+        optimize: 'none',
         baseUrl: 'src',
         name: '../tools/almond',
         include: 'Sculptgl',
@@ -34,7 +47,7 @@ module.exports = function (grunt) {
     main: {
       files: [{
         expand: true,
-        src: ['css/*', 'lib/*', 'resources/**'],
+        src: ['css/*', 'resources/**'],
         dest: 'build/',
         filter: 'isFile'
       }, {
@@ -86,7 +99,8 @@ module.exports = function (grunt) {
     copy: copy,
     requirejs: requirejs,
     manifest: manifest,
-    nodewebkit: nodewebkit
+    nodewebkit: nodewebkit,
+    uglify: uglify
   });
 
   grunt.loadNpmTasks('grunt-manifest');
@@ -94,10 +108,11 @@ module.exports = function (grunt) {
   grunt.loadNpmTasks('grunt-contrib-jshint');
   grunt.loadNpmTasks('grunt-contrib-clean');
   grunt.loadNpmTasks('grunt-contrib-copy');
+  grunt.loadNpmTasks('grunt-contrib-uglify');
   grunt.loadNpmTasks('grunt-node-webkit-builder');
 
   grunt.registerTask('test', 'jshint');
-  grunt.registerTask('build', ['clean', 'jshint', 'copy:main', 'requirejs' /*, 'manifest'*/ ]);
+  grunt.registerTask('build', ['clean', 'jshint', 'copy:main', 'requirejs', 'uglify' /*, 'manifest'*/ ]);
   grunt.registerTask('standalone', ['build', 'copy:standalone', 'nodewebkit']);
 
   grunt.registerTask('default', 'build');

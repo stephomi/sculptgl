@@ -10,7 +10,8 @@
     "grunt-contrib-jshint": "*",
     "grunt-contrib-clean": "*",
     "grunt-contrib-copy": "*",
-    "grunt-node-webkit-builder": "*"
+    "grunt-node-webkit-builder": "*",
+    "grunt-contrib-uglify": "*"
   },
   "scripts": {
     "test": "no test"

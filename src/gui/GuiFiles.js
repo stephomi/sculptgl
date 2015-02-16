@@ -63,14 +63,14 @@ define([
     saveFileAsPLY: function () {
       var mesh = this.main_.getMesh();
       if (!mesh) return;
-      var blob = Export.exportPLY(mesh);
+      var blob = Export.exportBinaryPLY(mesh);
       saveAs(blob, 'yourMesh.ply');
     },
     /** Save file as STL */
     saveFileAsSTL: function () {
       var mesh = this.main_.getMesh();
       if (!mesh) return;
-      var blob = Export.exportSTL(mesh);
+      var blob = Export.exportBinarySTL(mesh);
       saveAs(blob, 'yourMesh.stl');
     },
     /** Export to Sketchfab */

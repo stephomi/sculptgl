@@ -6,11 +6,6 @@ define([
 
   var Export = {};
 
-  /** Export STL file */
-  Export.exportSTL = function (mesh) {
-    return Export.exportBinarySTL(mesh);
-  };
-
   /** Export Ascii STL file */
   Export.exportAsciiSTL = function (mesh) {
     var vAr = mesh.getVertices();
