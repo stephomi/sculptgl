@@ -83,7 +83,7 @@ define([
     },
     /** Return simple widget */
     getWidgetNotification: function () {
-      if (!this.ctrlUploading_) {
+      if (!this.ctrlNotification_) {
         this.ctrlNotification_ = this.topbar_.addMenu();
         this.ctrlNotification_.setVisibility(false);
       }

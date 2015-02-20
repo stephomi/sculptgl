@@ -27,12 +27,13 @@ define([
       menu.addTitle(TR('fileReplayerTitle'));
       menu.addButton(TR('fileReplayerImport'), this, 'addFile');
       menu.addButton(TR('fileReplayerExport'), this, 'saveFileAsREP');
+      menu.addButton(TR('fileReplayerUpload'), this, 'uploadReplay');
 
       // export
       menu.addTitle(TR('fileExportSceneTitle'));
       menu.addButton(TR('fileExportSGL'), this, 'saveFileAsSGL');
       menu.addButton(TR('fileExportOBJ'), this, 'saveFileAsOBJ');
-      this.ctrlSketchfab_ = menu.addButton(TR('sketchfabTitle'), this, 'exportSketchfab');
+      menu.addButton(TR('sketchfabTitle'), this, 'exportSketchfab');
       menu.addTitle(TR('fileExportMeshTitle'));
       menu.addButton(TR('fileExportPLY'), this, 'saveFileAsPLY');
       menu.addButton(TR('fileExportSTL'), this, 'saveFileAsSTL');
@@ -80,9 +81,10 @@ define([
         return;
 
       var ctrlNotif = this.ctrlGui_.getWidgetNotification();
-      if (this.sketchfabXhr_ && ctrlNotif.domContainer.hidden === false) {
+      if (this.sketchfabXhr_ && ctrlNotif.sketchfab === true) {
         if (!window.confirm(TR('sketchfabAbort')))
           return;
+        ctrlNotif.sketchfab = false;
         this.sketchfabXhr_.abort();
       }
 
@@ -92,6 +94,30 @@ define([
 
       var key = api === 'guest' ? 'babc9a5cd4f343f9be0c7bd9cf93600c' : api;
       this.sketchfabXhr_ = Export.exportSketchfab(this.main_, key, ctrlNotif);
+    },
+    /** Export to Sketchfab */
+    uploadReplay: function () {
+      var ctrlNotif = this.ctrlGui_.getWidgetNotification();
+      if (this.replayXhr_ && ctrlNotif.replay === true) {
+        if (!window.confirm(TR('fileReplayerAbort')))
+          return;
+        ctrlNotif.replay = false;
+        this.replayXhr_.abort();
+      }
+
+      var rep = this.main_.getReplayWriter();
+      this.replayXhr_ = rep.checkUpload(ctrlNotif);
+
+      if (!this.replayXhr_) {
+        window.alert(TR('fileReplayerError'));
+      } else {
+        if (!window.prompt(TR('fileReplayerUploadStart'), 'http://stephaneginier.com/sculptgl?replay=' + rep.uid_))
+          return this.replayXhr_.abort();
+        var domStatus = ctrlNotif.domContainer;
+        ctrlNotif.setVisibility(true);
+        ctrlNotif.replay = true;
+        domStatus.innerHTML = 'Uploading...';
+      }
     }
   };
 

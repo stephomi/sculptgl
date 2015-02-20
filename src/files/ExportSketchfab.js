@@ -12,6 +12,7 @@ define([
     var xhr = new XMLHttpRequest();
     var domStatus = statusWidget.domContainer;
     statusWidget.setVisibility(true);
+    statusWidget.sketchfab = true;
     domStatus.innerHTML = 'Uploading...';
     xhr.open('POST', 'https://api.sketchfab.com/v2/models', true);
 
@@ -20,7 +21,9 @@ define([
         domStatus.innerHTML = 'Uploading : ' + Math.round(event.loaded * 100.0 / event.total) + '%';
     };
     var hideStatus = function () {
-      statusWidget.setVisibility(false);
+      if (!statusWidget.replay)
+        statusWidget.setVisibility(false);
+      statusWidget.sketchfab = false;
     };
     xhr.onerror = hideStatus;
     xhr.onabort = hideStatus;
@@ -33,7 +36,7 @@ define([
         window.alert(TR('sketchfabUploadError', res.detail));
         return;
       }
-      window.prompt(TR('Processing...\nYour model will be available at :'), 'https://sketchfab.com/models/' + uid);
+      window.prompt(TR('sketchfabUploadProcessing'), 'https://sketchfab.com/models/' + uid);
       var check = function () {
         var xhrPoll = new XMLHttpRequest();
         xhrPoll.open('GET', 'https://api.sketchfab.com/v2/models/' + uid + '/status?token=' + key, true);

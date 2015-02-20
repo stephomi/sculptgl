@@ -42,6 +42,11 @@ define([], function () {
     fileReplayerTitle: '리플레이어 (BETA)',
     fileReplayerImport: 'rep 로드하기',
     fileReplayerExport: 'rep 저장하기',
+    fileReplayerUpload: 'Upload .rep (<10Mb)',
+    fileReplayerUploadStart: 'Please confirm the upload. \nYour replay will be available at :',
+    fileReplayerError: 'Error : replay file is too big (you probably imported a mesh). Clear scene will reset the replay file.',
+    fileReplayerSuccess: 'Upload success !\nHere is your link :',
+    fileReplayerAbort: 'Abort the last upload ?',
 
     // replayer
     replayTitle: '리플레이 환경설정',
@@ -193,6 +198,7 @@ define([], function () {
     },
     sketchfabUploadSuccess: 'Upload success !\nHere is your link :',
     sketchfabAbort: 'Abort the last upload ?',
+    sketchfabUploadProcessing: 'Processing...\nYour model will be available at :',
 
     donate: 'Donate !'
   };

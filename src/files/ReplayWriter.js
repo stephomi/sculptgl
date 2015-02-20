@@ -4,8 +4,9 @@ define([
   'editor/Sculpt',
   'files/ExportSGL',
   'files/ReplayEnums',
+  'gui/GuiTR',
   'misc/Tablet'
-], function (glm, saveAs, Sculpt, ExportSGL, Replay, Tablet) {
+], function (glm, saveAs, Sculpt, ExportSGL, Replay, TR, Tablet) {
 
   'use strict';
 
@@ -13,7 +14,7 @@ define([
 
   var ReplayWriter = function (main) {
     this.main_ = main; // main application
-    this.noUpload_ = false; // prevent automatic upload
+    this.noUpload_ = true; // prevent automatic upload
 
     this.firstReplay_ = null; // first part of the replaying (if we are importing a replayer)
     this.nbBytesLoadingMeshes_ = 0; // nb bytes of loaded meshes
@@ -31,7 +32,7 @@ define([
     this.autoUpload_ = true; // send file if it's not too big :D
     this.lastNbActions_ = 0; // nb of last checked stack action
     this.uid_ = new Date().getTime(); // best uid ever
-    this.cbCheckUpload_ = window.setTimeout.bind(window, this.checkUpload.bind(this), 20000);
+    this.cbCheckUpload_ = window.setTimeout.bind(window, this.checkUpload.bind(this), 10000);
     this.checkUpload();
   };
 
@@ -41,27 +42,47 @@ define([
       for (var i = 1, nbArgs = arguments.length; i < nbArgs; ++i)
         this.stack_.push(arguments[i]);
     },
-    checkUpload: function () {
+    checkUpload: function (statusWidget) {
       var nbActions = this.stack_.length;
-      if (this.noUpload_)
-        return;
-      // 2 Mb limits of loaded meshes
-      if (this.nbBytesLoadingMeshes_ > 2e6 || nbActions === this.lastNbActions_ || nbActions < 5000)
-        return this.cbCheckUpload_();
-      // 4 Mb limits with previous replay
-      if (this.firstReplay_ && this.firstReplay_.byteLength > 4e6)
-        return this.cbCheckUpload_();
-      parent.location.hash = this.uid_;
+      if (!statusWidget) {
+        if (this.noUpload_ || nbActions === this.lastNbActions_ || nbActions < 5000)
+          return;
+      }
+      // 10 Mb limits of loaded meshes (or with previous replay)
+      if (this.nbBytesLoadingMeshes_ > 10e6 || (this.firstReplay_ && this.firstReplay_.byteLength > 10e6))
+        return statusWidget ? undefined : this.cbCheckUpload_();
       this.lastNbActions_ = nbActions;
 
+      var uid = this.uid_;
+      parent.location.hash = uid;
+
       var fd = new FormData();
-      fd.append('filename', this.uid_ + '.rep');
+      fd.append('filename', uid + '.rep');
       fd.append('file', this.export());
 
       var xhr = new XMLHttpRequest();
       xhr.open('POST', 'http://stephaneginier.com/replays/replayUpload.php', true);
-      xhr.onload = this.cbCheckUpload_;
+      if (statusWidget) {
+        var hideStatus = function () {
+          if (!statusWidget.sketchfab)
+            statusWidget.setVisibility(false);
+          statusWidget.replay = false;
+        };
+        xhr.onload = function () {
+          hideStatus();
+          window.prompt(TR('fileReplayerSuccess'), 'http://stephaneginier.com/sculptgl?replay=' + uid);
+        };
+        xhr.onprogress = function (event) {
+          if (event.lengthComputable)
+            statusWidget.domContainer.innerHTML = 'Uploading : ' + Math.round(event.loaded * 100.0 / event.total) + '%';
+        };
+        xhr.onerror = hideStatus;
+        xhr.onabort = hideStatus;
+      } else {
+        xhr.onload = this.cbCheckUpload_;
+      }
       xhr.send(fd);
+      return xhr;
     },
     reset: function () {
       this.uid_ = new Date().getTime();

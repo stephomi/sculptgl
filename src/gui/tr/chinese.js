@@ -42,6 +42,11 @@ define([], function () {
     fileReplayerTitle: '重播器 (測試版)',
     fileReplayerImport: '載入 .rep',
     fileReplayerExport: '儲存 .rep',
+    fileReplayerUpload: 'Upload .rep (<10Mb)',
+    fileReplayerUploadStart: 'Please confirm the upload. \nYour replay will be available at :',
+    fileReplayerError: 'Error : replay file is too big (you probably imported a mesh). Clear scene will reset the replay file.',
+    fileReplayerSuccess: 'Upload success !\nHere is your link :',
+    fileReplayerAbort: 'Abort the last upload ?',
 
     // replayer
     replayTitle: '重播設定',
@@ -193,6 +198,7 @@ define([], function () {
     },
     sketchfabUploadSuccess: '上傳成功 !\n這是你的連結 :',
     sketchfabAbort: '中止最近一次的上傳 ?',
+    sketchfabUploadProcessing: 'Processing...\nYour model will be available at :',
 
     donate: 'Donate !'
   };
