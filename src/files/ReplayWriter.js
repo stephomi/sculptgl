@@ -410,6 +410,7 @@ define([
         case Replay.PAINT_ROUGHNESS:
         case Replay.PAINT_METALLIC:
         case Replay.TABLET_PRESSURE:
+        case Replay.MASKING_EXTRACT:
           data.setFloat32(offset, stack[++i], true);
           offset += 4;
           break;

@@ -147,6 +147,9 @@ define([], function () {
     sculptPaintAll: 'Paint all',
     sculptTranslateDepth: 'Depth translate (N or -Alt)',
     sculptRotateRoll: 'Roll rotate (N or -Alt)',
+    sculptExtractTitle: 'Extract',
+    sculptExtractThickness: 'Thickness',
+    sculptExtractAction: 'Extract !',
 
     // states
     stateTitle: '역사',

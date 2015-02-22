@@ -147,6 +147,9 @@ define([], function () {
     sculptPaintAll: 'Paint all',
     sculptTranslateDepth: 'Depth translate (N or -Alt)',
     sculptRotateRoll: 'Roll rotate (N or -Alt)',
+    sculptExtractTitle: 'Extract',
+    sculptExtractThickness: 'Thickness',
+    sculptExtractAction: 'Extract !',
 
     // states
     stateTitle: '記錄',
@@ -162,7 +165,7 @@ define([], function () {
     // rendering
     renderingTitle: '繪算',
     renderingGrid: '顯示格線',
-    renderingSymmetryLine: 'Show Symmetry line',
+    renderingSymmetryLine: 'Show mirror line',
     renderingMatcap: 'Matcap',
     renderingPBR: '物理式繪算(PBR)',
     renderingTransparency: '透明',

@@ -92,7 +92,8 @@ define([
     /** Update information on mesh */
     updateMesh: function () {
       this.ctrlRendering_.updateMesh();
-      this.ctrlTopology_.updateMeshTopology();
+      this.ctrlTopology_.updateMesh();
+      this.ctrlSculpting_.updateMesh();
       this.updateMeshInfo();
     },
     /** Update number of vertices and triangles */

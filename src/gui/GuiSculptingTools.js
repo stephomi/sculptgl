@@ -231,6 +231,10 @@ define([
       var bci = fold.addDualButton(TR('sculptMaskingClear'), TR('sculptMaskingInvert'), this, this, 'clear', 'invert');
       var bbs = fold.addDualButton(TR('sculptMaskingBlur'), TR('sculptMaskingSharpen'), this, this, 'blur', 'sharpen');
       this.ctrls_.push(bci[0], bci[1], bbs[0], bbs[1]);
+      // mask extract
+      this.ctrls_.push(fold.addTitle(TR('sculptExtractTitle')));
+      this.ctrls_.push(fold.addSlider(TR('sculptExtractThickness'), tool, 'thickness_', -5, 5, 0.001));
+      this.ctrls_.push(fold.addButton(TR('sculptExtractAction'), this, 'extract'));
       addCtrlAlpha(this.ctrls_, fold, tool, this);
     },
     maskAction: function (key, akey) {
@@ -250,6 +254,12 @@ define([
     },
     invert: function () {
       this.maskAction('invert', 'MASKING_INVERT');
+    },
+    extract: function () {
+      var main = this.main_;
+      if (!main.getMesh()) return;
+      if (!main.isReplayed()) main.getReplayWriter().pushAction('MASKING_EXTRACT', this.tool_.thickness_);
+      this.tool_.extract(main.getMesh(), main);
     }
   };
 

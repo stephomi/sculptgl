@@ -447,7 +447,7 @@ define([
       mesh.meshes_.splice(0, 4);
       mesh.sel_ -= 4;
 
-      return this.addNewPrimtive(mesh);
+      return this.addNewMesh(mesh);
     },
     addCube: function () {
       if (!this.isReplayed())
@@ -463,9 +463,9 @@ define([
       mesh.sel_ -= 4;
       Subdivision.LINEAR = false;
 
-      return this.addNewPrimtive(mesh);
+      return this.addNewMesh(mesh);
     },
-    addNewPrimtive: function (mesh) {
+    addNewMesh: function (mesh) {
       this.meshes_.push(mesh);
       this.states_.pushStateAdd(mesh);
       this.setMesh(mesh);
@@ -523,10 +523,12 @@ define([
       this.sculpt_.end();
       if (this.checkMask_) {
         this.checkMask_ = false;
-        if (this.lastMouseX_ === this.maskX_ && this.lastMouseY_ === this.maskY_)
-          this.getSculpt().getTool('MASKING').invert(this.mesh_, this);
-        else
-          this.getSculpt().getTool('MASKING').clear(this.mesh_, this);
+        if (this.mesh_) {
+          if (this.lastMouseX_ === this.maskX_ && this.lastMouseY_ === this.maskY_)
+            this.getSculpt().getTool('MASKING').invert(this.mesh_, this);
+          else
+            this.getSculpt().getTool('MASKING').clear(this.mesh_, this);
+        }
       }
       this.render();
     },

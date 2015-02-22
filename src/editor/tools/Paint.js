@@ -132,7 +132,7 @@ define([
     paintAll: function (mesh, main) {
       this.mesh_ = mesh;
       var iVerts = this.getUnmaskedVertices();
-      if (!iVerts) return;
+      if (iVerts.length === 0) return;
 
       this.pushState(true);
       this.states_.pushVertices(iVerts);

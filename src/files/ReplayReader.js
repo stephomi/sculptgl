@@ -37,7 +37,7 @@ define([
 
     // extra control stuffs
     this.paused_ = false; // paused replay
-    this.speed_ = 200; // speed replay
+    this.speed_ = 100; // speed replay
 
     // render
     this.virtualRender_ = []; // id mesh -> render config
@@ -120,12 +120,15 @@ define([
       var url = '';
       for (var i = 0, nbVars = vars.length; i < nbVars; i++) {
         var pair = vars[i].split('=');
-        if (pair[0] === 'replay') {
+        var opt = pair[0].toLowerCase();
+        if (opt === 'replay') {
           url = pair[1];
           break;
-        } else if (pair[0].toLowerCase() === 'autoupload') {
+        } else if (opt === 'autoupload') {
           this.main_.getReplayWriter().noUpload_ = false;
           return;
+        } else if (opt === 'speed') {
+          this.speed_ = parseFloat(pair[1]);
         }
       }
       if (!url)
@@ -652,6 +655,12 @@ define([
       case Replay.MASKING_SHARPEN:
         main.getSculpt().getTool('MASKING').sharpen(main.getMesh(), main);
         break;
+      case Replay.MASKING_EXTRACT:
+        var mTool = main.getSculpt().getTool('MASKING');
+        mTool.thickness_ = data.getFloat32(sel, true);
+        mTool.extract(main.getMesh(), main);
+        sel += 4;
+        break;
       case Replay.MULTI_RESOLUTION:
         main.getGui().ctrlTopology_.onResolutionChanged(data.getUint8(sel, true));
         sel += 1;
@@ -719,7 +728,7 @@ define([
         sel += 1;
         break;
       case Replay.SHOW_GRID:
-        main.getGui().ctrlRendering_.onShowGrid(data.getUint8(sel, true));
+        main.getGui().ctrlScene_.onShowGrid(data.getUint8(sel, true));
         this.virtualGrid_ = main.showGrid_;
         sel += 1;
         break;

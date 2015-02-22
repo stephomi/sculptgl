@@ -2,9 +2,8 @@ define([
   'gui/GuiTR',
   'render/Render',
   'render/Shader',
-  'render/shaders/ShaderMatcap',
-  'render/shaders/ShaderBase'
-], function (TR, Render, Shader, ShaderMatcap, ShaderBase) {
+  'render/shaders/ShaderMatcap'
+], function (TR, Render, Shader, ShaderMatcap) {
 
   'use strict';
 
@@ -61,12 +60,6 @@ define([
       if (Render.ONLY_DRAW_ARRAYS)
         this.ctrlShowWireframe_.setVisibility(false);
 
-      // display grid
-      menu.addCheckbox(TR('renderingGrid'), this.main_.showGrid_, this.onShowGrid.bind(this));
-
-      // display symmetry line
-      menu.addCheckbox(TR('renderingSymmetryLine'), ShaderBase, 'SHOW_SYMMETRY_LINE');
-
       this.addEvents();
     },
     onExposureChanged: function (val) {
@@ -79,15 +72,6 @@ define([
         main.getReplayWriter().pushExposure(val);
 
       mesh.getRender().setExposure(val / 20);
-      main.render();
-    },
-    onShowGrid: function (bool) {
-      var main = this.main_;
-
-      if (!main.isReplayed())
-        main.getReplayWriter().pushAction('SHOW_GRID', bool);
-
-      main.showGrid_ = bool;
       main.render();
     },
     /** On shader change */
@@ -164,7 +148,11 @@ define([
     /** Update information on mesh */
     updateMesh: function () {
       var mesh = this.main_.getMesh();
-      if (!mesh) return;
+      if (!mesh) {
+        this.menu_.setVisibility(false);
+        return;
+      }
+      this.menu_.setVisibility(true);
       var render = mesh.getRender();
       this.ctrlShaders_.setValue(render.shader_.type_, true);
       this.ctrlFlatShading_.setValue(render.flatShading_, true);

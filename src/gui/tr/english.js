@@ -147,6 +147,9 @@ define([], function () {
     sculptPaintAll: 'Paint all',
     sculptTranslateDepth: 'Depth translate (N or -Alt)',
     sculptRotateRoll: 'Roll rotate (N or -Alt)',
+    sculptExtractTitle: 'Extract',
+    sculptExtractThickness: 'Thickness',
+    sculptExtractAction: 'Extract !',
 
     // states
     stateTitle: 'History',
@@ -162,7 +165,7 @@ define([], function () {
     // rendering
     renderingTitle: 'Rendering',
     renderingGrid: 'Show grid',
-    renderingSymmetryLine: 'Show Symmetry line',
+    renderingSymmetryLine: 'Show mirror line',
     renderingMatcap: 'Matcap',
     renderingPBR: 'PBR',
     renderingTransparency: 'Transparency',

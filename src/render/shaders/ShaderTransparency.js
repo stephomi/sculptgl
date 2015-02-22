@@ -81,6 +81,7 @@ define([
     attrs.aVertex = new Attribute(gl, program, 'aVertex', 3, glfloat);
     attrs.aNormal = new Attribute(gl, program, 'aNormal', 3, glfloat);
     attrs.aColor = new Attribute(gl, program, 'aColor', 3, glfloat);
+    attrs.aMaterial = new Attribute(gl, program, 'aMaterial', 3, glfloat);
   };
   /** Bind attributes */
   ShaderTransparency.bindAttributes = function (render) {
@@ -88,6 +89,7 @@ define([
     attrs.aVertex.bindToBuffer(render.getVertexBuffer());
     attrs.aNormal.bindToBuffer(render.getNormalBuffer());
     attrs.aColor.bindToBuffer(render.getColorBuffer());
+    attrs.aMaterial.bindToBuffer(render.getMaterialBuffer());
   };
   /** Updates uniforms */
   ShaderTransparency.updateUniforms = function (render, main) {

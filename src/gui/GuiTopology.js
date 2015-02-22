@@ -69,7 +69,7 @@ define([
 
       main.replaceMesh(mesh, newMesh);
       main.getStates().pushStateAddRemove(newMesh, mesh);
-      this.updateMeshTopology();
+      this.updateMesh();
     },
     dynamicToggleLinear: function () {
       var main = this.main_;
@@ -273,9 +273,14 @@ define([
       this.ctrlResolution_.setValue(multimesh.sel_ + 1);
     },
     /** Update topology information */
-    updateMeshTopology: function () {
+    updateMesh: function () {
+      if (!this.main_.getMesh()) {
+        this.menu_.setVisibility(false);
+        return;
+      }
+      this.menu_.setVisibility(true);
       this.updateMeshResolution();
-      var bool = this.main_.getMesh() && this.main_.getMesh().getDynamicTopology;
+      var bool = this.main_.getMesh().getDynamicTopology;
       this.updateDynamicVisibility(bool);
       this.ctrlDynamic_.setValue(bool, true);
     }

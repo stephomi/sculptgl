@@ -104,6 +104,7 @@ define([], function () {
   Replay.MASKING_INVERT = ida++; // []
   Replay.MASKING_BLUR = ida++; // []
   Replay.MASKING_SHARPEN = ida++; // []
+  Replay.MASKING_EXTRACT = ida++; // [id (f32)]
   Replay.MASKING_TOGGLE_LOCK_POSITION = ida++; // []
   Replay.MASKING_SELECT_ALPHA = ida++; // [id (u8)]
 

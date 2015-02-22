@@ -333,6 +333,10 @@ define([
         var t = uiTools[i];
         if (t && t.ctrlAlpha_) t.ctrlAlpha_.addOptions(opts);
       }
+    },
+    updateMesh: function () {
+      this.menu_.setVisibility(!!this.main_.getMesh());
+      this.menu_.open();
     }
   };
 
