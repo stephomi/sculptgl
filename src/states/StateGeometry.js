@@ -1,12 +1,17 @@
 define([
+  'lib/glMatrix',
   'misc/Utils'
-], function (Utils) {
+], function (glm, Utils) {
 
   'use strict';
+
+  var vec3 = glm.vec3;
 
   var StateGeometry = function (main, mesh) {
     this.main_ = main; // main application
     this.mesh_ = mesh; // the mesh
+    this.center_ = vec3.copy([0.0, 0.0, 0.0], mesh.getCenter());
+
     this.idVertState_ = []; // ids of vertices
     this.vArState_ = []; // copies of vertices coordinates
   };
@@ -19,6 +24,7 @@ define([
       var mesh = this.mesh_;
       mesh.updateGeometry(mesh.getFacesFromVertices(this.idVertState_), this.idVertState_);
       mesh.updateGeometryBuffers();
+      vec3.copy(mesh.getCenter(), this.center_);
       this.main_.setMesh(mesh);
     },
     /** On redo */

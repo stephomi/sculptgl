@@ -1,12 +1,16 @@
 define([
+  'lib/glMatrix',
   'misc/Utils'
-], function (Utils) {
+], function (glm, Utils) {
 
   'use strict';
+
+  var vec3 = glm.vec3;
 
   var StateDynamic = function (main, mesh) {
     this.main_ = main; // main application
     this.mesh_ = mesh; // the mesh
+    this.center_ = vec3.copy([0.0, 0.0, 0.0], mesh.getCenter());
 
     this.nbFacesState_ = mesh.getNbFaces(); // number of faces
     this.nbVerticesState_ = mesh.getNbVertices(); // number of vertices
@@ -41,6 +45,7 @@ define([
       mesh.updateColorBuffer();
       mesh.updateMaterialBuffer();
       mesh.updateBuffers();
+      vec3.copy(mesh.getCenter(), this.center_);
       this.main_.setMesh(mesh);
     },
     /** On redo */
