@@ -6,7 +6,7 @@
   "dependencies": {
     "grunt": "*",
     "grunt-manifest": "*",
-    "grunt-requirejs": "*",
+    "grunt-contrib-requirejs": "*",
     "grunt-contrib-jshint": "*",
     "grunt-contrib-clean": "*",
     "grunt-contrib-copy": "*",

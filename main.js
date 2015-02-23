@@ -1,4 +1,7 @@
 require.config({
+  paths: {
+    'text': '../tools/text'
+  },
   baseUrl: 'src'
 });
 

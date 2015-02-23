@@ -5,12 +5,9 @@ define([
 
   'use strict';
 
-  var glfloat = 0x1406;
-
-  var ShaderRtt = {};
+  var ShaderRtt = ShaderBase.getCopy();
   ShaderRtt.uniforms = {};
   ShaderRtt.attributes = {};
-  ShaderRtt.program = undefined;
 
   ShaderRtt.uniformNames = ['uTexture0'];
 
@@ -27,8 +24,9 @@ define([
     'precision mediump float;',
     'uniform sampler2D uTexture0;',
     'varying vec2 vTexCoord;',
+    ShaderBase.strings.colorSpaceGLSL,
     'void main() {',
-    '  gl_FragColor = texture2D(uTexture0, vTexCoord);',
+    '  gl_FragColor = vec4(linearTosRGB(texture2D(uTexture0, vTexCoord).rgb), 1.0);',
     '}'
   ].join('\n');
 
@@ -44,11 +42,8 @@ define([
 
     gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
   };
-  ShaderRtt.getOrCreate = function (gl) {
-    return ShaderRtt.program ? ShaderRtt : ShaderBase.getOrCreate.call(this, gl);
-  };
   ShaderRtt.initAttributes = function (gl) {
-    ShaderRtt.attributes.aVertex = new Attribute(gl, ShaderRtt.program, 'aVertex', 2, glfloat);
+    ShaderRtt.attributes.aVertex = new Attribute(gl, ShaderRtt.program, 'aVertex', 2, gl.FLOAT);
   };
 
   return ShaderRtt;

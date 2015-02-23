@@ -31,7 +31,6 @@ define([
       var optionsShaders = {};
       optionsShaders[Shader.mode.MATCAP] = TR('renderingMatcap');
       optionsShaders[Shader.mode.PBR] = TR('renderingPBR');
-      optionsShaders[Shader.mode.TRANSPARENCY] = TR('renderingTransparency');
       optionsShaders[Shader.mode.NORMAL] = TR('renderingNormal');
       optionsShaders[Shader.mode.UV] = TR('renderingUV');
       menu.addTitle(TR('renderingShader'));
@@ -48,8 +47,10 @@ define([
       this.ctrlUV_ = menu.addButton(TR('renderingImportUV'), this, 'importTexture');
       this.ctrlUV_.setVisibility(false);
 
-      this.ctrlExposure_ = menu.addSlider('Exposure', 20, this.onExposureChanged.bind(this), 0, 100, 1);
+      this.ctrlExposure_ = menu.addSlider(TR('renderingExposure'), 20, this.onExposureChanged.bind(this), 0, 100, 1);
       this.ctrlExposure_.setVisibility(false);
+
+      menu.addSlider(TR('renderingTransparency'), 0.0, this.onTransparencyChanged.bind(this), 0, 100, 1);
 
       menu.addTitle(TR('renderingExtra'));
       // flat shading
@@ -72,6 +73,18 @@ define([
         main.getReplayWriter().pushExposure(val);
 
       mesh.getRender().setExposure(val / 20);
+      main.render();
+    },
+    onTransparencyChanged: function (val) {
+      var main = this.main_;
+      var mesh = main.getMesh();
+      if (!mesh)
+        return;
+
+      if (!main.isReplayed())
+        main.getReplayWriter().pushTransparency(val);
+
+      mesh.getRender().setOpacity(1.0 - val / 100.0);
       main.render();
     },
     /** On shader change */

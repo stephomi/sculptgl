@@ -1,16 +1,15 @@
 define([
-  'render/shaders/ShaderBase',
-  'render/Attribute'
-], function (ShaderBase, Attribute) {
+  'render/shaders/ShaderBase'
+], function (ShaderBase) {
 
   'use strict';
 
-  var glfloat = 0x1406;
-
-  var ShaderSelection = {};
+  var ShaderSelection = ShaderBase.getCopy();
   ShaderSelection.uniforms = {};
   ShaderSelection.attributes = {};
-  ShaderSelection.program = undefined;
+  ShaderSelection.activeAttributes = {
+    vertex: true
+  };
 
   ShaderSelection.uniformNames = ['uMVP', 'uColor'];
 
@@ -30,7 +29,7 @@ define([
     '}'
   ].join('\n');
 
-  /** Draw */
+  ShaderSelection.getOrCreate = ShaderBase.getOrCreate;
   ShaderSelection.draw = function (geom, drawCircle, drawSym) {
     var gl = geom.getGL();
     gl.useProgram(this.program);
@@ -51,14 +50,6 @@ define([
       gl.uniformMatrix4fv(this.uniforms.uMVP, false, geom.getDotSymmetryMVP());
       gl.drawArrays(gl.TRIANGLE_FAN, 0, geom.getDotBuffer().size_ / 3);
     }
-  };
-  /** Get or create the shader */
-  ShaderSelection.getOrCreate = function (gl) {
-    return ShaderSelection.program ? ShaderSelection : ShaderBase.getOrCreate.call(this, gl);
-  };
-  /** Initialize attributes */
-  ShaderSelection.initAttributes = function (gl) {
-    ShaderSelection.attributes.aVertex = new Attribute(gl, ShaderSelection.program, 'aVertex', 3, glfloat);
   };
 
   return ShaderSelection;

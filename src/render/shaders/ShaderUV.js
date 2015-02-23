@@ -5,14 +5,11 @@ define([
 
   'use strict';
 
-  var glfloat = 0x1406;
-
-  var ShaderUV = {};
+  var ShaderUV = ShaderBase.getCopy();
   ShaderUV.texPath = 'resources/uv.jpg';
 
   ShaderUV.uniforms = {};
   ShaderUV.attributes = {};
-  ShaderUV.program = undefined;
 
   ShaderUV.uniformNames = ['uTexture0'];
   Array.prototype.push.apply(ShaderUV.uniformNames, ShaderBase.uniformNames.commonUniforms);
@@ -50,53 +47,34 @@ define([
     'varying vec3 vNormal;',
     'varying vec3 vColor;',
     'varying vec2 vTexCoord;',
+    'uniform float uAlpha;',
     ShaderBase.strings.fragColorUniforms,
     ShaderBase.strings.fragColorFunction,
+    ShaderBase.strings.colorSpaceGLSL,
     'void main() {',
     '  vec3 fragColor = texture2D(uTexture0, vTexCoord).rgb * vColor;',
-    '  gl_FragColor = getFragColor(fragColor);',
+    '  gl_FragColor = vec4(applyMaskAndSym(sRGBToLinear(fragColor)), uAlpha);',
     '}'
   ].join('\n');
 
-  /** Draw */
-  ShaderUV.draw = function (render, main) {
-    render.getGL().useProgram(this.program);
-    this.bindAttributes(render);
-    this.updateUniforms(render, main);
-    ShaderBase.drawBuffer(render);
-  };
-  /** Get or create the shader */
-  ShaderUV.getOrCreate = function (gl) {
-    return ShaderUV.program ? ShaderUV : ShaderBase.getOrCreate.call(this, gl);
-  };
-  /** Initialize attributes */
+  ShaderUV.draw = ShaderBase.draw;
+  ShaderUV.drawBuffer = ShaderBase.drawBuffer;
+  ShaderUV.getOrCreate = ShaderBase.getOrCreate;
+  ShaderUV.initUniforms = ShaderBase.initUniforms;
   ShaderUV.initAttributes = function (gl) {
-    var program = ShaderUV.program;
-    var attrs = ShaderUV.attributes;
-    attrs.aVertex = new Attribute(gl, program, 'aVertex', 3, glfloat);
-    attrs.aNormal = new Attribute(gl, program, 'aNormal', 3, glfloat);
-    attrs.aColor = new Attribute(gl, program, 'aColor', 3, glfloat);
-    attrs.aMaterial = new Attribute(gl, program, 'aMaterial', 3, glfloat);
-    attrs.aTexCoord = new Attribute(gl, program, 'aTexCoord', 2, glfloat);
+    ShaderBase.initAttributes.call(this, gl);
+    ShaderUV.attributes.aTexCoord = new Attribute(gl, ShaderUV.program, 'aTexCoord', 2, gl.FLOAT);
   };
-  /** Bind attributes */
   ShaderUV.bindAttributes = function (render) {
-    var attrs = ShaderUV.attributes;
-    attrs.aVertex.bindToBuffer(render.getVertexBuffer());
-    attrs.aNormal.bindToBuffer(render.getNormalBuffer());
-    attrs.aColor.bindToBuffer(render.getColorBuffer());
-    attrs.aMaterial.bindToBuffer(render.getMaterialBuffer());
-    attrs.aTexCoord.bindToBuffer(render.getTexCoordBuffer());
+    ShaderBase.bindAttributes.call(this, render);
+    ShaderUV.attributes.aTexCoord.bindToBuffer(render.getTexCoordBuffer());
   };
-  /** Updates uniforms */
   ShaderUV.updateUniforms = function (render, main) {
     var gl = render.getGL();
     var uniforms = this.uniforms;
 
     gl.activeTexture(gl.TEXTURE0);
-    var tex = ShaderBase.getOrCreateTexture0.call(this, gl, ShaderUV.texPath, main);
-    if (tex)
-      gl.bindTexture(gl.TEXTURE_2D, tex);
+    gl.bindTexture(gl.TEXTURE_2D, ShaderBase.getOrCreateTexture0.call(this, gl, ShaderUV.texPath, main) || null);
     gl.uniform1i(uniforms.uTexture0, 0);
 
     ShaderBase.updateUniforms.call(this, render, main);

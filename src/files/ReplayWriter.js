@@ -89,6 +89,7 @@ define([
       parent.location.hash = '';
       this.lastDeviceMove_ = undefined;
       this.lastExposure_ = undefined;
+      this.lastTransparency_ = undefined;
       this.lastFov_ = undefined;
       this.lastNbActions_ = 0;
       this.lastRadius_ = 50.0;
@@ -284,15 +285,6 @@ define([
       this.checkSculptTools();
       this.stack_.push(Replay.DEVICE_MOVE, x, y, mask);
     },
-    pushCameraFov: function (fov) {
-      // optimize a bit
-      if (this.lastFov_ === this.stack_.length - 2) {
-        this.stack_[this.stack_.length - 1] = fov;
-        return;
-      }
-      this.lastFov_ = this.stack_.length;
-      this.stack_.push(Replay.CAMERA_FOV, fov);
-    },
     pushLoadAlpha: function (u8, w, h) {
       this.nbBytesLoadingMeshes_ += u8.byteLength;
       this.stack_.push(Replay.LOAD_ALPHA, w, h, u8);
@@ -302,14 +294,22 @@ define([
       this.nbBytesLoadingMeshes_ += ab.byteLength;
       this.stack_.push(Replay.LOAD_MESHES, ab);
     },
+    pushCameraFov: function (val) {
+      this.pushOptimize('lastFov_', Replay.CAMERA_FOV, val);
+    },
     pushExposure: function (val) {
-      // optimize a bit
-      if (this.lastExposure_ === this.stack_.length - 2) {
+      this.pushOptimize('lastExposure_', Replay.EXPOSURE_INTENSITY, val);
+    },
+    pushTransparency: function (val) {
+      this.pushOptimize('lastTransparency_', Replay.SET_TRANSPARENCY, val);
+    },
+    pushOptimize: function (comp, key, val) {
+      if (this[comp] === this.stack_.length - 2) {
         this.stack_[this.stack_.length - 1] = val;
         return;
       }
-      this.lastExposure_ = this.stack_.length;
-      this.stack_.push(Replay.EXPOSURE_INTENSITY, val);
+      this[comp] = this.stack_.length;
+      this.stack_.push(key, val);
     },
     export: function () {
       var stack = this.stack_;
@@ -381,6 +381,7 @@ define([
         case Replay.DYNAMIC_SUBDIVISION:
         case Replay.DYNAMIC_DECIMATION:
         case Replay.EXPOSURE_INTENSITY:
+        case Replay.SET_TRANSPARENCY:
         case Replay.SHOW_GRID:
         case Replay.SHOW_WIREFRAME:
         case Replay.FLAT_SHADING:

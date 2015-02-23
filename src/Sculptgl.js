@@ -18,8 +18,9 @@ define([
   'states/States',
   'render/Render',
   'render/Rtt',
-  'render/shaders/ShaderMatcap'
-], function (glm, Utils, Sculpt, Subdivision, Import, ReplayWriter, ReplayReader, Gui, Camera, Picking, Background, Selection, Grid, Mesh, Multimesh, Primitive, States, Render, Rtt, ShaderMatcap) {
+  'render/shaders/ShaderMatcap',
+  'render/WebGLCaps'
+], function (glm, Utils, Sculpt, Subdivision, Import, ReplayWriter, ReplayReader, Gui, Camera, Picking, Background, Selection, Grid, Mesh, Multimesh, Primitive, States, Render, Rtt, ShaderMatcap, WebGLCaps) {
 
   'use strict';
 
@@ -199,12 +200,12 @@ define([
         window.alert('Could not initialise WebGL. No WebGL, no SculptGL. Sorry.');
         return;
       }
-      if (!gl.getExtension('OES_element_index_uint')) {
+      WebGLCaps.initWebGLExtensions(gl);
+      if (!WebGLCaps.getWebGLExtension('OES_element_index_uint'))
         Render.ONLY_DRAW_ARRAYS = true;
-      }
       gl.viewportWidth = window.innerWidth;
       gl.viewportHeight = window.innerHeight;
-      gl.clearColor(0.2, 0.2, 0.2, 1);
+      gl.clearColor(0.033, 0.033, 0.033, 1);
       gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
       gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true);
       gl.pixelStorei(gl.UNPACK_PREMULTIPLY_ALPHA_WEBGL, false);

@@ -727,6 +727,10 @@ define([
         main.getGui().ctrlRendering_.onExposureChanged(data.getUint8(sel, true));
         sel += 1;
         break;
+      case Replay.SET_TRANSPARENCY:
+        main.getGui().ctrlRendering_.onTransparencyChanged(data.getUint8(sel, true));
+        sel += 1;
+        break;
       case Replay.SHOW_GRID:
         main.getGui().ctrlScene_.onShowGrid(data.getUint8(sel, true));
         this.virtualGrid_ = main.showGrid_;

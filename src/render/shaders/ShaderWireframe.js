@@ -1,16 +1,16 @@
 define([
-  'render/shaders/ShaderBase',
-  'render/Attribute'
-], function (ShaderBase, Attribute) {
+  'render/shaders/ShaderBase'
+], function (ShaderBase) {
 
   'use strict';
 
-  var glfloat = 0x1406;
-
-  var ShaderWireframe = {};
+  var ShaderWireframe = ShaderBase.getCopy();
   ShaderWireframe.uniforms = {};
   ShaderWireframe.attributes = {};
-  ShaderWireframe.program = undefined;
+  ShaderWireframe.activeAttributes = {
+    vertex: true,
+    material: true
+  };
 
   ShaderWireframe.uniformNames = ['uMVP', 'uEM'];
 
@@ -30,11 +30,11 @@ define([
   ShaderWireframe.fragment = [
     'precision mediump float;',
     'void main() {',
-    '  gl_FragColor = vec4(1.0, 1.0, 1.0, 0.05);',
+    '  gl_FragColor = vec4(1.0, 1.0, 1.0, 0.04);',
     '}'
   ].join('\n');
 
-  /** Draw */
+  ShaderWireframe.getOrCreate = ShaderBase.getOrCreate;
   ShaderWireframe.draw = function (render /*, main*/ ) {
     var gl = render.getGL();
     gl.useProgram(this.program);
@@ -45,21 +45,6 @@ define([
     gl.drawElements(gl.LINES, render.getMesh().getRenderNbEdges() * 2, gl.UNSIGNED_INT, 0);
     gl.disable(gl.BLEND);
   };
-  /** Get or create the shader */
-  ShaderWireframe.getOrCreate = function (gl) {
-    return ShaderWireframe.program ? ShaderWireframe : ShaderBase.getOrCreate.call(this, gl);
-  };
-  /** Initialize attributes */
-  ShaderWireframe.initAttributes = function (gl) {
-    ShaderWireframe.attributes.aVertex = new Attribute(gl, ShaderWireframe.program, 'aVertex', 3, glfloat);
-    ShaderWireframe.attributes.aMaterial = new Attribute(gl, ShaderWireframe.program, 'aMaterial', 3, glfloat);
-  };
-  /** Bind attributes */
-  ShaderWireframe.bindAttributes = function (render) {
-    ShaderWireframe.attributes.aVertex.bindToBuffer(render.getVertexBuffer());
-    ShaderWireframe.attributes.aMaterial.bindToBuffer(render.getMaterialBuffer());
-  };
-  /** Updates uniforms */
   ShaderWireframe.updateUniforms = function (render) {
     render.getGL().uniformMatrix4fv(this.uniforms.uMVP, false, render.getMesh().getMVP());
     render.getGL().uniformMatrix4fv(this.uniforms.uEM, false, render.getMesh().getEditMatrix());

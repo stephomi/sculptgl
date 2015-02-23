@@ -1,25 +1,35 @@
 define([
   'lib/glMatrix',
-  'misc/Utils'
-], function (glm, Utils) {
+  'misc/Utils',
+  'render/Attribute',
+  'text!render/shaders/glsl/colorSpace.glsl'
+], function (glm, Utils, Attribute, colorSpace) {
 
   'use strict';
 
   var vec3 = glm.vec3;
 
   var ShaderBase = {};
+  ShaderBase.activeAttributes = {
+    vertex: true,
+    normal: true,
+    material: true,
+    color: true
+  };
 
   ShaderBase.SHOW_SYMMETRY_LINE = false;
   ShaderBase.uniformNames = {};
-  ShaderBase.uniformNames.commonUniforms = ['uMV', 'uMVP', 'uN', 'uEM', 'uEN', 'uPlaneO', 'uPlaneN', 'uScale'];
+  ShaderBase.uniformNames.commonUniforms = ['uMV', 'uMVP', 'uN', 'uEM', 'uEN', 'uPlaneO', 'uPlaneN', 'uScale', 'uAlpha'];
 
   ShaderBase.strings = {};
+  ShaderBase.strings.colorSpaceGLSL = colorSpace;
   ShaderBase.strings.vertUniforms = [
     'uniform mat4 uMV;',
     'uniform mat4 uMVP;',
     'uniform mat3 uN;',
     'uniform mat4 uEM;',
-    'uniform mat3 uEN;'
+    'uniform mat3 uEN;',
+    'uniform float uAlpha;'
   ].join('\n');
   ShaderBase.strings.fragColorUniforms = [
     'uniform vec3 uPlaneN;',
@@ -28,21 +38,14 @@ define([
     'varying float vMasking;'
   ].join('\n');
   ShaderBase.strings.fragColorFunction = [
-    'vec4 getFragColor(const in vec3 frag) {',
+    'vec3 applyMaskAndSym(const in vec3 frag) {',
     '  vec3 col = frag * (0.3 + 0.7 * vMasking);',
     '  if(uScale > 0.0 && abs(dot(uPlaneN, vVertex - uPlaneO)) < 0.15 / uScale)',
-    '      return vec4(min(col * 1.3, 1.0), 1.0);',
-    '  return vec4(col, 1.0);',
-    '}',
-    'vec4 getFragColor(const in vec4 frag) {',
-    '  vec3 col = frag.rgb * (0.3 + 0.7 * vMasking);',
-    '  if(uScale > 0.0 && abs(dot(uPlaneN, vVertex - uPlaneO)) < 0.15 / uScale)',
-    '      return vec4(min(col * 1.3, 1.0), 0.2);',
-    '  return vec4(col, frag.a);',
+    '      return min(col * 1.5, 1.0);',
+    '  return col;',
     '}'
   ].join('\n');
 
-  /** Get or create Shaders */
   ShaderBase.getOrCreate = function (gl) {
     var vShader = gl.createShader(gl.VERTEX_SHADER);
     gl.shaderSource(vShader, this.vertex);
@@ -60,6 +63,7 @@ define([
     gl.useProgram(program);
 
     this.initAttributes(gl);
+    // this.initUniforms(gl);
     ShaderBase.initUniforms.call(this, gl);
 
     // no clean up for quick webgl inspector debugging
@@ -69,7 +73,6 @@ define([
     // gl.deleteShader(vShader);
     return this;
   };
-  /** Initialize uniforms */
   ShaderBase.initUniforms = function (gl) {
     var program = this.program;
     var unifNames = this.uniformNames;
@@ -79,7 +82,6 @@ define([
       unifs[name] = gl.getUniformLocation(program, name);
     }
   };
-  /** Updates uniforms */
   ShaderBase.updateUniforms = (function () {
     var tmp = [0.0, 0.0, 0.0];
     return function (render, main) {
@@ -98,9 +100,26 @@ define([
       gl.uniform3fv(uniforms.uPlaneO, vec3.transformMat4(tmp, mesh.getSymmetryOrigin(), mesh.getMV()));
       gl.uniform3fv(uniforms.uPlaneN, vec3.transformMat3(tmp, mesh.getSymmetryNormal(), mesh.getN()));
       gl.uniform1f(uniforms.uScale, useSym ? mesh.getScale() : -1.0);
+      gl.uniform1f(uniforms.uAlpha, mesh.getOpacity());
     };
   })();
-  /** Draw buffer */
+  ShaderBase.draw = function (render, main) {
+    var gl = render.getGL();
+    gl.useProgram(this.program);
+    this.bindAttributes(render);
+    this.updateUniforms(render, main);
+
+    var isTR = render.getMesh().isTransparent();
+    if (isTR) {
+      gl.depthMask(false);
+      gl.enable(gl.BLEND);
+    }
+    this.drawBuffer(render);
+    if (isTR) {
+      gl.disable(gl.BLEND);
+      gl.depthMask(true);
+    }
+  };
   ShaderBase.drawBuffer = function (render) {
     var lengthIndexArray = render.getMesh().getRenderNbTriangles() * 3;
     var gl = render.getGL();
@@ -132,15 +151,39 @@ define([
     if (main)
       main.render();
   };
-  /** Return or create texture0 */
   ShaderBase.getOrCreateTexture0 = function (gl, texPath, main) {
     if (this.texture0 !== undefined)
       return this.texture0;
     this.texture0 = null; // trigger loading
     var tex = new Image();
     tex.src = texPath;
-    tex.onload = ShaderBase.onLoadTexture0.bind(this, gl, tex, main);
+    tex.onload = this.onLoadTexture0.bind(this, gl, tex, main);
     return false;
+  };
+  ShaderBase.initAttributes = function (gl) {
+    var program = this.program;
+    var attrs = this.attributes;
+    attrs.aVertex = new Attribute(gl, program, 'aVertex', 3, gl.FLOAT);
+    attrs.aNormal = new Attribute(gl, program, 'aNormal', 3, gl.FLOAT);
+    attrs.aColor = new Attribute(gl, program, 'aColor', 3, gl.FLOAT);
+    attrs.aMaterial = new Attribute(gl, program, 'aMaterial', 3, gl.FLOAT);
+  };
+  ShaderBase.bindAttributes = function (render) {
+    var attrs = this.attributes;
+    var active = this.activeAttributes;
+    if (active.vertex) attrs.aVertex.bindToBuffer(render.getVertexBuffer());
+    if (active.normal) attrs.aNormal.bindToBuffer(render.getNormalBuffer());
+    if (active.color) attrs.aColor.bindToBuffer(render.getColorBuffer());
+    if (active.material) attrs.aMaterial.bindToBuffer(render.getMaterialBuffer());
+  };
+
+  ShaderBase.getCopy = function () {
+    var keys = Object.keys(ShaderBase);
+    var obj = {};
+    for (var i = 0, nb = keys.length; i < nb; ++i)
+      obj[keys[i]] = this[keys[i]];
+    obj.program = null;
+    return obj;
   };
 
   return ShaderBase;

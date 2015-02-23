@@ -26,6 +26,9 @@ module.exports = function (grunt) {
     compile: {
       options: {
         preserveLicenseComments: false,
+        paths: {
+          text: '../tools/text'
+        },
         optimize: 'none',
         baseUrl: 'src',
         name: '../tools/almond',
@@ -104,7 +107,7 @@ module.exports = function (grunt) {
   });
 
   grunt.loadNpmTasks('grunt-manifest');
-  grunt.loadNpmTasks('grunt-requirejs');
+  grunt.loadNpmTasks('grunt-contrib-requirejs');
   grunt.loadNpmTasks('grunt-contrib-jshint');
   grunt.loadNpmTasks('grunt-contrib-clean');
   grunt.loadNpmTasks('grunt-contrib-copy');

@@ -127,6 +127,7 @@ define([], function () {
   Replay.ADD_CUBE = ida++; // []
   Replay.DELETE_CURRENT_MESH = ida++; // []
 
+  Replay.SET_TRANSPARENCY = ida++; // [val (u8)]
   Replay.EXPOSURE_INTENSITY = ida++; // [val (u8)]
   Replay.SHOW_GRID = ida++; // [bool (u8)]
   Replay.SHOW_WIREFRAME = ida++; // [bool (u8)]

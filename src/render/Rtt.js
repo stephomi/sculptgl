@@ -1,7 +1,8 @@
 define([
   'render/Buffer',
-  'render/Shader'
-], function (Buffer, Shader) {
+  'render/Shader',
+  'render/WebGLCaps'
+], function (Buffer, Shader, WebGLCaps) {
 
   'use strict';
 
@@ -47,10 +48,19 @@ define([
 
       this.shader_ = Shader[Shader.mode.RTT].getOrCreate(gl);
     },
+    getType: function (gl) {
+      if (WebGLCaps.hasRTTHalfFloat())
+        return WebGLCaps.HALF_FLOAT_OES;
+      if (WebGLCaps.hasRTTFloat())
+        return gl.FLOAT;
+      return gl.UNSIGNED_BYTE;
+    },
     onResize: function (width, height) {
       var gl = this.gl_;
+      var type = this.getType(gl);
+
       gl.bindTexture(gl.TEXTURE_2D, this.rtt_);
-      gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, width, height, 0, gl.RGBA, gl.UNSIGNED_BYTE, null);
+      gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, width, height, 0, gl.RGBA, type, null);
 
       gl.bindRenderbuffer(gl.RENDERBUFFER, this.depth_);
       gl.renderbufferStorage(gl.RENDERBUFFER, gl.DEPTH_COMPONENT16, width, height);

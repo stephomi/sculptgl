@@ -32,6 +32,7 @@ define([
     this.albedo_ = new Float32Array([-1.0, -1.0, -1.0]);
     this.roughness_ = -0.18;
     this.metallic_ = -0.78;
+    this.alpha_ = 1.0;
   };
 
   Render.ONLY_DRAW_ARRAYS = false;
@@ -104,8 +105,14 @@ define([
     isUsingTexCoords: function () {
       return this.shader_.isUsingTexCoords();
     },
+    setOpacity: function (alpha) {
+      this.alpha_ = alpha;
+    },
+    getOpacity: function () {
+      return this.alpha_;
+    },
     isTransparent: function () {
-      return this.shader_.isTransparent();
+      return this.alpha_ < 0.99;
     },
     getFlatShading: function () {
       return this.flatShading_;

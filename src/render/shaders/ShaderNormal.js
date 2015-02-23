@@ -1,16 +1,17 @@
 define([
-  'render/shaders/ShaderBase',
-  'render/Attribute'
-], function (ShaderBase, Attribute) {
+  'render/shaders/ShaderBase'
+], function (ShaderBase) {
 
   'use strict';
 
-  var glfloat = 0x1406;
-
-  var ShaderNormal = {};
+  var ShaderNormal = ShaderBase.getCopy();
   ShaderNormal.uniforms = {};
   ShaderNormal.attributes = {};
-  ShaderNormal.program = undefined;
+  ShaderNormal.activeAttributes = {
+    vertex: true,
+    normal: true,
+    material: true
+  };
 
   ShaderNormal.uniformNames = [];
   Array.prototype.push.apply(ShaderNormal.uniformNames, ShaderBase.uniformNames.commonUniforms);
@@ -39,42 +40,14 @@ define([
     'precision mediump float;',
     'varying vec3 vVertex;',
     'varying vec3 vNormal;',
+    'uniform float uAlpha;',
     ShaderBase.strings.fragColorUniforms,
     ShaderBase.strings.fragColorFunction,
+    ShaderBase.strings.colorSpaceGLSL,
     'void main() {',
-    '  gl_FragColor = getFragColor(vNormal * 0.5 + 0.5);',
+    '  gl_FragColor = vec4(applyMaskAndSym(sRGBToLinear(vNormal * 0.5 + 0.5)), uAlpha);',
     '}'
   ].join('\n');
-  /** Draw */
-  ShaderNormal.draw = function (render, main) {
-    render.getGL().useProgram(this.program);
-    this.bindAttributes(render);
-    this.updateUniforms(render, main);
-    ShaderBase.drawBuffer(render);
-  };
-  /** Get or create the shader */
-  ShaderNormal.getOrCreate = function (gl) {
-    return ShaderNormal.program ? ShaderNormal : ShaderBase.getOrCreate.call(this, gl);
-  };
-  /** Initialize attributes */
-  ShaderNormal.initAttributes = function (gl) {
-    var program = ShaderNormal.program;
-    var attrs = ShaderNormal.attributes;
-    attrs.aVertex = new Attribute(gl, program, 'aVertex', 3, glfloat);
-    attrs.aNormal = new Attribute(gl, program, 'aNormal', 3, glfloat);
-    attrs.aMaterial = new Attribute(gl, program, 'aMaterial', 3, glfloat);
-  };
-  /** Bind attributes */
-  ShaderNormal.bindAttributes = function (render) {
-    var attrs = ShaderNormal.attributes;
-    attrs.aVertex.bindToBuffer(render.getVertexBuffer());
-    attrs.aNormal.bindToBuffer(render.getNormalBuffer());
-    attrs.aMaterial.bindToBuffer(render.getMaterialBuffer());
-  };
-  /** Updates uniforms */
-  ShaderNormal.updateUniforms = function (render, main) {
-    ShaderBase.updateUniforms.call(this, render, main);
-  };
 
   return ShaderNormal;
 });

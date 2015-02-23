@@ -6,10 +6,9 @@ define([
   'render/shaders/ShaderNormal',
   'render/shaders/ShaderPBR',
   'render/shaders/ShaderRtt',
-  'render/shaders/ShaderTransparency',
   'render/shaders/ShaderUV',
   'render/shaders/ShaderWireframe'
-], function (Sbackground, Sselection, Sgrid, Smatcap, Snormal, SPBR, Srtt, Stransparency, Suv, Swireframe) {
+], function (Sbackground, Sselection, Sgrid, Smatcap, Snormal, SPBR, Srtt, Suv, Swireframe) {
 
   'use strict';
 
@@ -21,15 +20,14 @@ define([
 
   Shader.mode = {
     PBR: 0,
-    TRANSPARENCY: 1,
-    WIREFRAME: 2,
-    NORMAL: 3,
-    BACKGROUND: 4,
-    UV: 5,
-    MATCAP: 6,
-    GRID: 7,
-    SELECTION: 8,
-    RTT: 9
+    WIREFRAME: 1,
+    NORMAL: 2,
+    BACKGROUND: 3,
+    UV: 4,
+    MATCAP: 5,
+    GRID: 6,
+    SELECTION: 7,
+    RTT: 8
   };
 
   Shader[Shader.mode.RTT] = Srtt;
@@ -39,7 +37,6 @@ define([
   Shader[Shader.mode.PBR] = SPBR;
   Shader[Shader.mode.MATCAP] = Smatcap;
   Shader[Shader.mode.NORMAL] = Snormal;
-  Shader[Shader.mode.TRANSPARENCY] = Stransparency;
   Shader[Shader.mode.UV] = Suv;
   Shader[Shader.mode.WIREFRAME] = Swireframe;
 
@@ -51,10 +48,6 @@ define([
     /** Return true if the shader is using UVs */
     isUsingTexCoords: function () {
       return this.type_ === Shader.mode.UV;
-    },
-    /** Return true if the shader is using alpha transparency stuffs */
-    isTransparent: function () {
-      return this.type_ === Shader.mode.TRANSPARENCY;
     },
     /** Initialize the shader */
     init: function () {

@@ -5,12 +5,9 @@ define([
 
   'use strict';
 
-  var glfloat = 0x1406;
-
-  var ShaderBackground = {};
+  var ShaderBackground = ShaderBase.getCopy();
   ShaderBackground.uniforms = {};
   ShaderBackground.attributes = {};
-  ShaderBackground.program = undefined;
 
   ShaderBackground.uniformNames = ['uTexture0'];
 
@@ -28,12 +25,12 @@ define([
     'precision mediump float;',
     'uniform sampler2D uTexture0;',
     'varying vec2 vTexCoord;',
+    ShaderBase.strings.colorSpaceGLSL,
     'void main() {',
-    '  gl_FragColor =  texture2D(uTexture0, vTexCoord);',
+    '  gl_FragColor = sRGBToLinear(texture2D(uTexture0, vTexCoord));',
     '}'
   ].join('\n');
 
-  /** Draw */
   ShaderBackground.draw = function (bg) {
     var gl = bg.getGL();
     gl.useProgram(this.program);
@@ -41,24 +38,17 @@ define([
     this.updateUniforms(bg);
     gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
   };
-  /** Get or create the shader */
-  ShaderBackground.getOrCreate = function (gl) {
-    return ShaderBackground.program ? ShaderBackground : ShaderBase.getOrCreate.call(this, gl);
-  };
-  /** Initialize attributes */
   ShaderBackground.initAttributes = function (gl) {
     var program = ShaderBackground.program;
     var attrs = ShaderBackground.attributes;
-    attrs.aVertex = new Attribute(gl, program, 'aVertex', 2, glfloat);
-    attrs.aTexCoord = new Attribute(gl, program, 'aTexCoord', 2, glfloat);
+    attrs.aVertex = new Attribute(gl, program, 'aVertex', 2, gl.FLOAT);
+    attrs.aTexCoord = new Attribute(gl, program, 'aTexCoord', 2, gl.FLOAT);
   };
-  /** Bind attributes */
   ShaderBackground.bindAttributes = function (bg) {
     var attrs = ShaderBackground.attributes;
     attrs.aVertex.bindToBuffer(bg.getVertexBuffer());
     attrs.aTexCoord.bindToBuffer(bg.getTexCoordBuffer());
   };
-  /** Updates uniforms */
   ShaderBackground.updateUniforms = function (bg) {
     var gl = bg.getGL();
     gl.activeTexture(gl.TEXTURE0);
