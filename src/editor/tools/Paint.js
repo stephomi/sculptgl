@@ -39,12 +39,12 @@ define([
     update: function (main) {
       if (this.pickColor_ === true)
         return this.updatePickColor(main);
-      SculptBase.prototype.update.call(this, main);
+      SculptBase.prototype.update.apply(this, arguments);
     },
     updateContinuous: function (main) {
       if (this.pickColor_ === true)
         return this.updatePickColor(main);
-      SculptBase.prototype.updateContinuous.call(this, main);
+      SculptBase.prototype.updateContinuous.apply(this, arguments);
     },
     updateMeshBuffers: function () {
       if (this.mesh_.getDynamicTopology) {

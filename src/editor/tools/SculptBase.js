@@ -68,14 +68,15 @@ define([
       this.sculptStroke(main);
     },
     /** Update sculpting operation */
-    update: function (main) {
+    update: function (main, continuous) {
       if (this.lockPosition_ === true)
-        return this.updateSculptLock(main);
+        return this.updateSculptLock(main, continuous);
       this.sculptStroke(main);
     },
     /** Update lock position */
-    updateSculptLock: function (main) {
-      this.states_.getCurrentState().undo(); // I can't believe it actually worked
+    updateSculptLock: function (main, continuous) {
+      if (!continuous)
+        this.states_.getCurrentState().undo(); // I can't believe it actually worked
 
       var picking = main.getPicking();
       var origRad = picking.getScreenRadius();
@@ -164,6 +165,7 @@ define([
         this.mesh_.updateGeometryBuffers();
     },
     updateContinuous: function (main) {
+      if (this.lockPosition_) return this.update(main, true);
       var picking = main.getPicking();
       var pickingSym = main.getSculpt().getSymmetry() ? main.getPickingSymmetry() : null;
       this.makeStroke(main.mouseX_, main.mouseY_, picking, pickingSym);
