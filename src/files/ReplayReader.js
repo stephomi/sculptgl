@@ -100,7 +100,7 @@ define([
       canvas.width = 1024;
       canvas.height = 768;
       this.main_.onCanvasResize();
-      this.main_.getCamera().forceViewFront();
+      this.main_.getCamera().resetViewFront();
       this.main_.applyRender();
 
       var dataUrl = canvas.toDataURL('image/jpeg');
