@@ -127,7 +127,7 @@ define([
       newMesh.setColors(mesh.getColors().subarray(0, mesh.getNbVertices() * 3));
       newMesh.setMaterials(mesh.getMaterials().subarray(0, mesh.getNbVertices() * 3));
       newMesh.setFaces(mesh.getFaces().subarray(0, mesh.getNbFaces() * 4));
-      newMesh.init(true);
+      newMesh.init();
       newMesh.setRender(mesh.getRender());
       mesh.getRender().mesh_ = newMesh;
       newMesh.initRender();

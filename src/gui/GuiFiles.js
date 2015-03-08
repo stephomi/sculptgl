@@ -22,6 +22,7 @@ define([
       // import
       menu.addTitle(TR('fileImportTitle'));
       menu.addButton(TR('fileAdd'), this, 'addFile');
+      menu.addCheckbox(TR('fileAutoMatrix'), this.main_, 'autoMatrix_');
 
       // replayer
       menu.addTitle(TR('fileReplayerTitle'));

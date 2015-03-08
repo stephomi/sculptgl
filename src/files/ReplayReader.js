@@ -161,7 +161,7 @@ define([
       document.body.appendChild(main.getCanvas());
       this.endReplay();
       main.clearScene();
-      main.loadScene(arraysgl, 'sgl');
+      main.loadScene(arraysgl, 'sgl', true);
     },
     loadVersion: function (version) {
       var iframe = this.iframe_ = document.createElement('iframe');
@@ -707,9 +707,9 @@ define([
         break;
       case Replay.LOAD_MESHES:
         var nbBytes = data.getUint32(sel, true);
-        main.loadScene(data.buffer.slice(sel + 4, sel + 4 + nbBytes), 'sgl');
+        main.loadScene(data.buffer.slice(sel + 5, sel + 5 + nbBytes), 'sgl', data.getUint8(sel + 4, true));
         this.nbBytesResourcesLoaded_ += nbBytes;
-        sel += 4 + nbBytes;
+        sel += 5 + nbBytes;
         this.getOrCreateRenderMeshes(main.getMeshes());
         break;
       case Replay.ADD_SPHERE:

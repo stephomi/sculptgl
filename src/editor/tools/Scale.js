@@ -2,8 +2,9 @@ define([
   'lib/glMatrix',
   'misc/Utils',
   'math3d/Geometry',
-  'editor/tools/SculptBase'
-], function (glm, Utils, Geometry, SculptBase) {
+  'editor/tools/SculptBase',
+  'editor/tools/Rotate'
+], function (glm, Utils, Geometry, SculptBase, Rotate) {
 
   'use strict';
 
@@ -12,36 +13,44 @@ define([
 
   var Scale = function (states) {
     SculptBase.call(this, states);
+    this.matrixInv_ = mat4.create(); // origin matrix inverse
+    this.preTranslate_ = mat4.create(); // pre translate matrix
+    this.postTranslate_ = mat4.create(); // post translate matrix
+    this.refMX_ = 0.0;
+    this.refMY_ = 0.0;
   };
 
   Scale.prototype = {
-    end: function () {
-      SculptBase.prototype.endTransform.apply(this, arguments);
-    },
-    applyEditMatrix: function (iVerts) {
-      var mesh = this.mesh_;
-      var em = mesh.getEditMatrix();
-      var mAr = mesh.getMaterials();
-      var vAr = mesh.getVertices();
-      var scale = em[0] - 1.0;
-      for (var i = 0, nb = iVerts.length; i < nb; ++i) {
-        var j = iVerts[i] * 3;
-        var val = 1.0 + scale * mAr[j + 2];
-        vAr[j] *= val;
-        vAr[j + 1] *= val;
-        vAr[j + 2] *= val;
-      }
-      vec3.scale(mesh.getCenter(), mesh.getCenter(), em[0]);
-      mat4.identity(em);
-      if (iVerts.length === mesh.getNbVertices()) mesh.updateGeometry();
-      else mesh.updateGeometry(mesh.getFacesFromVertices(iVerts), iVerts);
-    },
+    end: Rotate.prototype.endTransform,
+    applyEditMatrix: Rotate.prototype.applyEditMatrix,
+    startSculpt: (function () {
+      var tmp = [0.0, 0.0, 0.0];
+      // var qu = [0.0, 0.0, 0.0, 1.0];
+      return function (main) {
+        var matrix = this.mesh_.getMatrix();
+        mat4.invert(this.matrixInv_, matrix);
+        vec3.transformMat4(tmp, this.mesh_.getCenter(), matrix);
+        mat4.translate(this.preTranslate_, mat4.identity(this.preTranslate_), tmp);
+        mat4.translate(this.postTranslate_, mat4.identity(this.postTranslate_), vec3.negate(tmp, tmp));
+
+        this.refMX_ = main.mouseX_;
+        this.refMY_ = main.mouseY_;
+      };
+    })(),
     update: (function () {
       var tmp = [0.0, 0.0, 0.0];
       return function (main) {
-        tmp[0] = tmp[1] = tmp[2] = 1.0 + (main.mouseX_ - main.lastMouseX_ + main.mouseY_ - main.lastMouseY_) / 400;
-        var m = this.mesh_.getEditMatrix();
-        mat4.scale(m, m, tmp);
+        tmp[0] = tmp[1] = tmp[2] = 1.0 + (main.mouseX_ - this.refMX_ + main.mouseY_ - this.refMY_) / 400;
+        var mEdit = this.mesh_.getEditMatrix();
+        mat4.identity(mEdit);
+        mat4.scale(mEdit, mEdit, tmp);
+
+        mat4.mul(mEdit, this.preTranslate_, mEdit);
+        mat4.mul(mEdit, mEdit, this.postTranslate_);
+
+        mat4.mul(mEdit, this.matrixInv_, mEdit);
+        mat4.mul(mEdit, mEdit, this.mesh_.getMatrix());
+
         main.render();
         main.getCanvas().style.cursor = 'default';
       };

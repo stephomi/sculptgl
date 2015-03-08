@@ -9,7 +9,6 @@ define([
 
   var vec2 = glm.vec2;
   var vec3 = glm.vec3;
-  var mat3 = glm.mat3;
   var mat4 = glm.mat4;
   var quat = glm.quat;
 
@@ -29,9 +28,7 @@ define([
   };
 
   Rotate.prototype = {
-    end: function () {
-      SculptBase.prototype.endTransform.apply(this, arguments);
-    },
+    end: SculptBase.prototype.endTransform,
     applyEditMatrix: function (iVerts) {
       var mesh = this.mesh_;
       var em = mesh.getEditMatrix();
@@ -57,7 +54,6 @@ define([
     /** Start sculpting operation */
     startSculpt: (function () {
       var tmp = [0.0, 0.0, 0.0];
-      var rot = mat3.create();
       var qu = [0.0, 0.0, 0.0, 1.0];
       return function (main) {
         var camera = main.getCamera();
@@ -65,11 +61,9 @@ define([
 
         var matrix = this.mesh_.getMatrix();
         mat4.invert(this.matrixInv_, matrix);
-        vec3.transformMat3(tmp, this.mesh_.getCenter(), mat3.fromMat4(rot, matrix));
-        vec3.set(tmp, tmp[0] + matrix[12], tmp[1] + matrix[13], tmp[2] + matrix[14]);
-        quat.identity(qu);
-        mat4.fromRotationTranslation(this.preTranslate_, qu, tmp);
-        mat4.fromRotationTranslation(this.postTranslate_, qu, vec3.negate(tmp, tmp));
+        vec3.transformMat4(tmp, this.mesh_.getCenter(), matrix);
+        mat4.translate(this.preTranslate_, mat4.identity(this.preTranslate_), tmp);
+        mat4.translate(this.postTranslate_, mat4.identity(this.postTranslate_), vec3.negate(tmp, tmp));
 
         var near = camera.unproject(camera.width_ * 0.5, camera.height_ * 0.5, 0.0);
         var far = camera.unproject(camera.width_ * 0.5, camera.height_ * 0.5, 1.0);
@@ -87,7 +81,6 @@ define([
     update: (function () {
       var qu = [0.0, 0.0, 0.0, 1.0];
       var axis = [0.0, 0.0, 0.0];
-      var matRot = mat4.create();
       return function (main) {
         var mesh = this.mesh_;
         var camera = main.getCamera();
@@ -119,12 +112,12 @@ define([
 
         mat4.mul(this.editRot_, this.editRot_, this.appliedRot_);
 
-        mat4.mul(matRot, this.preTranslate_, this.editRot_);
-        mat4.mul(matRot, matRot, this.postTranslate_);
+        var mEdit = mesh.getEditMatrix();
+        mat4.mul(mEdit, this.preTranslate_, this.editRot_);
+        mat4.mul(mEdit, mEdit, this.postTranslate_);
 
-        var matrix = mesh.getEditMatrix();
-        mat4.mul(matrix, this.matrixInv_, matRot);
-        mat4.mul(matrix, matrix, mesh.getMatrix());
+        mat4.mul(mEdit, this.matrixInv_, mEdit);
+        mat4.mul(mEdit, mEdit, mesh.getMatrix());
 
         main.render();
         main.getCanvas().style.cursor = 'default';

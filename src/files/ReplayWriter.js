@@ -289,10 +289,10 @@ define([
       this.nbBytesLoadingMeshes_ += u8.byteLength;
       this.stack_.push(Replay.LOAD_ALPHA, w, h, u8);
     },
-    pushLoadMeshes: function (meshes, fdata, type) {
+    pushLoadMeshes: function (meshes, fdata, type, autoMatrix) {
       var ab = type === 'sgl' ? fdata.slice() : ExportSGL.exportSGLAsArrayBuffer(meshes);
       this.nbBytesLoadingMeshes_ += ab.byteLength;
-      this.stack_.push(Replay.LOAD_MESHES, ab);
+      this.stack_.push(Replay.LOAD_MESHES, ab, autoMatrix);
     },
     pushCameraFov: function (val) {
       this.pushOptimize('lastFov_', Replay.CAMERA_FOV, val);
@@ -431,8 +431,9 @@ define([
         case Replay.LOAD_MESHES:
           var ab = stack[++i];
           data.setUint32(offset, ab.byteLength, true);
-          u8a.set(new Uint8Array(ab), offset + 4);
-          offset += 4 + ab.byteLength;
+          data.setUint8(offset + 4, stack[++i], true);
+          u8a.set(new Uint8Array(ab), offset + 5);
+          offset += 5 + ab.byteLength;
           break;
         }
       }

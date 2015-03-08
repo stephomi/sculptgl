@@ -33,6 +33,7 @@ define([], function () {
     fileTitle: '파일 (가져오기/내보내기)',
     fileImportTitle: '가져오기',
     fileAdd: '파일 (obj, sgl, ply, stl)',
+    fileAutoMatrix: 'Scale and center',
     fileExportMeshTitle: '메쉬 내보내기',
     fileExportSceneTitle: '장면 내보내기',
     fileExportSGL: 'sgl로 저장하기',

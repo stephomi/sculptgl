@@ -64,9 +64,10 @@ define([
     this.replayerWriter_ = new ReplayWriter(this); // the user event stack replayer
     this.replayerReader_ = new ReplayReader(this); // reader replayer
     this.isReplayed_ = false; // if we want to save the replay mode
-    this.preventRender_ = false; // prevent multiple render per frame
 
+    this.preventRender_ = false; // prevent multiple render per frame
     this.drawFullScene_ = false; // render everything on the rtt
+    this.autoMatrix_ = true; // scale and center the imported meshes
   };
 
   SculptGL.prototype = {
@@ -378,7 +379,7 @@ define([
         if (fileType === 'rep')
           self.getReplayReader().import(evt.target.result, null, file.name.substr(0, file.name.length - 4));
         else
-          self.loadScene(evt.target.result, fileType);
+          self.loadScene(evt.target.result, fileType, self.autoMatrix_);
         document.getElementById('fileopen').value = '';
       };
 
@@ -389,25 +390,44 @@ define([
     },
     computeBoundingBoxMeshes: function (meshes) {
       var bigBound = [Infinity, Infinity, Infinity, -Infinity, -Infinity, -Infinity];
+      var vec3 = glm.vec3;
+      var min = [0.0, 0.0, 0.0];
+      var max = [0.0, 0.0, 0.0];
       for (var i = 0, l = meshes.length; i < l; ++i) {
         var bound = meshes[i].getBound();
-        if (bound[0] < bigBound[0]) bigBound[0] = bound[0];
-        if (bound[1] < bigBound[1]) bigBound[1] = bound[1];
-        if (bound[2] < bigBound[2]) bigBound[2] = bound[2];
-        if (bound[3] > bigBound[3]) bigBound[3] = bound[3];
-        if (bound[4] > bigBound[4]) bigBound[4] = bound[4];
-        if (bound[5] > bigBound[5]) bigBound[5] = bound[5];
+        var mat = meshes[i].getMatrix();
+        vec3.transformMat4(min, bound, mat);
+        max[0] = bound[3];
+        max[1] = bound[4];
+        max[2] = bound[5];
+        vec3.transformMat4(max, max, mat);
+        if (min[0] < bigBound[0]) bigBound[0] = min[0];
+        if (min[1] < bigBound[1]) bigBound[1] = min[1];
+        if (min[2] < bigBound[2]) bigBound[2] = min[2];
+        if (max[0] > bigBound[3]) bigBound[3] = max[0];
+        if (max[1] > bigBound[4]) bigBound[4] = max[1];
+        if (max[2] > bigBound[5]) bigBound[5] = max[2];
       }
       return bigBound;
     },
-    centerMeshes: function (meshes) {
+    scaleAndCenterMeshes: function (meshes) {
+      var vec3 = glm.vec3;
+      var mat4 = glm.mat4;
       var box = this.computeBoundingBoxMeshes(meshes);
-      var trans = [-(box[0] + box[3]) * 0.5, -(box[1] + box[4]) * 0.5, -(box[2] + box[5]) * 0.5];
-      for (var i = 0, l = meshes.length; i < l; ++i)
-        meshes[i].translate(trans);
+      var scale = Utils.SCALE / vec3.dist([box[0], box[1], box[2]], [box[3], box[4], box[5]]);
+
+      var mCen = mat4.create();
+      mat4.scale(mCen, mCen, [scale, scale, scale]);
+      mat4.translate(mCen, mCen, [-(box[0] + box[3]) * 0.5, -(box[1] + box[4]) * 0.5, -(box[2] + box[5]) * 0.5]);
+
+      for (var i = 0, l = meshes.length; i < l; ++i) {
+        var mesh = meshes[i];
+        var mat = mesh.getMatrix();
+        mat4.mul(mat, mCen, mat);
+      }
     },
     /** Load a file */
-    loadScene: function (fileData, fileType) {
+    loadScene: function (fileData, fileType, autoMatrix) {
       var newMeshes;
       if (fileType === 'obj') newMeshes = Import.importOBJ(fileData, this.gl_);
       else if (fileType === 'sgl') newMeshes = Import.importSGL(fileData, this.gl_);
@@ -418,18 +438,18 @@ define([
         return;
 
       var meshes = this.meshes_;
-      var ignoreTransform = fileType === 'sgl';
       for (var i = 0; i < nbNewMeshes; ++i) {
         var mesh = newMeshes[i] = new Multimesh(newMeshes[i]);
-        mesh.init(ignoreTransform);
+        mesh.init();
         mesh.initRender();
         meshes.push(mesh);
       }
 
       if (!this.isReplayed())
-        this.getReplayWriter().pushLoadMeshes(newMeshes, fileData, fileType);
+        this.getReplayWriter().pushLoadMeshes(newMeshes, fileData, fileType, autoMatrix);
 
-      this.centerMeshes(newMeshes);
+      if (autoMatrix)
+        this.scaleAndCenterMeshes(newMeshes);
       this.states_.pushStateAdd(newMeshes);
       this.setMesh(meshes[meshes.length - 1]);
       this.camera_.resetView();

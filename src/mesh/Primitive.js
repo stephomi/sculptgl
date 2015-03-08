@@ -42,6 +42,7 @@ define([
     mesh.initTexCoordsDataFromOBJData(uv, ft);
 
     mesh.init();
+    mesh.scaleAndCenter();
     mesh.initRender();
 
     return mesh;

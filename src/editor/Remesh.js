@@ -234,6 +234,7 @@ define([
     if (materials) newMesh.setMaterials(materials);
     newMesh.setFaces(faces);
     newMesh.init();
+    newMesh.scaleAndCenter();
     newMesh.setRender(mesh.getRender());
     mesh.getRender().mesh_ = newMesh;
     newMesh.initRender();

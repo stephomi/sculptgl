@@ -78,14 +78,12 @@ define([
       return this.getNbEdges();
     },
     /** Initialize stuffs for the mesh */
-    init: function (ignoreTransform) {
+    init: function () {
       this.initColorsAndMaterials();
       this.allocateArrays();
       this.initTopology();
       this.updateGeometry();
       this.updateDuplicateColorsAndMaterials();
-      if (!ignoreTransform)
-        this.scaleAndCenter();
     },
     /** Init topoloy stuffs */
     initTopology: function () {

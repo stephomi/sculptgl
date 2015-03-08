@@ -33,6 +33,7 @@ define([], function () {
     fileTitle: 'ファイル (インポート/エクスポート)',
     fileImportTitle: 'Import',
     fileAdd: 'Add (obj, sgl, ply, stl)',
+    fileAutoMatrix: 'Scale and center',
     fileExportMeshTitle: 'Export Mesh',
     fileExportSceneTitle: 'Export Scene',
     fileExportSGL: 'Save .sgl (SculptGL)',

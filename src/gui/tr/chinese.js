@@ -33,6 +33,7 @@ define([], function () {
     fileTitle: '檔案 (匯入/匯出)',
     fileImportTitle: '匯入',
     fileAdd: '加入 (obj, sgl, ply, stl)',
+    fileAutoMatrix: 'Scale and center',
     fileExportMeshTitle: '匯出網面',
     fileExportSceneTitle: '匯出場景',
     fileExportSGL: '儲存 .sgl (SculptGL)',

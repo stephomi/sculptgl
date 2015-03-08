@@ -24,9 +24,7 @@ define([
   };
 
   Translate.prototype = {
-    end: function () {
-      SculptBase.prototype.endTransform.apply(this, arguments);
-    },
+    end: SculptBase.prototype.endTransform,
     applyEditMatrix: function (iVerts) {
       var mesh = this.mesh_;
       var em = mesh.getEditMatrix();

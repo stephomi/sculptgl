@@ -122,7 +122,7 @@ define([], function () {
   Replay.DYNAMIC_DECIMATION = ida++; // [val (u8)]
 
   Replay.LOAD_ALPHA = ida++; // [width (u32), height (u32), len (u32)]
-  Replay.LOAD_MESHES = ida++; // [len (u32)]
+  Replay.LOAD_MESHES = ida++; // [len (u32), autoMatrix(u8)]
   Replay.ADD_SPHERE = ida++; // []
   Replay.ADD_CUBE = ida++; // []
   Replay.DELETE_CURRENT_MESH = ida++; // []

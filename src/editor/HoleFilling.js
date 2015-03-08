@@ -136,7 +136,7 @@ define([
     newMesh.setTransformData(mesh.getTransformData());
     newMesh.setRender(mesh.getRender());
 
-    newMesh.init(true);
+    newMesh.init();
     return newMesh;
   };
 
