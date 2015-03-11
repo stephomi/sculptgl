@@ -16,7 +16,7 @@ define([
       var menu = guiParent.addMenu(TR('sceneTitle'));
 
       // scene
-      menu.addButton(TR('sceneReset'), this.main_, 'clearScene');
+      menu.addButton(TR('sceneReset'), this.main_, 'clearScene' /*, 'CTRL+ALT+N'*/ );
       menu.addButton(TR('sceneAddSphere'), this.main_, 'addSphere');
       menu.addButton(TR('sceneAddCube'), this.main_, 'addCube');
 
