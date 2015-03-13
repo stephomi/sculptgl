@@ -80,6 +80,7 @@ module.exports = function (grunt) {
         '**/*.frag',
         '**/*.obj',
         '**/*.ply',
+        '**/*.bin',
         '**/*.stl'
       ],
       dest: 'build/manifest.appcache'

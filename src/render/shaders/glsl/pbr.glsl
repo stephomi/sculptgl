@@ -66,19 +66,10 @@ vec3 approximateSpecularIBL( const in vec3 specularColor, float rLinear, const i
 // expect shCoefs uniform
 // https://github.com/cedricpinson/envtools/blob/master/Cubemap.cpp#L523
 vec3 sphericalHarmonics( const in vec3 normal ) {
-  const vec3 sph0 = vec3(0.23990666937971933, 0.22656132897048073, 0.24382270927912433);
-  const vec3 sph1 = vec3(0.02277244385301296, 0.07715619985961389, 0.1724356440907309);
-  const vec3 sph2 = vec3(0.02608399623768619, 0.025898669304921414, 0.026569813715271264);
-  const vec3 sph3 = vec3(0.1321752857124422, 0.12603794956042963, 0.11169990884863842);
-  const vec3 sph4 = vec3(-0.05930221775442135, -0.02676011647502097, 0.00796566135260379);
-  const vec3 sph5 = vec3(-0.006821490008666235, -0.0021131962489668935, 0.002244323911606555);
-  const vec3 sph6 = vec3(-0.04824954782702628, -0.04224386164148779, -0.04050826185790317);
-  const vec3 sph7 = vec3(0.07057130854176336, 0.06650123787327868, 0.061894944435059406);
-  const vec3 sph8 = vec3(0.11603028215152471, 0.08130308401094016, 0.0375649834342044);
   float x = normal.x;
   float y = normal.y;
   float z = normal.z;
-  vec3 result = sph0 + sph1 * y + sph2 * z + sph3 * x + sph4 * y * x + sph5 * y * z + sph6 * (3.0 * z * z - 1.0) + sph7 * (z * x) + sph8 * (x*x - y*y);
+  vec3 result = uSPH[0] + uSPH[1] * y + uSPH[2] * z + uSPH[3] * x + uSPH[4] * y * x + uSPH[5] * y * z + uSPH[6] * (3.0 * z * z - 1.0) + uSPH[7] * (z * x) + uSPH[8] * (x*x - y*y);
   return max(result, vec3(0.0));
 }
 

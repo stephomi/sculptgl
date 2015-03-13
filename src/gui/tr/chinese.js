@@ -179,6 +179,7 @@ define([], function () {
     renderingFlat: '平整面 (較慢)',
     renderingWireframe: '線框 (較慢)',
     renderingExposure: 'Exposure',
+    renderingEnvironment: 'Environment',
 
     // matcaps
     matcapPearl: '珍珠',

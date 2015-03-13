@@ -2,8 +2,9 @@ define([
   'gui/GuiTR',
   'render/Render',
   'render/Shader',
-  'render/shaders/ShaderMatcap'
-], function (TR, Render, Shader, ShaderMatcap) {
+  'render/shaders/ShaderMatcap',
+  'render/shaders/ShaderPBR'
+], function (TR, Render, Shader, ShaderMatcap, ShaderPBR) {
 
   'use strict';
 
@@ -34,12 +35,19 @@ define([
       optionsShaders[Shader.mode.NORMAL] = TR('renderingNormal');
       optionsShaders[Shader.mode.UV] = TR('renderingUV');
       menu.addTitle(TR('renderingShader'));
-      this.ctrlShaders_ = menu.addCombobox('', Shader.mode.MATCAP, this.onShaderChanged.bind(this), optionsShaders);
+      this.ctrlShaders_ = menu.addCombobox('', Shader.mode.PBR, this.onShaderChanged.bind(this), optionsShaders);
+
+      // environments
+      var optionEnvs = {};
+      for (var i = 0, envs = ShaderPBR.environments, l = envs.length; i < l; ++i)
+        optionEnvs[i] = envs[i].name;
+      this.ctrlEnvTitle_ = menu.addTitle(TR('renderingEnvironment'));
+      this.ctrlEnv_ = menu.addCombobox('', 0, this.onEnvironmentChanged.bind(this), optionEnvs);
 
       // matcap texture
       var optionMatcaps = {};
-      for (var i = 0, mats = ShaderMatcap.matcaps, l = mats.length; i < l; ++i)
-        optionMatcaps[i] = mats[i].name;
+      for (var j = 0, mats = ShaderMatcap.matcaps, k = mats.length; j < k; ++j)
+        optionMatcaps[j] = mats[j].name;
       this.ctrlMatcapTitle_ = menu.addTitle(TR('renderingMaterial'));
       this.ctrlMatcap_ = menu.addCombobox('', 0, this.onMatcapChanged.bind(this), optionMatcaps);
 
@@ -106,6 +114,15 @@ define([
         }
       }
       this.updateVisibility();
+    },
+    onEnvironmentChanged: function (value) {
+      var main = this.main_;
+      var mesh = main.getMesh();
+      if (!mesh)
+        return;
+
+      mesh.setEnvironment(value);
+      main.render();
     },
     /** On matcap change */
     onMatcapChanged: function (value) {

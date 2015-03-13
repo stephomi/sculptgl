@@ -179,6 +179,7 @@ define([], function () {
     renderingFlat: 'flat (slower)',
     renderingWireframe: 'wireframe (slower)',
     renderingExposure: 'Exposure',
+    renderingEnvironment: 'Environment',
 
     // matcaps
     matcapPearl: 'Pearl',

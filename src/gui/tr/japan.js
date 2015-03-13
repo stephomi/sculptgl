@@ -179,6 +179,7 @@ define([], function () {
     renderingFlat: 'フラットシェーディング (slower)',
     renderingWireframe: 'ワイヤーフレーム (slower)',
     renderingExposure: 'Exposure',
+    renderingEnvironment: 'Environment',
 
     // matcaps
     matcapPearl: 'Pearl',

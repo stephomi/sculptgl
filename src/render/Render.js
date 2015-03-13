@@ -25,6 +25,7 @@ define([
     this.wireframeBuffer_ = new Buffer(gl, gl.ELEMENT_ARRAY_BUFFER, gl.STATIC_DRAW);
     this.texture0_ = null;
     this.matcap_ = 0; // the chosen matcap texture index
+    this.environment_ = 0; // the chosen environment texture index
 
     this.exposure_ = 1.0;
     // these material values overrides the vertex attributes
@@ -129,6 +130,12 @@ define([
     setMatcap: function (idMat) {
       this.matcap_ = idMat;
       this.setTexture0(ShaderMatcap.textures[idMat]);
+    },
+    getEnvironment: function () {
+      return this.environment_;
+    },
+    setEnvironment: function (idEnv) {
+      this.environment_ = idEnv;
     },
     setShowWireframe: function (showWireframe) {
       this.showWireframe_ = Render.ONLY_DRAW_ARRAYS ? false : showWireframe;

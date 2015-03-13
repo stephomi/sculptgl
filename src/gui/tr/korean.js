@@ -179,6 +179,7 @@ define([], function () {
     renderingFlat: '편평한 (느리게)',
     renderingWireframe: '와이어프레임 (느리게)',
     renderingExposure: 'Exposure',
+    renderingEnvironment: 'Environment',
 
     // matcaps
     matcapPearl: 'Pearl',
