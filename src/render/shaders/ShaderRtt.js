@@ -24,9 +24,10 @@ define([
     'precision mediump float;',
     'uniform sampler2D uTexture0;',
     'varying vec2 vTexCoord;',
-    ShaderBase.strings.colorSpaceGLSL,
     'void main() {',
-    '  gl_FragColor = vec4(linearTosRGB(texture2D(uTexture0, vTexCoord).rgb), 1.0);',
+    // http://filmicgames.com/archives/75
+    '  vec3 x = max(vec3(0.0), texture2D(uTexture0,vTexCoord).rgb-vec3(0.004));',
+    '  gl_FragColor = vec4((x*(6.2*x+0.5))/(x*(6.2*x+1.7)+0.06) , 1.0);',
     '}'
   ].join('\n');
 
