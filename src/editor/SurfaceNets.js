@@ -5,7 +5,10 @@ define([], function () {
   var SurfaceNets = {};
   SurfaceNets.BLOCK = false;
 
-  /** Based on Mikola Lysenko SurfaceNets
+  /**
+   * Based on Mikola Lysenko SurfaceNets
+   * https://github.com/mikolalysenko/isosurface
+   * 
    * Based on: S.F. Gibson, "Constrained Elastic Surface Nets". (1998) MERL Tech Report.
    */
 

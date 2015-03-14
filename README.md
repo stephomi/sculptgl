@@ -25,3 +25,14 @@ Then use grunt :
 
     grunt build # web version
     grunt standalone # desktop webkit version
+
+Credits
+=======
+
+#### Environments
+
+The raw environments can be found here (check the licenses !) :
+
+http://www.hdrlabs.com/sibl/archive.html
+
+http://hdrmaps.com/freebies
