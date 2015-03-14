@@ -9,6 +9,8 @@ define([
   ShaderPBR.textures = {};
 
   var texPath = 'resources/environments/';
+  ShaderPBR.idEnv = 0;
+  ShaderPBR.exposure = 1.0;
   ShaderPBR.environments = [{
     path: texPath + 'footPrint.bin',
     sph: [0.96097, 0.856821, 1.11124, -0.313999, -0.358144, -0.625599, 0.0870941, 0.1109, 0.171528, -0.100569, -0.0498991, -0.0302566, 0.02047, 0.0151743, 0.0182682, -0.00652953, -0.0188746, -0.0525354, 0.00192821, -0.0279455, -0.110808, -0.0180287, -0.0227345, -0.0422744, 0.0139192, -0.0187345, -0.0812033],
@@ -150,9 +152,9 @@ define([
     gl.uniform3fv(uniforms.uAlbedo, render.getAlbedo());
     gl.uniform1f(uniforms.uRoughness, render.getRoughness());
     gl.uniform1f(uniforms.uMetallic, render.getMetallic());
-    gl.uniform1f(uniforms.uExposure, render.getExposure());
+    gl.uniform1f(uniforms.uExposure, ShaderPBR.exposure);
 
-    var env = ShaderPBR.environments[render.getEnvironment()];
+    var env = ShaderPBR.environments[ShaderPBR.idEnv];
     gl.uniform3fv(uniforms.uSPH, ShaderPBR.getOrCreateSPH(env));
 
     gl.activeTexture(gl.TEXTURE0);

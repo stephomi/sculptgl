@@ -42,7 +42,7 @@ define([
       for (var i = 0, envs = ShaderPBR.environments, l = envs.length; i < l; ++i)
         optionEnvs[i] = envs[i].name;
       this.ctrlEnvTitle_ = menu.addTitle(TR('renderingEnvironment'));
-      this.ctrlEnv_ = menu.addCombobox('', 0, this.onEnvironmentChanged.bind(this), optionEnvs);
+      this.ctrlEnv_ = menu.addCombobox('', ShaderPBR.idEnv, this.onEnvironmentChanged.bind(this), optionEnvs);
 
       // matcap texture
       var optionMatcaps = {};
@@ -73,14 +73,10 @@ define([
     },
     onExposureChanged: function (val) {
       var main = this.main_;
-      var mesh = main.getMesh();
-      if (!mesh)
-        return;
-
       if (!main.isReplayed())
         main.getReplayWriter().pushExposure(val);
 
-      mesh.getRender().setExposure(val / 20);
+      ShaderPBR.exposure = val / 20;
       main.render();
     },
     onTransparencyChanged: function (val) {
@@ -116,13 +112,8 @@ define([
       this.updateVisibility();
     },
     onEnvironmentChanged: function (value) {
-      var main = this.main_;
-      var mesh = main.getMesh();
-      if (!mesh)
-        return;
-
-      mesh.setEnvironment(value);
-      main.render();
+      ShaderPBR.idEnv = value;
+      this.main_.render();
     },
     /** On matcap change */
     onMatcapChanged: function (value) {

@@ -25,9 +25,7 @@ define([
     this.wireframeBuffer_ = new Buffer(gl, gl.ELEMENT_ARRAY_BUFFER, gl.STATIC_DRAW);
     this.texture0_ = null;
     this.matcap_ = 0; // the chosen matcap texture index
-    this.environment_ = 0; // the chosen environment texture index
 
-    this.exposure_ = 1.0;
     // these material values overrides the vertex attributes
     // it's here for debug or preview
     this.albedo_ = new Float32Array([-1.0, -1.0, -1.0]);
@@ -54,9 +52,6 @@ define([
     getMetallic: function () {
       return this.metallic_;
     },
-    getExposure: function () {
-      return this.exposure_;
-    },
     setAlbedo: function (val) {
       this.albedo_[0] = val[0];
       this.albedo_[1] = val[1];
@@ -67,9 +62,6 @@ define([
     },
     setMetallic: function (val) {
       this.metallic_ = val;
-    },
-    setExposure: function (val) {
-      this.exposure_ = val;
     },
     getShader: function () {
       return this.shader_;
@@ -130,12 +122,6 @@ define([
     setMatcap: function (idMat) {
       this.matcap_ = idMat;
       this.setTexture0(ShaderMatcap.textures[idMat]);
-    },
-    getEnvironment: function () {
-      return this.environment_;
-    },
-    setEnvironment: function (idEnv) {
-      this.environment_ = idEnv;
     },
     setShowWireframe: function (showWireframe) {
       this.showWireframe_ = Render.ONLY_DRAW_ARRAYS ? false : showWireframe;
@@ -227,7 +213,6 @@ define([
       this.setTexture0(mesh.getTexture0());
       this.setRoughness(mesh.getRoughness());
       this.setMetallic(mesh.getMetallic());
-      this.setExposure(mesh.getExposure());
     }
   };
 
