@@ -45,6 +45,10 @@ define([
     // orbit camera
     this.rotX_ = 0.0; // x rot for orbit camera
     this.rotY_ = 0.0; // y rot for orbit camera
+
+    // near far
+    this.near_ = 0.05;
+    this.far_ = 5000.0;
     this.resetView();
   };
 
@@ -162,12 +166,27 @@ define([
         mat4.translate(view, view, vec3.negate(vecTmp, this.center_));
       };
     })(),
+    optimizeNearFar: (function () {
+      var eye = [0.0, 0.0, 0.0];
+      var tmp = [0.0, 0.0, 0.0];
+      return function (bb) {
+        vec3.set(eye, this.transX_, this.transY_, this.projType_ === Camera.projType.PERSPECTIVE ? this.zoom_ : 1000.0);
+        var diag = vec3.dist(bb, vec3.set(tmp, bb[3], bb[4], bb[5]));
+        var dist = vec3.dist(eye, vec3.set(tmp, (bb[0] + bb[3]) * 0.5, (bb[1] + bb[4]) * 0.5, (bb[2] + bb[5]) * 0.5));
+        this.near_ = Math.max(0.01, dist - diag);
+        this.far_ = diag + dist;
+        this.updateProjection();
+      };
+    })(),
     /** Update projection matrix */
     updateProjection: function () {
-      if (this.projType_ === Camera.projType.PERSPECTIVE)
-        mat4.perspective(this.proj_, this.fov_ * Math.PI / 180.0, this.width_ / this.height_, 0.05, 5000.0);
-      else
+      if (this.projType_ === Camera.projType.PERSPECTIVE) {
+        mat4.perspective(this.proj_, this.fov_ * Math.PI / 180.0, this.width_ / this.height_, this.near_, this.far_);
+        this.proj_[10] = -1.0;
+        this.proj_[14] = -2 * this.near_;
+      } else {
         this.updateOrtho();
+      }
     },
     /** Update translation */
     updateTranslation: function () {

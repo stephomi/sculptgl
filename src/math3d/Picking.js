@@ -142,7 +142,7 @@ define([
       var nearPoint = [0.0, 0.0, 0.0];
       return function (meshes, mouseX, mouseY) {
         var vNear = this.unproject(mouseX, mouseY, 0.0);
-        var vFar = this.unproject(mouseX, mouseY, 1.0);
+        var vFar = this.unproject(mouseX, mouseY, 0.1);
         var nearDistance = Infinity;
         var nearMesh = null;
         var nearFace = -1;
@@ -173,7 +173,7 @@ define([
     /** Intersection between a ray the mouse position */
     intersectionMouseMesh: function (mesh, mouseX, mouseY) {
       var vNear = this.unproject(mouseX, mouseY, 0.0);
-      var vFar = this.unproject(mouseX, mouseY, 1.0);
+      var vFar = this.unproject(mouseX, mouseY, 0.1);
       var matInverse = mat4.create();
       mat4.invert(matInverse, mesh.getMatrix());
       vec3.transformMat4(vNear, vNear, matInverse);

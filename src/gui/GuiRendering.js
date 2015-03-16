@@ -190,6 +190,7 @@ define([
       this.ctrlMatcap_.setVisibility(val === Shader.mode.MATCAP);
       this.ctrlUV_.setVisibility(val === Shader.mode.UV);
       this.ctrlExposure_.setVisibility(val === Shader.mode.PBR);
+      this.ctrlEnvTitle_.setVisibility(val === Shader.mode.PBR);
     },
     /** Return true if flat shading is enabled */
     getFlatShading: function () {

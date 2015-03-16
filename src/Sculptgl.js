@@ -183,6 +183,8 @@ define([
     computeMatricesAndSort: function () {
       var meshes = this.meshes_;
       var cam = this.camera_;
+      if (meshes.length > 0)
+        cam.optimizeNearFar(this.computeBoundingBoxMeshes(meshes));
       this.grid_.computeMatrices(cam);
       for (var i = 0, nb = meshes.length; i < nb; ++i)
         meshes[i].computeMatrices(cam);

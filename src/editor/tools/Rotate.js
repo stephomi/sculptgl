@@ -66,7 +66,7 @@ define([
         mat4.translate(this.postTranslate_, mat4.identity(this.postTranslate_), vec3.negate(tmp, tmp));
 
         var near = camera.unproject(camera.width_ * 0.5, camera.height_ * 0.5, 0.0);
-        var far = camera.unproject(camera.width_ * 0.5, camera.height_ * 0.5, 1.0);
+        var far = camera.unproject(camera.width_ * 0.5, camera.height_ * 0.5, 0.1);
         quat.invert(qu, camera.quatRot_);
         vec3.transformQuat(near, near, qu);
         vec3.transformQuat(far, far, qu);

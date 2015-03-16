@@ -57,7 +57,7 @@ define([
       vec3.copy(this.origin_, picking.getIntersectionPoint());
 
       var near = camera.unproject(camera.width_ * 0.5, camera.height_ * 0.5, 0.0);
-      var far = camera.unproject(camera.width_ * 0.5, camera.height_ * 0.5, 1.0);
+      var far = camera.unproject(camera.width_ * 0.5, camera.height_ * 0.5, 0.1);
       mat4.invert(matrixInv, this.mesh_.getMatrix());
       vec3.transformMat4(near, near, matrixInv);
       vec3.transformMat4(far, far, matrixInv);
@@ -79,7 +79,7 @@ define([
       var mouseY = main.mouseY_;
       var camera = main.getCamera();
       var vNear = camera.unproject(mouseX, mouseY, 0.0);
-      var vFar = camera.unproject(mouseX, mouseY, 1.0);
+      var vFar = camera.unproject(mouseX, mouseY, 0.1);
 
       vec3.transformMat4(vNear, vNear, this.matrixInv_);
       vec3.transformMat4(vFar, vFar, this.matrixInv_);
