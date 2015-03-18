@@ -58,9 +58,9 @@ define([
       this.ctrlExposure_ = menu.addSlider(TR('renderingExposure'), 20, this.onExposureChanged.bind(this), 0, 100, 1);
       this.ctrlExposure_.setVisibility(false);
 
+      menu.addTitle(TR('renderingExtra'));
       menu.addSlider(TR('renderingTransparency'), 0.0, this.onTransparencyChanged.bind(this), 0, 100, 1);
 
-      menu.addTitle(TR('renderingExtra'));
       // flat shading
       this.ctrlFlatShading_ = menu.addCheckbox(TR('renderingFlat'), false, this.onFlatShading.bind(this));
 
@@ -191,6 +191,7 @@ define([
       this.ctrlUV_.setVisibility(val === Shader.mode.UV);
       this.ctrlExposure_.setVisibility(val === Shader.mode.PBR);
       this.ctrlEnvTitle_.setVisibility(val === Shader.mode.PBR);
+      this.ctrlEnv_.setVisibility(val === Shader.mode.PBR);
     },
     /** Return true if flat shading is enabled */
     getFlatShading: function () {
