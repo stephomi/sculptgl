@@ -7,8 +7,9 @@ define([
   'render/shaders/ShaderPBR',
   'render/shaders/ShaderRtt',
   'render/shaders/ShaderUV',
-  'render/shaders/ShaderWireframe'
-], function (Sbackground, Sselection, Sgrid, Smatcap, Snormal, SPBR, Srtt, Suv, Swireframe) {
+  'render/shaders/ShaderWireframe',
+  'render/shaders/ShaderCurvature'
+], function (Sbackground, Sselection, Sgrid, Smatcap, Snormal, SPBR, Srtt, Suv, Swireframe, Scurvature) {
 
   'use strict';
 
@@ -27,7 +28,8 @@ define([
     MATCAP: 5,
     GRID: 6,
     SELECTION: 7,
-    RTT: 8
+    RTT: 8,
+    CURVATURE: 9
   };
 
   Shader[Shader.mode.RTT] = Srtt;
@@ -39,6 +41,7 @@ define([
   Shader[Shader.mode.NORMAL] = Snormal;
   Shader[Shader.mode.UV] = Suv;
   Shader[Shader.mode.WIREFRAME] = Swireframe;
+  Shader[Shader.mode.CURVATURE] = Scurvature;
 
   Shader.prototype = {
     /** Return the type of shader */

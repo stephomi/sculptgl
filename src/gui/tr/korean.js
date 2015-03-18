@@ -168,6 +168,7 @@ define([], function () {
     renderingGrid: '그리드 보이기',
     renderingSymmetryLine: '대칭선 보이기',
     renderingMatcap: 'Matcap',
+    renderingCurvature: 'Curvature',
     renderingPBR: 'PBR',
     renderingTransparency: '투명도',
     renderingNormal: '노말 쉐이더',

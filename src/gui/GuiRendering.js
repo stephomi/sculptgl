@@ -34,6 +34,7 @@ define([
       optionsShaders[Shader.mode.PBR] = TR('renderingPBR');
       optionsShaders[Shader.mode.NORMAL] = TR('renderingNormal');
       optionsShaders[Shader.mode.UV] = TR('renderingUV');
+      optionsShaders[Shader.mode.CURVATURE] = TR('renderingCurvature');
       menu.addTitle(TR('renderingShader'));
       this.ctrlShaders_ = menu.addCombobox('', Shader.mode.PBR, this.onShaderChanged.bind(this), optionsShaders);
 
@@ -101,6 +102,9 @@ define([
           this.updateMesh();
           window.alert('No UV on this mesh.');
         } else {
+
+          if (val === Shader.mode.CURVATURE && this.ctrlFlatShading_.getValue())
+            this.ctrlFlatShading_.setValue(false);
 
           if (!main.isReplayed())
             main.getReplayWriter().pushAction('SHADER_SELECT', value);
@@ -192,6 +196,7 @@ define([
       this.ctrlExposure_.setVisibility(val === Shader.mode.PBR);
       this.ctrlEnvTitle_.setVisibility(val === Shader.mode.PBR);
       this.ctrlEnv_.setVisibility(val === Shader.mode.PBR);
+      this.ctrlFlatShading_.setVisibility(val !== Shader.mode.CURVATURE);
     },
     /** Return true if flat shading is enabled */
     getFlatShading: function () {

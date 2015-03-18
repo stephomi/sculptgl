@@ -133,10 +133,11 @@ define([
       this.updateBuffers();
     },
     setShader: function (shaderType) {
-      if (shaderType === Shader.mode.UV && !this.mesh_.hasUV())
+      var hasUV = this.mesh_.hasUV();
+      if (shaderType === Shader.mode.UV && !hasUV)
         return;
       this.shader_.setType(shaderType);
-      if (this.mesh_.hasUV()) {
+      if (hasUV) {
         this.mesh_.updateDuplicateGeometry();
         this.mesh_.updateDuplicateColorsAndMaterials();
         if (this.isUsingTexCoords())

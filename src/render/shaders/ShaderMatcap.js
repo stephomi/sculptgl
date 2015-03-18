@@ -44,7 +44,7 @@ define([
   ShaderMatcap.uniforms = {};
   ShaderMatcap.attributes = {};
 
-  ShaderMatcap.uniformNames = ['uTexture0'];
+  ShaderMatcap.uniformNames = ['uTexture0','uAlbedo'];
   Array.prototype.push.apply(ShaderMatcap.uniformNames, ShaderBase.uniformNames.commonUniforms);
 
   ShaderMatcap.vertex = [
@@ -58,8 +58,9 @@ define([
     'varying vec3 vNormal;',
     'varying vec3 vColor;',
     'varying float vMasking;',
+    'uniform vec3 uAlbedo;',
     'void main() {',
-    '  vColor = aColor;',
+    '  vColor = uAlbedo.x >= 0.0 ? uAlbedo : aColor;',
     '  vMasking = aMaterial.z;',
     '  vNormal = mix(aNormal, uEN * aNormal, vMasking);',
     '  vNormal = normalize(uN * vNormal);',
@@ -98,6 +99,7 @@ define([
     gl.bindTexture(gl.TEXTURE_2D, render.getTexture0() || ShaderMatcap.textures[0]);
     gl.uniform1i(uniforms.uTexture0, 0);
 
+    gl.uniform3fv(uniforms.uAlbedo, render.getAlbedo());
     ShaderBase.updateUniforms.call(this, render, main);
   };
 

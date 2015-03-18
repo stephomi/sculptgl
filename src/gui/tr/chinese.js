@@ -168,6 +168,7 @@ define([], function () {
     renderingGrid: '顯示格線',
     renderingSymmetryLine: 'Show mirror line',
     renderingMatcap: 'Matcap',
+    renderingCurvature: 'Curvature',
     renderingPBR: '物理式繪算(PBR)',
     renderingTransparency: '透明',
     renderingNormal: '法線著色器',

@@ -3,7 +3,7 @@ define([
   'misc/Utils',
   'render/Attribute',
   'text!render/shaders/glsl/colorSpace.glsl'
-], function (glm, Utils, Attribute, colorSpace) {
+], function (glm, Utils, Attribute, colorSpaceGLSL) {
 
   'use strict';
 
@@ -22,7 +22,7 @@ define([
   ShaderBase.uniformNames.commonUniforms = ['uMV', 'uMVP', 'uN', 'uEM', 'uEN', 'uPlaneO', 'uPlaneN', 'uScale', 'uAlpha'];
 
   ShaderBase.strings = {};
-  ShaderBase.strings.colorSpaceGLSL = colorSpace;
+  ShaderBase.strings.colorSpaceGLSL = colorSpaceGLSL;
   ShaderBase.strings.vertUniforms = [
     'uniform mat4 uMV;',
     'uniform mat4 uMVP;',

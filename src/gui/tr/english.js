@@ -168,6 +168,7 @@ define([], function () {
     renderingGrid: 'Show grid',
     renderingSymmetryLine: 'Show mirror line',
     renderingMatcap: 'Matcap',
+    renderingCurvature: 'Curvature',
     renderingPBR: 'PBR',
     renderingTransparency: 'Transparency',
     renderingNormal: 'Normal shader',
