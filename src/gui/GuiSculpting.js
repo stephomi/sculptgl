@@ -157,10 +157,10 @@ define([
     onKeyDown: function (event) {
       if (event.handled === true)
         return;
-      event.stopPropagation();
-      if (!this.main_.focusGui_)
-        event.preventDefault();
       var key = event.which;
+      event.stopPropagation();
+      if (!this.main_.focusGui_ || key === 88 || key === 67)
+        event.preventDefault();
       event.handled = true;
       if (this.checkModifierKey(event))
         return;
