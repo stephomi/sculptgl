@@ -23,9 +23,9 @@ define([
     pushStateCustom: function (undocb, redocb) {
       this.pushState(new StCustom(undocb, redocb));
     },
-    pushStateAddRemove: function (addMesh, remMesh, silent) {
+    pushStateAddRemove: function (addMesh, remMesh, squash) {
       var st = new StAddRemove(this.main_, addMesh, remMesh);
-      st.silent = silent;
+      st.squash = squash;
       this.pushState(st);
     },
     pushStateRemove: function (remMesh) {
@@ -99,12 +99,12 @@ define([
 
       var state = this.getCurrentState();
       var redoState = state.createRedo();
-      redoState.silent = state.silent;
+      redoState.squash = state.squash;
       this.redos_.push(redoState);
       state.undo();
 
       this.curUndoIndex_--;
-      if (state.silent === true)
+      if (state.squash === true)
         this.undo();
     },
     /** Redo */
@@ -118,7 +118,7 @@ define([
       state.redo();
       this.curUndoIndex_++;
       this.redos_.pop();
-      if (state.silent === true)
+      if (state.squash === true)
         this.redo();
     },
     /** Reset */

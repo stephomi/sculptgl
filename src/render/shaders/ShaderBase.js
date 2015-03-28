@@ -53,6 +53,8 @@ define([
   ].join('\n');
 
   ShaderBase.getOrCreate = function (gl) {
+    if (this.program)
+      return this;
     var vShader = gl.createShader(gl.VERTEX_SHADER);
     gl.shaderSource(vShader, this.vertex);
     gl.compileShader(vShader);

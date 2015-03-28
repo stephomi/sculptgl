@@ -130,6 +130,7 @@ define([], function () {
   Replay.SET_TRANSPARENCY = ida++; // [val (u8)]
   Replay.EXPOSURE_INTENSITY = ida++; // [val (u8)]
   Replay.SHOW_GRID = ida++; // [bool (u8)]
+  Replay.SHOW_CONTOUR = ida++; // [bool (u8)]
   Replay.SHOW_WIREFRAME = ida++; // [bool (u8)]
   Replay.FLAT_SHADING = ida++; // [bool (u8)]
   Replay.SHADER_SELECT = ida++; // [val (u8)]

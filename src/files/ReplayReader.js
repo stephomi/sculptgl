@@ -736,6 +736,10 @@ define([
         this.virtualGrid_ = main.showGrid_;
         sel += 1;
         break;
+      case Replay.SHOW_CONTOUR:
+        main.getGui().ctrlScene_.onShowContour(data.getUint8(sel, true));
+        sel += 1;
+        break;
       case Replay.SHOW_WIREFRAME:
         main.getGui().ctrlRendering_.onShowWireframe(data.getUint8(sel, true));
         this.getOrCreateRenderMesh(main.getMesh()).wireframe_ = main.getMesh().getShowWireframe();

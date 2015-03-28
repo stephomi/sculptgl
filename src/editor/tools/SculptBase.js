@@ -13,21 +13,22 @@ define([
 
   SculptBase.prototype = {
     /** Start sculpting */
-    start: function (main) {
+    start: function (main, ctrl) {
       var picking = main.getPicking();
       picking.intersectionMouseMeshes(main.getMeshes(), main.mouseX_, main.mouseY_);
       var mesh = picking.getMesh();
       if (!mesh)
         return;
+
+      mesh = main.setOrUnsetMesh(mesh, ctrl);
+      if (!mesh)
+        return;
+
       picking.initAlpha();
       var pickingSym = main.getSculpt().getSymmetry() ? main.getPickingSymmetry() : null;
       if (pickingSym) {
         pickingSym.intersectionMouseMesh(mesh, main.mouseX_, main.mouseY_);
         pickingSym.initAlpha();
-      }
-      if (main.getMesh() !== mesh) {
-        main.mesh_ = mesh;
-        main.getGui().updateMesh();
       }
       this.mesh_ = mesh;
       this.pushState();

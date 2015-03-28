@@ -16,11 +16,12 @@ define([
   'mesh/multiresolution/Multimesh',
   'mesh/Primitive',
   'states/States',
+  'render/Contour',
   'render/Render',
   'render/Rtt',
   'render/shaders/ShaderMatcap',
   'render/WebGLCaps'
-], function (glm, Utils, Sculpt, Subdivision, Import, ReplayWriter, ReplayReader, Gui, Camera, Picking, Background, Selection, Grid, Mesh, Multimesh, Primitive, States, Render, Rtt, ShaderMatcap, WebGLCaps) {
+], function (glm, Utils, Sculpt, Subdivision, Import, ReplayWriter, ReplayReader, Gui, Camera, Picking, Background, Selection, Grid, Mesh, Multimesh, Primitive, States, Contour, Render, Rtt, ShaderMatcap, WebGLCaps) {
 
   'use strict';
 
@@ -29,11 +30,11 @@ define([
     this.canvas_ = document.getElementById('canvas');
 
     // controllers stuffs
-    this.mouseX_ = 0; // the x position
-    this.mouseY_ = 0; // the y position
-    this.lastMouseX_ = 0; // the last x position
-    this.lastMouseY_ = 0; // the last y position
-    this.mouseButton_ = 0; // which mouse button is pressed
+    this.mouseX_ = 0;
+    this.mouseY_ = 0;
+    this.lastMouseX_ = 0;
+    this.lastMouseY_ = 0;
+    this.mouseButton_ = 0;
 
     // masking
     this.checkMask_ = false;
@@ -42,22 +43,25 @@ define([
 
     // core of the app
     this.states_ = new States(this); // for undo-redo
-    this.sculpt_ = new Sculpt(this.states_); // sculpting management
-    this.camera_ = new Camera(); // the camera
+    this.sculpt_ = new Sculpt(this.states_);
+    this.camera_ = new Camera();
     this.picking_ = new Picking(this); // the ray picking
     this.pickingSym_ = new Picking(this, true); // the symmetrical picking
 
     // renderable stuffs
+    this.showContour_ = false;
     this.showGrid_ = true;
-    this.grid_ = null; // the grid
-    this.background_ = null; // the background
-    this.selection_ = null; // the selection geometry
+    this.grid_ = null;
+    this.background_ = null;
+    this.selection_ = null; // the selection geometry (red hover circle)
     this.meshes_ = []; // the meshes
+    this.selectMeshes_ = []; // multi selection
     this.mesh_ = null; // the selected mesh
     this.rtt_ = null; // rtt
+    this.contour_ = null; // rtt for contour
 
     // ui stuffs
-    this.gui_ = new Gui(this); // gui
+    this.gui_ = new Gui(this);
     this.focusGui_ = false; // if the gui is being focused
 
     // misc stuffs
@@ -80,6 +84,7 @@ define([
       this.selection_ = new Selection(this.gl_);
       this.grid_ = new Grid(this.gl_);
       this.rtt_ = new Rtt(this.gl_);
+      this.contour_ = new Contour(this.gl_);
 
       this.loadTextures();
       this.gui_.initGui();
@@ -112,6 +117,9 @@ define([
     getMesh: function () {
       return this.mesh_;
     },
+    getSelectedMeshes: function () {
+      return this.selectMeshes_;
+    },
     getPicking: function () {
       return this.picking_;
     },
@@ -131,9 +139,30 @@ define([
       this.isReplayed_ = isReplayed;
     },
     setMesh: function (mesh) {
+      return this.setOrUnsetMesh(mesh);
+    },
+    setOrUnsetMesh: function (mesh, ctrl) {
+      if (!mesh) {
+        this.selectMeshes_.length = 0;
+      } else if (!ctrl) {
+        this.selectMeshes_.length = 0;
+        this.selectMeshes_.push(mesh);
+      } else {
+        var id = this.getIndexSelectMesh(mesh);
+        if (id >= 0) {
+          if (this.selectMeshes_.length > 1) {
+            this.selectMeshes_.splice(id, 1);
+            mesh = this.selectMeshes_[0];
+          }
+        } else {
+          this.selectMeshes_.push(mesh);
+        }
+      }
+
       this.mesh_ = mesh;
       this.getGui().updateMesh();
       this.render();
+      return mesh;
     },
     renderSelectOverRtt: function () {
       if (this.requestRender())
@@ -157,13 +186,20 @@ define([
       this.computeMatricesAndSort();
       var gl = this.gl_;
 
-      gl.disable(gl.DEPTH_TEST);
-      // gl.enable(gl.CULL_FACE);
-      gl.bindFramebuffer(gl.FRAMEBUFFER, this.rtt_.getFramebuffer());
-
       if (this.drawFullScene_) {
-        gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+        gl.disable(gl.DEPTH_TEST);
+        // gl.enable(gl.CULL_FACE);
 
+        var showContour = this.selectMeshes_.length > 0 && this.showContour_;
+        if (showContour) {
+          gl.bindFramebuffer(gl.FRAMEBUFFER, this.contour_.getFramebuffer());
+          gl.clear(gl.COLOR_BUFFER_BIT);
+          for (var s = 0, sel = this.selectMeshes_, nbSel = sel.length; s < nbSel; ++s)
+            sel[s].renderFlatColor(this);
+        }
+
+        gl.bindFramebuffer(gl.FRAMEBUFFER, this.rtt_.getFramebuffer());
+        gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
         this.background_.render();
 
         gl.enable(gl.DEPTH_TEST);
@@ -171,6 +207,9 @@ define([
           this.grid_.render();
         for (var i = 0, meshes = this.meshes_, nb = meshes.length; i < nb; ++i)
           meshes[i].render(this);
+
+        if (showContour)
+          this.contour_.render();
       }
 
       // render to screen
@@ -268,6 +307,7 @@ define([
 
       this.background_.onResize(newWidth, newHeight);
       this.rtt_.onResize(newWidth, newHeight);
+      this.contour_.onResize(newWidth, newHeight);
       this.gl_.viewport(0, 0, newWidth, newHeight);
       this.camera_.updateProjection();
       this.render();
@@ -513,7 +553,7 @@ define([
         this.getReplayWriter().pushAction('DELETE_CURRENT_MESH');
 
       this.states_.pushStateRemove(this.mesh_);
-      this.meshes_.splice(this.meshes_.indexOf(this.mesh_), 1);
+      this.meshes_.splice(this.getIndexMesh(this.mesh_), 1);
       this.setMesh(null);
     },
     /** WebGL context is lost */
@@ -631,7 +671,7 @@ define([
         this.getReplayWriter().pushDeviceDown(button, mouseX, mouseY, event);
 
       if (button === 1)
-        this.sculpt_.start(this);
+        this.sculpt_.start(this, event.ctrlKey);
       var picking = this.picking_;
       var pickedMesh = picking.getMesh();
       if (button === 1 && pickedMesh)
@@ -707,8 +747,8 @@ define([
       this.lastMouseY_ = mouseY;
       this.renderSelectOverRtt();
     },
-    getIndexMesh: function (mesh) {
-      var meshes = this.meshes_;
+    getIndexMesh: function (mesh, select) {
+      var meshes = select ? this.selectMeshes_ : this.meshes_;
       var id = mesh.getID();
       for (var i = 0, nbMeshes = meshes.length; i < nbMeshes; ++i) {
         var testMesh = meshes[i];
@@ -716,6 +756,9 @@ define([
           return i;
       }
       return -1;
+    },
+    getIndexSelectMesh: function (mesh) {
+      return this.getIndexMesh(mesh, true);
     },
     /** Replace a mesh in the scene */
     replaceMesh: function (mesh, newMesh) {

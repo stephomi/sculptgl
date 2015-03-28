@@ -92,9 +92,9 @@ define([
       return this.continuous_ && this.allowPicking();
     },
     /** Start sculpting */
-    start: function (main) {
+    start: function (main, ctrl) {
       var tool = this.getCurrentTool();
-      tool.start(main);
+      tool.start(main, ctrl);
       if (!main.getPicking().getMesh() || !this.isUsingContinuous())
         return;
       // we do not execute this code if we are replaying

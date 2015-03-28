@@ -46,7 +46,10 @@ define([
       var quad = new Float32Array([-1.0, -1.0, 1.0, -1.0, -1.0, 1.0, 1.0, 1.0]);
       this.vertexBuffer_.update(quad);
 
-      this.shader_ = Shader[Shader.mode.RTT].getOrCreate(gl);
+      this.shader_ = Shader[this.getShaderType()].getOrCreate(gl);
+    },
+    getShaderType: function () {
+      return Shader.mode.RTT;
     },
     getType: function (gl) {
       if (WebGLCaps.hasRTTHalfFloat())

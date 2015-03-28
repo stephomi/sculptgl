@@ -161,6 +161,9 @@ define([
       if (this.getShowWireframe())
         this.shaderWireframe_.draw(this, main);
     },
+    renderFlatColor: function (main) {
+      Shader[Shader.mode.FLAT].getOrCreate(this.getGL()).draw(this, main);
+    },
     updateVertexBuffer: function () {
       this.getVertexBuffer().update(this.mesh_.getRenderVertices());
     },

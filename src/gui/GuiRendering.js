@@ -190,7 +190,6 @@ define([
       this.ctrlFlatShading_.setValue(render.flatShading_, true);
       this.ctrlShowWireframe_.setValue(render.showWireframe_, true);
       this.ctrlMatcap_.setValue(render.matcap_, true);
-      this.ctrlExposure_.setValue(render.exposure_ * 20, true);
       this.updateVisibility();
     },
     updateVisibility: function () {

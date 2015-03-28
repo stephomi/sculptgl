@@ -181,6 +181,7 @@ define([], function () {
     renderingWireframe: '와이어프레임 (느리게)',
     renderingExposure: 'Exposure',
     renderingEnvironment: 'Environment',
+    renderingContour: 'Show contour',
 
     // matcaps
     matcapPearl: 'Pearl',

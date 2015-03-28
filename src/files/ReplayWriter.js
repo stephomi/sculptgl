@@ -383,6 +383,7 @@ define([
         case Replay.EXPOSURE_INTENSITY:
         case Replay.SET_TRANSPARENCY:
         case Replay.SHOW_GRID:
+        case Replay.SHOW_CONTOUR:
         case Replay.SHOW_WIREFRAME:
         case Replay.FLAT_SHADING:
         case Replay.SHADER_SELECT:

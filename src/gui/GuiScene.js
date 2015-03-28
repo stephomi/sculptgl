@@ -23,6 +23,7 @@ define([
       menu.addTitle(TR('renderingExtra'));
       menu.addCheckbox(TR('renderingGrid'), this.main_.showGrid_, this.onShowGrid.bind(this));
       menu.addCheckbox(TR('renderingSymmetryLine'), ShaderBase.showSymmetryLine, this.onShowSymmetryLine.bind(this));
+      menu.addCheckbox(TR('renderingContour'), this.main_.showContour_, this.onShowContour.bind(this));
     },
     onShowSymmetryLine: function (val) {
       // TODO push in the replayer...
@@ -31,11 +32,16 @@ define([
     },
     onShowGrid: function (bool) {
       var main = this.main_;
-
       if (!main.isReplayed())
         main.getReplayWriter().pushAction('SHOW_GRID', bool);
-
       main.showGrid_ = bool;
+      main.render();
+    },
+    onShowContour: function (bool) {
+      var main = this.main_;
+      if (!main.isReplayed())
+        main.getReplayWriter().pushAction('SHOW_CONTOUR', bool);
+      main.showContour_ = bool;
       main.render();
     }
   };

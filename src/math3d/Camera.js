@@ -69,6 +69,7 @@ define([
     setProjType: function (type) {
       this.projType_ = type;
       this.updateProjection();
+      this.updateView();
     },
     setMode: function (mode) {
       this.mode_ = mode;

@@ -17,7 +17,7 @@ define([
     'varying vec2 vTexCoord;',
     'void main() {',
     '  vTexCoord = aTexCoord;',
-    '  gl_Position = vec4(aVertex, 0.5, 1.0);',
+    '  gl_Position = vec4(aVertex, 1.0, 1.0);',
     '}'
   ].join('\n');
 

@@ -85,7 +85,7 @@ define([
       var meshes = this.main_.getMeshes();
       if (meshes.length === 0) return;
       if (selection) {
-        meshes = [this.main_.getMesh()];
+        meshes = this.main_.getSelectedMeshes();
         if (!meshes[0]) return;
       }
       var blob = Export.exportOBJ(meshes);

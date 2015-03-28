@@ -1,14 +1,16 @@
 define([
   'render/shaders/ShaderBackground',
+  'render/shaders/ShaderContour',
   'render/shaders/ShaderSelection',
   'render/shaders/ShaderGrid',
+  'render/shaders/ShaderFlat',
   'render/shaders/ShaderMatcap',
   'render/shaders/ShaderNormal',
   'render/shaders/ShaderPBR',
   'render/shaders/ShaderRtt',
   'render/shaders/ShaderUV',
-  'render/shaders/ShaderWireframe',
-], function (Sbackground, Sselection, Sgrid, Smatcap, Snormal, SPBR, Srtt, Suv, Swireframe) {
+  'render/shaders/ShaderWireframe'
+], function (Sbackground, Scontour, Sselection, Sgrid, Sflat, Smatcap, Snormal, SPBR, Srtt, Suv, Swireframe) {
 
   'use strict';
 
@@ -27,7 +29,9 @@ define([
     MATCAP: 5,
     GRID: 6,
     SELECTION: 7,
-    RTT: 8
+    RTT: 8,
+    CONTOUR: 9,
+    FLAT: 10
   };
 
   Shader[Shader.mode.RTT] = Srtt;
@@ -39,6 +43,8 @@ define([
   Shader[Shader.mode.NORMAL] = Snormal;
   Shader[Shader.mode.UV] = Suv;
   Shader[Shader.mode.WIREFRAME] = Swireframe;
+  Shader[Shader.mode.CONTOUR] = Scontour;
+  Shader[Shader.mode.FLAT] = Sflat;
 
   Shader.prototype = {
     /** Return the type of shader */
