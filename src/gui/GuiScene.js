@@ -22,7 +22,12 @@ define([
 
       menu.addTitle(TR('renderingExtra'));
       menu.addCheckbox(TR('renderingGrid'), this.main_.showGrid_, this.onShowGrid.bind(this));
-      menu.addCheckbox(TR('renderingSymmetryLine'), ShaderBase, 'SHOW_SYMMETRY_LINE');
+      menu.addCheckbox(TR('renderingSymmetryLine'), ShaderBase.showSymmetryLine, this.onShowSymmetryLine.bind(this));
+    },
+    onShowSymmetryLine: function (val) {
+      // TODO push in the replayer...
+      ShaderBase.showSymmetryLine = val;
+      this.main_.render();
     },
     onShowGrid: function (bool) {
       var main = this.main_;

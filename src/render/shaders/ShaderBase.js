@@ -2,8 +2,9 @@ define([
   'lib/glMatrix',
   'misc/Utils',
   'render/Attribute',
-  'text!render/shaders/glsl/colorSpace.glsl'
-], function (glm, Utils, Attribute, colorSpaceGLSL) {
+  'text!render/shaders/glsl/colorSpace.glsl',
+  'text!render/shaders/glsl/curvature.glsl'
+], function (glm, Utils, Attribute, colorSpaceGLSL, curvatureGLSL) {
 
   'use strict';
 
@@ -17,9 +18,10 @@ define([
     color: true
   };
 
-  ShaderBase.SHOW_SYMMETRY_LINE = false;
+  ShaderBase.showSymmetryLine = false;
+  ShaderBase.useCurvature = true;
   ShaderBase.uniformNames = {};
-  ShaderBase.uniformNames.commonUniforms = ['uMV', 'uMVP', 'uN', 'uEM', 'uEN', 'uPlaneO', 'uPlaneN', 'uScale', 'uAlpha'];
+  ShaderBase.uniformNames.commonUniforms = ['uMV', 'uMVP', 'uN', 'uEM', 'uEN', 'uPlaneO', 'uPlaneN', 'uScale', 'uCurvature', 'uAlpha'];
 
   ShaderBase.strings = {};
   ShaderBase.strings.colorSpaceGLSL = colorSpaceGLSL;
@@ -35,11 +37,15 @@ define([
     'uniform vec3 uPlaneN;',
     'uniform vec3 uPlaneO;',
     'uniform float uScale;',
+    'uniform int uCurvature;',
     'varying float vMasking;'
   ].join('\n');
   ShaderBase.strings.fragColorFunction = [
+    '#extension GL_OES_standard_derivatives : enable',
+    curvatureGLSL,
     'vec3 applyMaskAndSym(const in vec3 frag) {',
-    '  vec3 col = frag * (0.3 + 0.7 * vMasking);',
+    '  vec3 col = uCurvature == 1 ? computeCurvature(vVertex, vNormal, frag) : frag;',
+    '  col *= (0.3 + 0.7 * vMasking);',
     '  if(uScale > 0.0 && abs(dot(uPlaneN, vVertex - uPlaneO)) < 0.15 / uScale)',
     '      return min(col * 1.5, 1.0);',
     '  return col;',
@@ -87,7 +93,7 @@ define([
     return function (render, main) {
       var gl = render.getGL();
       var mesh = render.getMesh();
-      var useSym = ShaderBase.SHOW_SYMMETRY_LINE && (mesh === main.getMesh()) && main.getSculpt().getSymmetry();
+      var useSym = ShaderBase.showSymmetryLine && (mesh === main.getMesh()) && main.getSculpt().getSymmetry();
 
       var uniforms = this.uniforms;
 
@@ -101,6 +107,8 @@ define([
       gl.uniform3fv(uniforms.uPlaneN, vec3.transformMat3(tmp, mesh.getSymmetryNormal(), mesh.getN()));
       gl.uniform1f(uniforms.uScale, useSym ? mesh.getScale() : -1.0);
       gl.uniform1f(uniforms.uAlpha, mesh.getOpacity());
+
+      gl.uniform1i(uniforms.uCurvature, ShaderBase.useCurvature);
     };
   })();
   ShaderBase.draw = function (render, main) {

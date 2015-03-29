@@ -2,11 +2,13 @@ define([
   'gui/GuiTR',
   'render/Render',
   'render/Shader',
-  'render/shaders/ShaderMatcap',
-  'render/shaders/ShaderPBR'
-], function (TR, Render, Shader, ShaderMatcap, ShaderPBR) {
+  'render/shaders/ShaderBase'
+], function (TR, Render, Shader, ShaderBase) {
 
   'use strict';
+
+  var ShaderPBR = Shader[Shader.mode.PBR];
+  var ShaderMatcap = Shader[Shader.mode.MATCAP];
 
   var GuiRendering = function (guiParent, ctrlGui) {
     this.main_ = ctrlGui.main_; // main application
@@ -34,9 +36,11 @@ define([
       optionsShaders[Shader.mode.PBR] = TR('renderingPBR');
       optionsShaders[Shader.mode.NORMAL] = TR('renderingNormal');
       optionsShaders[Shader.mode.UV] = TR('renderingUV');
-      optionsShaders[Shader.mode.CURVATURE] = TR('renderingCurvature');
       menu.addTitle(TR('renderingShader'));
       this.ctrlShaders_ = menu.addCombobox('', Shader.mode.PBR, this.onShaderChanged.bind(this), optionsShaders);
+
+      // flat shading
+      menu.addCheckbox(TR('renderingCurvature'), ShaderBase.useCurvature, this.onCurvatureChanged.bind(this));
 
       // environments
       var optionEnvs = {};
@@ -72,6 +76,16 @@ define([
 
       this.addEvents();
     },
+    onCurvatureChanged: function (val) {
+      // TODO push in the replayer...
+      ShaderBase.useCurvature = val;
+      this.main_.render();
+    },
+    onEnvironmentChanged: function (val) {
+      // TODO push in the replayer...
+      ShaderPBR.idEnv = val;
+      this.main_.render();
+    },
     onExposureChanged: function (val) {
       var main = this.main_;
       if (!main.isReplayed())
@@ -103,9 +117,6 @@ define([
           window.alert('No UV on this mesh.');
         } else {
 
-          if (val === Shader.mode.CURVATURE && this.ctrlFlatShading_.getValue())
-            this.ctrlFlatShading_.setValue(false);
-
           if (!main.isReplayed())
             main.getReplayWriter().pushAction('SHADER_SELECT', value);
 
@@ -114,10 +125,6 @@ define([
         }
       }
       this.updateVisibility();
-    },
-    onEnvironmentChanged: function (value) {
-      ShaderPBR.idEnv = value;
-      this.main_.render();
     },
     /** On matcap change */
     onMatcapChanged: function (value) {
@@ -196,7 +203,6 @@ define([
       this.ctrlExposure_.setVisibility(val === Shader.mode.PBR);
       this.ctrlEnvTitle_.setVisibility(val === Shader.mode.PBR);
       this.ctrlEnv_.setVisibility(val === Shader.mode.PBR);
-      this.ctrlFlatShading_.setVisibility(val !== Shader.mode.CURVATURE);
     },
     /** Return true if flat shading is enabled */
     getFlatShading: function () {
