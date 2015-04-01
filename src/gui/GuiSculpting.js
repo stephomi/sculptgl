@@ -22,7 +22,6 @@ define([
     this.ctrlSculpt_ = null;
     this.ctrlSymmetry_ = null;
     this.ctrlContinuous_ = null;
-    this.ctrlRadius_ = null;
     this.init(guiParent);
   };
 
@@ -53,10 +52,6 @@ define([
       optionsSculpt[Sculpt.tool.ROTATE] = TR('sculptRotate');
       optionsSculpt[Sculpt.tool.SCALE] = TR('sculptScale');
       this.ctrlSculpt_ = menu.addCombobox(TR('sculptTool'), this.sculpt_.tool_, this.onChangeTool.bind(this), optionsSculpt);
-
-      // radius
-      var picking = this.main_.getPicking();
-      this.ctrlRadius_ = menu.addSlider(TR('sculptRadius'), picking, 'rDisplay_', 5, 200, 1);
 
       // init all the specific subtools ui
       this.initTool(Sculpt.tool.BRUSH);
@@ -176,14 +171,6 @@ define([
       case 67: // C
         this.modalBrushIntensity_ = this.main_.focusGui_ = true;
         break;
-      case 107: // +
-        this.ctrlRadius_.setValue(this.ctrlRadius_.getValue() + 3);
-        this.updateRadiusPicking();
-        break;
-      case 109: // -
-        this.ctrlRadius_.setValue(this.ctrlRadius_.getValue() - 3);
-        this.updateRadiusPicking();
-        break;
       case 46: // DEL
         if (window.confirm(TR('sculptDeleteMesh')))
           this.main_.deleteCurrentMesh();
@@ -278,21 +265,20 @@ define([
     },
     /** Mouse move event */
     onMouseMove: function (e) {
-      if (this.modalBrushRadius_) {
-        this.ctrlRadius_.setValue(this.ctrlRadius_.getValue() + (e.pageX - this.lastMouseX_) * 1.0);
+      var wid = uiTools[this.getSelectedTool()];
+      if (this.modalBrushRadius_ && wid.ctrlRadius_) {
+        wid.ctrlRadius_.setValue(wid.ctrlRadius_.getValue() + e.pageX - this.lastMouseX_);
         this.updateRadiusPicking();
         this.main_.render();
       }
-      if (this.modalBrushIntensity_) {
-        var wid = uiTools[this.getSelectedTool()];
-        if (wid.ctrlIntensity_)
-          wid.ctrlIntensity_.setValue(wid.ctrlIntensity_.getValue() + (e.pageX - this.lastMouseX_) * 1.0);
+      if (this.modalBrushIntensity_ && wid.ctrlIntensity_) {
+        wid.ctrlIntensity_.setValue(wid.ctrlIntensity_.getValue() + e.pageX - this.lastMouseX_);
       }
       this.lastMouseX_ = e.pageX;
     },
     /** Updates radius picking */
     updateRadiusPicking: function () {
-      this.main_.getPicking().computeRadiusWorld2(this.main_.mouseX_, this.main_.mouseY_);
+      this.main_.getPicking().computeLocalAndWorldRadius2(this.main_.mouseX_, this.main_.mouseY_);
     },
     /** Initialize tool */
     initTool: function (toolKey) {
@@ -308,7 +294,7 @@ define([
       this.ctrlContinuous_.setVisibility(this.sculpt_.allowPicking() === true);
       var show = newValue !== Sculpt.tool.TRANSLATE && newValue !== Sculpt.tool.ROTATE && newValue !== Sculpt.tool.SCALE;
       this.ctrlSymmetry_.setVisibility(show);
-      this.ctrlRadius_.setVisibility(show);
+      this.updateRadiusPicking();
     },
     loadAlpha: function (event) {
       if (event.target.files.length === 0)

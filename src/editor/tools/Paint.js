@@ -11,9 +11,10 @@ define([
 
   var Paint = function (states) {
     SculptBase.call(this, states);
+    this.radius_ = 50;
     this.hardness_ = 0.75;
-    this.intensity_ = 0.75; // deformation intensity
-    this.culling_ = false; // if we backface cull the vertices
+    this.intensity_ = 0.75;
+    this.culling_ = false;
     this.color_ = vec3.fromValues(1.0, 0.766, 0.336); // albedo
     this.material_ = vec3.fromValues(0.3, 0.95, 0.0); // roughness/metallic/masking
     this.pickColor_ = false; // color picking

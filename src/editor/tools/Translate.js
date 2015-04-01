@@ -14,7 +14,7 @@ define([
     SculptBase.call(this, states);
     this.origin_ = [0.0, 0.0, 0.0]; // plane origin
     this.normal_ = [0.0, 0.0, 0.0]; // plane normal
-    this.matrixInv_ = mat4.create(); // origin matrix inverse
+    this.matrixInv_ = mat4.create();
     this.negative_ = false;
     this.isNegative_ = false;
     this.refMX_ = 0.0;

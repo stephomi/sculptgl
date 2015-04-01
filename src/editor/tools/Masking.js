@@ -15,10 +15,11 @@ define([
 
   var Masking = function (states) {
     SculptBase.call(this, states);
+    this.radius_ = 50;
     this.hardness_ = 0.25;
-    this.intensity_ = 1.0; // deformation intensity
-    this.negative_ = true; // opposition deformation
-    this.culling_ = false; // if we backface cull the vertices
+    this.intensity_ = 1.0;
+    this.negative_ = true;
+    this.culling_ = false;
     this.idAlpha_ = 0;
     this.lockPosition_ = false;
 

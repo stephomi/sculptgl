@@ -26,11 +26,11 @@ define([], function () {
   Replay.CAMERA_TOGGLE_PIVOT = ida++; // []
 
   Replay.SCULPT_TOOL = ida++; // [tool (u8)]
-  Replay.SCULPT_RADIUS = ida++; // [radius (u8)]
   Replay.SCULPT_TOGGLE_SYMMETRY = ida++; // []
   Replay.SCULPT_TOGGLE_CONTINUOUS = ida++; // []
   Replay.SCULPT_UPDATE_CONTINOUS = ida++; // []
 
+  Replay.BRUSH_RADIUS = ida++; // [intensity (u16)]
   Replay.BRUSH_INTENSITY = ida++; // [intensity (u8)]
   Replay.BRUSH_TOGGLE_NEGATIVE = ida++; // []
   Replay.BRUSH_TOGGLE_CLAY = ida++; // []
@@ -39,48 +39,57 @@ define([], function () {
   Replay.BRUSH_TOGGLE_LOCK_POSITION = ida++; // []
   Replay.BRUSH_SELECT_ALPHA = ida++; // [id (u8)]
 
+  Replay.CREASE_RADIUS = ida++; // [intensity (u16)]
   Replay.CREASE_INTENSITY = ida++; // [intensity (u8)]
   Replay.CREASE_TOGGLE_NEGATIVE = ida++; // []
   Replay.CREASE_TOGGLE_CULLING = ida++; // []
   Replay.CREASE_TOGGLE_LOCK_POSITION = ida++; // []
   Replay.CREASE_SELECT_ALPHA = ida++; // [id (u8)]
 
+  Replay.FLATTEN_RADIUS = ida++; // [intensity (u16)]
   Replay.FLATTEN_INTENSITY = ida++; // [intensity (u8)]
   Replay.FLATTEN_TOGGLE_NEGATIVE = ida++; // []
   Replay.FLATTEN_TOGGLE_CULLING = ida++; // []
   Replay.FLATTEN_TOGGLE_LOCK_POSITION = ida++; // []
   Replay.FLATTEN_SELECT_ALPHA = ida++; // [id (u8)]
 
+  Replay.INFLATE_RADIUS = ida++; // [intensity (u16)]
   Replay.INFLATE_INTENSITY = ida++; // [intensity (u8)]
   Replay.INFLATE_TOGGLE_NEGATIVE = ida++; // []
   Replay.INFLATE_TOGGLE_CULLING = ida++; // []
   Replay.INFLATE_TOGGLE_LOCK_POSITION = ida++; // []
   Replay.INFLATE_SELECT_ALPHA = ida++; // [id (u8)]
 
+  Replay.PINCH_RADIUS = ida++; // [intensity (u16)]
   Replay.PINCH_INTENSITY = ida++; // [intensity (u8)]
   Replay.PINCH_TOGGLE_NEGATIVE = ida++; // []
   Replay.PINCH_TOGGLE_CULLING = ida++; // []
   Replay.PINCH_TOGGLE_LOCK_POSITION = ida++; // []
   Replay.PINCH_SELECT_ALPHA = ida++; // [id (u8)]
 
+  Replay.SMOOTH_RADIUS = ida++; // [intensity (u16)]
   Replay.SMOOTH_INTENSITY = ida++; // [intensity (u8)]
   Replay.SMOOTH_TOGGLE_CULLING = ida++; // []
   Replay.SMOOTH_TOGGLE_TANGENT = ida++; // []
   Replay.SMOOTH_TOGGLE_LOCK_POSITION = ida++; // []
   Replay.SMOOTH_SELECT_ALPHA = ida++; // [id (u8)]
 
+  Replay.LOCALSCALE_RADIUS = ida++; // [intensity (u16)]
   Replay.LOCALSCALE_TOGGLE_CULLING = ida++; // []
   Replay.LOCALSCALE_SELECT_ALPHA = ida++; // [id (u8)]
 
+  Replay.TWIST_RADIUS = ida++; // [intensity (u16)]
   Replay.TWIST_TOGGLE_CULLING = ida++; // []
   Replay.TWIST_SELECT_ALPHA = ida++; // [id (u8)]
 
+  Replay.DRAG_RADIUS = ida++; // [intensity (u16)]
   Replay.DRAG_SELECT_ALPHA = ida++; // [id (u8)]
 
   Replay.TRANSLATE_TOGGLE_NEGATIVE = ida++; // []
 
   Replay.ROTATE_TOGGLE_NEGATIVE = ida++; // []
 
+  Replay.PAINT_RADIUS = ida++; // [intensity (u16)]
   Replay.PAINT_INTENSITY = ida++; // [intensity (u8)]
   Replay.PAINT_HARDNESS = ida++; // [hardness (u8)]
   Replay.PAINT_COLOR = ida++; // [r (f32), g (f32), b (f32)]
@@ -91,11 +100,13 @@ define([], function () {
   Replay.PAINT_SELECT_ALPHA = ida++; // [id (u8)]
   Replay.PAINT_ALL = ida++; // []
 
+  Replay.MOVE_RADIUS = ida++; // [intensity (u16)]
   Replay.MOVE_INTENSITY = ida++; // [intensity (u8)]
   Replay.MOVE_TOGGLE_TOPOCHECK = ida++; // []
   Replay.MOVE_TOGGLE_NEGATIVE = ida++; // []
   Replay.MOVE_SELECT_ALPHA = ida++; // [id (u8)]
 
+  Replay.MASKING_RADIUS = ida++; // [intensity (u16)]
   Replay.MASKING_INTENSITY = ida++; // [intensity (u8)]
   Replay.MASKING_HARDNESS = ida++; // [hardness (u8)]
   Replay.MASKING_TOGGLE_NEGATIVE = ida++; // []

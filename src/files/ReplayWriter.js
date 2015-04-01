@@ -23,7 +23,6 @@ define([
     // is enough for an upper estimation when exporting the replay file)
     this.stack_ = []; // stack of input action
 
-    this.lastRadius_ = 50.0; // last radius
     this.sculpt_ = new Sculpt(); // states of sculpting tools
     this.pressureOnRadius_ = true; // pressure on radius
     this.pressureOnIntensity_ = false; // pressure on intensity
@@ -92,7 +91,6 @@ define([
       this.lastTransparency_ = undefined;
       this.lastFov_ = undefined;
       this.lastNbActions_ = 0;
-      this.lastRadius_ = 50.0;
 
       this.pressure_ = 1.0;
       this.tUseOnRadius_ = true;
@@ -114,6 +112,10 @@ define([
       this.firstReplay_ = buffer;
     },
     checkCommonSculptAttributes: function (mainSel, replaySel, name) {
+      if (mainSel.radius_ !== undefined && mainSel.radius_ !== replaySel.radius_) {
+        replaySel.radius_ = mainSel.radius_;
+        this.stack_.push(Replay[name + '_RADIUS'], mainSel.radius_);
+      }
       if (mainSel.intensity_ !== undefined && mainSel.intensity_ !== replaySel.intensity_) {
         replaySel.intensity_ = mainSel.intensity_;
         this.stack_.push(Replay[name + '_INTENSITY'], mainSel.intensity_ * 100);
@@ -152,12 +154,6 @@ define([
       if (pre !== this.pressure_) {
         this.pressure_ = pre;
         this.stack_.push(Replay.TABLET_PRESSURE, pre);
-      }
-
-      var radius = this.main_.getPicking().getScreenRadius();
-      if (radius !== this.lastRadius_) {
-        this.lastRadius_ = radius;
-        this.stack_.push(Replay.SCULPT_RADIUS, radius);
       }
 
       var mainSc = this.main_.getSculpt();
@@ -365,7 +361,6 @@ define([
         case Replay.CAMERA_PROJ_TYPE:
         case Replay.CAMERA_FOV:
         case Replay.SCULPT_TOOL:
-        case Replay.SCULPT_RADIUS:
         case Replay.BRUSH_INTENSITY:
         case Replay.CREASE_INTENSITY:
         case Replay.FLATTEN_INTENSITY:
@@ -402,6 +397,21 @@ define([
         case Replay.MOVE_SELECT_ALPHA:
           data.setUint8(offset, stack[++i], true);
           offset += 1;
+          break;
+        case Replay.BRUSH_RADIUS:
+        case Replay.CREASE_RADIUS:
+        case Replay.FLATTEN_RADIUS:
+        case Replay.INFLATE_RADIUS:
+        case Replay.PINCH_RADIUS:
+        case Replay.SMOOTH_RADIUS:
+        case Replay.TWIST_RADIUS:
+        case Replay.LOCALSCALE_RADIUS:
+        case Replay.DRAG_RADIUS:
+        case Replay.PAINT_RADIUS:
+        case Replay.MOVE_RADIUS:
+        case Replay.MASKING_RADIUS:
+          data.setUint16(offset, stack[++i], true);
+          offset += 2;
           break;
         case Replay.PAINT_COLOR:
           data.setFloat32(offset, stack[++i], true);

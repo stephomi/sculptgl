@@ -8,7 +8,8 @@ define([
 
   var LocalScale = function (states) {
     SculptBase.call(this, states);
-    this.culling_ = false; // if we backface cull the vertices
+    this.radius_ = 50;
+    this.culling_ = false;
     this.idAlpha_ = 0;
   };
 

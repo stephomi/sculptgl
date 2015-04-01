@@ -13,7 +13,8 @@ define([
 
   var Twist = function (states) {
     SculptBase.call(this, states);
-    this.culling_ = false; // if we backface cull the vertices
+    this.radius_ = 75;
+    this.culling_ = false;
     this.twistData_ = {
       normal: [0.0, 0.0, 0.0], // normal of rotation plane
       center: [0.0, 0.0] // 2D center of rotation 

@@ -80,18 +80,18 @@ define([
         this.states_.getCurrentState().undo(); // I can't believe it actually worked
 
       var picking = main.getPicking();
-      var origRad = picking.getScreenRadius();
+      var origRad = this.radius_;
       var pickingSym = main.getSculpt().getSymmetry() ? main.getPickingSymmetry() : null;
 
       var dx = main.mouseX_ - this.lastMouseX_;
       var dy = main.mouseY_ - this.lastMouseY_;
-      picking.rDisplay_ = Math.sqrt(dx * dx + dy * dy);
+      this.radius_ = Math.sqrt(dx * dx + dy * dy);
       // it's a bit hacky... I just simulate another stroke with a very small offset
       // so that the stroke still has a direction (the mask can be rotated correctly then)
-      var offx = dx / picking.rDisplay_;
-      var offy = dy / picking.rDisplay_;
+      var offx = dx / this.radius_;
+      var offy = dy / this.radius_;
       this.makeStroke(this.lastMouseX_ + offx * 1e-3, this.lastMouseY_ + offy * 1e-3, picking, pickingSym);
-      picking.rDisplay_ = origRad;
+      this.radius_ = origRad;
 
       this.updateRender(main);
       main.getCanvas().style.cursor = 'default';
@@ -104,7 +104,7 @@ define([
       var dx = main.mouseX_ - this.lastMouseX_;
       var dy = main.mouseY_ - this.lastMouseY_;
       var dist = Math.sqrt(dx * dx + dy * dy);
-      var minSpacing = 0.15 * picking.getScreenRadius();
+      var minSpacing = 0.15 * this.radius_;
 
       if (dist <= minSpacing)
         return;

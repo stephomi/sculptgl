@@ -28,6 +28,11 @@ define([
   };
 
   // some helper functions
+  var addCtrlRadius = function (tool, fold, widget) {
+    var ctrl = fold.addSlider(TR('sculptRadius'), tool.radius_, setOnChange.bind(tool, 'radius_', 1), 5, 500, 1);
+    widget.ctrlRadius_ = ctrl;
+    return ctrl;
+  };
   var addCtrlIntensity = function (tool, fold, widget) {
     var ctrl = fold.addSlider(TR('sculptIntensity'), tool.intensity_ * 100, setOnChange.bind(tool, 'intensity_', 100), 0, 100, 1);
     widget.ctrlIntensity_ = ctrl;
@@ -62,6 +67,7 @@ define([
   tools[Sculpt.tool.BRUSH] = {
     ctrls_: [],
     init: function (tool, fold) {
+      this.ctrls_.push(addCtrlRadius(tool, fold, this));
       this.ctrls_.push(addCtrlIntensity(tool, fold, this));
       this.ctrls_.push(addCtrlNegative(tool, fold, this));
       this.ctrls_.push(fold.addCheckbox(TR('sculptClay'), tool, 'clay_'));
@@ -74,6 +80,7 @@ define([
   tools[Sculpt.tool.CREASE] = {
     ctrls_: [],
     init: function (tool, fold) {
+      this.ctrls_.push(addCtrlRadius(tool, fold, this));
       this.ctrls_.push(addCtrlIntensity(tool, fold, this));
       this.ctrls_.push(addCtrlNegative(tool, fold, this));
       this.ctrls_.push(addCtrlCulling(tool, fold));
@@ -84,6 +91,7 @@ define([
   tools[Sculpt.tool.DRAG] = {
     ctrls_: [],
     init: function (tool, fold) {
+      this.ctrls_.push(addCtrlRadius(tool, fold, this));
       addCtrlAlpha(this.ctrls_, fold, tool, this);
     }
   };
@@ -91,6 +99,7 @@ define([
   tools[Sculpt.tool.FLATTEN] = {
     ctrls_: [],
     init: function (tool, fold) {
+      this.ctrls_.push(addCtrlRadius(tool, fold, this));
       this.ctrls_.push(addCtrlIntensity(tool, fold, this));
       this.ctrls_.push(addCtrlNegative(tool, fold, this));
       this.ctrls_.push(addCtrlCulling(tool, fold));
@@ -101,6 +110,7 @@ define([
   tools[Sculpt.tool.INFLATE] = {
     ctrls_: [],
     init: function (tool, fold) {
+      this.ctrls_.push(addCtrlRadius(tool, fold, this));
       this.ctrls_.push(addCtrlIntensity(tool, fold, this));
       this.ctrls_.push(addCtrlNegative(tool, fold, this));
       this.ctrls_.push(addCtrlCulling(tool, fold));
@@ -148,6 +158,7 @@ define([
       tool.paintAll(main.getMesh(), main);
     },
     init: function (tool, fold, main) {
+      this.ctrls_.push(addCtrlRadius(tool, fold, this));
       this.ctrls_.push(addCtrlIntensity(tool, fold, this));
       this.ctrls_.push(addCtrlHardness(tool, fold, this));
       this.ctrls_.push(addCtrlCulling(tool, fold));
@@ -176,6 +187,7 @@ define([
   tools[Sculpt.tool.PINCH] = {
     ctrls_: [],
     init: function (tool, fold) {
+      this.ctrls_.push(addCtrlRadius(tool, fold, this));
       this.ctrls_.push(addCtrlIntensity(tool, fold, this));
       this.ctrls_.push(addCtrlNegative(tool, fold, this));
       this.ctrls_.push(addCtrlCulling(tool, fold));
@@ -186,6 +198,7 @@ define([
   tools[Sculpt.tool.TWIST] = {
     ctrls_: [],
     init: function (tool, fold) {
+      this.ctrls_.push(addCtrlRadius(tool, fold, this));
       this.ctrls_.push(addCtrlCulling(tool, fold));
       addCtrlAlpha(this.ctrls_, fold, tool, this);
     }
@@ -194,6 +207,7 @@ define([
   tools[Sculpt.tool.LOCALSCALE] = {
     ctrls_: [],
     init: function (tool, fold) {
+      this.ctrls_.push(addCtrlRadius(tool, fold, this));
       this.ctrls_.push(addCtrlCulling(tool, fold));
       addCtrlAlpha(this.ctrls_, fold, tool, this);
     }
@@ -202,6 +216,7 @@ define([
   tools[Sculpt.tool.MOVE] = {
     ctrls_: [],
     init: function (tool, fold) {
+      this.ctrls_.push(addCtrlRadius(tool, fold, this));
       this.ctrls_.push(addCtrlIntensity(tool, fold, this));
       this.ctrls_.push(fold.addCheckbox(TR('sculptTopologicalCheck'), tool, 'topoCheck_'));
       this.ctrls_.push(addCtrlNegative(tool, fold, this, TR('sculptMoveAlongNormal')));
@@ -212,6 +227,7 @@ define([
   tools[Sculpt.tool.SMOOTH] = {
     ctrls_: [],
     init: function (tool, fold) {
+      this.ctrls_.push(addCtrlRadius(tool, fold, this));
       this.ctrls_.push(addCtrlIntensity(tool, fold, this));
       this.ctrls_.push(fold.addCheckbox(TR('sculptTangentialSmoothing'), tool, 'tangent_'));
       this.ctrls_.push(addCtrlCulling(tool, fold));
@@ -222,6 +238,7 @@ define([
   tools[Sculpt.tool.MASKING] = {
     ctrls_: [],
     init: function (tool, fold, main) {
+      this.ctrls_.push(addCtrlRadius(tool, fold, this));
       this.ctrls_.push(addCtrlIntensity(tool, fold, this));
       this.ctrls_.push(addCtrlHardness(tool, fold, this));
       this.ctrls_.push(addCtrlNegative(tool, fold, this));

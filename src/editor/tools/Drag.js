@@ -13,8 +13,9 @@ define([
 
   var Drag = function (states) {
     SculptBase.call(this, states);
-    this.dragDir_ = [0.0, 0.0, 0.0]; // direction of deformation
-    this.dragDirSym_ = [0.0, 0.0, 0.0]; // direction of deformation
+    this.radius_ = 150;
+    this.dragDir_ = [0.0, 0.0, 0.0];
+    this.dragDirSym_ = [0.0, 0.0, 0.0];
     this.idAlpha_ = 0;
   };
 
@@ -28,7 +29,7 @@ define([
       var dx = main.mouseX_ - this.lastMouseX_;
       var dy = main.mouseY_ - this.lastMouseY_;
       var dist = Math.sqrt(dx * dx + dy * dy);
-      var minSpacing = 0.15 * picking.getScreenRadius();
+      var minSpacing = 0.15 * this.radius_;
 
       var step = 1.0 / Math.floor(dist / minSpacing);
       dx *= step;
@@ -141,7 +142,7 @@ define([
       picking.setIntersectionPoint(Geometry.vertexOnLine(center, vNear, vFar));
       vec3.sub(dir, picking.getIntersectionPoint(), center);
       picking.mesh_ = mesh;
-      picking.computeRadiusWorld2(mouseX, mouseY);
+      picking.computeLocalAndWorldRadius2(mouseX, mouseY);
       var eyeDir = picking.getEyeDirection();
       vec3.sub(eyeDir, vFar, vNear);
       vec3.normalize(eyeDir, eyeDir);

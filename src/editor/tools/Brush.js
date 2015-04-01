@@ -12,10 +12,11 @@ define([
 
   var Brush = function (states) {
     SculptBase.call(this, states);
+    this.radius_ = 50;
     this.intensity_ = 0.5;
     this.negative_ = false;
     this.clay_ = true;
-    this.culling_ = false; // if we backface cull the vertices
+    this.culling_ = false;
     this.accumulate_ = true; // if we ignore the proxy
     this.idAlpha_ = 0;
     this.lockPosition_ = false;

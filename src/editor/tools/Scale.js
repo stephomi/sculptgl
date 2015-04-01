@@ -13,9 +13,9 @@ define([
 
   var Scale = function (states) {
     SculptBase.call(this, states);
-    this.matrixInv_ = mat4.create(); // origin matrix inverse
-    this.preTranslate_ = mat4.create(); // pre translate matrix
-    this.postTranslate_ = mat4.create(); // post translate matrix
+    this.matrixInv_ = mat4.create();
+    this.preTranslate_ = mat4.create();
+    this.postTranslate_ = mat4.create();
     this.refMX_ = 0.0;
     this.refMY_ = 0.0;
   };

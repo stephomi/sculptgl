@@ -198,7 +198,6 @@ define([
       Tablet.overridePressure = 1.0;
       this.virtualCamera_ = new Camera();
       main.sculpt_ = new Sculpt(main.getStates());
-      main.getPicking().rDisplay_ = 50;
       main.setReplayed(true);
       main.clearScene();
 
@@ -534,10 +533,6 @@ define([
       case Replay.CAMERA_TOGGLE_PIVOT:
         vcam.toggleUsePivot();
         break;
-      case Replay.SCULPT_RADIUS:
-        main.getPicking().rDisplay_ = data.getUint8(sel, true);
-        sel += 1;
-        break;
       case Replay.SCULPT_TOOL:
         sculpt.tool_ = data.getUint8(sel, true);
         sel += 1;
@@ -550,6 +545,21 @@ define([
         break;
       case Replay.SCULPT_UPDATE_CONTINOUS:
         tool.updateContinuous(main);
+        break;
+      case Replay.BRUSH_RADIUS:
+      case Replay.CREASE_RADIUS:
+      case Replay.FLATTEN_RADIUS:
+      case Replay.INFLATE_RADIUS:
+      case Replay.PINCH_RADIUS:
+      case Replay.SMOOTH_RADIUS:
+      case Replay.TWIST_RADIUS:
+      case Replay.LOCALSCALE_RADIUS:
+      case Replay.DRAG_RADIUS:
+      case Replay.PAINT_RADIUS:
+      case Replay.MOVE_RADIUS:
+      case Replay.MASKING_RADIUS:
+        tool.radius_ = data.getUint16(sel, true);
+        sel += 2;
         break;
       case Replay.BRUSH_INTENSITY:
       case Replay.CREASE_INTENSITY:

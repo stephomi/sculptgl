@@ -9,9 +9,10 @@ define([
 
   var Inflate = function (states) {
     SculptBase.call(this, states);
-    this.intensity_ = 0.3; // deformation intensity
-    this.negative_ = false; // opposition deformation
-    this.culling_ = false; // if we backface cull the vertices
+    this.radius_ = 50;
+    this.intensity_ = 0.3;
+    this.negative_ = false;
+    this.culling_ = false;
     this.idAlpha_ = 0;
     this.lockPosition_ = false;
   };

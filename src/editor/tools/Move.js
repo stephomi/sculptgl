@@ -12,6 +12,7 @@ define([
 
   var Move = function (states) {
     SculptBase.call(this, states);
+    this.radius_ = 150;
     this.intensity_ = 1.0;
     this.topoCheck_ = true;
     this.negative_ = false; // along normal

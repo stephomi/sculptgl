@@ -8,9 +8,10 @@ define([
 
   var Smooth = function (states) {
     SculptBase.call(this, states);
-    this.intensity_ = 0.75; // deformation intensity
-    this.culling_ = false; // if we backface cull the vertices
-    this.tangent_ = false; // tangent smoothing
+    this.radius_ = 50;
+    this.intensity_ = 0.75;
+    this.culling_ = false;
+    this.tangent_ = false;
     this.idAlpha_ = 0;
     this.lockPosition_ = false;
   };

@@ -68,7 +68,8 @@ define([
         var pickingSym = main.getPickingSymmetry();
 
         var worldRadius = picking.getWorldRadius();
-        var constRadius = 50.0 * (worldRadius / picking.getScreenRadius());
+        var screenRadius = main.getSculpt().getCurrentTool().radius_ || 1;
+        var constRadius = 50.0 * (worldRadius / screenRadius);
         vec3.transformMat4(tra, picking.getIntersectionPoint(), mesh.getMatrix());
 
         picking.polyLerp(mesh.getNormals(), axis);
