@@ -20,8 +20,10 @@ define([
   States.STACK_LENGTH = 15;
 
   States.prototype = {
-    pushStateCustom: function (undocb, redocb) {
-      this.pushState(new StCustom(undocb, redocb));
+    pushStateCustom: function (undocb, redocb, squash) {
+      var st = new StCustom(undocb, redocb);
+      st.squash = squash;
+      this.pushState(st);
     },
     pushStateAddRemove: function (addMesh, remMesh, squash) {
       var st = new StAddRemove(this.main_, addMesh, remMesh);

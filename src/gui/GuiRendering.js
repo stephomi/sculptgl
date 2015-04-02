@@ -64,7 +64,7 @@ define([
       this.ctrlExposure_.setVisibility(false);
 
       menu.addTitle(TR('renderingExtra'));
-      menu.addSlider(TR('renderingTransparency'), 0.0, this.onTransparencyChanged.bind(this), 0, 100, 1);
+      this.ctrlTransparency_ = menu.addSlider(TR('renderingTransparency'), 0.0, this.onTransparencyChanged.bind(this), 0, 100, 1);
 
       // flat shading
       this.ctrlFlatShading_ = menu.addCheckbox(TR('renderingFlat'), false, this.onFlatShading.bind(this));
@@ -186,10 +186,11 @@ define([
       }
       this.menu_.setVisibility(true);
       var render = mesh.getRender();
-      this.ctrlShaders_.setValue(render.shader_.type_, true);
-      this.ctrlFlatShading_.setValue(render.flatShading_, true);
-      this.ctrlShowWireframe_.setValue(render.showWireframe_, true);
+      this.ctrlShaders_.setValue(render.getShaderType(), true);
+      this.ctrlFlatShading_.setValue(render.getFlatShading(), true);
+      this.ctrlShowWireframe_.setValue(render.getShowWireframe(), true);
       this.ctrlMatcap_.setValue(render.matcap_, true);
+      this.ctrlTransparency_.setValue(100 - 100 * render.getOpacity(), true);
       this.updateVisibility();
     },
     updateVisibility: function () {

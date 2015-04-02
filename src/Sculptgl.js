@@ -545,16 +545,22 @@ define([
       this.getReplayWriter().reset();
     },
     /** Delete the current selected mesh */
-    deleteCurrentMesh: function () {
+    deleteCurrentSelection: function () {
       if (!this.mesh_)
         return;
 
       if (!this.isReplayed())
-        this.getReplayWriter().pushAction('DELETE_CURRENT_MESH');
+        this.getReplayWriter().pushAction('DELETE_SELECTION');
 
-      this.states_.pushStateRemove(this.mesh_);
-      this.meshes_.splice(this.getIndexMesh(this.mesh_), 1);
+      this.removeMeshes(this.selectMeshes_);
+      this.states_.pushStateRemove(this.selectMeshes_.slice());
+      this.selectMeshes_.length = 0;
       this.setMesh(null);
+    },
+    removeMeshes: function (rm) {
+      var meshes = this.meshes_;
+      for (var i = 0; i < rm.length; ++i)
+        meshes.splice(this.getIndexMesh(rm[i]), 1);
     },
     /** WebGL context is lost */
     onContextLost: function () {

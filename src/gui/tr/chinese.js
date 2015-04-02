@@ -143,7 +143,7 @@ define([], function () {
     sculptMaskingInvert: 'Invert (-Ctrl + Click)',
     sculptMaskingBlur: 'Blur',
     sculptMaskingSharpen: 'Sharpen',
-    sculptDeleteMesh: '刪除此網面 ?',
+    sculptDeleteSelection: '刪除此網面 ?',
     sculptPBRTitle: 'PBR materials',
     sculptPaintAll: 'Paint all',
     sculptTranslateDepth: 'Depth translate (N or -Alt)',
@@ -182,6 +182,7 @@ define([], function () {
     renderingExposure: 'Exposure',
     renderingEnvironment: 'Environment',
     renderingContour: 'Show contour',
+    renderingIsolate: 'Isolate',
 
     // matcaps
     matcapPearl: '珍珠',

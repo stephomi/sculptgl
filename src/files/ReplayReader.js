@@ -730,8 +730,14 @@ define([
         main.addCube();
         this.getOrCreateRenderMesh(main.getMesh());
         break;
-      case Replay.DELETE_CURRENT_MESH:
-        main.deleteCurrentMesh();
+      case Replay.DELETE_SELECTION:
+        main.deleteCurrentSelection();
+        break;
+      case Replay.ISOLATE_SELECTION:
+        main.getGui().ctrlScene_.isolate();
+        break;
+      case Replay.SHOW_ALL:
+        main.getGui().ctrlScene_.showAll();
         break;
       case Replay.EXPOSURE_INTENSITY:
         main.getGui().ctrlRendering_.onExposureChanged(data.getUint8(sel, true));

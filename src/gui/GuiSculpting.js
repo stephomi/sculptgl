@@ -173,7 +173,7 @@ define([
         break;
       case 46: // DEL
         if (window.confirm(TR('sculptDeleteMesh')))
-          this.main_.deleteCurrentMesh();
+          this.main_.deleteCurrentSelection();
         break;
       case 48: // 0
       case 96: // NUMPAD 0

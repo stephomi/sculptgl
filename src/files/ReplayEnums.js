@@ -136,7 +136,9 @@ define([], function () {
   Replay.LOAD_MESHES = ida++; // [len (u32), autoMatrix(u8)]
   Replay.ADD_SPHERE = ida++; // []
   Replay.ADD_CUBE = ida++; // []
-  Replay.DELETE_CURRENT_MESH = ida++; // []
+  Replay.DELETE_SELECTION = ida++; // []
+  Replay.ISOLATE_SELECTION = ida++; // []
+  Replay.SHOW_ALL = ida++; // []
 
   Replay.SET_TRANSPARENCY = ida++; // [val (u8)]
   Replay.EXPOSURE_INTENSITY = ida++; // [val (u8)]
