@@ -119,6 +119,9 @@ define([
     setTexture0: function (tex) {
       this.texture0_ = tex;
     },
+    getMatcap: function () {
+      return this.matcap_;
+    },
     setMatcap: function (idMat) {
       this.matcap_ = idMat;
       this.setTexture0(ShaderMatcap.textures[idMat]);

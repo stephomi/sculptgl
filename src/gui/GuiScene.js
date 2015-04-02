@@ -46,13 +46,12 @@ define([
       if (!this.main_.focusGui_)
         event.preventDefault();
       var key = event.which;
-      if (event.ctrlKey && event.altKey && key === 72) { // H
+      if (key === 73) { // I
         this.toggleShowHide();
         event.handled = true;
       }
     },
     toggleShowHide: function (ignoreCB) {
-      console.log(ignoreCB);
       this.ctrlIsolate_.setValue(!this.ctrlIsolate_.getValue(), !!ignoreCB);
     },
     showHide: function (bool) {

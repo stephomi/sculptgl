@@ -814,7 +814,7 @@ define([
 
       main.applyRender();
       if (this.iframeParentCallback_)
-        this.iframeParentCallback_(ExportSGL.exportSGLAsArrayBuffer(main.getMeshes()));
+        this.iframeParentCallback_(ExportSGL.exportSGLAsArrayBuffer(main.getMeshes()), main);
     }
   };
 

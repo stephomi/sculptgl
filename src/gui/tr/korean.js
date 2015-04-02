@@ -182,7 +182,7 @@ define([], function () {
     renderingExposure: 'Exposure',
     renderingEnvironment: 'Environment',
     renderingContour: 'Show contour',
-    renderingIsolate: 'Isolate',
+    renderingIsolate: 'Isolate (I)',
 
     // matcaps
     matcapPearl: 'Pearl',

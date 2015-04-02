@@ -286,7 +286,7 @@ define([
       this.stack_.push(Replay.LOAD_ALPHA, w, h, u8);
     },
     pushLoadMeshes: function (meshes, fdata, type, autoMatrix) {
-      var ab = type === 'sgl' ? fdata.slice() : ExportSGL.exportSGLAsArrayBuffer(meshes);
+      var ab = type === 'sgl' ? fdata.slice() : ExportSGL.exportSGLAsArrayBuffer(meshes, this.main_);
       this.nbBytesLoadingMeshes_ += ab.byteLength;
       this.stack_.push(Replay.LOAD_MESHES, ab, autoMatrix);
     },

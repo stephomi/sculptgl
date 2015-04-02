@@ -80,6 +80,9 @@ define([
       this.fov_ = fov;
       this.updateProjection();
     },
+    setUsePivot: function (bool) {
+      this.usePivot_ = bool;
+    },
     getProjType: function () {
       return this.projType_;
     },

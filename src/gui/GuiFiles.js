@@ -78,7 +78,7 @@ define([
     },
     saveFileAsSGL: function () {
       if (this.main_.getMeshes().length === 0) return;
-      var blob = Export.exportSGL(this.main_.getMeshes());
+      var blob = Export.exportSGL(this.main_.getMeshes(), this.main_);
       saveAs(blob, 'yourMesh.sgl');
     },
     saveFileAsOBJ: function (selection) {

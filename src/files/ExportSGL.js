@@ -1,38 +1,63 @@
-define([], function () {
+define([
+  'render/shaders/ShaderBase'
+], function (ShaderBase) {
 
   'use strict';
 
   var Export = {};
 
-  // current version 1
-  // only vertices coordinates and faces are mandatory
+  // current version 2
   //
   // Version (u32)
+
+  // ShowGrid (u32) .v2
+  // ShowMirror (u32) .v2
+  // ShowContour (u32) .v2
+
+  // CameraProj (u32) .v2
+  // CameraMode (u32) .v2
+  // CameraFov (f32) .v2
+  // CameraPivot (u32) .v2
+
   // nbMeshes (u32)
+
+  // Shader (u32) .v2
+  // Matcap (u32) .v2
+  // ShowWireframe (u32) .v2;
+  // FlatShading (u32) .v2;
+  // Alpha (f32) .v2
+
   // Center (f32 * 3)
   // Matrix (f32 * 16)
   // Scale (f32)
+
   // NbVertices (u32)
   // vertices (f32 * 3 * nbVertices)
+
   // nbColors (u32) => 0 or nbVertices
   // colors (f32 * 3 * nbVertices)
+
   // nbMaterials (u32) => 0 or nbVertices
   // materials (f32 * 3 * nbVertices)
+
   // NbFaces (u32)
   // faces (i32 * 4 * nbFaces)
+
   // NbTexCoords (u32) => 0 means no UV
   // texcoords (f32 * 2 * nbTexCoords)
-  // nbFacesTexCoords (u32) => 0 or nbFaces
+
+  // NbFacesTexCoords (u32) => 0 or nbFaces
   // faces (i32 * 4 * nbFaces)
   //
   /** Export SGL (sculptgl) file */
-  Export.exportSGLAsArrayBuffer = function (meshes) {
-    return Export.exportSGL(meshes, true);
+  Export.exportSGLAsArrayBuffer = function (meshes, main) {
+    return Export.exportSGL(meshes, main, true);
   };
-  Export.exportSGL = function (meshes, returnArrayBuffer) {
+  Export.exportSGL = function (meshes, main, returnArrayBuffer) {
     var nbMeshes = meshes.length;
 
-    var nbBytes = 4 * (2 + nbMeshes * (3 + 16 + 1 + 6));
+    var bytePerMesh = 3 + 16 + 1 + 6 + 5;
+    var nbBytes = 4 * (1 + 3 + 4 + 1 + nbMeshes * bytePerMesh);
     var i = 0;
     var mesh;
     for (i = 0; i < nbMeshes; ++i) {
@@ -54,10 +79,31 @@ define([], function () {
     var u32a = new Uint32Array(buffer);
     var i32a = new Int32Array(buffer);
     var off = 0;
-    u32a[off++] = 1;
+    u32a[off++] = 2;
+
+    // misc stuffs
+    u32a[off++] = main.showGrid_;
+    u32a[off++] = ShaderBase.showSymmetryLine;
+    u32a[off++] = main.showContour_;
+
+    // camera stuffs
+    var cam = main.getCamera();
+    u32a[off++] = cam.getProjType();
+    u32a[off++] = cam.getMode();
+    f32a[off++] = cam.getFov();
+    u32a[off++] = cam.getUsePivot();
+
+    // save meshes
     u32a[off++] = nbMeshes;
     for (i = 0; i < nbMeshes; ++i) {
       mesh = meshes[i];
+
+      // shader + matcap + wire + alpha + flat 
+      u32a[off++] = mesh.getShaderType();
+      u32a[off++] = mesh.getMatcap();
+      u32a[off++] = mesh.getShowWireframe();
+      u32a[off++] = mesh.getFlatShading();
+      f32a[off++] = mesh.getOpacity();
 
       // center + matrix + scale
       f32a.set(mesh.getCenter(), off);
@@ -95,14 +141,14 @@ define([], function () {
       var hasUV = mesh.hasUV();
       // uvs
       var nbTexCoords = mesh.getNbTexCoords();
-      u32a[off++] = nbTexCoords;
-      if (hasUV > 0) {
+      u32a[off++] = hasUV ? nbTexCoords : 0;
+      if (hasUV) {
         f32a.set(mesh.getTexCoords().subarray(0, nbTexCoords * 2), off);
         off += nbTexCoords * 2;
       }
 
       // face uvs
-      u32a[off++] = nbFaces;
+      u32a[off++] = hasUV ? nbFaces : 0;
       if (hasUV) {
         i32a.set(mesh.getFacesTexCoord().subarray(0, nbFaces * 4), off);
         off += nbFaces * 4;

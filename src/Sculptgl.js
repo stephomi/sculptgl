@@ -472,7 +472,7 @@ define([
     loadScene: function (fileData, fileType, autoMatrix) {
       var newMeshes;
       if (fileType === 'obj') newMeshes = Import.importOBJ(fileData, this.gl_);
-      else if (fileType === 'sgl') newMeshes = Import.importSGL(fileData, this.gl_);
+      else if (fileType === 'sgl') newMeshes = Import.importSGL(fileData, this.gl_, this);
       else if (fileType === 'stl') newMeshes = Import.importSTL(fileData, this.gl_);
       else if (fileType === 'ply') newMeshes = Import.importPLY(fileData, this.gl_);
       var nbNewMeshes = newMeshes.length;
