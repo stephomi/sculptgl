@@ -1,8 +1,9 @@
 define([
   'lib/glMatrix',
+  'misc/getUrlOptions',
   'misc/Utils',
   'math3d/Geometry'
-], function (glm, Utils, Geometry) {
+], function (glm, getUrlOptions, Utils, Geometry) {
 
   'use strict';
 
@@ -14,8 +15,9 @@ define([
   var quat = glm.quat;
 
   var Camera = function () {
-    this.mode_ = Camera.mode.ORBIT; // camera mode
-    this.projType_ = Camera.projType.PERSPECTIVE; // the projection type
+    var opts = getUrlOptions();
+    this.mode_ = Camera.mode[opts.cameramode] || Camera.mode.ORBIT;
+    this.projType_ = Camera.projType[opts.projection] || Camera.projType.PERSPECTIVE;
 
     this.quatRot_ = quat.create(); // quaternion rotation
     this.view_ = mat4.create(); // view matrix
@@ -26,7 +28,7 @@ define([
     this.height_ = 0.0; // viewport height
 
     this.speed_ = 0.0; // solve scale issue
-    this.fov_ = 45.0; // vertical field of view
+    this.fov_ = opts.fov; // vertical field of view
 
     // translation stuffs
     this.zoom_ = 0.0; // zoom value
@@ -36,7 +38,7 @@ define([
     this.moveZ_ = 0; // free look (strafe), possible values : -1, 0, 1
 
     // pivot stuffs
-    this.usePivot_ = false; // if rotation is centered around the picked point
+    this.usePivot_ = opts.pivot; // if rotation is centered around the picked point
     this.center_ = [0.0, 0.0, 0.0]; // center of rotation
     this.stepCenter_ = [0.0, 0.0, 0.0]; // step vector to translate between pivots
     this.stepZoom_ = 0.0; // step zoom value

@@ -1,5 +1,6 @@
 define([
   'lib/glMatrix',
+  'misc/getUrlOptions',
   'misc/Utils',
   'editor/Sculpt',
   'editor/Subdivision',
@@ -21,7 +22,7 @@ define([
   'render/Rtt',
   'render/shaders/ShaderMatcap',
   'render/WebGLCaps'
-], function (glm, Utils, Sculpt, Subdivision, Import, ReplayWriter, ReplayReader, Gui, Camera, Picking, Background, Selection, Grid, Mesh, Multimesh, Primitive, States, Contour, Render, Rtt, ShaderMatcap, WebGLCaps) {
+], function (glm, getUrlOptions, Utils, Sculpt, Subdivision, Import, ReplayWriter, ReplayReader, Gui, Camera, Picking, Background, Selection, Grid, Mesh, Multimesh, Primitive, States, Contour, Render, Rtt, ShaderMatcap, WebGLCaps) {
 
   'use strict';
 
@@ -49,8 +50,9 @@ define([
     this.pickingSym_ = new Picking(this, true); // the symmetrical picking
 
     // renderable stuffs
-    this.showContour_ = false;
-    this.showGrid_ = true;
+    var opts = getUrlOptions();
+    this.showContour_ = opts.outline;
+    this.showGrid_ = opts.grid;
     this.grid_ = null;
     this.background_ = null;
     this.selection_ = null; // the selection geometry (red hover circle)

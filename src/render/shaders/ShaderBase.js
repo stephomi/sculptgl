@@ -1,10 +1,11 @@
 define([
   'lib/glMatrix',
+  'misc/getUrlOptions',
   'misc/Utils',
   'render/Attribute',
   'text!render/shaders/glsl/colorSpace.glsl',
   'text!render/shaders/glsl/curvature.glsl'
-], function (glm, Utils, Attribute, colorSpaceGLSL, curvatureGLSL) {
+], function (glm, getUrlOptions, Utils, Attribute, colorSpaceGLSL, curvatureGLSL) {
 
   'use strict';
 
@@ -18,8 +19,9 @@ define([
     color: true
   };
 
-  ShaderBase.showSymmetryLine = false;
-  ShaderBase.useCurvature = true;
+  var opts = getUrlOptions();
+  ShaderBase.showSymmetryLine = opts.mirrorline;
+  ShaderBase.useCurvature = opts.curvature;
   ShaderBase.uniformNames = {};
   ShaderBase.uniformNames.commonUniforms = ['uMV', 'uMVP', 'uN', 'uEM', 'uEN', 'uPlaneO', 'uPlaneN', 'uScale', 'uCurvature', 'uAlpha'];
 

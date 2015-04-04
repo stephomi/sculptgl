@@ -44,7 +44,7 @@ define([
   ShaderMatcap.uniforms = {};
   ShaderMatcap.attributes = {};
 
-  ShaderMatcap.uniformNames = ['uTexture0','uAlbedo'];
+  ShaderMatcap.uniformNames = ['uTexture0', 'uAlbedo'];
   Array.prototype.push.apply(ShaderMatcap.uniformNames, ShaderBase.uniformNames.commonUniforms);
 
   ShaderMatcap.vertex = [
@@ -96,7 +96,8 @@ define([
     var uniforms = this.uniforms;
 
     gl.activeTexture(gl.TEXTURE0);
-    gl.bindTexture(gl.TEXTURE_2D, render.getTexture0() || ShaderMatcap.textures[0]);
+    render.setTexture0(ShaderMatcap.textures[render.getMatcap()] || ShaderMatcap.textures[0]);
+    gl.bindTexture(gl.TEXTURE_2D, render.getTexture0());
     gl.uniform1i(uniforms.uTexture0, 0);
 
     gl.uniform3fv(uniforms.uAlbedo, render.getAlbedo());

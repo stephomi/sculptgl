@@ -1,7 +1,8 @@
 define([
+  'misc/getUrlOptions',
   'render/shaders/ShaderBase',
   'text!render/shaders/glsl/pbr.glsl'
-], function (ShaderBase, pbrGLSL) {
+], function (getUrlOptions, ShaderBase, pbrGLSL) {
 
   'use strict';
 
@@ -9,8 +10,6 @@ define([
   ShaderPBR.textures = {};
 
   var texPath = 'resources/environments/';
-  ShaderPBR.idEnv = 0;
-  ShaderPBR.exposure = 1.0;
   ShaderPBR.environments = [{
     path: texPath + 'footPrint.bin',
     sph: [0.96097, 0.856821, 1.11124, -0.313999, -0.358144, -0.625599, 0.0870941, 0.1109, 0.171528, -0.100569, -0.0498991, -0.0302566, 0.02047, 0.0151743, 0.0182682, -0.00652953, -0.0188746, -0.0525354, 0.00192821, -0.0279455, -0.110808, -0.0180287, -0.0227345, -0.0422744, 0.0139192, -0.0187345, -0.0812033],
@@ -32,6 +31,9 @@ define([
     sph: [0.583073, 0.794556, 0.966801, -0.218899, -0.334516, -0.690954, -0.0581536, -0.0912214, -0.13112, 0.0180201, 0.0683966, 0.157536, -0.0427475, -0.073612, -0.112892, 0.0490024, 0.06527, 0.0841072, -0.0243839, -0.0429701, -0.0792229, -0.0441213, -0.0562622, -0.0728875, -0.0267015, -0.0586719, -0.11978],
     name: 'Bryant Park'
   }];
+  var opts = getUrlOptions();
+  ShaderPBR.idEnv = Math.min(opts.environment, ShaderPBR.environments.length - 1);
+  ShaderPBR.exposure = Math.min(opts.exposure, 5);
 
   ShaderPBR.uniforms = {};
   ShaderPBR.attributes = {};

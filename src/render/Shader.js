@@ -1,4 +1,5 @@
 define([
+  'misc/getUrlOptions',
   'render/shaders/ShaderBackground',
   'render/shaders/ShaderContour',
   'render/shaders/ShaderSelection',
@@ -10,14 +11,14 @@ define([
   'render/shaders/ShaderRtt',
   'render/shaders/ShaderUV',
   'render/shaders/ShaderWireframe'
-], function (Sbackground, Scontour, Sselection, Sgrid, Sflat, Smatcap, Snormal, SPBR, Srtt, Suv, Swireframe) {
+], function (getUrlOptions, Sbackground, Scontour, Sselection, Sgrid, Sflat, Smatcap, Snormal, SPBR, Srtt, Suv, Swireframe) {
 
   'use strict';
 
   var Shader = function (gl) {
-    this.gl_ = gl; // webgl context
-    this.type_ = Shader.mode.PBR; // type of shader
-    this.shaderObject_ = null; // the shader
+    this.gl_ = gl;
+    this.type_ = Shader.mode[getUrlOptions().shader] || Shader.mode.PBR;
+    this.shaderObject_ = null;
   };
 
   Shader.mode = {

@@ -1,9 +1,10 @@
 define([
+  'misc/getUrlOptions',
   'gui/tr/english',
   'gui/tr/chinese',
   'gui/tr/japan',
   'gui/tr/korean',
-], function (english, chinese, japan, korean) {
+], function (getUrlOptions, english, chinese, japan, korean) {
 
   'use strict';
 
@@ -20,7 +21,7 @@ define([
     'english': english,
     '日本語': japan,
     '中文': chinese,
-    '한국어' : korean
+    '한국어': korean
   };
 
   GuiTR.select = 'english';
@@ -29,6 +30,21 @@ define([
   if (language === 'ja') GuiTR.select = '日本語';
   else if (language === 'zh') GuiTR.select = '中文';
   else if (language === 'ko') GuiTR.select = '한국어';
+
+  switch (getUrlOptions().language) {
+  case 'english':
+    GuiTR.select = 'english';
+    break;
+  case 'chinese':
+    GuiTR.select = '中文';
+    break;
+  case 'korean':
+    GuiTR.select = '한국어';
+    break;
+  case 'japan':
+    GuiTR.select = '日本語';
+    break;
+  }
 
   return GuiTR;
 });
