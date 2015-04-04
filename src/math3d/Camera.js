@@ -88,6 +88,9 @@ define([
     getProjType: function () {
       return this.projType_;
     },
+    isOrthographic: function () {
+      return this.projType_ === Camera.projType.ORTHOGRAPHIC;
+    },
     getMode: function () {
       return this.mode_;
     },
@@ -218,7 +221,7 @@ define([
     /** Update orthographic projection */
     updateOrtho: function () {
       var delta = Math.abs(this.zoom_) * 0.00055;
-      mat4.ortho(this.proj_, -this.width_ * delta, this.width_ * delta, -this.height_ * delta, this.height_ * delta, -10000.0, 10000.0);
+      mat4.ortho(this.proj_, -this.width_ * delta, this.width_ * delta, -this.height_ * delta, this.height_ * delta, this.near_, this.far_);
     },
     /** Return the position of the camera */
     computePosition: function () {

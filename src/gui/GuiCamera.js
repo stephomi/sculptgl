@@ -36,6 +36,7 @@ define([
 
       // camera fov
       this.ctrlFov_ = menu.addSlider(TR('cameraFov'), camera.getFov(), this.onFovChange.bind(this), 10, 150, 1);
+      this.ctrlFov_.setVisibility(camera.getProjType() === Camera.projType.PERSPECTIVE);
 
       // camera mode
       var optionsMode = {};
