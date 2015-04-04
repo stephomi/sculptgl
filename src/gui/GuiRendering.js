@@ -88,9 +88,11 @@ define([
       main.render();
     },
     onEnvironmentChanged: function (val) {
-      // TODO push in the replayer...
       ShaderPBR.idEnv = val;
-      this.main_.render();
+      var main = this.main_;
+      if (!main.isReplayed())
+        main.getReplayWriter().pushAction('ENVIRONMENT_SELECT', val);
+      main.render();
     },
     onExposureChanged: function (val) {
       var main = this.main_;

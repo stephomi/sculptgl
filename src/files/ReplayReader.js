@@ -6,11 +6,12 @@ define([
   'files/ReplayEnums',
   'math3d/Camera',
   'math3d/Picking',
+  'misc/getUrlOptions',
   'misc/Tablet',
   'editor/Sculpt',
   'editor/Remesh',
   'render/Shader'
-], function (glm, yagui, TR, ExportSGL, Replay, Camera, Picking, Tablet, Sculpt, Remesh, Shader) {
+], function (glm, yagui, TR, ExportSGL, Replay, Camera, Picking, getUrlOptions, Tablet, Sculpt, Remesh, Shader) {
 
   'use strict';
 
@@ -709,19 +710,6 @@ define([
         main.getGui().ctrlTopology_.dynamicDecimation(data.getUint8(sel, true));
         sel += 1;
         break;
-      case Replay.LOAD_ALPHA:
-        var nbBytesA = data.getUint32(sel + 8, true);
-        this.nbBytesResourcesLoaded_ += nbBytesA;
-        main.loadAlphaTexture(new Uint8Array(data.buffer.slice(sel + 12, sel + 12 + nbBytesA)), data.getUint32(sel, true), data.getUint32(sel + 4, true));
-        sel += 12 + nbBytesA;
-        break;
-      case Replay.LOAD_MESHES:
-        var nbBytes = data.getUint32(sel, true);
-        main.loadScene(data.buffer.slice(sel + 5, sel + 5 + nbBytes), 'sgl', data.getUint8(sel + 4, true));
-        this.nbBytesResourcesLoaded_ += nbBytes;
-        sel += 5 + nbBytes;
-        this.getOrCreateRenderMeshes(main.getMeshes());
-        break;
       case Replay.ADD_SPHERE:
         main.addSphere();
         this.getOrCreateRenderMesh(main.getMesh());
@@ -779,6 +767,10 @@ define([
         main.getGui().ctrlRendering_.onMatcapChanged(data.getUint8(sel, true));
         sel += 1;
         break;
+      case Replay.ENVIRONMENT_SELECT:
+        main.getGui().ctrlRendering_.onEnvironmentChanged(data.getUint8(sel, true));
+        sel += 1;
+        break;
       case Replay.TABLET_TOGGLE_INTENSITY:
         Tablet.useOnIntensity = !Tablet.useOnIntensity;
         break;
@@ -789,6 +781,27 @@ define([
         Tablet.overridePressure = data.getFloat32(sel, true);
         sel += 4;
         break;
+      case Replay.LOAD_ALPHA:
+        var nbBytesA = data.getUint32(sel + 8, true);
+        this.nbBytesResourcesLoaded_ += nbBytesA;
+        main.loadAlphaTexture(new Uint8Array(data.buffer.slice(sel + 12, sel + 12 + nbBytesA)), data.getUint32(sel, true), data.getUint32(sel + 4, true));
+        sel += 12 + nbBytesA;
+        break;
+      case Replay.LOAD_MESHES:
+        var nbBytes = data.getUint32(sel, true);
+        this.nbBytesResourcesLoaded_ += nbBytes;
+        main.loadScene(data.buffer.slice(sel + 5, sel + 5 + nbBytes), 'sgl', data.getUint8(sel + 4, true));
+        sel += 5 + nbBytes;
+        this.getOrCreateRenderMeshes(main.getMeshes());
+        break;
+      case Replay.URL_CONFIG:
+        var nbBytesU = data.getUint32(sel, true);
+        this.nbBytesResourcesLoaded_ += nbBytesU;
+        this.resetUrlOptions(new Uint8Array(data.buffer.slice(sel + 4, sel + 4 + nbBytesU)));
+        sel += 4 + nbBytesU;
+        this.virtualCamera_ = new Camera();
+        main.clearScene();
+        break;
       }
       this.sel_ = sel;
       if (sel >= data.byteLength) {
@@ -796,6 +809,12 @@ define([
         return -1; // end
       }
       return nextTick;
+    },
+    resetUrlOptions: function (u8) {
+      var str = '';
+      for (var i = 0, nb = u8.length; i < nb; ++i)
+        str += String.fromCharCode(u8[i]);
+      getUrlOptions(str);
     },
     endReplay: function () {
       if (this.guiReplay_)

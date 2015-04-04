@@ -2,13 +2,9 @@ define([], function () {
 
   'use strict';
 
-  var options;
-
   var queryBool = function (value, def) {
     if (value === undefined) return def;
-    if (value === 'false') return 0;
-    if (value === 'true') return 1;
-    return !!value;
+    return value !== 'false' && value !== '0';
   };
 
   var queryNumber = function (value, min, max, def) {
@@ -17,37 +13,50 @@ define([], function () {
     return Math.max(min, Math.min(max, f));
   };
 
-  var getUrlOptions = function () {
-    if (options)
-      return options;
-
-    options = {};
-
-    // init url couples
-    var vars = window.location.search.substr(1).split('&');
+  var readUrlParameters = function (overURL) {
+    var url = typeof overURL === 'string' ? overURL : window.location.search;
+    var vars = url.substr(1).split('&');
+    var params = {};
     for (var i = 0, nbVars = vars.length; i < nbVars; i++) {
       var pair = vars[i].split('=', 2);
       if (pair.length === 0) continue;
-      options[pair[0].toLowerCase()] = pair[1];
+      params[pair[0].toLowerCase()] = pair[1];
     }
+    return params;
+  };
 
-    options.language = options.language; // english/chinese/korean/japan
-    options.grid = queryBool(options.grid, true);
-    options.outline = queryBool(options.outline, false);
-    options.mirrorline = queryBool(options.mirrorline, false);
+  var options;
+  var initConfig = function (params) {
+    if (!options)
+      options = {};
 
-    options.projection = (options.projection || 'PERSPECTIVE').toUpperCase(); // perspective/orthographic
-    options.cameramode = (options.cameramode || 'ORBIT').toUpperCase(); // orbit/spherical/plane
-    options.pivot = queryBool(options.pivot, false);
-    options.fov = queryNumber(options.fov, 10, 150, 45); // [10-150]
+    options.language = params.language; // english/chinese/korean/japan
 
-    options.flat = queryBool(options.flat, false);
-    options.wireframe = queryBool(options.wireframe, false);
-    options.curvature = queryNumber(options.curvature, 0, 5, 1); // [0-5]
-    options.exposure = queryNumber(options.exposure, 0, 5, 1); // [0-5]
-    options.environment = queryNumber(options.environment, 0, Infinity, 0); // [0-inf]
-    options.matcap = queryNumber(options.matcap, 0, Infinity, 0); // [0-inf]
-    options.shader = (options.shader || 'PBR').toUpperCase(); // pbr/matcap/normal/uv
+    options.scalecenter = queryBool(params.scalecenter, true);
+
+    options.grid = queryBool(params.grid, true);
+    options.outline = queryBool(params.outline, false);
+    options.mirrorline = queryBool(params.mirrorline, false);
+
+    options.projection = (params.projection || 'PERSPECTIVE').toUpperCase(); // perspective/orthographic
+    options.cameramode = (params.cameramode || 'ORBIT').toUpperCase(); // orbit/spherical/plane
+    options.pivot = queryBool(params.pivot, false);
+    options.fov = queryNumber(params.fov, 10, 150, 45); // [10-150]
+
+    options.flat = queryBool(params.flat, false);
+    options.wireframe = queryBool(params.wireframe, false);
+    options.curvature = queryNumber(params.curvature, 0, 5, 1); // [0-5]
+    options.exposure = queryNumber(params.exposure, 0, 5, 1); // [0-5]
+    options.environment = queryNumber(params.environment, 0, Infinity, 0); // [0-inf]
+    options.matcap = queryNumber(params.matcap, 0, Infinity, 0); // [0-inf]
+    options.shader = (params.shader || 'PBR').toUpperCase(); // pbr/matcap/normal/uv
+    return options;
+  };
+
+  var getUrlOptions = function (overURL) {
+    if (typeof overURL === 'string')
+      return initConfig(readUrlParameters(overURL));
+    return options ? options : initConfig(readUrlParameters());
   };
 
   getUrlOptions();

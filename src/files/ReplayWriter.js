@@ -17,7 +17,7 @@ define([
     this.noUpload_ = true; // prevent automatic upload
 
     this.firstReplay_ = null; // first part of the replaying (if we are importing a replayer)
-    this.nbBytesLoadingMeshes_ = 0; // nb bytes of loaded meshes
+    this.nbBytesDynamic_ = 0; // nb bytes of extra stuffs (mesh, alpha, urlString)
 
     // (for now we don't serialize 64b data so 32b for each stack action
     // is enough for an upper estimation when exporting the replay file)
@@ -33,6 +33,7 @@ define([
     this.uid_ = new Date().getTime(); // best uid ever
     this.cbCheckUpload_ = window.setTimeout.bind(window, this.checkUpload.bind(this), 10000);
     this.checkUpload();
+    this.pushUrlOptions();
   };
 
   ReplayWriter.prototype = {
@@ -48,7 +49,7 @@ define([
           return;
       }
       // 10 Mb limits of loaded meshes (or with previous replay)
-      if (this.nbBytesLoadingMeshes_ > 10e6 || (this.firstReplay_ && this.firstReplay_.byteLength > 10e6))
+      if (this.nbBytesDynamic_ > 10e6 || (this.firstReplay_ && this.firstReplay_.byteLength > 10e6))
         return statusWidget ? undefined : this.cbCheckUpload_();
       this.lastNbActions_ = nbActions;
 
@@ -96,7 +97,7 @@ define([
       this.tUseOnRadius_ = true;
       this.tUseOnIntensity_ = false;
       this.firstReplay_ = null;
-      this.nbBytesLoadingMeshes_ = 0;
+      this.nbBytesDynamic_ = 0;
       this.stack_.length = 0;
       this.sculpt_ = new Sculpt();
 
@@ -282,13 +283,21 @@ define([
       this.stack_.push(Replay.DEVICE_MOVE, x, y, mask);
     },
     pushLoadAlpha: function (u8, w, h) {
-      this.nbBytesLoadingMeshes_ += u8.byteLength;
+      this.nbBytesDynamic_ += u8.byteLength;
       this.stack_.push(Replay.LOAD_ALPHA, w, h, u8);
     },
     pushLoadMeshes: function (meshes, fdata, type, autoMatrix) {
       var ab = type === 'sgl' ? fdata.slice() : ExportSGL.exportSGLAsArrayBuffer(meshes, this.main_);
-      this.nbBytesLoadingMeshes_ += ab.byteLength;
+      this.nbBytesDynamic_ += ab.byteLength;
       this.stack_.push(Replay.LOAD_MESHES, ab, autoMatrix);
+    },
+    pushUrlOptions: function () {
+      var str = window.location.search;
+      var u8 = new Uint8Array(str.length);
+      for (var i = 0, strLen = str.length; i < strLen; i++)
+        u8[i] = str.charCodeAt(i);
+      this.nbBytesDynamic_ += u8.byteLength;
+      this.stack_.push(Replay.URL_CONFIG, u8.buffer);
     },
     pushCameraFov: function (val) {
       this.pushOptimize('lastFov_', Replay.CAMERA_FOV, val);
@@ -315,7 +324,7 @@ define([
       var nb = stack.length;
 
       var offset = this.firstReplay_ ? this.firstReplay_.byteLength : 0;
-      var buffer = new ArrayBuffer(this.nbBytesLoadingMeshes_ + offset + (nb + 2) * 4);
+      var buffer = new ArrayBuffer(this.nbBytesDynamic_ + offset + (nb + 2) * 4);
 
       var data = new DataView(buffer);
       var u8a = new Uint8Array(buffer);
@@ -327,7 +336,7 @@ define([
         data.setUint32(4, Replay.VERSION, true);
         offset += 8 + 4; // code(4o) + version(4o) + nbytes (4o)
       }
-      data.setUint32(8, data.getUint32(8, true) + this.nbBytesLoadingMeshes_, true);
+      data.setUint32(8, data.getUint32(8, true) + this.nbBytesDynamic_, true);
 
       for (var i = 0; i < nb; ++i) {
         var ac = stack[i];
@@ -386,6 +395,7 @@ define([
         case Replay.FLAT_SHADING:
         case Replay.SHADER_SELECT:
         case Replay.MATCAP_SELECT:
+        case Replay.ENVIRONMENT_SELECT:
         case Replay.BRUSH_SELECT_ALPHA:
         case Replay.CREASE_SELECT_ALPHA:
         case Replay.FLATTEN_SELECT_ALPHA:
@@ -449,6 +459,12 @@ define([
           data.setUint8(offset + 4, stack[++i], true);
           u8a.set(new Uint8Array(ab), offset + 5);
           offset += 5 + ab.byteLength;
+          break;
+        case Replay.URL_CONFIG:
+          var abUrl = stack[++i];
+          data.setUint32(offset, abUrl.byteLength, true);
+          u8a.set(new Uint8Array(abUrl), offset + 4);
+          offset += 4 + abUrl.byteLength;
           break;
         }
       }

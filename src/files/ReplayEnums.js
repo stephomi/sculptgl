@@ -148,11 +148,14 @@ define([], function () {
   Replay.FLAT_SHADING = ida++; // [bool (u8)]
   Replay.SHADER_SELECT = ida++; // [val (u8)]
   Replay.MATCAP_SELECT = ida++; // [val (u8)]
+  Replay.ENVIRONMENT_SELECT = ida++; // [val (u8)]
   Replay.CURVATURE = ida++; // [val (u8)]
 
   Replay.TABLET_TOGGLE_INTENSITY = ida++; // []
   Replay.TABLET_TOGGLE_RADIUS = ida++; // []
   Replay.TABLET_PRESSURE = ida++; // [val (f32)]
+
+  Replay.URL_CONFIG = ida++; // [len (u32)]
 
   Replay.CTRL = 1 << 0;
   Replay.ALT = 1 << 1;

@@ -73,7 +73,7 @@ define([
 
     this.preventRender_ = false; // prevent multiple render per frame
     this.drawFullScene_ = false; // render everything on the rtt
-    this.autoMatrix_ = true; // scale and center the imported meshes
+    this.autoMatrix_ = opts.scalecenter; // scale and center the imported meshes
   };
 
   SculptGL.prototype = {
@@ -541,7 +541,10 @@ define([
       this.getStates().reset();
       this.getMeshes().length = 0;
       this.getCamera().resetView();
-      this.showGrid_ = true;
+      var opts = getUrlOptions();
+      this.showGrid_ = opts.grid;
+      this.showContour_ = opts.outline;
+      this.autoMatrix_ = opts.scalecenter;
       this.setMesh(null);
       this.mouseButton_ = 0;
       this.getReplayWriter().reset();
