@@ -17,7 +17,8 @@ define([
     var opts = getUrlOptions();
     this.flatShading_ = opts.flat;
     this.showWireframe_ = opts.wireframe;
-    this.matcap_ = Math.min(opts.matcap, ShaderMatcap.matcaps.length - 1); // the chosen matcap texture index
+    this.matcap_ = Math.min(opts.matcap, ShaderMatcap.matcaps.length - 1); // matcap id
+    this.curvature_ = Math.min(opts.curvature, 5.0);
     this.texture0_ = null;
 
     this.vertexBuffer_ = new Buffer(gl, gl.ARRAY_BUFFER, gl.DYNAMIC_DRAW);
@@ -105,6 +106,12 @@ define([
     },
     getOpacity: function () {
       return this.alpha_;
+    },
+    setCurvature: function (cur) {
+      this.curvature_ = cur;
+    },
+    getCurvature: function () {
+      return this.curvature_;
     },
     isTransparent: function () {
       return this.alpha_ < 0.99;

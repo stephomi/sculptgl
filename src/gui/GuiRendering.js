@@ -1,9 +1,8 @@
 define([
   'gui/GuiTR',
   'render/Render',
-  'render/Shader',
-  'render/shaders/ShaderBase'
-], function (TR, Render, Shader, ShaderBase) {
+  'render/Shader'
+], function (TR, Render, Shader) {
 
   'use strict';
 
@@ -40,7 +39,7 @@ define([
       this.ctrlShaders_ = menu.addCombobox('', Shader.mode.PBR, this.onShaderChanged.bind(this), optionsShaders);
 
       // flat shading
-      menu.addCheckbox(TR('renderingCurvature'), ShaderBase.useCurvature, this.onCurvatureChanged.bind(this));
+      this.ctrlCurvature_ = menu.addSlider(TR('renderingCurvature'), 20, this.onCurvatureChanged.bind(this), 0, 100, 1);
 
       // environments
       var optionEnvs = {};
@@ -77,9 +76,16 @@ define([
       this.addEvents();
     },
     onCurvatureChanged: function (val) {
-      // TODO push in the replayer...
-      ShaderBase.useCurvature = val;
-      this.main_.render();
+      var main = this.main_;
+      var mesh = main.getMesh();
+      if (!mesh)
+        return;
+
+      if (!main.isReplayed())
+        main.getReplayWriter().pushCurvature(val);
+
+      mesh.getRender().setCurvature(val / 20.0);
+      main.render();
     },
     onEnvironmentChanged: function (val) {
       // TODO push in the replayer...
@@ -185,12 +191,12 @@ define([
         return;
       }
       this.menu_.setVisibility(true);
-      var render = mesh.getRender();
-      this.ctrlShaders_.setValue(render.getShaderType(), true);
-      this.ctrlFlatShading_.setValue(render.getFlatShading(), true);
-      this.ctrlShowWireframe_.setValue(render.getShowWireframe(), true);
-      this.ctrlMatcap_.setValue(render.matcap_, true);
-      this.ctrlTransparency_.setValue(100 - 100 * render.getOpacity(), true);
+      this.ctrlShaders_.setValue(mesh.getShaderType(), true);
+      this.ctrlFlatShading_.setValue(mesh.getFlatShading(), true);
+      this.ctrlShowWireframe_.setValue(mesh.getShowWireframe(), true);
+      this.ctrlMatcap_.setValue(mesh.getMatcap(), true);
+      this.ctrlTransparency_.setValue(100 - 100 * mesh.getOpacity(), true);
+      this.ctrlCurvature_.setValue(20 * mesh.getCurvature(), true);
       this.updateVisibility();
     },
     updateVisibility: function () {

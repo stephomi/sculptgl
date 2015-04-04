@@ -11,6 +11,12 @@ define([], function () {
     return !!value;
   };
 
+  var queryNumber = function (value, min, max, def) {
+    var f = parseFloat(value);
+    if (!f && f !== 0.0) return def;
+    return Math.max(min, Math.min(max, f));
+  };
+
   var getUrlOptions = function () {
     if (options)
       return options;
@@ -33,15 +39,15 @@ define([], function () {
     options.projection = (options.projection || 'PERSPECTIVE').toUpperCase(); // perspective/orthographic
     options.cameramode = (options.cameramode || 'ORBIT').toUpperCase(); // orbit/spherical/plane
     options.pivot = queryBool(options.pivot, false);
-    options.fov = parseFloat(options.fov) || 45.0;
+    options.fov = queryNumber(options.fov, 10, 150, 45); // [10-150]
 
     options.flat = queryBool(options.flat, false);
     options.wireframe = queryBool(options.wireframe, false);
-    options.curvature = queryBool(options.curvature, true);
-    options.matcap = parseInt(options.matcap, 10) || 0;
+    options.curvature = queryNumber(options.curvature, 0, 5, 1); // [0-5]
+    options.exposure = queryNumber(options.exposure, 0, 5, 1); // [0-5]
+    options.environment = queryNumber(options.environment, 0, Infinity, 0); // [0-inf]
+    options.matcap = queryNumber(options.matcap, 0, Infinity, 0); // [0-inf]
     options.shader = (options.shader || 'PBR').toUpperCase(); // pbr/matcap/normal/uv
-    options.environment = parseInt(options.environment, 10) || 0;
-    options.exposure = parseFloat(options.exposure) || 1.0;
   };
 
   getUrlOptions();

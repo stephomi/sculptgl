@@ -739,12 +739,16 @@ define([
       case Replay.SHOW_ALL:
         main.getGui().ctrlScene_.showAll();
         break;
-      case Replay.EXPOSURE_INTENSITY:
+      case Replay.EXPOSURE:
         main.getGui().ctrlRendering_.onExposureChanged(data.getUint8(sel, true));
         sel += 1;
         break;
       case Replay.SET_TRANSPARENCY:
         main.getGui().ctrlRendering_.onTransparencyChanged(data.getUint8(sel, true));
+        sel += 1;
+        break;
+      case Replay.CURVATURE:
+        main.getGui().ctrlRendering_.onCurvatureChanged(data.getUint8(sel, true));
         sel += 1;
         break;
       case Replay.SHOW_GRID:

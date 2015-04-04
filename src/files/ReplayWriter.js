@@ -294,10 +294,13 @@ define([
       this.pushOptimize('lastFov_', Replay.CAMERA_FOV, val);
     },
     pushExposure: function (val) {
-      this.pushOptimize('lastExposure_', Replay.EXPOSURE_INTENSITY, val);
+      this.pushOptimize('lastExposure_', Replay.EXPOSURE, val);
     },
     pushTransparency: function (val) {
       this.pushOptimize('lastTransparency_', Replay.SET_TRANSPARENCY, val);
+    },
+    pushCurvature: function (val) {
+      this.pushOptimize('lastCurvature_', Replay.CURVATURE, val);
     },
     pushOptimize: function (comp, key, val) {
       if (this[comp] === this.stack_.length - 2) {
@@ -375,7 +378,7 @@ define([
         case Replay.MULTI_RESOLUTION:
         case Replay.DYNAMIC_SUBDIVISION:
         case Replay.DYNAMIC_DECIMATION:
-        case Replay.EXPOSURE_INTENSITY:
+        case Replay.EXPOSURE:
         case Replay.SET_TRANSPARENCY:
         case Replay.SHOW_GRID:
         case Replay.SHOW_CONTOUR:
@@ -395,6 +398,7 @@ define([
         case Replay.PAINT_SELECT_ALPHA:
         case Replay.MASKING_SELECT_ALPHA:
         case Replay.MOVE_SELECT_ALPHA:
+        case Replay.CURVATURE:
           data.setUint8(offset, stack[++i], true);
           offset += 1;
           break;

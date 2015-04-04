@@ -28,7 +28,7 @@ define([
     this.height_ = 0.0; // viewport height
 
     this.speed_ = 0.0; // solve scale issue
-    this.fov_ = opts.fov; // vertical field of view
+    this.fov_ = Math.min(opts.fov, 150); // vertical field of view
 
     // translation stuffs
     this.zoom_ = 0.0; // zoom value
