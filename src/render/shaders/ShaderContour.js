@@ -1,15 +1,17 @@
 define([
+  'misc/getUrlOptions',
   'render/shaders/ShaderBase',
   'render/Attribute'
-], function (ShaderBase, Attribute) {
+], function (getUrlOptions, ShaderBase, Attribute) {
 
   'use strict';
 
   var ShaderContour = ShaderBase.getCopy();
+  ShaderContour.color = getUrlOptions().outlinecolor;
   ShaderContour.uniforms = {};
   ShaderContour.attributes = {};
 
-  ShaderContour.uniformNames = ['uTexture0'];
+  ShaderContour.uniformNames = ['uTexture0', 'uColor'];
 
   ShaderContour.vertex = [
     'attribute vec2 aVertex;',
@@ -24,6 +26,7 @@ define([
     '#extension GL_OES_standard_derivatives : enable',
     'precision mediump float;',
     'uniform sampler2D uTexture0;',
+    'uniform vec4 uColor;',
     'varying vec2 vTexCoord;',
     'void main() {',
     '  float fac0 = 2.0;',
@@ -42,7 +45,7 @@ define([
     '  vec4 rowy = -fac0*texel3 + fac0*texel7 + -fac1*texel4 + fac1*texel6 + -fac1*texel2 + fac1*texel0;',
     '  float mag = dot(rowy, rowy) + dot(rowx, rowx);',
     '  if (mag < 1.5) discard;',
-    '  gl_FragColor = vec4(0.3, 0.0, 0.0, 1.0);',
+    '  gl_FragColor = uColor;',
     '}'
   ].join('\n');
 
@@ -55,8 +58,14 @@ define([
     gl.activeTexture(gl.TEXTURE0);
     gl.bindTexture(gl.TEXTURE_2D, rtt.getTexture());
     gl.uniform1i(this.uniforms.uTexture0, 0);
+    gl.uniform4fv(this.uniforms.uColor, ShaderContour.color);
 
+    gl.depthMask(false);
+    gl.enable(gl.BLEND);
     gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+    gl.disable(gl.BLEND);
+    gl.depthMask(true);
+
   };
   ShaderContour.initAttributes = function (gl) {
     ShaderContour.attributes.aVertex = new Attribute(gl, ShaderContour.program, 'aVertex', 2, gl.FLOAT);

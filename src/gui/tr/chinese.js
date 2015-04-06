@@ -181,8 +181,12 @@ define([], function () {
     renderingWireframe: '線框 (較慢)',
     renderingExposure: 'Exposure',
     renderingEnvironment: 'Environment',
-    renderingContour: 'Show contour',
     renderingIsolate: 'Isolate (I)',
+
+    // contour
+    contour: 'Contour',
+    contourShow: 'Show contour',
+    contourColor: 'Color',
 
     // matcaps
     matcapPearl: '珍珠',

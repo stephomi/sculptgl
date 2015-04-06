@@ -192,7 +192,7 @@ define([
         gl.disable(gl.DEPTH_TEST);
         // gl.enable(gl.CULL_FACE);
 
-        var showContour = this.selectMeshes_.length > 0 && this.showContour_;
+        var showContour = this.selectMeshes_.length > 0 && this.showContour_ && this.contour_.isEffective();
         if (showContour) {
           gl.bindFramebuffer(gl.FRAMEBUFFER, this.contour_.getFramebuffer());
           gl.clear(gl.COLOR_BUFFER_BIT);

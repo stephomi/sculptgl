@@ -13,6 +13,18 @@ define([], function () {
     return Math.max(min, Math.min(max, f));
   };
 
+  var queryColor = function (color, def) {
+    if (!color) return def;
+    var arr = color.split(',');
+    if (arr.length < 3) return def;
+    var out = def.slice();
+    out[0] = parseInt(arr[0] || 0, 10) / 255;
+    out[1] = parseInt(arr[1] || 0, 10) / 255;
+    out[2] = parseInt(arr[2] || 0, 10) / 255;
+    if (arr[3] !== undefined) out[3] = parseFloat(arr[3]);
+    return out;
+  };
+
   var readUrlParameters = function (overURL) {
     var url = typeof overURL === 'string' ? overURL : window.location.search;
     var vars = url.substr(1).split('&');
@@ -36,6 +48,7 @@ define([], function () {
 
     options.grid = queryBool(params.grid, true);
     options.outline = queryBool(params.outline, false);
+    options.outlinecolor = queryColor(params.outlinecolor, [0.3, 0.0, 0.0, 1.0]);
     options.mirrorline = queryBool(params.mirrorline, false);
 
     options.projection = (params.projection || 'PERSPECTIVE').toUpperCase(); // perspective/orthographic
