@@ -172,7 +172,7 @@ define([
         this.modalBrushIntensity_ = this.main_.focusGui_ = true;
         break;
       case 46: // DEL
-        if (window.confirm(TR('sculptDeleteMesh')))
+        if (window.confirm(TR('sculptDeleteSelection')))
           this.main_.deleteCurrentSelection();
         break;
       case 48: // 0
