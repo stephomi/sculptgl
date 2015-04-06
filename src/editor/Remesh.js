@@ -234,7 +234,6 @@ define([
     if (materials) newMesh.setMaterials(materials);
     newMesh.setFaces(faces);
     newMesh.init();
-    newMesh.scaleAndCenter();
     newMesh.setRender(mesh.getRender());
     mesh.getRender().mesh_ = newMesh;
     newMesh.initRender();
@@ -285,11 +284,11 @@ define([
 
     var step = Math.max((box[3] - box[0]), (box[4] - box[1]), (box[5] - box[2])) / Remesh.RESOLUTION;
     var stepMin = step * 2.5;
-    var stepMax = step * 2.5;
+    var stepMax = step * 1.5;
     var dims = [
-      [box[0] - stepMin, box[3] + stepMax - step],
-      [box[1] - stepMin, box[4] + stepMax - step],
-      [box[2] - stepMin, box[5] + stepMax - step]
+      [box[0] - stepMin, box[3] + stepMax],
+      [box[1] - stepMin, box[4] + stepMax],
+      [box[2] - stepMin, box[5] + stepMax]
     ];
     console.time('voxelization');
     var voxels = Remesh.createVoxelData(dims, step);
@@ -301,8 +300,8 @@ define([
     Remesh.floodFill(voxels, step);
     console.timeEnd('flood');
 
-    var min = [box[0] - stepMin, box[1] - stepMin, box[2] - stepMin];
-    var max = [box[3] + stepMax, box[4] + stepMax, box[5] + stepMax];
+    var min = [dims[0][0], dims[1][0], dims[2][0]];
+    var max = [dims[0][1] + stepMax, dims[1][1] + stepMax, dims[2][1] + stepMax];
     console.time('surfaceNet');
     SurfaceNets.BLOCK = Remesh.BLOCK;
     var res = SurfaceNets.computeSurface(voxels, [min, max]);

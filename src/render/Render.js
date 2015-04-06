@@ -226,9 +226,10 @@ define([
       this.setFlatShading(mesh.getFlatShading());
       this.setShowWireframe(mesh.getShowWireframe());
       this.setShader(mesh.getShaderType());
+      this.setMatcap(mesh.getMatcap());
       this.setTexture0(mesh.getTexture0());
-      this.setRoughness(mesh.getRoughness());
-      this.setMetallic(mesh.getMetallic());
+      this.setCurvature(mesh.getCurvature());
+      this.setOpacity(mesh.getOpacity());
     }
   };
 
