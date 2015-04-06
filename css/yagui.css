@@ -292,16 +292,16 @@ body {
   background: #111;
 }
 
+/* saturation */
 .gui-color-saturation {
   display: inline-block;
   width: 100px;
   height: 100px;
-  border: 1px solid #555;
   margin-right: 3px;
+  border: 1px solid #555;
   cursor: pointer;
 }
 .gui-color-saturation > div {
-  display: inline-block;
   width: 100%;
   height: 100%;
   pointer-events:none;
@@ -316,9 +316,10 @@ body {
   z-index: 4;
   border: #fff;
   border-radius: 10px;
-  border:2px solid white;
+  border: 2px solid white;
 }
 
+/* hue*/
 .gui-color-hue {
   display: inline-block;
   width: 15px;
@@ -327,6 +328,23 @@ body {
   cursor: ns-resize;
 }
 .gui-knob-hue {
+  pointer-events:none;
+  position: absolute;
+  width: 15px;
+  height: 2px;
+  border-right: 4px solid #fff;
+}
+
+/* alpha */
+.gui-color-alpha {
+  display: inline-block;
+  margin-left: 3px;
+  height: 100px;
+  width: 15px;
+  border: 1px solid #555;
+  cursor: ns-resize;
+}
+.gui-knob-alpha {
   pointer-events:none;
   position: absolute;
   width: 15px;
