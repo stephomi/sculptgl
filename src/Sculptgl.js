@@ -682,7 +682,7 @@ define([
         this.getReplayWriter().pushDeviceDown(button, mouseX, mouseY, event);
 
       if (button === 1)
-        this.sculpt_.start(this, event.ctrlKey);
+        this.sculpt_.start(this, event.shiftKey);
       var picking = this.picking_;
       var pickedMesh = picking.getMesh();
       if (button === 1 && pickedMesh)
