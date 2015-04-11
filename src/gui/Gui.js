@@ -11,8 +11,9 @@ define([
   'gui/GuiScene',
   'gui/GuiSculpting',
   'gui/GuiStates',
-  'gui/GuiTablet'
-], function (yagui, TR, GuiBackground, GuiCamera, GuiConfig, GuiFiles, GuiMesh, GuiTopology, GuiRendering, GuiScene, GuiSculpting, GuiStates, GuiTablet) {
+  'gui/GuiTablet',
+  'render/shaders/ShaderContour'
+], function (yagui, TR, GuiBackground, GuiCamera, GuiConfig, GuiFiles, GuiMesh, GuiTopology, GuiRendering, GuiScene, GuiSculpting, GuiStates, GuiTablet, ShaderContour) {
 
   'use strict';
 
@@ -68,11 +69,21 @@ define([
       ctrls[idc++] = this.ctrlSculpting_ = new GuiSculpting(this.sidebar_, this);
 
       // gui extra
-      this.topbar_.addExtra();
+      var extra = this.topbar_.addExtra();
+      extra.addTitle(TR('contour'));
+      extra.addColor(TR('contourColor'), ShaderContour.color, this.onContourColor.bind(this));
+
       this.addDonateButton();
 
       this.updateMesh();
       this.setVisibility(true);
+    },
+    onContourColor: function (col) {
+      ShaderContour.color[0] = col[0];
+      ShaderContour.color[1] = col[1];
+      ShaderContour.color[2] = col[2];
+      ShaderContour.color[3] = col[3];
+      this.main_.render();
     },
     addDonateButton: function () {
       var ctrlDonate = this.topbar_.addMenu();

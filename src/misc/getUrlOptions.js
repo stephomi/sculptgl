@@ -61,7 +61,7 @@ define([], function () {
     options.curvature = queryNumber(params.curvature, 0, 5, 1); // [0-5]
     options.exposure = queryNumber(params.exposure, 0, 5, 1); // [0-5]
     options.environment = queryNumber(params.environment, 0, Infinity, 0); // [0-inf]
-    options.matcap = queryNumber(params.matcap, 0, Infinity, 0); // [0-inf]
+    options.matcap = queryNumber(params.matcap, 0, Infinity, 3); // [0-inf]
     options.shader = (params.shader || 'PBR').toUpperCase(); // pbr/matcap/normal/uv
     return options;
   };

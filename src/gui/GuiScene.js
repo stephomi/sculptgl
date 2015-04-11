@@ -1,8 +1,7 @@
 define([
   'gui/GuiTR',
-  'render/shaders/ShaderBase',
-  'render/shaders/ShaderContour'
-], function (TR, ShaderBase, ShaderContour) {
+  'render/shaders/ShaderBase'
+], function (TR, ShaderBase) {
 
   'use strict';
 
@@ -23,13 +22,9 @@ define([
       menu.addButton(TR('sceneAddSphere'), this.main_, 'addSphere');
       menu.addButton(TR('sceneAddCube'), this.main_, 'addCube');
 
-      // outline
-      menu.addTitle(TR('contour'));
-      menu.addCheckbox(TR('contourShow'), this.main_.showContour_, this.onShowContour.bind(this));
-      menu.addColor(TR('contourColor'), ShaderContour.color, this.onContourColor.bind(this));
-
       // extra
       menu.addTitle(TR('renderingExtra'));
+      menu.addCheckbox(TR('contourShow'), this.main_.showContour_, this.onShowContour.bind(this));
       menu.addCheckbox(TR('renderingGrid'), this.main_.showGrid_, this.onShowGrid.bind(this));
       menu.addCheckbox(TR('renderingSymmetryLine'), ShaderBase.showSymmetryLine, this.onShowSymmetryLine.bind(this));
 
@@ -122,13 +117,6 @@ define([
         main.getReplayWriter().pushAction('SHOW_CONTOUR', bool);
       main.showContour_ = bool;
       main.render();
-    },
-    onContourColor: function (col) {
-      ShaderContour.color[0] = col[0];
-      ShaderContour.color[1] = col[1];
-      ShaderContour.color[2] = col[2];
-      ShaderContour.color[3] = col[3];
-      this.main_.render();
     }
   };
 
