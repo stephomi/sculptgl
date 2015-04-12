@@ -2,9 +2,9 @@ define([
   'misc/getUrlOptions',
   'gui/tr/english',
   'gui/tr/chinese',
-  'gui/tr/japan',
+  'gui/tr/japanese',
   'gui/tr/korean',
-], function (getUrlOptions, english, chinese, japan, korean) {
+], function (getUrlOptions, english, chinese, japanese, korean) {
 
   'use strict';
 
@@ -19,7 +19,7 @@ define([
 
   GuiTR.languages = {
     'english': english,
-    '日本語': japan,
+    '日本語': japanese,
     '中文': chinese,
     '한국어': korean
   };
@@ -41,7 +41,7 @@ define([
   case 'korean':
     GuiTR.select = '한국어';
     break;
-  case 'japan':
+  case 'japanese':
     GuiTR.select = '日本語';
     break;
   }

@@ -42,7 +42,7 @@ define([], function () {
     if (!options)
       options = {};
 
-    options.language = params.language; // english/chinese/korean/japan
+    options.language = params.language; // english/chinese/korean/japanese
 
     options.scalecenter = queryBool(params.scalecenter, true);
 
