@@ -1,7 +1,8 @@
 define([
   'gui/GuiTR',
+  'editor/Remesh',
   'render/shaders/ShaderBase'
-], function (TR, ShaderBase) {
+], function (TR, Remesh, ShaderBase) {
 
   'use strict';
 
@@ -22,14 +23,39 @@ define([
       menu.addButton(TR('sceneAddSphere'), this.main_, 'addSphere');
       menu.addButton(TR('sceneAddCube'), this.main_, 'addCube');
 
+      // selection stuffs
+      menu.addTitle(TR('sceneSelection'));
+      menu.addCheckbox(TR('contourShow'), this.main_.showContour_, this.onShowContour.bind(this));
+      this.ctrlIsolate_ = menu.addCheckbox(TR('renderingIsolate'), false, this.showHide.bind(this));
+      this.ctrlIsolate_.setVisibility(false);
+      this.ctrlMerge_ = menu.addButton(TR('sceneMerge'), this, 'merge');
+      this.ctrlMerge_.setVisibility(false);
+
       // extra
       menu.addTitle(TR('renderingExtra'));
-      menu.addCheckbox(TR('contourShow'), this.main_.showContour_, this.onShowContour.bind(this));
       menu.addCheckbox(TR('renderingGrid'), this.main_.showGrid_, this.onShowGrid.bind(this));
       menu.addCheckbox(TR('renderingSymmetryLine'), ShaderBase.showSymmetryLine, this.onShowSymmetryLine.bind(this));
 
-      this.ctrlIsolate_ = menu.addCheckbox(TR('renderingIsolate'), false, this.showHide.bind(this));
       this.addEvents();
+    },
+    updateMesh: function () {
+      var showSelect = this.main_.getSelectedMeshes().length > 1;
+      this.ctrlIsolate_.setVisibility(showSelect);
+      this.ctrlMerge_.setVisibility(showSelect);
+    },
+    merge: function () {
+      var main = this.main_;
+      var selMeshes = main.getSelectedMeshes();
+      if (selMeshes.length < 2) return;
+
+      if (!main.isReplayed())
+        main.getReplayWriter().pushAction('MERGE_SELECTION');
+
+      var newMesh = Remesh.mergeMeshes(selMeshes, main.getMesh() || selMeshes[0]);
+      main.removeMeshes(selMeshes);
+      main.getStates().pushStateAddRemove(newMesh, selMeshes.slice());
+      main.getMeshes().push(newMesh);
+      main.setMesh(newMesh);
     },
     addEvents: function () {
       var cbKeyDown = this.onKeyDown.bind(this);

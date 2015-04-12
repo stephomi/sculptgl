@@ -466,6 +466,68 @@ define([
           u8a.set(new Uint8Array(abUrl), offset + 4);
           offset += 4 + abUrl.byteLength;
           break;
+        case Replay.DEVICE_UP:
+        case Replay.UNDO:
+        case Replay.REDO:
+        case Replay.CAMERA_RESET:
+        case Replay.CAMERA_TOGGLE_FRONT:
+        case Replay.CAMERA_TOGGLE_LEFT:
+        case Replay.CAMERA_TOGGLE_TOP:
+        case Replay.CAMERA_TOGGLE_PIVOT:
+        case Replay.SCULPT_TOGGLE_SYMMETRY:
+        case Replay.SCULPT_TOGGLE_CONTINUOUS:
+        case Replay.SCULPT_UPDATE_CONTINOUS:
+        case Replay.BRUSH_TOGGLE_NEGATIVE:
+        case Replay.BRUSH_TOGGLE_CLAY:
+        case Replay.BRUSH_TOGGLE_CULLING:
+        case Replay.BRUSH_TOGGLE_ACCUMULATE:
+        case Replay.BRUSH_TOGGLE_LOCK_POSITION:
+        case Replay.CREASE_TOGGLE_NEGATIVE:
+        case Replay.CREASE_TOGGLE_CULLING:
+        case Replay.CREASE_TOGGLE_LOCK_POSITION:
+        case Replay.FLATTEN_TOGGLE_NEGATIVE:
+        case Replay.FLATTEN_TOGGLE_CULLING:
+        case Replay.FLATTEN_TOGGLE_LOCK_POSITION:
+        case Replay.INFLATE_TOGGLE_NEGATIVE:
+        case Replay.INFLATE_TOGGLE_CULLING:
+        case Replay.INFLATE_TOGGLE_LOCK_POSITION:
+        case Replay.PINCH_TOGGLE_NEGATIVE:
+        case Replay.PINCH_TOGGLE_CULLING:
+        case Replay.PINCH_TOGGLE_LOCK_POSITION:
+        case Replay.SMOOTH_TOGGLE_CULLING:
+        case Replay.SMOOTH_TOGGLE_TANGENT:
+        case Replay.SMOOTH_TOGGLE_LOCK_POSITION:
+        case Replay.LOCALSCALE_TOGGLE_CULLING:
+        case Replay.TWIST_TOGGLE_CULLING:
+        case Replay.TRANSLATE_TOGGLE_NEGATIVE:
+        case Replay.ROTATE_TOGGLE_NEGATIVE:
+        case Replay.PAINT_TOGGLE_CULLING:
+        case Replay.PAINT_TOGGLE_LOCK_POSITION:
+        case Replay.PAINT_ALL:
+        case Replay.MOVE_TOGGLE_TOPOCHECK:
+        case Replay.MOVE_TOGGLE_NEGATIVE:
+        case Replay.MASKING_TOGGLE_NEGATIVE:
+        case Replay.MASKING_TOGGLE_CULLING:
+        case Replay.MASKING_CLEAR:
+        case Replay.MASKING_INVERT:
+        case Replay.MASKING_BLUR:
+        case Replay.MASKING_SHARPEN:
+        case Replay.MASKING_TOGGLE_LOCK_POSITION:
+        case Replay.MULTI_SUBDIVIDE:
+        case Replay.MULTI_REVERSE:
+        case Replay.MULTI_DEL_LOWER:
+        case Replay.MULTI_DEL_HIGHER:
+        case Replay.MERGE_SELECTION:
+        case Replay.DYNAMIC_TOGGLE_ACTIVATE:
+        case Replay.DYNAMIC_TOGGLE_LINEAR:
+        case Replay.ADD_SPHERE:
+        case Replay.ADD_CUBE:
+        case Replay.DELETE_SELECTION:
+        case Replay.ISOLATE_SELECTION:
+        case Replay.SHOW_ALL:
+        case Replay.TABLET_TOGGLE_INTENSITY:
+        case Replay.TABLET_TOGGLE_RADIUS:
+          break;
         }
       }
 

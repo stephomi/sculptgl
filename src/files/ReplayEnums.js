@@ -126,6 +126,7 @@ define([], function () {
   Replay.MULTI_DEL_HIGHER = ida++; // []
 
   Replay.VOXEL_REMESH = ida++; // [res (u16), block (u8)]
+  Replay.MERGE_SELECTION = ida++; // []
 
   Replay.DYNAMIC_TOGGLE_ACTIVATE = ida++; // []
   Replay.DYNAMIC_TOGGLE_LINEAR = ida++; // []

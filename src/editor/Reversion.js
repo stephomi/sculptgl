@@ -6,7 +6,7 @@ define([
 
   var Reversion = {};
 
-  Reversion.detectExtraordinaryVertices = function (mesh) {
+  var detectExtraordinaryVertices = function (mesh) {
     var nbVertices = mesh.getNbVertices();
     var fAr = mesh.getFaces();
     var onEdge = mesh.getVerticesOnEdge();
@@ -42,7 +42,7 @@ define([
   };
 
   /** Return the first extraordinary vertex if it exists... or a random vertex otherwise */
-  Reversion.getSeed = function (mesh, vEvenTags, vExtraTags) {
+  var getSeed = function (mesh, vEvenTags, vExtraTags) {
     var i = 0;
     var nbVertices = mesh.getNbVertices();
     for (i = 0; i < nbVertices; ++i) {
@@ -67,14 +67,14 @@ define([
   };
 
   /** Tag the even vertices */
-  Reversion.tagVertices = function (mesh, vEvenTags, vExtraTags) {
+  var tagVertices = function (mesh, vEvenTags, vExtraTags) {
     var tagFlag = ++Utils.TAG_FLAG;
     var vFlags = mesh.getVerticesTagFlags();
     var vrvSC = mesh.getVerticesRingVertStartCount();
     var vrv = mesh.getVerticesRingVert();
     var onEdge = mesh.getVerticesOnEdge();
 
-    var vSeed = Reversion.getSeed(mesh, vEvenTags, vExtraTags);
+    var vSeed = getSeed(mesh, vEvenTags, vExtraTags);
     if (vSeed < 0)
       return;
     vEvenTags[vSeed] = 1;
@@ -142,14 +142,14 @@ define([
   };
 
   /** Tag the even vertices */
-  Reversion.tagEvenVertices = function (mesh) {
+  var tagEvenVertices = function (mesh) {
     var nbVertices = mesh.getNbVertices();
     // 0 not processed, -1 odd vertex, 1 even vertex
     var vEvenTags = new Int8Array(nbVertices);
-    var vExtraTags = Reversion.detectExtraordinaryVertices(mesh);
+    var vExtraTags = detectExtraordinaryVertices(mesh);
     var running = true;
     while (running) {
-      var status = Reversion.tagVertices(mesh, vEvenTags, vExtraTags);
+      var status = tagVertices(mesh, vEvenTags, vExtraTags);
       if (!status)
         return;
       running = false;
@@ -164,7 +164,7 @@ define([
   };
 
   /** Creates the coarse faces from the tagged vertices */
-  Reversion.createFaces = function (baseMesh, newMesh, vEvenTags) {
+  var createFaces = function (baseMesh, newMesh, vEvenTags) {
     var feAr = baseMesh.getFaceEdges();
     var fArUp = baseMesh.getFaces();
     var tagEdges = new Int32Array(baseMesh.getNbEdges());
@@ -278,7 +278,7 @@ define([
   };
 
   /** Creates the vertices of the mesh */
-  Reversion.createVertices = function (baseMesh, newMesh, triFaceOrQuadCenter) {
+  var createVertices = function (baseMesh, newMesh, triFaceOrQuadCenter) {
     var acc = 0;
     var vertexMapUp = new Uint32Array(baseMesh.getNbVertices());
     newMesh.setVerticesMapping(vertexMapUp);
@@ -382,7 +382,7 @@ define([
   };
 
   /** Copy the vertices data from up to low */
-  Reversion.copyVerticesData = function (baseMesh, newMesh) {
+  var copyVerticesData = function (baseMesh, newMesh) {
     var vArUp = baseMesh.getVertices();
     var cArUp = baseMesh.getColors();
     var mArUp = baseMesh.getMaterials();
@@ -433,7 +433,7 @@ define([
   };
 
   /** Apply the reverse of a subdivision for the texCoord mesh */
-  Reversion.computeTexCoords = function (baseMesh, newMesh, triFaceOrQuadCenter) {
+  var computeTexCoords = function (baseMesh, newMesh, triFaceOrQuadCenter) {
     var dupUp = baseMesh.getVerticesDuplicateStartCount();
 
     var nbVertices = newMesh.getNbVertices();
@@ -465,11 +465,11 @@ define([
     newMesh.setTexCoords(new Float32Array(uvAr.subarray(0, nbTexCoords * 2)));
     newMesh.setVerticesDuplicateStartCount(dup);
 
-    Reversion.computeFaceTexCoords(baseMesh, newMesh, triFaceOrQuadCenter, uvMap);
+    computeFaceTexCoords(baseMesh, newMesh, triFaceOrQuadCenter, uvMap);
   };
 
   /** Computes uv faces and uv coordinates for center vertices */
-  Reversion.computeFaceTexCoords = function (baseMesh, newMesh, triFaceOrQuadCenter, uvMap) {
+  var computeFaceTexCoords = function (baseMesh, newMesh, triFaceOrQuadCenter, uvMap) {
     var fArUp = baseMesh.getFaces();
     var fArUVUp = baseMesh.getFacesTexCoord();
     var vrfSC = baseMesh.getVerticesRingFaceStartCount();
@@ -545,16 +545,16 @@ define([
   Reversion.computeReverse = function (baseMesh, newMesh) {
     if (baseMesh.getNbFaces() % 4 !== 0)
       return false;
-    var vEvenTags = Reversion.tagEvenVertices(baseMesh);
+    var vEvenTags = tagEvenVertices(baseMesh);
     if (!vEvenTags)
       return false;
-    var triFaceOrQuadCenter = Reversion.createFaces(baseMesh, newMesh, vEvenTags);
+    var triFaceOrQuadCenter = createFaces(baseMesh, newMesh, vEvenTags);
     if (!triFaceOrQuadCenter)
       return false;
-    Reversion.createVertices(baseMesh, newMesh, triFaceOrQuadCenter);
-    Reversion.copyVerticesData(baseMesh, newMesh);
+    createVertices(baseMesh, newMesh, triFaceOrQuadCenter);
+    copyVerticesData(baseMesh, newMesh);
     if (baseMesh.hasUV())
-      Reversion.computeTexCoords(baseMesh, newMesh, triFaceOrQuadCenter);
+      computeTexCoords(baseMesh, newMesh, triFaceOrQuadCenter);
     newMesh.allocateArrays();
     return true;
   };

@@ -69,7 +69,6 @@ define([
 
       main.replaceMesh(mesh, newMesh);
       main.getStates().pushStateAddRemove(newMesh, mesh);
-      this.updateMesh();
     },
     dynamicToggleLinear: function () {
       var main = this.main_;
@@ -108,9 +107,9 @@ define([
         if (sel === mesh)
           mesh = selMeshes[i];
       }
-      var newMesh = Remesh.remesh(mesh, selMeshes);
+      var newMesh = Remesh.remesh(selMeshes, mesh);
       main.getStates().pushStateAddRemove(newMesh, main.getSelectedMeshes().slice());
-      main.meshes_.push(newMesh);
+      main.getMeshes().push(newMesh);
       main.setMesh(newMesh);
     },
     /** Check if the mesh is a multiresolution one */
@@ -169,7 +168,6 @@ define([
       }
       main.getStates().pushState(new StateMultiresolution(main, mul, StateMultiresolution.SUBDIVISION));
       mul.addLevel();
-      this.ctrlGui_.updateMeshInfo();
       main.setMesh(mul);
       main.render();
     },
@@ -201,7 +199,6 @@ define([
         main.getStates().pushStateAddRemove(mul, mesh, true);
       }
       main.getStates().pushState(stateRes);
-      this.ctrlGui_.updateMeshInfo();
       main.setMesh(mul);
       main.render();
     },

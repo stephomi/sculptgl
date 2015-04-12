@@ -528,9 +528,6 @@ define([
       case Replay.CAMERA_TOGGLE_TOP:
         vcam.toggleViewTop();
         break;
-      case Replay.CAMERA_SNAP:
-        vcam.snapClosestRotation();
-        break;
       case Replay.CAMERA_TOGGLE_PIVOT:
         vcam.toggleUsePivot();
         break;
@@ -675,6 +672,7 @@ define([
       case Replay.MULTI_RESOLUTION:
         main.getGui().ctrlTopology_.onResolutionChanged(data.getUint8(sel, true));
         sel += 1;
+        nextTick = 100;
         break;
       case Replay.MULTI_SUBDIVIDE:
         main.getGui().ctrlTopology_.subdivide();
@@ -694,6 +692,10 @@ define([
         Remesh.BLOCK = data.getUint8(sel + 2, true);
         main.getGui().ctrlTopology_.remesh();
         sel += 3;
+        nextTick = 100;
+        break;
+      case Replay.MERGE_SELECTION:
+        main.getGui().ctrlScene_.merge();
         nextTick = 100;
         break;
       case Replay.DYNAMIC_TOGGLE_ACTIVATE:

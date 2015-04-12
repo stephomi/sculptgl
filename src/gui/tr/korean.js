@@ -60,6 +60,8 @@ define([], function () {
     sceneReset: '장면 초기화',
     sceneAddSphere: '구 추가하기 ',
     sceneAddCube: 'Add cube',
+    sceneSelection: 'Selection',
+    sceneMerge: 'Merge selection',
 
     // mesh
     meshTitle: '메쉬',
@@ -181,7 +183,7 @@ define([], function () {
     renderingWireframe: '와이어프레임 (느리게)',
     renderingExposure: 'Exposure',
     renderingEnvironment: 'Environment',
-    renderingIsolate: 'Isolate (I)',
+    renderingIsolate: 'Isolate/Show (I)',
 
     // contour
     contour: 'Contour',

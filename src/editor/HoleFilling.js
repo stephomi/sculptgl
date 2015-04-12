@@ -4,8 +4,6 @@ define([
 
   'use strict';
 
-  var HoleFilling = {};
-
   var Edge = function (v1, v2) {
     this.previous = null;
     this.next = null;
@@ -13,7 +11,7 @@ define([
     this.v2 = v2;
   };
 
-  HoleFilling.detectHole = function (borderEdges) {
+  var detectHole = function (borderEdges) {
     if (borderEdges.length <= 2)
       return;
     var nbEdges = borderEdges.length;
@@ -45,7 +43,7 @@ define([
     return first;
   };
 
-  HoleFilling.detectHoles = function (mesh) {
+  var detectHoles = function (mesh) {
     var eAr = mesh.getEdges();
     var fAr = mesh.getFaces();
     var feAr = mesh.getFaceEdges();
@@ -61,14 +59,14 @@ define([
 
     var holes = [];
     while (true) {
-      var firstEdge = HoleFilling.detectHole(borderEdges);
+      var firstEdge = detectHole(borderEdges);
       if (!firstEdge) break;
       holes.push(firstEdge);
     }
     return holes;
   };
 
-  HoleFilling.advancingFrontMesh = function (mesh, firstEdge, newTris, newVerts) {
+  var advancingFrontMesh = function (mesh, firstEdge, newTris, newVerts) {
     var vAr = mesh.getVertices();
     // var current = firstEdge;
     // var count = 1;
@@ -124,6 +122,8 @@ define([
     newVerts.push(avx / count, avy / count, avz / count);
   };
 
+  var HoleFilling = {};
+
   HoleFilling.createMesh = function (mesh, vertices, faces, colors, materials) {
     var newMesh = new Mesh();
     newMesh.setID(mesh.getID());
@@ -141,14 +141,14 @@ define([
   };
 
   HoleFilling.closeHoles = function (mesh) {
-    var holes = HoleFilling.detectHoles(mesh);
+    var holes = detectHoles(mesh);
     if (holes.length === 0)
       return mesh;
     var newFaces = [];
     var newVerts = [];
     // console.time('closeHoles');
     for (var i = 0, nbHoles = holes.length; i < nbHoles; ++i)
-      HoleFilling.advancingFrontMesh(mesh, holes[i], newFaces, newVerts);
+      advancingFrontMesh(mesh, holes[i], newFaces, newVerts);
     // console.timeEnd('closeHoles');
 
     // set vertices

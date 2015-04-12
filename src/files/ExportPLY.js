@@ -1,11 +1,9 @@
 define([
-  'lib/glMatrix',
-  'misc/Utils'
-], function (glm, Utils) {
+  'misc/Utils',
+  'editor/Remesh'
+], function (Utils, Remesh) {
 
   'use strict';
-
-  var vec3 = glm.vec3;
 
   var Export = {};
 
@@ -60,47 +58,28 @@ define([
       nbTriangles += meshes[i].getNbTriangles();
     }
 
-    var vAr = !isSketchfab ? meshes[0].getVertices() : new Float32Array(nbVertices * 3);
-    var cAr = !isSketchfab ? meshes[0].getColors() : new Float32Array(nbVertices * 3);
-    var fAr = !isSketchfab ? meshes[0].getFaces() : new Int32Array(nbFaces * 4);
+    var vAr, cAr, fAr;
     if (isSketchfab) {
-      // multiple meshes => swap xy (sketchfab)
-      var ver = [0.0, 0.0, 0.0];
-      var offsetVerts = 0;
-      var offsetFaces = 0;
-      var offsetIndex = 0;
-      for (i = 0; i < nbMeshes; ++i) {
-        var mesh = meshes[i];
-        var mVerts = mesh.getVertices();
-        var mCols = mesh.getColors();
-        var mFaces = mesh.getFaces();
-        var mNbVertices = mesh.getNbVertices();
-        var mNbFaces = mesh.getNbFaces();
-        var matrix = mesh.getMatrix();
-        for (j = 0; j < mNbVertices; ++j) {
-          k = j * 3;
-          ver[0] = mVerts[k];
-          ver[1] = mVerts[k + 1];
-          ver[2] = mVerts[k + 2];
-          vec3.transformMat4(ver, ver, matrix);
-          vAr[offsetVerts + k] = ver[0];
-          vAr[offsetVerts + k + 1] = -ver[2];
-          vAr[offsetVerts + k + 2] = ver[1];
-          cAr[offsetVerts + k] = mCols[k];
-          cAr[offsetVerts + k + 1] = mCols[k + 1];
-          cAr[offsetVerts + k + 2] = mCols[k + 2];
-        }
-        offsetVerts += mNbVertices * 3;
-        for (j = 0; j < mNbFaces; ++j) {
-          k = j * 4;
-          fAr[offsetFaces + k] = mFaces[k] + offsetIndex;
-          fAr[offsetFaces + k + 1] = mFaces[k + 1] + offsetIndex;
-          fAr[offsetFaces + k + 2] = mFaces[k + 2] + offsetIndex;
-          fAr[offsetFaces + k + 3] = mFaces[k + 3] >= 0 ? mFaces[k + 3] + offsetIndex : -1;
-        }
-        offsetIndex += mNbVertices;
-        offsetFaces = mNbFaces * 4;
+      var arr = {
+        vertices: null,
+        colors: null,
+        faces: null
+      };
+      Remesh.mergeArrays(meshes, arr);
+      vAr = arr.vertices;
+      cAr = arr.colors;
+      fAr = arr.faces;
+      // swap xy
+      for (i = 0; i < nbVertices; ++i) {
+        k = i * 3;
+        var yVal = vAr[k + 1];
+        vAr[k + 1] = -vAr[k + 2];
+        vAr[k + 2] = yVal;
       }
+    } else {
+      vAr = meshes[0].getVertices();
+      cAr = meshes[0].getColors();
+      fAr = meshes[0].getFaces();
     }
 
     var endian = Utils.littleEndian ? 'little' : 'big';

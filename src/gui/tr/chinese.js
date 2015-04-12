@@ -60,6 +60,8 @@ define([], function () {
     sceneReset: '清除場景',
     sceneAddSphere: '加入球體',
     sceneAddCube: 'Add cube',
+    sceneSelection: 'Selection',
+    sceneMerge: 'Merge selection',
 
     // mesh
     meshTitle: '網面',
@@ -181,7 +183,7 @@ define([], function () {
     renderingWireframe: '線框 (較慢)',
     renderingExposure: 'Exposure',
     renderingEnvironment: 'Environment',
-    renderingIsolate: 'Isolate (I)',
+    renderingIsolate: 'Hide/Show (I)',
 
     // contour
     contour: 'Contour',

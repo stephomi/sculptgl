@@ -8,7 +8,7 @@ define([], function () {
   /**
    * Based on Mikola Lysenko SurfaceNets
    * https://github.com/mikolalysenko/isosurface
-   * 
+   *
    * Based on: S.F. Gibson, "Constrained Elastic Surface Nets". (1998) MERL Tech Report.
    */
 

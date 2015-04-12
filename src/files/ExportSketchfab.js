@@ -42,10 +42,8 @@ define([
         xhrPoll.open('GET', 'https://api.sketchfab.com/v2/models/' + uid + '/status?token=' + key, true);
         xhrPoll.onload = function () {
           var resPoll = JSON.parse(xhrPoll.responseText);
-          if (resPoll.error)
-            window.alert(TR('sketchfabUploadError', resPoll.error));
-          else if (resPoll.processing === 'FAILURE')
-            window.alert(TR('sketchfabUploadError', resPoll.processing));
+          if (resPoll.processing === 'FAILED')
+            window.alert(TR('sketchfabUploadError', resPoll.warning.generic.join('\n')));
           else if (resPoll.processing === 'SUCCEEDED')
             window.prompt(TR('sketchfabUploadSuccess'), 'https://sketchfab.com/models/' + uid);
           else

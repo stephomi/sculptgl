@@ -4,6 +4,9 @@ define([
 
   'use strict';
 
+  var Subdivision = {};
+  Subdivision.LINEAR = false;
+
   //       v3
   //       /\
   //      /3T\ 
@@ -183,31 +186,8 @@ define([
     }
   };
 
-  var Subdivision = {};
-  Subdivision.LINEAR = false;
-
-  /** Apply a complete subdivision (by updating the topology) */
-  Subdivision.fullSubdivision = function (baseMesh, newMesh) {
-    var nbVertices = baseMesh.getNbVertices() + baseMesh.getNbEdges() + baseMesh.getNbQuads();
-    newMesh.setVertices(new Float32Array(nbVertices * 3));
-    newMesh.setColors(new Float32Array(nbVertices * 3));
-    newMesh.setMaterials(new Float32Array(nbVertices * 3));
-    newMesh.setFaces(new Int32Array(baseMesh.getNbFaces() * 4 * 4));
-    Subdivision.applyEvenSmooth(baseMesh, newMesh.getVertices(), newMesh.getColors(), newMesh.getMaterials());
-    var tags = Subdivision.applyOddSmooth(baseMesh, newMesh.getVertices(), newMesh.getColors(), newMesh.getMaterials(), newMesh.getFaces());
-    if (baseMesh.hasUV())
-      Subdivision.computeTexCoords(baseMesh, newMesh, tags);
-    newMesh.allocateArrays();
-  };
-
-  /** Apply subdivision without topology computation */
-  Subdivision.partialSubdivision = function (baseMesh, vertOut, colorOut, materialOut) {
-    Subdivision.applyEvenSmooth(baseMesh, vertOut, colorOut, materialOut);
-    Subdivision.applyOddSmooth(baseMesh, vertOut, colorOut, materialOut);
-  };
-
   /** Even vertices smoothing */
-  Subdivision.applyEvenSmooth = function (baseMesh, even, colorOut, materialOut) {
+  var applyEvenSmooth = function (baseMesh, even, colorOut, materialOut) {
     colorOut.set(baseMesh.getColors());
     materialOut.set(baseMesh.getMaterials());
     var vArOld = baseMesh.getVertices();
@@ -371,7 +351,7 @@ define([
   };
 
   /** Odd vertices smoothing */
-  Subdivision.applyOddSmooth = function (mesh, odds, colorOut, materialOut, fArOut) {
+  var applyOddSmooth = function (mesh, odds, colorOut, materialOut, fArOut) {
     var fAr = mesh.getFaces();
     var feAr = mesh.getFaceEdges();
     var oddComputer = new OddVertexComputer(mesh, odds, colorOut, materialOut);
@@ -421,7 +401,7 @@ define([
   };
 
   /** Subdivide tex coords mesh */
-  Subdivision.computeTexCoords = function (mesh, newMesh, tagEdges) {
+  var computeTexCoords = function (mesh, newMesh, tagEdges) {
     var newNbVertices = newMesh.getNbVertices();
     var startCount = new Uint32Array(newNbVertices * 2);
     startCount.set(mesh.getVerticesDuplicateStartCount());
@@ -490,11 +470,11 @@ define([
     newMesh.setTexCoords(texCoords);
     newMesh.setVerticesDuplicateStartCount(startCount);
 
-    Subdivision.computeFaceTexCoords(mesh, newMesh, tagEdges);
+    computeFaceTexCoords(mesh, newMesh, tagEdges);
   };
 
   /** Computes uv faces and uv coordinates for center vertices */
-  Subdivision.computeFaceTexCoords = function (mesh, newMesh, tagEdges) {
+  var computeFaceTexCoords = function (mesh, newMesh, tagEdges) {
     var fArUVOld = mesh.getFacesTexCoord();
     var fAr = newMesh.getFaces();
     var fArUV = new Int32Array(fAr.length);
@@ -572,6 +552,26 @@ define([
     }
 
     newMesh.setFacesTexCoord(fArUV);
+  };
+
+  /** Apply a complete subdivision (by updating the topology) */
+  Subdivision.fullSubdivision = function (baseMesh, newMesh) {
+    var nbVertices = baseMesh.getNbVertices() + baseMesh.getNbEdges() + baseMesh.getNbQuads();
+    newMesh.setVertices(new Float32Array(nbVertices * 3));
+    newMesh.setColors(new Float32Array(nbVertices * 3));
+    newMesh.setMaterials(new Float32Array(nbVertices * 3));
+    newMesh.setFaces(new Int32Array(baseMesh.getNbFaces() * 4 * 4));
+    applyEvenSmooth(baseMesh, newMesh.getVertices(), newMesh.getColors(), newMesh.getMaterials());
+    var tags = applyOddSmooth(baseMesh, newMesh.getVertices(), newMesh.getColors(), newMesh.getMaterials(), newMesh.getFaces());
+    if (baseMesh.hasUV())
+      computeTexCoords(baseMesh, newMesh, tags);
+    newMesh.allocateArrays();
+  };
+
+  /** Apply subdivision without topology computation */
+  Subdivision.partialSubdivision = function (baseMesh, vertOut, colorOut, materialOut) {
+    applyEvenSmooth(baseMesh, vertOut, colorOut, materialOut);
+    applyOddSmooth(baseMesh, vertOut, colorOut, materialOut);
   };
 
   return Subdivision;

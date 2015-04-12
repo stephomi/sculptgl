@@ -60,6 +60,8 @@ define([], function () {
     sceneReset: 'Clear scene',
     sceneAddSphere: 'Add sphere',
     sceneAddCube: 'Add cube',
+    sceneSelection: 'Selection',
+    sceneMerge: 'Merge selection',
 
     // mesh
     meshTitle: 'Mesh',
@@ -181,7 +183,7 @@ define([], function () {
     renderingWireframe: 'wireframe (slower)',
     renderingExposure: 'Exposure',
     renderingEnvironment: 'Environment',
-    renderingIsolate: 'Isolate (I)',
+    renderingIsolate: 'Isolate/Show (I)',
 
     // contour
     contour: 'Contour',

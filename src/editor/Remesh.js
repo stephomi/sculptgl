@@ -16,7 +16,7 @@ define([
   Remesh.RESOLUTION = 150;
   Remesh.BLOCK = false;
 
-  Remesh.floodFill = function (voxels, step) {
+  var floodFill = function (voxels, step) {
     var res = voxels.dims;
     var rx = res[0];
     var ry = res[1];
@@ -69,7 +69,7 @@ define([
     }
   };
 
-  Remesh.voxelize = function (mesh, voxels, dims, step) {
+  var voxelize = function (mesh, voxels, dims, step) {
     var invStep = 1.0 / step;
 
     var vminx = dims[0][0];
@@ -200,7 +200,7 @@ define([
   };
 
   // grid structure
-  Remesh.createVoxelData = function (dims, step) {
+  var createVoxelData = function (dims, step) {
     var rx = 1 + Math.ceil((dims[0][1] - dims[0][0]) / step);
     var ry = 1 + Math.ceil((dims[1][1] - dims[1][0]) / step);
     var rz = 1 + Math.ceil((dims[2][1] - dims[2][0]) / step);
@@ -226,7 +226,7 @@ define([
     return voxels;
   };
 
-  Remesh.createMesh = function (mesh, vertices, faces, colors, materials) {
+  var createMesh = function (mesh, vertices, faces, colors, materials) {
     var newMesh = new Mesh(mesh.getGL());
     newMesh.setID(mesh.getID());
     newMesh.setVertices(vertices);
@@ -241,7 +241,7 @@ define([
   };
 
   // hole filling + transform to world + ComputeBox
-  Remesh.prepareMeshes = function (meshes) {
+  var prepareMeshes = function (meshes) {
     var box = [Infinity, Infinity, Infinity, -Infinity, -Infinity, -Infinity];
     var tmp = [0.0, 0.0, 0.0];
     for (var i = 0, nbm = meshes.length; i < nbm; ++i) {
@@ -274,12 +274,12 @@ define([
     return box;
   };
 
-  Remesh.remesh = function (mesh, meshes) {
+  Remesh.remesh = function (meshes, baseMesh) {
     console.time('remesh');
 
     meshes = meshes.slice();
     console.time('initMeshes');
-    var box = Remesh.prepareMeshes(meshes);
+    var box = prepareMeshes(meshes);
     console.timeEnd('initMeshes');
 
     var step = Math.max((box[3] - box[0]), (box[4] - box[1]), (box[5] - box[2])) / Remesh.RESOLUTION;
@@ -291,13 +291,13 @@ define([
       [box[2] - stepMin, box[5] + stepMax]
     ];
     console.time('voxelization');
-    var voxels = Remesh.createVoxelData(dims, step);
+    var voxels = createVoxelData(dims, step);
     for (var i = 0, l = meshes.length; i < l; ++i)
-      Remesh.voxelize(meshes[i], voxels, dims, step);
+      voxelize(meshes[i], voxels, dims, step);
     console.timeEnd('voxelization');
 
     console.time('flood');
-    Remesh.floodFill(voxels, step);
+    floodFill(voxels, step);
     console.timeEnd('flood');
 
     var min = [dims[0][0], dims[1][0], dims[2][0]];
@@ -307,10 +307,89 @@ define([
     var res = SurfaceNets.computeSurface(voxels, [min, max]);
     console.timeEnd('surfaceNet');
 
-    var nmesh = Remesh.createMesh(mesh, res.vertices, res.faces, res.colors, res.materials);
+    var nmesh = createMesh(baseMesh, res.vertices, res.faces, res.colors, res.materials);
     console.timeEnd('remesh');
     console.log('\n');
     return nmesh;
+  };
+
+  Remesh.mergeArrays = function (meshes, arr) {
+    var nbVertices = 0;
+    var nbFaces = 0;
+    var nbQuads = 0;
+    var nbTriangles = 0;
+
+    var nbMeshes = meshes.length;
+    var i = 0;
+    var k = 0;
+    for (i = 0; i < nbMeshes; ++i) {
+      nbVertices += meshes[i].getNbVertices();
+      nbFaces += meshes[i].getNbFaces();
+      nbQuads += meshes[i].getNbQuads();
+      nbTriangles += meshes[i].getNbTriangles();
+    }
+
+    var vAr = arr.vertices = arr.vertices !== undefined ? new Float32Array(nbVertices * 3) : null;
+    var cAr = arr.colors = arr.colors !== undefined ? new Float32Array(nbVertices * 3) : null;
+    var mAr = arr.materials = arr.materials !== undefined ? new Int32Array(nbFaces * 4) : null;
+    var fAr = arr.faces = arr.faces !== undefined ? new Int32Array(nbFaces * 4) : null;
+
+    // multiple meshes => swap xy (sketchfab)
+    var ver = [0.0, 0.0, 0.0];
+    var offsetVerts = 0;
+    var offsetFaces = 0;
+    var offsetIndex = 0;
+    for (i = 0; i < nbMeshes; ++i) {
+      var mesh = meshes[i];
+      var mVerts = mesh.getVertices();
+      var mCols = mesh.getColors();
+      var mMats = mesh.getMaterials();
+      var mFaces = mesh.getFaces();
+      var mNbVertices = mesh.getNbVertices();
+      var mNbFaces = mesh.getNbFaces();
+      var matrix = mesh.getMatrix();
+      for (var j = 0; j < mNbVertices; ++j) {
+        k = j * 3;
+        ver[0] = mVerts[k];
+        ver[1] = mVerts[k + 1];
+        ver[2] = mVerts[k + 2];
+        vec3.transformMat4(ver, ver, matrix);
+        vAr[offsetVerts + k] = ver[0];
+        vAr[offsetVerts + k + 1] = ver[1];
+        vAr[offsetVerts + k + 2] = ver[2];
+        if (cAr) {
+          cAr[offsetVerts + k] = mCols[k];
+          cAr[offsetVerts + k + 1] = mCols[k + 1];
+          cAr[offsetVerts + k + 2] = mCols[k + 2];
+        }
+        if (mAr) {
+          mAr[offsetVerts + k] = mMats[k];
+          mAr[offsetVerts + k + 1] = mMats[k + 1];
+          mAr[offsetVerts + k + 2] = mMats[k + 2];
+        }
+      }
+      offsetVerts += mNbVertices * 3;
+      for (j = 0; j < mNbFaces; ++j) {
+        k = j * 4;
+        fAr[offsetFaces + k] = mFaces[k] + offsetIndex;
+        fAr[offsetFaces + k + 1] = mFaces[k + 1] + offsetIndex;
+        fAr[offsetFaces + k + 2] = mFaces[k + 2] + offsetIndex;
+        fAr[offsetFaces + k + 3] = mFaces[k + 3] >= 0 ? mFaces[k + 3] + offsetIndex : -1;
+      }
+      offsetIndex += mNbVertices;
+      offsetFaces = mNbFaces * 4;
+    }
+  };
+
+  Remesh.mergeMeshes = function (meshes, baseMesh) {
+    var arr = {
+      vertices: null,
+      colors: null,
+      materials: null,
+      faces: null
+    };
+    Remesh.mergeArrays(meshes, arr);
+    return createMesh(baseMesh, arr.vertices, arr.faces, arr.colors, arr.materials);
   };
 
   return Remesh;

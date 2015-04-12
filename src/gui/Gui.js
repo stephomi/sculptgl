@@ -105,6 +105,7 @@ define([
       this.ctrlRendering_.updateMesh();
       this.ctrlTopology_.updateMesh();
       this.ctrlSculpting_.updateMesh();
+      this.ctrlScene_.updateMesh();
       this.updateMeshInfo();
     },
     /** Update number of vertices and triangles */

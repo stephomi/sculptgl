@@ -143,10 +143,10 @@ define([
     setMesh: function (mesh) {
       return this.setOrUnsetMesh(mesh);
     },
-    setOrUnsetMesh: function (mesh, ctrl) {
+    setOrUnsetMesh: function (mesh, multiSelect) {
       if (!mesh) {
         this.selectMeshes_.length = 0;
-      } else if (!ctrl) {
+      } else if (!multiSelect) {
         this.selectMeshes_.length = 0;
         this.selectMeshes_.push(mesh);
       } else {
