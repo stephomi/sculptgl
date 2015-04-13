@@ -15,7 +15,7 @@ define([
     this.shaderWireframe_ = new Shader(gl);
 
     var opts = getUrlOptions();
-    this.flatShading_ = opts.flat;
+    this.flatShading_ = opts.flatshading;
     this.showWireframe_ = opts.wireframe;
     this.matcap_ = Math.min(opts.matcap, ShaderMatcap.matcaps.length - 1); // matcap id
     this.curvature_ = Math.min(opts.curvature, 5.0);

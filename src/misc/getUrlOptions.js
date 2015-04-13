@@ -13,6 +13,12 @@ define([], function () {
     return Math.max(min, Math.min(max, f));
   };
 
+  var queryInteger = function (value, min, max, def) {
+    var f = parseInt(value, 10);
+    if (!f && f !== 0.0) return def;
+    return Math.max(min, Math.min(max, f));
+  };
+
   var queryColor = function (color, def) {
     if (!color) return def;
     var arr = color.split(',');
@@ -54,14 +60,14 @@ define([], function () {
     options.projection = (params.projection || 'PERSPECTIVE').toUpperCase(); // perspective/orthographic
     options.cameramode = (params.cameramode || 'ORBIT').toUpperCase(); // orbit/spherical/plane
     options.pivot = queryBool(params.pivot, false);
-    options.fov = queryNumber(params.fov, 10, 150, 45); // [10-150]
+    options.fov = queryNumber(params.fov, 10, 90, 45); // [10-90]
 
-    options.flat = queryBool(params.flat, false);
+    options.flatshading = queryBool(params.flatshading, false);
     options.wireframe = queryBool(params.wireframe, false);
     options.curvature = queryNumber(params.curvature, 0, 5, 1); // [0-5]
     options.exposure = queryNumber(params.exposure, 0, 5, 1); // [0-5]
-    options.environment = queryNumber(params.environment, 0, Infinity, 0); // [0-inf]
-    options.matcap = queryNumber(params.matcap, 0, Infinity, 3); // [0-inf]
+    options.environment = queryInteger(params.environment, 0, Infinity, 0); // [0-inf]
+    options.matcap = queryInteger(params.matcap, 0, Infinity, 3); // [0-inf]
     options.shader = (params.shader || 'PBR').toUpperCase(); // pbr/matcap/normal/uv
     return options;
   };

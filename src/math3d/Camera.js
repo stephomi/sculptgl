@@ -227,7 +227,7 @@ define([
     /** Update orthographic projection */
     updateOrtho: function () {
       var delta = Math.abs(this.zoom_) * 0.00055;
-      mat4.ortho(this.proj_, -this.width_ * delta, this.width_ * delta, -this.height_ * delta, this.height_ * delta, this.near_, this.far_);
+      mat4.ortho(this.proj_, -this.width_ * delta, this.width_ * delta, -this.height_ * delta, this.height_ * delta, -this.near_, this.far_);
     },
     /** Return the position of the camera */
     computePosition: function () {
