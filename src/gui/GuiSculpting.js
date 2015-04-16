@@ -31,6 +31,7 @@ define([
     /** Initialisculze */
     init: function (guiParent) {
       var menu = this.menu_ = guiParent.addMenu(TR('sculptTitle'));
+      menu.open();
 
       menu.addTitle(TR('sculptTool'));
 
@@ -322,7 +323,6 @@ define([
     },
     updateMesh: function () {
       this.menu_.setVisibility(!!this.main_.getMesh());
-      this.menu_.open();
     }
   };
 
