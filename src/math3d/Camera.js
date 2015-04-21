@@ -31,7 +31,7 @@ define([
     this.fov_ = Math.min(opts.fov, 150); // vertical field of view
 
     // translation stuffs
-    this.zoom_ = 0.0; // zoom value
+    this.zoom_ = 30.0; // zoom value
     this.transX_ = 0.0; // translation in x
     this.transY_ = 0.0; // translation in y
     this.moveX_ = 0; // free look (strafe), possible values : -1, 0, 1
@@ -112,10 +112,8 @@ define([
         var targetZoom = vec3.dist(this.stepCenter_, this.computePosition());
         if (this.projType_ === Camera.projType.PERSPECTIVE) {
           this.stepZoom_ = (targetZoom - this.zoom_) / this.stepCount_;
-          this.speed_ = targetZoom * 5.0;
         } else {
           this.stepZoom_ = 0.0;
-          this.speed_ = Utils.SCALE * 0.9;
         }
         vec3.sub(this.stepCenter_, this.stepCenter_, this.center_);
         vec3.scale(this.stepCenter_, this.stepCenter_, 1.0 / this.stepCount_);
@@ -205,7 +203,7 @@ define([
     },
     /** Update translation */
     updateTranslation: function () {
-      this.transX_ += this.moveX_ * this.speed_ / 400.0;
+      this.transX_ += this.moveX_ * this.speed_ * this.zoom_ / 50 / 400.0;
       this.zoom_ = Math.max(0.00001, this.zoom_ + this.moveZ_ * this.speed_ / 400.0);
       if (this.projType_ === Camera.projType.ORTHOGRAPHIC)
         this.updateOrtho();
@@ -213,13 +211,13 @@ define([
     },
     /** Compute translation values */
     translate: function (dx, dy) {
-      this.transX_ -= dx * this.speed_;
-      this.transY_ += dy * this.speed_;
+      this.transX_ -= dx * this.speed_ * this.zoom_ / 50;
+      this.transY_ += dy * this.speed_ * this.zoom_ / 50;
       this.updateView();
     },
     /** Zoom */
     zoom: function (delta) {
-      this.zoom_ = Math.max(0.00001, this.zoom_ - delta * this.speed_);
+      this.zoom_ = Math.max(0.00001, this.zoom_ * (1.0 - delta * this.speed_ / 54));
       if (this.projType_ === Camera.projType.ORTHOGRAPHIC)
         this.updateOrtho();
       this.updateView();
@@ -245,10 +243,11 @@ define([
     },
     /** Reset camera */
     resetView: function () {
-      this.transX_ = this.transY_ = this.zoom_ = this.rotX_ = this.rotY_ = 0.0;
+      this.transX_ = this.transY_ = this.rotX_ = this.rotY_ = 0.0;
       this.speed_ = Utils.SCALE * 0.9;
       quat.identity(this.quatRot_);
       vec3.set(this.center_, 0.0, 0.0, 0.0);
+      this.zoom_ = 30;
       this.zoom(-0.6);
     },
     resetViewFront: function () {
