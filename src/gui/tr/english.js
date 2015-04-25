@@ -215,7 +215,17 @@ define([], function () {
     sketchfabAbort: 'Abort the last upload ?',
     sketchfabUploadProcessing: 'Processing...\nYour model will be available at :',
 
-    donate: 'Donate !'
+    donate: 'Donate !',
+
+    alphaNone: 'None',
+    alphaSquare: 'Square',
+    alphaSkin: 'Skin',
+
+    envFootPrint: 'Foot Print',
+    envGlazedPatio: 'Glazed Patio',
+    envNicolausChurch: 'St Nicolaus church',
+    envTerrace: 'Terrace',
+    envBryantPark: 'BryantPark'
   };
 
   return TR;

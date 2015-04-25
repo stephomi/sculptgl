@@ -3,8 +3,9 @@ define([
   'math3d/Geometry',
   'mesh/Mesh',
   'misc/Tablet',
-  'misc/Utils'
-], function (glm, Geometry, Mesh, Tablet, Utils) {
+  'misc/Utils',
+  'gui/GuiTR'
+], function (glm, Geometry, Mesh, Tablet, Utils, TR) {
 
   'use strict';
 
@@ -31,7 +32,8 @@ define([
     this.alpha_ = null;
   };
 
-  Picking.ALPHAS_NAMES = ['None', 'Square', 'Skin'];
+  // TODO update i18n strings in a dynamic way
+  Picking.ALPHAS_NAMES = [TR('alphaNone'), TR('alphaSquare'), TR('alphaSkin')];
   Picking.ALPHAS_PATHS = ['square.jpg', 'skin.jpg'];
   Picking.ALPHAS = [null];
   Picking.addAlpha = function (u8, width, height) {

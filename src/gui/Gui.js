@@ -70,6 +70,7 @@ define([
 
       // gui extra
       var extra = this.topbar_.addExtra();
+      // Extra : Настройка интерфейса
       extra.addTitle(TR('contour'));
       extra.addColor(TR('contourColor'), ShaderContour.color, this.onContourColor.bind(this));
 

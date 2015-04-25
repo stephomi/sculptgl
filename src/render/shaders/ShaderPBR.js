@@ -1,35 +1,37 @@
 define([
   'misc/getUrlOptions',
   'render/shaders/ShaderBase',
-  'text!render/shaders/glsl/pbr.glsl'
-], function (getUrlOptions, ShaderBase, pbrGLSL) {
+  'text!render/shaders/glsl/pbr.glsl',
+  'gui/GuiTR'
+], function (getUrlOptions, ShaderBase, pbrGLSL, TR) {
 
   'use strict';
 
   var ShaderPBR = ShaderBase.getCopy();
   ShaderPBR.textures = {};
 
+  // TODO update i18n strings in a dynamic way
   var texPath = 'resources/environments/';
   ShaderPBR.environments = [{
     path: texPath + 'footPrint.bin',
     sph: [0.96097, 0.856821, 1.11124, -0.313999, -0.358144, -0.625599, 0.0870941, 0.1109, 0.171528, -0.100569, -0.0498991, -0.0302566, 0.02047, 0.0151743, 0.0182682, -0.00652953, -0.0188746, -0.0525354, 0.00192821, -0.0279455, -0.110808, -0.0180287, -0.0227345, -0.0422744, 0.0139192, -0.0187345, -0.0812033],
-    name: 'Foot Print'
+    name: TR('envFootPrint')
   }, {
     path: texPath + 'glazedPatio.bin',
     sph: [0.475424, 0.460106, 0.407626, -0.0626622, -0.0978501, -0.148369, -0.029662, -0.022522, -0.0109794, -0.0893952, -0.116715, -0.139033, 0.0450059, 0.0514445, 0.0619667, 0.00471057, 0.00393219, 0.00522881, -0.0508041, -0.0540791, -0.0530655, -0.0278953, -0.0258599, -0.0191718, -0.0137735, -0.0186312, -0.0286948],
-    name: 'Glazed Patio'
+    name: TR('envGlazedPatio')
   }, {
     path: texPath + 'nicolausChurch.bin',
     sph: [1.67609, 1.52776, 1.05807, -0.261794, -0.293249, -0.225056, 0.0371792, 0.0263728, -0.0174064, 0.142577, 0.121132, 0.0724402, 0.00827981, 0.00263222, 0.00184229, 0.0208164, 0.0128967, 0.0139606, 0.0795516, 0.0909961, 0.0897778, 0.058084, 0.0541786, 0.0401144, -0.0664757, -0.0587091, -0.0386655],
-    name: 'St Nicolaus church'
+    name: TR('envNicolausChurch')
   }, {
     path: texPath + 'terrace.bin',
     sph: [0.688602, 0.636799, 0.515733, -0.192892, -0.219448, -0.242244, 0.126328, 0.124547, 0.0928089, 0.308754, 0.307826, 0.214901, -0.0713295, -0.0740211, -0.0583892, -0.0283229, -0.0290954, -0.0224256, -0.030012, -0.0302393, -0.0280645, 0.0766113, 0.0653549, 0.0388244, 0.104034, 0.0751443, 0.0221583],
-    name: 'Terrace'
+    name: TR('envTerrace')
   }, {
     path: texPath + 'bryantPark.bin',
     sph: [0.583073, 0.794556, 0.966801, -0.218899, -0.334516, -0.690954, -0.0581536, -0.0912214, -0.13112, 0.0180201, 0.0683966, 0.157536, -0.0427475, -0.073612, -0.112892, 0.0490024, 0.06527, 0.0841072, -0.0243839, -0.0429701, -0.0792229, -0.0441213, -0.0562622, -0.0728875, -0.0267015, -0.0586719, -0.11978],
-    name: 'Bryant Park'
+    name: TR('envBryantPark')
   }];
   var opts = getUrlOptions();
   ShaderPBR.idEnv = Math.min(opts.environment, ShaderPBR.environments.length - 1);
