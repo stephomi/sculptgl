@@ -513,6 +513,7 @@ define([
         sel += 1;
         break;
       case Replay.CAMERA_FOV:
+        main.computeMatricesAndSort();
         vcam.setFov(data.getUint8(sel, true));
         sel += 1;
         break;

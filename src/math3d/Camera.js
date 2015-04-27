@@ -182,9 +182,9 @@ define([
       var eye = [0.0, 0.0, 0.0];
       var tmp = [0.0, 0.0, 0.0];
       return function (bb) {
-        if (!bb)
-          bb = this.boundingBox_;
-        this.boundingBox_ = bb;
+        if (!bb) bb = this.lastBBox_;
+        if (!bb) return;
+        this.lastBBox_ = bb;
         vec3.set(eye, this.transX_, this.transY_, this.getTransZ());
         var diag = vec3.dist(bb, vec3.set(tmp, bb[3], bb[4], bb[5]));
         var dist = vec3.dist(eye, vec3.set(tmp, (bb[0] + bb[3]) * 0.5, (bb[1] + bb[4]) * 0.5, (bb[2] + bb[5]) * 0.5));
