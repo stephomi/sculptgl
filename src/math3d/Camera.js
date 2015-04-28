@@ -40,9 +40,7 @@ define([
     // pivot stuffs
     this.usePivot_ = opts.pivot; // if rotation is centered around the picked point
     this.center_ = [0.0, 0.0, 0.0]; // center of rotation
-    this.stepCenter_ = [0.0, 0.0, 0.0]; // step vector to translate between pivots
-    this.stepZoom_ = 0.0; // step zoom value
-    this.stepCount_ = 0; // number of translation between pivots
+    this.offset_ = [0.0, 0.0, 0.0];
 
     // orbit camera
     this.rotX_ = 0.0; // x rot for orbit camera
@@ -51,6 +49,7 @@ define([
     // near far
     this.near_ = 0.05;
     this.far_ = 5000.0;
+
     this.resetView();
   };
 
@@ -102,23 +101,30 @@ define([
       return this.usePivot_;
     },
     /** Start camera (store mouse coordinates) */
-    start: function (mouseX, mouseY, picking) {
-      this.lastNormalizedMouseXY_ = Geometry.normalizedMouse(mouseX, mouseY, this.width_, this.height_);
-      if (this.usePivot_ && picking.getMesh()) {
-        this.stepCount_ = 10;
-        // target center
-        vec3.transformMat4(this.stepCenter_, picking.getIntersectionPoint(), picking.getMesh().getMatrix());
-        // target zoom
-        var targetZoom = vec3.dist(this.stepCenter_, this.computePosition());
-        if (this.projType_ === Camera.projType.PERSPECTIVE) {
-          this.stepZoom_ = (targetZoom - this.zoom_) / this.stepCount_;
-        } else {
-          this.stepZoom_ = 0.0;
+    start: (function () {
+      var qTemp = quat.create();
+
+      return function (mouseX, mouseY, picking) {
+        this.lastNormalizedMouseXY_ = Geometry.normalizedMouse(mouseX, mouseY, this.width_, this.height_);
+        if (this.usePivot_ && picking.getMesh()) {
+          vec3.transformQuat(this.offset_, this.offset_, quat.invert(qTemp, this.quatRot_));
+          vec3.sub(this.offset_, this.offset_, this.center_);
+
+          // set new pivot
+          vec3.transformMat4(this.center_, picking.getIntersectionPoint(), picking.getMesh().getMatrix());
+          vec3.add(this.offset_, this.offset_, this.center_);
+          vec3.transformQuat(this.offset_, this.offset_, this.quatRot_);
+
+          // adjust zoom
+          if (this.projType_ === Camera.projType.PERSPECTIVE) {
+            var oldZoom = this.getTransZ();
+            this.zoom_ = vec3.dist(this.computePosition(), this.center_) * this.fov_ / 45;
+            var newZoom = this.getTransZ();
+            this.offset_[2] += newZoom - oldZoom;
+          }
         }
-        vec3.sub(this.stepCenter_, this.stepCenter_, this.center_);
-        vec3.scale(this.stepCenter_, this.stepCenter_, 1.0 / this.stepCount_);
-      }
-    },
+      };
+    })(),
     /** Compute rotation values (by updating the quaternion) */
     rotate: (function () {
       var diff = [0.0, 0.0];
@@ -147,11 +153,6 @@ define([
           vec3.normalize(axisRot, vec3.cross(axisRot, mouseOnSphereBefore, mouseOnSphereAfter));
           quat.mul(this.quatRot_, quat.setAxisAngle(quatTmp, axisRot, angle * 2.0), this.quatRot_);
         }
-        if (this.stepCount_ > 0) {
-          --this.stepCount_;
-          this.zoom_ += this.stepZoom_;
-          vec3.add(this.center_, this.center_, this.stepCenter_);
-        }
         this.lastNormalizedMouseXY_ = normalizedMouseXY;
         this.updateView();
       };
@@ -171,11 +172,23 @@ define([
         var view = this.view_;
         var tx = this.transX_;
         var ty = this.transY_;
-        mat4.lookAt(view, vec3.set(eye, tx, ty, this.getTransZ()), vec3.set(center, tx, ty, 0.0), up);
+
+        var off = this.offset_;
+        // vec3.set(eye, tx, ty, this.getTransZ());
+        vec3.set(eye, tx - off[0], ty - off[1], this.getTransZ() - off[2]);
+        // vec3.set(center, tx, ty, 0.0);
+        vec3.set(center, tx - off[0], ty - off[1], -off[2]);
+
+        // eye[2] = this.getTransZ();
+        mat4.lookAt(view, eye, center, up);
+
         mat4.mul(view, view, mat4.fromQuat(matTmp, this.quatRot_));
         mat4.translate(view, view, vec3.negate(vecTmp, this.center_));
       };
     })(),
+
+    // Mo  = Mr Mt-1 Mr-1
+
     optimizeNearFar: (function () {
       var eye = [0.0, 0.0, 0.0];
       var tmp = [0.0, 0.0, 0.0];
@@ -218,6 +231,11 @@ define([
     /** Zoom */
     zoom: function (delta) {
       this.zoom_ = Math.max(0.00001, this.zoom_ * (1.0 - delta * this.speed_ / 54));
+
+      var focus = Math.abs(delta) * 5.0;
+      this.transX_ -= (this.transX_ - this.offset_[0]) * focus;
+      this.transY_ -= (this.transY_ - this.offset_[1]) * focus;
+
       if (this.projType_ === Camera.projType.ORTHOGRAPHIC)
         this.updateOrtho();
       this.updateView();
@@ -247,6 +265,7 @@ define([
       this.speed_ = Utils.SCALE * 0.9;
       quat.identity(this.quatRot_);
       vec3.set(this.center_, 0.0, 0.0, 0.0);
+      vec3.set(this.offset_, 0.0, 0.0, 0.0);
       this.zoom_ = 30;
       this.zoom(-0.6);
     },
@@ -389,6 +408,7 @@ define([
       mat4.copy(this.view_, cam.view_);
       quat.copy(this.quatRot_, cam.quatRot_);
       vec3.copy(this.center_, cam.center_);
+      vec3.copy(this.offset_, cam.offset_);
 
       this.transX_ = cam.transX_;
       this.transY_ = cam.transY_;

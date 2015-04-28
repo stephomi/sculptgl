@@ -702,6 +702,9 @@ define([
         this.mouseButton_ = 2; // pan camera
       else if (button === 3 || (button === 1 && !pickedMesh)) {
         this.mouseButton_ = 3; // rotate camera
+      }
+      // zoom or rotate camera
+      if (this.mouseButton_ === 3 || this.mouseButton_ === 4) {
         if (this.camera_.usePivot_)
           picking.intersectionMouseMeshes(this.meshes_, mouseX, mouseY);
         this.camera_.start(mouseX, mouseY, picking);

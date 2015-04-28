@@ -59,7 +59,7 @@ define([], function () {
 
     options.projection = (params.projection || 'PERSPECTIVE').toUpperCase(); // perspective/orthographic
     options.cameramode = (params.cameramode || 'ORBIT').toUpperCase(); // orbit/spherical/plane
-    options.pivot = queryBool(params.pivot, false);
+    options.pivot = queryBool(params.pivot, true);
     options.fov = queryNumber(params.fov, 10, 90, 45); // [10-90]
 
     options.flatshading = queryBool(params.flatshading, false);
