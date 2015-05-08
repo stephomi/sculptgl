@@ -20,6 +20,7 @@ define([
     this.cacheMVP_ = mat4.create();
 
     this.shader_ = null; // the shader
+    this.bbox_ = new Float32Array(6);
     this.init();
   };
 
@@ -63,11 +64,20 @@ define([
     render: function () {
       this.shader_.draw(this);
     },
+    getBound: function () {
+      return this.bbox_;
+    },
     getGridVertices: function () {
       var scale = Utils.SCALE;
-      var cx = -scale * 0.5;
+      var sdiv2 = scale * 0.5;
+      var cx = -sdiv2;
       var cy = 0.0;
-      var cz = -scale * 0.5;
+      var cz = -sdiv2;
+
+      this.bbox_[0] = this.bbox_[2] = -sdiv2;
+      this.bbox_[1] = -1e-5;
+      this.bbox_[3] = this.bbox_[5] = sdiv2;
+      this.bbox_[4] = 1e-5;
 
       var wx = scale;
       var wy = 0.0;

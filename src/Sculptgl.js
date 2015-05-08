@@ -225,7 +225,7 @@ define([
       var meshes = this.meshes_;
       var cam = this.camera_;
       if (meshes.length > 0)
-        cam.optimizeNearFar(this.computeBoundingBoxMeshes(meshes));
+        cam.optimizeNearFar(this.computeBoundingBoxScene());
       this.grid_.computeMatrices(cam);
       for (var i = 0, nb = meshes.length; i < nb; ++i)
         meshes[i].computeMatrices(cam);
@@ -453,6 +453,17 @@ define([
         if (max[2] > bigBound[5]) bigBound[5] = max[2];
       }
       return bigBound;
+    },
+    computeBoundingBoxScene: function () {
+      var bb = this.computeBoundingBoxMeshes(this.meshes_);
+      var gb = this.grid_.getBound();
+      if (gb[0] < bb[0]) bb[0] = gb[0];
+      if (gb[1] < bb[1]) bb[1] = gb[1];
+      if (gb[2] < bb[2]) bb[2] = gb[2];
+      if (gb[3] > bb[3]) bb[3] = gb[3];
+      if (gb[4] > bb[4]) bb[4] = gb[4];
+      if (gb[5] > bb[5]) bb[5] = gb[5];
+      return bb;
     },
     scaleAndCenterMeshes: function (meshes) {
       var vec3 = glm.vec3;
