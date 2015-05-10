@@ -57,8 +57,7 @@ define([
     },
     updatePickColor: function (main) {
       var picking = main.getPicking();
-      picking.intersectionMouseMesh(this.mesh_, main.mouseX_, main.mouseY_);
-      if (picking.getMesh())
+      if (picking.intersectionMouseMesh(this.mesh_, main.mouseX_, main.mouseY_))
         this.pickColor(picking);
     },
     /** Pick the color under the mouse */

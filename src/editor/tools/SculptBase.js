@@ -15,12 +15,10 @@ define([
     /** Start sculpting */
     start: function (main, ctrl) {
       var picking = main.getPicking();
-      picking.intersectionMouseMeshes(main.getMeshes(), main.mouseX_, main.mouseY_);
-      var mesh = picking.getMesh();
-      if (!mesh)
+      if (!picking.intersectionMouseMeshes(main.getMeshes(), main.mouseX_, main.mouseY_))
         return;
 
-      mesh = main.setOrUnsetMesh(mesh, ctrl);
+      var mesh = main.setOrUnsetMesh(picking.getMesh(), ctrl);
       if (!mesh)
         return;
 

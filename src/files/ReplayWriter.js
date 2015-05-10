@@ -355,10 +355,7 @@ define([
           data.setUint8(offset + 5, stack[++i], true);
           offset += 6;
           break;
-        case Replay.DEVICE_WHEEL:
-          data.setInt8(offset, stack[++i], true);
-          offset += 1;
-          break;
+        case Replay.DOUBLE_TAP:
         case Replay.CAMERA_SIZE:
           data.setUint16(offset, stack[++i], true);
           data.setUint16(offset + 2, stack[++i], true);
@@ -433,6 +430,7 @@ define([
           data.setFloat32(offset + 8, stack[++i], true);
           offset += 12;
           break;
+        case Replay.DEVICE_WHEEL:
         case Replay.PAINT_ROUGHNESS:
         case Replay.PAINT_METALLIC:
         case Replay.TABLET_PRESSURE:

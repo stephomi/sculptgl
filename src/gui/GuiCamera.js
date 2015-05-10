@@ -144,8 +144,13 @@ define([
     },
     /** Key released event */
     onKeyUp: function (event) {
+      if (event.handled === true)
+        return;
       event.stopPropagation();
+      if (this.main_.focusGui_)
+        return;
       event.preventDefault();
+      event.handled = true;
       var key = event.which;
       var camera = this.camera_;
       switch (key) {

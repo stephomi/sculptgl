@@ -9,7 +9,8 @@ define([], function () {
   Replay.DEVICE_MOVE = ida++; // [x (u16), y (u16), mask (u8)]
   Replay.DEVICE_DOWN = ida++; // [button (u8), x (u16), y (u16), mask (u8)]
   Replay.DEVICE_UP = ida++; // []
-  Replay.DEVICE_WHEEL = ida++; // [dir (i8)]
+  Replay.DEVICE_WHEEL = ida++; // [dir (f32)]
+  Replay.DOUBLE_TAP = ida++; // [x (u16), y (u16)]
 
   Replay.UNDO = ida++; // []
   Replay.REDO = ida++; // []

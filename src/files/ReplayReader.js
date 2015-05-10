@@ -1,5 +1,6 @@
 define([
   'lib/glMatrix',
+  'lib/Hammer',
   'lib/yagui',
   'gui/GuiTR',
   'files/ExportSGL',
@@ -11,7 +12,7 @@ define([
   'editor/Sculpt',
   'editor/Remesh',
   'render/Shader'
-], function (glm, yagui, TR, ExportSGL, Replay, Camera, Picking, getUrlOptions, Tablet, Sculpt, Remesh, Shader) {
+], function (glm, Hammer, yagui, TR, ExportSGL, Replay, Camera, Picking, getUrlOptions, Tablet, Sculpt, Remesh, Shader) {
 
   'use strict';
 
@@ -27,6 +28,7 @@ define([
 
   var ReplayReader = function (main) {
     this.main_ = main; // main application
+    this.hammer_ = new Hammer.Manager(this.main_.getCanvas());
 
     this.uid_ = 0; // name of the loaded replay
     this.data_ = null; // typed array of input action
@@ -477,13 +479,19 @@ define([
         main.onDeviceDown(ev);
         sel += 6;
         break;
+      case Replay.DOUBLE_TAP:
+        main.mouseX_ = data.getUint16(sel, true);
+        main.mouseY_ = data.getUint16(sel + 2, true);
+        main.onDoubleTap(ev);
+        sel += 4;
+        break;
       case Replay.DEVICE_UP:
         main.onMouseUp(ev);
         break;
       case Replay.DEVICE_WHEEL:
-        ev.wheelDelta = data.getInt8(sel, true);
+        ev.wheelDelta = data.getFloat32(sel, true);
         main.onMouseWheel(ev);
-        sel += 1;
+        sel += 4;
         break;
       case Replay.UNDO:
         main.getGui().ctrlStates_.onUndo();

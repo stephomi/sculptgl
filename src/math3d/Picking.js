@@ -146,8 +146,7 @@ define([
           mat4.invert(matInverse, mesh.getMatrix());
           vec3.transformMat4(vNearTransform, vNear, matInverse);
           vec3.transformMat4(vFarTransform, vFar, matInverse);
-          this.intersectionRayMesh(mesh, vNearTransform, vFarTransform, mouseX, mouseY);
-          if (!this.mesh_)
+          if (!this.intersectionRayMesh(mesh, vNearTransform, vFarTransform, mouseX, mouseY))
             continue;
           var interTest = this.getIntersectionPoint();
           var testDistance = vec3.dist(vNearTransform, interTest) * mesh.getScale();
@@ -163,6 +162,7 @@ define([
         this.pickedFace_ = nearFace;
         if (nearFace !== -1)
           this.computeLocalAndWorldRadius2(mouseX, mouseY);
+        return !!nearMesh;
       };
     })(),
     /** Intersection between a ray the mouse position */
@@ -173,7 +173,7 @@ define([
       mat4.invert(matInverse, mesh.getMatrix());
       vec3.transformMat4(vNear, vNear, matInverse);
       vec3.transformMat4(vFar, vFar, matInverse);
-      this.intersectionRayMesh(mesh, vNear, vFar, mouseX, mouseY);
+      return this.intersectionRayMesh(mesh, vNear, vFar, mouseX, mouseY);
     },
     /** Intersection between a ray and a mesh */
     intersectionRayMesh: (function () {
@@ -239,9 +239,10 @@ define([
         if (this.pickedFace_ !== -1) {
           this.mesh_ = mesh;
           this.computeLocalAndWorldRadius2(mouseX, mouseY);
-        } else {
-          this.rLocal2_ = 0.0;
+          return true;
         }
+        this.rLocal2_ = 0.0;
+        return false;
       };
     })(),
     /** Find all the vertices inside the sphere */

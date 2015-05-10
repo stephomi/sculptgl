@@ -85,6 +85,9 @@ define([
     setUsePivot: function (bool) {
       this.usePivot_ = bool;
     },
+    toggleUsePivot: function () {
+      this.usePivot_ = !this.usePivot_;
+    },
     getProjType: function () {
       return this.projType_;
     },
@@ -102,26 +105,32 @@ define([
     },
     /** Start camera (store mouse coordinates) */
     start: (function () {
-      var qTemp = quat.create();
-
+      var pivot = [0.0, 0.0, 0.0];
       return function (mouseX, mouseY, picking) {
         this.lastNormalizedMouseXY_ = Geometry.normalizedMouse(mouseX, mouseY, this.width_, this.height_);
         if (this.usePivot_ && picking.getMesh()) {
-          vec3.transformQuat(this.offset_, this.offset_, quat.invert(qTemp, this.quatRot_));
-          vec3.sub(this.offset_, this.offset_, this.center_);
+          vec3.transformMat4(pivot, picking.getIntersectionPoint(), picking.getMesh().getMatrix());
+          this.setPivot(pivot);
+        }
+      };
+    })(),
+    setPivot: (function () {
+      var qTemp = quat.create();
+      return function (pivot) {
+        vec3.transformQuat(this.offset_, this.offset_, quat.invert(qTemp, this.quatRot_));
+        vec3.sub(this.offset_, this.offset_, this.center_);
 
-          // set new pivot
-          vec3.transformMat4(this.center_, picking.getIntersectionPoint(), picking.getMesh().getMatrix());
-          vec3.add(this.offset_, this.offset_, this.center_);
-          vec3.transformQuat(this.offset_, this.offset_, this.quatRot_);
+        // set new pivot
+        vec3.copy(this.center_, pivot);
+        vec3.add(this.offset_, this.offset_, this.center_);
+        vec3.transformQuat(this.offset_, this.offset_, this.quatRot_);
 
-          // adjust zoom
-          if (this.projType_ === Camera.projType.PERSPECTIVE) {
-            var oldZoom = this.getTransZ();
-            this.zoom_ = vec3.dist(this.computePosition(), this.center_) * this.fov_ / 45;
-            var newZoom = this.getTransZ();
-            this.offset_[2] += newZoom - oldZoom;
-          }
+        // adjust zoom
+        if (this.projType_ === Camera.projType.PERSPECTIVE) {
+          var oldZoom = this.getTransZ();
+          this.zoom_ = vec3.dist(this.computePosition(), this.center_) * this.fov_ / 45;
+          var newZoom = this.getTransZ();
+          this.offset_[2] += newZoom - oldZoom;
         }
       };
     })(),
@@ -132,7 +141,8 @@ define([
       var quatTmp = [0.0, 0.0, 0.0, 0.0];
 
       return function (mouseX, mouseY, snap) {
-        if (snap) return this.snapClosestRotation();
+        if (snap)
+          return this.snapClosestRotation();
         var normalizedMouseXY = Geometry.normalizedMouse(mouseX, mouseY, this.width_, this.height_);
         if (this.mode_ === Camera.mode.ORBIT) {
           vec2.sub(diff, normalizedMouseXY, this.lastNormalizedMouseXY_);
@@ -174,21 +184,14 @@ define([
         var ty = this.transY_;
 
         var off = this.offset_;
-        // vec3.set(eye, tx, ty, this.getTransZ());
         vec3.set(eye, tx - off[0], ty - off[1], this.getTransZ() - off[2]);
-        // vec3.set(center, tx, ty, 0.0);
         vec3.set(center, tx - off[0], ty - off[1], -off[2]);
-
-        // eye[2] = this.getTransZ();
         mat4.lookAt(view, eye, center, up);
 
         mat4.mul(view, view, mat4.fromQuat(matTmp, this.quatRot_));
         mat4.translate(view, view, vec3.negate(vecTmp, this.center_));
       };
     })(),
-
-    // Mo  = Mr Mt-1 Mr-1
-
     optimizeNearFar: (function () {
       var eye = [0.0, 0.0, 0.0];
       var tmp = [0.0, 0.0, 0.0];
@@ -204,7 +207,6 @@ define([
         this.updateProjection();
       };
     })(),
-    /** Update projection matrix */
     updateProjection: function () {
       if (this.projType_ === Camera.projType.PERSPECTIVE) {
         mat4.perspective(this.proj_, this.fov_ * Math.PI / 180.0, this.width_ / this.height_, this.near_, this.far_);
@@ -214,7 +216,6 @@ define([
         this.updateOrtho();
       }
     },
-    /** Update translation */
     updateTranslation: function () {
       this.transX_ += this.moveX_ * this.speed_ * this.zoom_ / 50 / 400.0;
       this.zoom_ = Math.max(0.00001, this.zoom_ + this.moveZ_ * this.speed_ / 400.0);
@@ -222,7 +223,6 @@ define([
         this.updateOrtho();
       this.updateView();
     },
-    /** Compute translation values */
     translate: function (dx, dy) {
       this.transX_ -= dx * this.speed_ * this.zoom_ / 50;
       this.transY_ += dy * this.speed_ * this.zoom_ / 50;
@@ -232,7 +232,7 @@ define([
     zoom: function (delta) {
       this.zoom_ = Math.max(0.00001, this.zoom_ * (1.0 - delta * this.speed_ / 54));
 
-      var focus = Math.abs(delta) * 5.0;
+      var focus = Math.min(1.0, Math.abs(delta) * 5.0);
       this.transX_ -= (this.transX_ - this.offset_[0]) * focus;
       this.transY_ -= (this.transY_ - this.offset_[1]) * focus;
 
@@ -252,12 +252,6 @@ define([
       var rot = mat3.create();
       mat3.fromMat4(rot, view);
       return vec3.transformMat3(pos, pos, mat3.transpose(rot, rot));
-    },
-    /** Reset camera when we toggle usePivot */
-    toggleUsePivot: function () {
-      this.usePivot_ = !this.usePivot_;
-      this.transX_ = 0.0;
-      this.transY_ = 0.0;
     },
     /** Reset camera */
     resetView: function () {
@@ -422,6 +416,46 @@ define([
         this.setProjType(cam.getProjType());
       if (this.getFov() !== cam.getFov())
         this.setFov(cam.getFov());
+    },
+    moveAnimationTo: function (x, y, z, main) {
+      if (main.isReplayed()) {
+        this.moveTo(x, y, z);
+        return;
+      }
+
+      main.focusGui_ = true;
+      var duration = 400;
+      var tx = this.transX_;
+      var ty = this.transY_;
+      var tz = this.zoom_;
+
+      var tStart = (new Date()).getTime();
+      var timer = window.setInterval(function () {
+        var r = ((new Date()).getTime() - tStart) / duration;
+        r = Math.min(1.0, r);
+        // ease out quart
+        r = r - 1;
+        r = -(r * r * r * r - 1);
+
+        var newx = tx * (1.0 - r) + x * r;
+        var newy = ty * (1.0 - r) + y * r;
+        var newz = tz * (1.0 - r) + z * r;
+        this.moveTo(newx, newy, newz);
+
+        main.render();
+        if (r === 1.0) {
+          main.focusGui_ = false;
+          window.clearInterval(timer);
+        }
+      }.bind(this), 16.6);
+    },
+    moveTo: function (tx, ty, tz) {
+      this.transX_ = tx;
+      this.transY_ = ty;
+      this.zoom_ = tz;
+      if (this.projType_ === Camera.projType.ORTHOGRAPHIC)
+        this.updateOrtho();
+      this.updateView();
     }
   };
 
