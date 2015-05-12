@@ -387,7 +387,34 @@ define([
       this.setMesh(mesh);
       return mesh;
     },
-    /** Clear the scene */
+    loadScene: function (fileData, fileType, autoMatrix) {
+      var newMeshes;
+      if (fileType === 'obj') newMeshes = Import.importOBJ(fileData, this.gl_);
+      else if (fileType === 'sgl') newMeshes = Import.importSGL(fileData, this.gl_, this);
+      else if (fileType === 'stl') newMeshes = Import.importSTL(fileData, this.gl_);
+      else if (fileType === 'ply') newMeshes = Import.importPLY(fileData, this.gl_);
+      var nbNewMeshes = newMeshes.length;
+      if (nbNewMeshes === 0)
+        return;
+
+      var meshes = this.meshes_;
+      for (var i = 0; i < nbNewMeshes; ++i) {
+        var mesh = newMeshes[i] = new Multimesh(newMeshes[i]);
+        mesh.init();
+        mesh.initRender();
+        meshes.push(mesh);
+      }
+
+      if (!this.isReplayed())
+        this.getReplayWriter().pushLoadMeshes(newMeshes, fileData, fileType, autoMatrix);
+
+      if (autoMatrix)
+        this.scaleAndCenterMeshes(newMeshes);
+      this.states_.pushStateAdd(newMeshes);
+      this.setMesh(meshes[meshes.length - 1]);
+      this.camera_.resetView();
+      return newMeshes;
+    },
     clearScene: function () {
       this.getStates().reset();
       this.getMeshes().length = 0;
@@ -400,7 +427,6 @@ define([
       this.mouseButton_ = 0;
       this.getReplayWriter().reset();
     },
-    /** Delete the current selected mesh */
     deleteCurrentSelection: function () {
       if (!this.mesh_)
         return;
