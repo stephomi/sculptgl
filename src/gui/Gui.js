@@ -58,7 +58,8 @@ define([
       ctrls[idc++] = this.ctrlStates_ = new GuiStates(this.topbar_, this);
       ctrls[idc++] = this.ctrlBackground_ = new GuiBackground(this.topbar_, this);
       ctrls[idc++] = this.ctrlCamera_ = new GuiCamera(this.topbar_, this);
-      ctrls[idc++] = this.ctrlTablet_ = new GuiTablet(this.topbar_, this);
+      // TODO find a way to get pressure event
+      // ctrls[idc++] = this.ctrlTablet_ = new GuiTablet(this.topbar_, this);
       ctrls[idc++] = this.ctrlConfig_ = new GuiConfig(this.topbar_, this);
       ctrls[idc++] = this.ctrlMesh_ = new GuiMesh(this.topbar_, this);
 
