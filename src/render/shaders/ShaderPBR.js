@@ -1,11 +1,14 @@
 define([
+  'lib/glMatrix',
   'misc/getUrlOptions',
   'render/shaders/ShaderBase',
   'text!render/shaders/glsl/pbr.glsl',
   'gui/GuiTR'
-], function (getUrlOptions, ShaderBase, pbrGLSL, TR) {
+], function (glm, getUrlOptions, ShaderBase, pbrGLSL, TR) {
 
   'use strict';
+
+  var mat3 = glm.mat3;
 
   var ShaderPBR = ShaderBase.getCopy();
   ShaderPBR.textures = {};
@@ -87,10 +90,8 @@ define([
     pbrGLSL,
     '',
     'void main(void) {',
-    '  vec3 normal = normalize(vNormal);',
-    '  if(!gl_FrontFacing) normal =- normal;',
+    '  vec3 normal = normalize(gl_FrontFacing ? vNormal : -vNormal);',
     '  vec3 eye = normalize(vVertex);',
-    '  environmentTransform = getEnvironmentTransform( uIblTransform );',
     '',
     '  float roughness = max( 0.0001, vRoughness );',
     '  vec3 albedo = vAlbedo * (1.0 - vMetallic);',
@@ -147,11 +148,13 @@ define([
     return sphCoef;
   };
 
+  var uIBLTmp = mat3.create();
   ShaderPBR.updateUniforms = function (render, main) {
     var gl = render.getGL();
     var uniforms = this.uniforms;
 
-    gl.uniformMatrix4fv(uniforms.uIblTransform, false, main.getCamera().view_);
+    mat3.fromMat4(uIBLTmp, main.getCamera().view_);
+    gl.uniformMatrix3fv(uniforms.uIblTransform, false, mat3.transpose(uIBLTmp, uIBLTmp));
 
     gl.uniform3fv(uniforms.uAlbedo, render.getAlbedo());
     gl.uniform1f(uniforms.uRoughness, render.getRoughness());

@@ -236,15 +236,15 @@ define([
         Render.ONLY_DRAW_ARRAYS = true;
       gl.viewportWidth = window.innerWidth;
       gl.viewportHeight = window.innerHeight;
-      gl.clearColor(0.033, 0.033, 0.033, 1);
       gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
       gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true);
       gl.pixelStorei(gl.UNPACK_PREMULTIPLY_ALPHA_WEBGL, false);
       gl.pixelStorei(gl.UNPACK_COLORSPACE_CONVERSION_WEBGL, gl.NONE);
-      gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
-
+      gl.frontFace(gl.CCW);
       gl.depthFunc(gl.LEQUAL);
       gl.cullFace(gl.BACK);
+      gl.clearColor(0.033, 0.033, 0.033, 1);
+      gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
     },
     /** Load textures (preload) */
     loadTextures: function () {

@@ -3,13 +3,12 @@
 #define INV_PI 1.0/PI
 #define INV_LOG2 1.4426950408889634073599246810019
 
-uniform mat4 uIblTransform;
 uniform sampler2D uTexture0;
 uniform float uExposure;
+uniform mat3 uIblTransform;
 
 vec2 environmentSize = vec2(1024, 512);
 vec2 environmentLodRange = vec2(10, 5);
-mat3 environmentTransform;
 
 const mat3 LUVInverse = mat3( 6.0013, -2.700, -1.7995, -1.332, 3.1029, -5.7720, 0.3007, -1.088, 5.6268 );
 vec3 LUVToRGB( const in vec4 vLogLuv ) {
@@ -59,31 +58,24 @@ vec3 integrateBRDFApprox(const in vec3 specular, float roughness, float NoV) {
 vec3 approximateSpecularIBL( const in vec3 specularColor, float rLinear, const in vec3 N, const in vec3 V ) {
   float NoV = clamp( dot( N, V ), 0.0, 1.0 );
   vec3 R = normalize( (2.0 * NoV ) * N - V);
-  vec3 prefilteredColor = texturePanoramaLod( uTexture0, environmentSize, environmentTransform * R, rLinear * environmentLodRange[1], environmentLodRange[0] );
+  vec3 prefilteredColor = texturePanoramaLod( uTexture0, environmentSize, uIblTransform * R, rLinear * environmentLodRange[1], environmentLodRange[0] );
   return prefilteredColor * integrateBRDFApprox(specularColor, rLinear, NoV);
 }
 
 // expect shCoefs uniform
 // https://github.com/cedricpinson/envtools/blob/master/Cubemap.cpp#L523
-vec3 sphericalHarmonics( const in vec3 normal ) {
-  float x = normal.x;
-  float y = normal.y;
-  float z = normal.z;
+vec3 sphericalHarmonics( const in vec3 N ) {
+  float x = N.x;
+  float y = N.y;
+  float z = N.z;
   vec3 result = uSPH[0] + uSPH[1] * y + uSPH[2] * z + uSPH[3] * x + uSPH[4] * y * x + uSPH[5] * y * z + uSPH[6] * (3.0 * z * z - 1.0) + uSPH[7] * (z * x) + uSPH[8] * (x*x - y*y);
   return max(result, vec3(0.0));
 }
 
-vec3 computeIBL_UE4( const in vec3 normal, const in vec3 view, const in vec3 albedo, const in float roughness, const in vec3 specular) {
+vec3 computeIBL_UE4( const in vec3 N, const in vec3 V, const in vec3 albedo, const in float roughness, const in vec3 specular) {
   vec3 color = vec3(0.0);
   if ( albedo != color )
-    color += albedo * sphericalHarmonics( environmentTransform * normal );
-  color += approximateSpecularIBL(specular, roughness, normal, view);
+    color += albedo * sphericalHarmonics( uIblTransform * N );
+  color += approximateSpecularIBL(specular, roughness, N, V);
   return color;
-}
-
-mat3 getEnvironmentTransform( const in mat4 transform ) {
-  vec3 x = vec3(transform[0][0], transform[1][0], transform[2][0]);
-  vec3 y = vec3(transform[0][1], transform[1][1], transform[2][1]);
-  vec3 z = vec3(transform[0][2], transform[1][2], transform[2][2]);
-  return mat3(x, y, z);
 }
