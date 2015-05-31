@@ -11,8 +11,8 @@ define([
   var vec3 = glm.vec3;
   var quat = glm.quat;
 
-  var Twist = function (states) {
-    SculptBase.call(this, states);
+  var Twist = function (main) {
+    SculptBase.call(this, main);
     this.radius_ = 75;
     this.culling_ = false;
     this.twistData_ = {
@@ -28,7 +28,8 @@ define([
 
   Twist.prototype = {
     /** Start a twist sculpt stroke */
-    startSculpt: function (main) {
+    startSculpt: function () {
+      var main = this.main_;
       var mouseX = main.mouseX_;
       var mouseY = main.mouseY_;
       var picking = main.getPicking();
@@ -48,7 +49,8 @@ define([
       vec2.set(twistData.center, mouseX, mouseY);
     },
     /** Make a brush twist stroke */
-    sculptStroke: function (main) {
+    sculptStroke: function () {
+      var main = this.main_;
       var mx = main.mouseX_;
       var my = main.mouseY_;
       var lx = main.lastMouseX_;
@@ -65,7 +67,7 @@ define([
           this.stroke(pickingSym, lx, ly, mx, my, this.twistDataSym_);
         }
       }
-      this.updateRender(main);
+      this.updateRender();
       main.getCanvas().style.cursor = 'default';
     },
     /** On stroke */

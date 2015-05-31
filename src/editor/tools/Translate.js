@@ -10,8 +10,8 @@ define([
   var vec3 = glm.vec3;
   var mat4 = glm.mat4;
 
-  var Translate = function (states) {
-    SculptBase.call(this, states);
+  var Translate = function (main) {
+    SculptBase.call(this, main);
     this.origin_ = [0.0, 0.0, 0.0]; // plane origin
     this.normal_ = [0.0, 0.0, 0.0]; // plane normal
     this.matrixInv_ = mat4.create();
@@ -49,7 +49,8 @@ define([
       else mesh.updateGeometry(mesh.getFacesFromVertices(iVerts), iVerts);
     },
     /** Start sculpting operation */
-    startSculpt: function (main) {
+    startSculpt: function () {
+      var main = this.main_;
       var picking = main.getPicking();
       var camera = main.getCamera();
       var matrixInv = this.matrixInv_;
@@ -70,7 +71,8 @@ define([
       vec3.set(this.editTrans_, 0.0, 0.0, 0.0);
     },
     /** Update sculpting operation */
-    update: function (main) {
+    update: function () {
+      var main = this.main_;
       var appTrans = this.appliedTrans_;
       var eTrans = this.editTrans_;
       var m = this.mesh_.getEditMatrix();

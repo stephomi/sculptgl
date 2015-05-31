@@ -6,8 +6,8 @@ define([
 
   'use strict';
 
-  var Crease = function (states) {
-    SculptBase.call(this, states);
+  var Crease = function (main) {
+    SculptBase.call(this, main);
     this.radius_ = 25;
     this.intensity_ = 0.75;
     this.negative_ = true;

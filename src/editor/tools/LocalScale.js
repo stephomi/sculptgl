@@ -6,8 +6,8 @@ define([
 
   'use strict';
 
-  var LocalScale = function (states) {
-    SculptBase.call(this, states);
+  var LocalScale = function (main) {
+    SculptBase.call(this, main);
     this.radius_ = 50;
     this.culling_ = false;
     this.idAlpha_ = 0;
@@ -15,7 +15,8 @@ define([
 
   LocalScale.prototype = {
     /** Start a sculpt sculpt stroke */
-    startSculpt: function (main) {
+    startSculpt: function () {
+      var main = this.main_;
       if (main.getSculpt().getSymmetry()) {
         var pickingSym = main.getPickingSymmetry();
         pickingSym.intersectionMouseMesh(this.mesh_, main.mouseX_, main.mouseY_);
@@ -23,7 +24,8 @@ define([
       }
     },
     /** Make a brush scale stroke */
-    sculptStroke: function (main) {
+    sculptStroke: function () {
+      var main = this.main_;
       var delta = main.mouseX_ - main.lastMouseX_;
       var picking = main.getPicking();
       var rLocal2 = picking.getLocalRadius2();
@@ -37,7 +39,7 @@ define([
           this.stroke(pickingSym, delta);
         }
       }
-      this.updateRender(main);
+      this.updateRender();
     },
     /** On stroke */
     stroke: function (picking, delta) {

@@ -149,11 +149,6 @@ define([
       tool.material_[0] = roughness;
       tool.material_[1] = metallic;
     },
-    paintAll: function (main, tool) {
-      if (!main.getMesh())
-        return;
-      tool.paintAll(main.getMesh(), main);
-    },
     init: function (tool, fold, main) {
       this.ctrls_.push(addCtrlRadius(tool, fold, this));
       this.ctrls_.push(addCtrlIntensity(tool, fold, this));
@@ -161,7 +156,7 @@ define([
       this.ctrls_.push(addCtrlCulling(tool, fold));
 
       this.ctrls_.push(fold.addCheckbox(TR('sculptPickColor'), tool, 'pickColor_'));
-      this.ctrls_.push(fold.addButton(TR('sculptPaintAll'), this.paintAll.bind(this, main, tool)));
+      this.ctrls_.push(fold.addButton(TR('sculptPaintAll'), tool, 'paintAll'));
 
       this.ctrls_.push(fold.addTitle(TR('sculptPBRTitle')));
 

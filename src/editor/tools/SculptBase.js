@@ -4,16 +4,19 @@ define([
 
   'use strict';
 
-  var SculptBase = function (states) {
-    this.states_ = states; // for undo-redo
+  var SculptBase = function (main) {
+    this.main_ = main;
+    this.states_ = main ? main.getStates() : null; // for undo-redo
     this.mesh_ = null; // the current edited mesh
+    this.cbContinuous_ = this.updateContinuous.bind(this); // callback continuous
     this.lastMouseX_ = 0.0;
     this.lastMouseY_ = 0.0;
   };
 
   SculptBase.prototype = {
     /** Start sculpting */
-    start: function (main, ctrl) {
+    start: function (ctrl) {
+      var main = this.main_;
       var picking = main.getPicking();
       if (!picking.intersectionMouseMeshes(main.getMeshes(), main.mouseX_, main.mouseY_))
         return;
@@ -32,7 +35,7 @@ define([
       this.pushState();
       this.lastMouseX_ = main.mouseX_;
       this.lastMouseY_ = main.mouseY_;
-      this.startSculpt(main);
+      this.startSculpt();
     },
     /** End sculpting */
     end: function () {
@@ -61,19 +64,20 @@ define([
       this.states_.pushStateGeometry(this.mesh_);
     },
     /** Start sculpting operation */
-    startSculpt: function (main) {
+    startSculpt: function () {
       if (this.lockPosition_ === true)
         return;
-      this.sculptStroke(main);
+      this.sculptStroke();
     },
     /** Update sculpting operation */
-    update: function (main, continuous) {
+    update: function (continuous) {
       if (this.lockPosition_ === true)
-        return this.updateSculptLock(main, continuous);
-      this.sculptStroke(main);
+        return this.updateSculptLock(continuous);
+      this.sculptStroke();
     },
     /** Update lock position */
-    updateSculptLock: function (main, continuous) {
+    updateSculptLock: function (continuous) {
+      var main = this.main_;
       if (!continuous)
         this.states_.getCurrentState().undo(); // I can't believe it actually worked
 
@@ -91,11 +95,12 @@ define([
       this.makeStroke(this.lastMouseX_ + offx * 1e-3, this.lastMouseY_ + offy * 1e-3, picking, pickingSym);
       this.radius_ = origRad;
 
-      this.updateRender(main);
+      this.updateRender();
       main.getCanvas().style.cursor = 'default';
     },
     /** Make a brush stroke */
-    sculptStroke: function (main) {
+    sculptStroke: function () {
+      var main = this.main_;
       var picking = main.getPicking();
       var pickingSym = main.getSculpt().getSymmetry() ? main.getPickingSymmetry() : null;
 
@@ -120,14 +125,14 @@ define([
         mouseY += dy;
       }
 
-      this.updateRender(main);
+      this.updateRender();
 
       this.lastMouseX_ = main.mouseX_;
       this.lastMouseY_ = main.mouseY_;
     },
-    updateRender: function (main) {
+    updateRender: function () {
       this.updateMeshBuffers();
-      main.render();
+      this.main_.render();
     },
     makeStroke: function (mouseX, mouseY, picking, pickingSym) {
       var mesh = this.mesh_;
@@ -163,12 +168,13 @@ define([
       else
         this.mesh_.updateGeometryBuffers();
     },
-    updateContinuous: function (main) {
-      if (this.lockPosition_) return this.update(main, true);
+    updateContinuous: function () {
+      if (this.lockPosition_) return this.update(true);
+      var main = this.main_;
       var picking = main.getPicking();
       var pickingSym = main.getSculpt().getSymmetry() ? main.getPickingSymmetry() : null;
       this.makeStroke(main.mouseX_, main.mouseY_, picking, pickingSym);
-      this.updateRender(main);
+      this.updateRender();
     },
     /** Return the vertices that point toward the camera */
     getFrontVertices: function (iVertsInRadius, eyeDir) {

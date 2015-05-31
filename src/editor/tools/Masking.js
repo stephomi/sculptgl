@@ -13,8 +13,8 @@ define([
   var vec3 = glm.vec3;
   var mat3 = glm.mat3;
 
-  var Masking = function (states) {
-    SculptBase.call(this, states);
+  var Masking = function (main) {
+    SculptBase.call(this, main);
     this.radius_ = 50;
     this.hardness_ = 0.25;
     this.intensity_ = 1.0;
@@ -65,15 +65,16 @@ define([
         mAr[ind + 2] = Math.min(Math.max(mAr[ind + 2] + fallOff, 0.0), 1.0);
       }
     },
-    updateAndRenderMask: function (main) {
+    updateAndRenderMask: function () {
       this.mesh_.updateDuplicateColorsAndMaterials();
       this.mesh_.updateFlatShading();
-      this.updateRender(main);
+      this.updateRender();
     },
-    blur: function (mesh, main) {
-      this.mesh_ = mesh;
+    blur: function () {
+      var mesh = this.mesh_;
       var iVerts = this.getMaskedVertices();
-      if (iVerts.length === 0) return;
+      if (iVerts.length === 0)
+        return;
       iVerts = mesh.expandsVertices(iVerts, 1);
 
       this.pushState();
@@ -85,12 +86,13 @@ define([
       this.laplacianSmooth(iVerts, smoothVerts, mAr);
       for (var i = 0; i < nbVerts; ++i)
         mAr[iVerts[i] * 3 + 2] = smoothVerts[i * 3 + 2];
-      this.updateAndRenderMask(main);
+      this.updateAndRenderMask();
     },
-    sharpen: function (mesh, main) {
-      this.mesh_ = mesh;
+    sharpen: function () {
+      var mesh = this.mesh_;
       var iVerts = this.getMaskedVertices();
-      if (iVerts.length === 0) return;
+      if (iVerts.length === 0)
+        return;
 
       this.pushState();
       this.states_.pushVertices(iVerts);
@@ -102,12 +104,13 @@ define([
         var val = mAr[idm];
         mAr[idm] = val > 0.5 ? Math.min(val + 0.1, 1.0) : Math.max(val - 1.0, 0.0);
       }
-      this.updateAndRenderMask(main);
+      this.updateAndRenderMask();
     },
-    clear: function (mesh, main) {
-      this.mesh_ = mesh;
+    clear: function () {
+      var mesh = this.mesh_;
       var iVerts = this.getMaskedVertices();
-      if (iVerts.length === 0) return;
+      if (iVerts.length === 0)
+        return;
 
       this.pushState();
       this.states_.pushVertices(iVerts);
@@ -116,18 +119,18 @@ define([
       for (var i = 0, nb = iVerts.length; i < nb; ++i)
         mAr[iVerts[i] * 3 + 2] = 1.0;
 
-      this.updateAndRenderMask(main);
+      this.updateAndRenderMask();
     },
-    invert: function (mesh, main, isState) {
-      this.mesh_ = mesh;
+    invert: function (isState, meshState) {
+      var mesh = meshState || this.mesh_;
       if (!isState)
-        this.states_.pushStateCustom(this.invert.bind(this, mesh, main, true));
+        this.states_.pushStateCustom(this.invert.bind(this, true, mesh));
 
       var mAr = mesh.getMaterials();
       for (var i = 0, nb = mesh.getNbVertices(); i < nb; ++i)
         mAr[i * 3 + 2] = 1.0 - mAr[i * 3 + 2];
 
-      this.updateAndRenderMask(main);
+      this.updateAndRenderMask();
     },
     remapAndMirrorIndices: function (fAr, nbFaces, iVerts) {
       var nbVertices = this.mesh_.getNbVertices();
@@ -300,12 +303,13 @@ define([
       smo.smooth(vBridge, 1.0);
       smo.smooth(vBridge, 1.0);
     },
-    extract: function (mesh, main) {
-      this.mesh_ = mesh;
+    extract: function () {
+      var mesh = this.mesh_;
       var maskClamp = 0.5;
 
       var iVerts = this.filterMaskedVertices(-Infinity, maskClamp);
-      if (iVerts.length === 0) return;
+      if (iVerts.length === 0)
+        return;
       var iFaces = mesh.getFacesFromVertices(iVerts);
       iVerts = mesh.getVerticesFromFaces(iFaces);
 
@@ -328,6 +332,8 @@ define([
 
       newMesh.copyRenderConfig(mesh);
       newMesh.initRender();
+
+      var main = this.main_;
       main.addNewMesh(newMesh);
       main.setMesh(mesh);
     }

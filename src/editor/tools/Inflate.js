@@ -7,8 +7,8 @@ define([
 
   'use strict';
 
-  var Inflate = function (states) {
-    SculptBase.call(this, states);
+  var Inflate = function (main) {
+    SculptBase.call(this, main);
     this.radius_ = 50;
     this.intensity_ = 0.3;
     this.negative_ = false;

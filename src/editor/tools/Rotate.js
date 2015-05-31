@@ -12,8 +12,8 @@ define([
   var mat4 = glm.mat4;
   var quat = glm.quat;
 
-  var Rotate = function (states) {
-    SculptBase.call(this, states);
+  var Rotate = function (main) {
+    SculptBase.call(this, main);
     this.lastNormalizedMouseXY_ = [0.0, 0.0];
     this.matrixInv_ = mat4.create();
     this.preTranslate_ = mat4.create();
@@ -55,7 +55,8 @@ define([
     startSculpt: (function () {
       var tmp = [0.0, 0.0, 0.0];
       var qu = [0.0, 0.0, 0.0, 1.0];
-      return function (main) {
+      return function () {
+        var main = this.main_;
         var camera = main.getCamera();
         this.lastNormalizedMouseXY_ = Geometry.normalizedMouse(main.mouseX_, main.mouseY_, camera.width_, camera.height_);
 
@@ -81,7 +82,8 @@ define([
     update: (function () {
       var qu = [0.0, 0.0, 0.0, 1.0];
       var axis = [0.0, 0.0, 0.0];
-      return function (main) {
+      return function () {
+        var main = this.main_;
         var mesh = this.mesh_;
         var camera = main.getCamera();
 

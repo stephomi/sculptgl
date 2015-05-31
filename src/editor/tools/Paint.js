@@ -9,8 +9,8 @@ define([
 
   var vec3 = glm.vec3;
 
-  var Paint = function (states) {
-    SculptBase.call(this, states);
+  var Paint = function (main) {
+    SculptBase.call(this, main);
     this.radius_ = 50;
     this.hardness_ = 0.75;
     this.intensity_ = 0.75;
@@ -31,20 +31,20 @@ define([
         this.states_.pushStateColorAndMaterial(this.mesh_);
     },
     /** Start sculpting operation */
-    startSculpt: function (main) {
+    startSculpt: function () {
       if (this.pickColor_)
-        return this.pickColor(main.getPicking());
-      SculptBase.prototype.startSculpt.call(this, main);
+        return this.pickColor(this.main_.getPicking());
+      SculptBase.prototype.startSculpt.call(this);
     },
     /** Update sculpting operation */
-    update: function (main) {
+    update: function () {
       if (this.pickColor_ === true)
-        return this.updatePickColor(main);
+        return this.updatePickColor();
       SculptBase.prototype.update.apply(this, arguments);
     },
-    updateContinuous: function (main) {
+    updateContinuous: function () {
       if (this.pickColor_ === true)
-        return this.updatePickColor(main);
+        return this.updatePickColor();
       SculptBase.prototype.updateContinuous.apply(this, arguments);
     },
     updateMeshBuffers: function () {
@@ -55,7 +55,8 @@ define([
         this.mesh_.updateMaterialBuffer();
       }
     },
-    updatePickColor: function (main) {
+    updatePickColor: function () {
+      var main = this.main_;
       var picking = main.getPicking();
       if (picking.intersectionMouseMesh(this.mesh_, main.mouseX_, main.mouseY_))
         this.pickColor(picking);
@@ -129,10 +130,11 @@ define([
         mAr[ind + 1] = mAr[ind + 1] * fallOffCompl + metallic * fallOff;
       }
     },
-    paintAll: function (mesh, main) {
-      this.mesh_ = mesh;
+    paintAll: function () {
+      var mesh = this.mesh_;
       var iVerts = this.getUnmaskedVertices();
-      if (iVerts.length === 0) return;
+      if (iVerts.length === 0)
+        return;
 
       this.pushState(true);
       this.states_.pushVertices(iVerts);
@@ -158,7 +160,7 @@ define([
 
       mesh.updateDuplicateColorsAndMaterials();
       mesh.updateFlatShading();
-      this.updateRender(main);
+      this.updateRender();
     }
   };
 

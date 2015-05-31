@@ -6,8 +6,8 @@ define([
 
   'use strict';
 
-  var Smooth = function (states) {
-    SculptBase.call(this, states);
+  var Smooth = function (main) {
+    SculptBase.call(this, main);
     this.radius_ = 50;
     this.intensity_ = 0.75;
     this.culling_ = false;

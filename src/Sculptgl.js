@@ -113,11 +113,8 @@ define([
       evProxy.pageY = e.center.y;
       this.setMousePosition(evProxy);
 
-      var mouseX = this.mouseX_;
-      var mouseY = this.mouseY_;
-
       var picking = this.picking_;
-      var res = picking.intersectionMouseMeshes(this.meshes_, mouseX, mouseY);
+      var res = picking.intersectionMouseMeshes(this.meshes_, this.mouseX_, this.mouseY_);
       var cam = this.camera_;
       var pivot = [0.0, 0.0, 0.0];
       if (!res) {
@@ -320,7 +317,7 @@ define([
       var button = this.mouseButton_ = event.which;
 
       if (button === 1)
-        this.sculpt_.start(this, event.shiftKey);
+        this.sculpt_.start(event.shiftKey);
       var picking = this.picking_;
       var pickedMesh = picking.getMesh();
       if (button === 1 && pickedMesh)

@@ -18,8 +18,8 @@ define([
 
   'use strict';
 
-  var Sculpt = function (states) {
-    this.states_ = states; // for undo-redo
+  var Sculpt = function (main) {
+    this.main_ = main;
 
     this.tool_ = Sculpt.tool.BRUSH; // sculpting mode
     this.tools_ = []; // the sculpting tools
@@ -64,22 +64,22 @@ define([
       return this.tools_[key] ? this.tools_[key] : this.tools_[Sculpt.tool[key]];
     },
     init: function () {
-      var states = this.states_;
-      this.tools_[Sculpt.tool.BRUSH] = new Brush(states);
-      this.tools_[Sculpt.tool.INFLATE] = new Inflate(states);
-      this.tools_[Sculpt.tool.TWIST] = new Twist(states);
-      this.tools_[Sculpt.tool.SMOOTH] = new Smooth(states);
-      this.tools_[Sculpt.tool.FLATTEN] = new Flatten(states);
-      this.tools_[Sculpt.tool.PINCH] = new Pinch(states);
-      this.tools_[Sculpt.tool.CREASE] = new Crease(states);
-      this.tools_[Sculpt.tool.DRAG] = new Drag(states);
-      this.tools_[Sculpt.tool.PAINT] = new Paint(states);
-      this.tools_[Sculpt.tool.MOVE] = new Move(states);
-      this.tools_[Sculpt.tool.MASKING] = new Masking(states);
-      this.tools_[Sculpt.tool.LOCALSCALE] = new LocalScale(states);
-      this.tools_[Sculpt.tool.TRANSLATE] = new Translate(states);
-      this.tools_[Sculpt.tool.ROTATE] = new Rotate(states);
-      this.tools_[Sculpt.tool.SCALE] = new Scale(states);
+      var main = this.main_;
+      this.tools_[Sculpt.tool.BRUSH] = new Brush(main);
+      this.tools_[Sculpt.tool.INFLATE] = new Inflate(main);
+      this.tools_[Sculpt.tool.TWIST] = new Twist(main);
+      this.tools_[Sculpt.tool.SMOOTH] = new Smooth(main);
+      this.tools_[Sculpt.tool.FLATTEN] = new Flatten(main);
+      this.tools_[Sculpt.tool.PINCH] = new Pinch(main);
+      this.tools_[Sculpt.tool.CREASE] = new Crease(main);
+      this.tools_[Sculpt.tool.DRAG] = new Drag(main);
+      this.tools_[Sculpt.tool.PAINT] = new Paint(main);
+      this.tools_[Sculpt.tool.MOVE] = new Move(main);
+      this.tools_[Sculpt.tool.MASKING] = new Masking(main);
+      this.tools_[Sculpt.tool.LOCALSCALE] = new LocalScale(main);
+      this.tools_[Sculpt.tool.TRANSLATE] = new Translate(main);
+      this.tools_[Sculpt.tool.ROTATE] = new Rotate(main);
+      this.tools_[Sculpt.tool.SCALE] = new Scale(main);
     },
     /** Return true if the current tool doesn't prevent picking */
     allowPicking: function () {
@@ -91,28 +91,24 @@ define([
     isUsingContinuous: function () {
       return this.continuous_ && this.allowPicking();
     },
-    /** Start sculpting */
-    start: function (main, ctrl) {
+    start: function (ctrl) {
       var tool = this.getCurrentTool();
-      tool.start(main, ctrl);
-      if (!main.getPicking().getMesh() || !this.isUsingContinuous())
+      tool.start(ctrl);
+      if (!this.main_.getPicking().getMesh() || !this.isUsingContinuous())
         return;
-      this.sculptTimer_ = window.setInterval(tool.updateContinuous.bind(tool, main), 16.6);
+      this.sculptTimer_ = window.setInterval(tool.cbContinuous_, 16.6);
     },
-    /** End sculpting */
     end: function () {
-      var tool = this.getCurrentTool();
-      tool.end();
+      this.getCurrentTool().end();
       if (this.sculptTimer_ !== -1) {
         clearInterval(this.sculptTimer_);
         this.sculptTimer_ = -1;
       }
     },
-    /** Update sculpting */
-    update: function (main) {
+    update: function () {
       if (this.isUsingContinuous())
         return;
-      this.getCurrentTool().update(main);
+      this.getCurrentTool().update();
     }
   };
 

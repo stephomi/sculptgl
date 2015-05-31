@@ -6,8 +6,8 @@ define([
 
   'use strict';
 
-  var Pinch = function (states) {
-    SculptBase.call(this, states);
+  var Pinch = function (main) {
+    SculptBase.call(this, main);
     this.radius_ = 50;
     this.intensity_ = 0.75;
     this.negative_ = false;

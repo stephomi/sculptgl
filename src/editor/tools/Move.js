@@ -10,8 +10,8 @@ define([
   var vec3 = glm.vec3;
   var mat4 = glm.mat4;
 
-  var Move = function (states) {
-    SculptBase.call(this, states);
+  var Move = function (main) {
+    SculptBase.call(this, main);
     this.radius_ = 150;
     this.intensity_ = 1.0;
     this.topoCheck_ = true;
@@ -30,7 +30,8 @@ define([
   };
 
   Move.prototype = {
-    startSculpt: function (main) {
+    startSculpt: function () {
+      var main = this.main_;
       var picking = main.getPicking();
       this.initMoveData(picking, this.moveData_);
 
@@ -76,7 +77,8 @@ define([
         vAr[ind + 2] = vProxy[j + 2];
       }
     },
-    sculptStroke: function (main) {
+    sculptStroke: function () {
+      var main = this.main_;
       var picking = main.getPicking();
       var pickingSym = main.getPickingSymmetry();
       var useSym = main.getSculpt().getSymmetry() && pickingSym.getMesh();
@@ -104,7 +106,7 @@ define([
       this.mesh_.updateGeometry(this.mesh_.getFacesFromVertices(picking.getPickedVertices()), picking.getPickedVertices());
       if (useSym)
         this.mesh_.updateGeometry(this.mesh_.getFacesFromVertices(pickingSym.getPickedVertices()), pickingSym.getPickedVertices());
-      this.updateRender(main);
+      this.updateRender();
       main.getCanvas().style.cursor = 'default';
     },
     move: function (iVerts, center, radiusSquared, moveData, picking) {

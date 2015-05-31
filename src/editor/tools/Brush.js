@@ -10,8 +10,8 @@ define([
 
   var vec3 = glm.vec3;
 
-  var Brush = function (states) {
-    SculptBase.call(this, states);
+  var Brush = function (main) {
+    SculptBase.call(this, main);
     this.radius_ = 50;
     this.intensity_ = 0.5;
     this.negative_ = false;

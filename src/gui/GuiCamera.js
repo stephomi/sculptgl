@@ -49,25 +49,21 @@ define([
 
       this.addEvents();
     },
-    /** On camera mode change */
     onCameraModeChange: function (value) {
       var mode = parseInt(value, 10);
       this.camera_.setMode(mode);
       this.main_.render();
     },
-    /** On camera type change */
     onCameraTypeChange: function (value) {
       var type = parseInt(value, 10);
       this.camera_.setProjType(type);
       this.ctrlFov_.setVisibility(type === Camera.projType.PERSPECTIVE);
       this.main_.render();
     },
-    /** On fov change */
     onFovChange: function (value) {
       this.camera_.setFov(value);
       this.main_.render();
     },
-    /** Add events */
     addEvents: function () {
       var cbKeyDown = this.onKeyDown.bind(this);
       var cbKeyUp = this.onKeyUp.bind(this);

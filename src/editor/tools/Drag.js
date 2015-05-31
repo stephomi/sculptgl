@@ -11,8 +11,8 @@ define([
   var vec3 = glm.vec3;
   var mat4 = glm.mat4;
 
-  var Drag = function (states) {
-    SculptBase.call(this, states);
+  var Drag = function (main) {
+    SculptBase.call(this, main);
     this.radius_ = 150;
     this.dragDir_ = [0.0, 0.0, 0.0];
     this.dragDirSym_ = [0.0, 0.0, 0.0];
@@ -21,7 +21,8 @@ define([
 
   Drag.prototype = {
     /** Make a brush stroke */
-    sculptStroke: function (main) {
+    sculptStroke: function () {
+      var main = this.main_;
       var mesh = this.mesh_;
       var picking = main.getPicking();
       var pickingSym = main.getSculpt().getSymmetry() ? main.getPickingSymmetry() : null;
@@ -53,7 +54,7 @@ define([
         mouseY += dy;
       }
 
-      this.updateRender(main);
+      this.updateRender();
 
       this.lastMouseX_ = main.mouseX_;
       this.lastMouseY_ = main.mouseY_;
