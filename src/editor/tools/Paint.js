@@ -11,98 +11,98 @@ define([
 
   var Paint = function (main) {
     SculptBase.call(this, main);
-    this.radius_ = 50;
-    this.hardness_ = 0.75;
-    this.intensity_ = 0.75;
-    this.culling_ = false;
-    this.color_ = vec3.fromValues(1.0, 0.766, 0.336); // albedo
-    this.material_ = vec3.fromValues(0.3, 0.95, 0.0); // roughness/metallic/masking
-    this.pickColor_ = false; // color picking
-    this.global_ = false; // global material
-    this.pickCallback_ = null; // callback function after picking a color
-    this.idAlpha_ = 0;
-    this.lockPosition_ = false;
+    this._radius = 50;
+    this._hardness = 0.75;
+    this._intensity = 0.75;
+    this._culling = false;
+    this._color = vec3.fromValues(1.0, 0.766, 0.336); // albedo
+    this._material = vec3.fromValues(0.3, 0.95, 0.0); // roughness/metallic/masking
+    this._pickColor = false; // color picking
+    this._global = false; // global material
+    this._pickCallback = null; // callback function after picking a color
+    this._idAlpha = 0;
+    this._lockPosition = false;
   };
 
   Paint.prototype = {
     /** Push undo operation */
     pushState: function (force) {
-      if (!this.pickColor_ || force)
-        this.states_.pushStateColorAndMaterial(this.mesh_);
+      if (!this._pickColor || force)
+        this._states.pushStateColorAndMaterial(this._mesh);
     },
     /** Start sculpting operation */
     startSculpt: function () {
-      if (this.pickColor_)
-        return this.pickColor(this.main_.getPicking());
+      if (this._pickColor)
+        return this.pickColor(this._main.getPicking());
       SculptBase.prototype.startSculpt.call(this);
     },
     /** Update sculpting operation */
     update: function () {
-      if (this.pickColor_ === true)
+      if (this._pickColor === true)
         return this.updatePickColor();
       SculptBase.prototype.update.apply(this, arguments);
     },
     updateContinuous: function () {
-      if (this.pickColor_ === true)
+      if (this._pickColor === true)
         return this.updatePickColor();
       SculptBase.prototype.updateContinuous.apply(this, arguments);
     },
     updateMeshBuffers: function () {
-      if (this.mesh_.getDynamicTopology) {
-        this.mesh_.updateBuffers();
+      if (this._mesh.getDynamicTopology) {
+        this._mesh.updateBuffers();
       } else {
-        this.mesh_.updateColorBuffer();
-        this.mesh_.updateMaterialBuffer();
+        this._mesh.updateColorBuffer();
+        this._mesh.updateMaterialBuffer();
       }
     },
     updatePickColor: function () {
-      var main = this.main_;
+      var main = this._main;
       var picking = main.getPicking();
-      if (picking.intersectionMouseMesh(this.mesh_, main.mouseX_, main.mouseY_))
+      if (picking.intersectionMouseMesh(this._mesh, main._mouseX, main._mouseY))
         this.pickColor(picking);
     },
     /** Pick the color under the mouse */
     setPickCallback: function (cb) {
-      this.pickCallback_ = cb;
+      this._pickCallback = cb;
     },
     /** Pick the color under the mouse */
     pickColor: function (picking) {
-      var color = this.color_;
-      picking.polyLerp(this.mesh_.getMaterials(), color);
+      var color = this._color;
+      picking.polyLerp(this._mesh.getMaterials(), color);
       var roughness = color[0];
       var metallic = color[1];
-      picking.polyLerp(this.mesh_.getColors(), color);
-      this.pickCallback_(color, roughness, metallic);
+      picking.polyLerp(this._mesh.getColors(), color);
+      this._pickCallback(color, roughness, metallic);
     },
     /** On stroke */
     stroke: function (picking) {
       var iVertsInRadius = picking.getPickedVertices();
-      var intensity = this.intensity_ * Tablet.getPressureIntensity();
+      var intensity = this._intensity * Tablet.getPressureIntensity();
 
       // undo-redo
-      this.states_.pushVertices(iVertsInRadius);
+      this._states.pushVertices(iVertsInRadius);
       iVertsInRadius = this.dynamicTopology(picking);
 
-      if (this.culling_)
+      if (this._culling)
         iVertsInRadius = this.getFrontVertices(iVertsInRadius, picking.getEyeDirection());
 
-      picking.updateAlpha(this.lockPosition_);
-      picking.setIdAlpha(this.idAlpha_);
-      this.paint(iVertsInRadius, picking.getIntersectionPoint(), picking.getLocalRadius2(), intensity, this.hardness_, picking);
+      picking.updateAlpha(this._lockPosition);
+      picking.setIdAlpha(this._idAlpha);
+      this.paint(iVertsInRadius, picking.getIntersectionPoint(), picking.getLocalRadius2(), intensity, this._hardness, picking);
 
-      this.mesh_.updateDuplicateColorsAndMaterials(iVertsInRadius);
-      var idFaces = this.mesh_.getFacesFromVertices(iVertsInRadius);
-      this.mesh_.updateFlatShading(idFaces);
+      this._mesh.updateDuplicateColorsAndMaterials(iVertsInRadius);
+      var idFaces = this._mesh.getFacesFromVertices(iVertsInRadius);
+      this._mesh.updateFlatShading(idFaces);
     },
     /** Paint color vertices */
     paint: function (iVerts, center, radiusSquared, intensity, hardness, picking) {
-      var mesh = this.mesh_;
+      var mesh = this._mesh;
       var vAr = mesh.getVertices();
       var cAr = mesh.getColors();
       var mAr = mesh.getMaterials();
-      var color = this.color_;
-      var roughness = this.material_[0];
-      var metallic = this.material_[1];
+      var color = this._color;
+      var roughness = this._material[0];
+      var metallic = this._material[1];
       var radius = Math.sqrt(radiusSquared);
       var cr = color[0];
       var cg = color[1];
@@ -131,19 +131,19 @@ define([
       }
     },
     paintAll: function () {
-      var mesh = this.mesh_;
+      var mesh = this._mesh;
       var iVerts = this.getUnmaskedVertices();
       if (iVerts.length === 0)
         return;
 
       this.pushState(true);
-      this.states_.pushVertices(iVerts);
+      this._states.pushVertices(iVerts);
 
       var cAr = mesh.getColors();
       var mAr = mesh.getMaterials();
-      var color = this.color_;
-      var roughness = this.material_[0];
-      var metallic = this.material_[1];
+      var color = this._color;
+      var roughness = this._material[0];
+      var metallic = this._material[1];
       var cr = color[0];
       var cg = color[1];
       var cb = color[2];

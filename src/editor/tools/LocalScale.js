@@ -8,25 +8,25 @@ define([
 
   var LocalScale = function (main) {
     SculptBase.call(this, main);
-    this.radius_ = 50;
-    this.culling_ = false;
-    this.idAlpha_ = 0;
+    this._radius = 50;
+    this._culling = false;
+    this._idAlpha = 0;
   };
 
   LocalScale.prototype = {
     /** Start a sculpt sculpt stroke */
     startSculpt: function () {
-      var main = this.main_;
+      var main = this._main;
       if (main.getSculpt().getSymmetry()) {
         var pickingSym = main.getPickingSymmetry();
-        pickingSym.intersectionMouseMesh(this.mesh_, main.mouseX_, main.mouseY_);
+        pickingSym.intersectionMouseMesh(this._mesh, main._mouseX, main._mouseY);
         pickingSym.setLocalRadius2(main.getPicking().getLocalRadius2());
       }
     },
     /** Make a brush scale stroke */
     sculptStroke: function () {
-      var main = this.main_;
-      var delta = main.mouseX_ - main.lastMouseX_;
+      var main = this._main;
+      var delta = main._mouseX - main._lastMouseX;
       var picking = main.getPicking();
       var rLocal2 = picking.getLocalRadius2();
       picking.pickVerticesInSphere(rLocal2);
@@ -46,22 +46,22 @@ define([
       var iVertsInRadius = picking.getPickedVertices();
 
       // undo-redo
-      this.states_.pushVertices(iVertsInRadius);
+      this._states.pushVertices(iVertsInRadius);
       iVertsInRadius = this.dynamicTopology(picking);
 
-      if (this.culling_)
+      if (this._culling)
         iVertsInRadius = this.getFrontVertices(iVertsInRadius, picking.getEyeDirection());
 
       picking.updateAlpha(false);
-      picking.setIdAlpha(this.idAlpha_);
+      picking.setIdAlpha(this._idAlpha);
       this.scale(iVertsInRadius, picking.getIntersectionPoint(), picking.getLocalRadius2(), delta, picking);
 
-      this.mesh_.updateGeometry(this.mesh_.getFacesFromVertices(iVertsInRadius), iVertsInRadius);
+      this._mesh.updateGeometry(this._mesh.getFacesFromVertices(iVertsInRadius), iVertsInRadius);
     },
     /** Scale the vertices around the mouse point intersection */
     scale: function (iVerts, center, radiusSquared, intensity, picking) {
-      var vAr = this.mesh_.getVertices();
-      var mAr = this.mesh_.getMaterials();
+      var vAr = this._mesh.getVertices();
+      var mAr = this._mesh.getMaterials();
       var deltaScale = intensity * 0.01;
       var radius = Math.sqrt(radiusSquared);
       var cx = center[0];

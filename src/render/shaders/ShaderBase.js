@@ -113,7 +113,7 @@ define([
 
       gl.uniform1f(uniforms.uCurvature, mesh.getCurvature());
       var cam = main.getCamera();
-      gl.uniform1f(uniforms.uZOrtho, cam.isOrthographic() ? cam.trans_[2] : 0);
+      gl.uniform1f(uniforms.uZOrtho, cam.isOrthographic() ? cam._trans[2] : 0);
     };
   })();
   ShaderBase.draw = function (render, main) {

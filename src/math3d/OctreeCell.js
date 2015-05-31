@@ -3,14 +3,14 @@ define([], function () {
   'use strict';
 
   var OctreeCell = function (parent) {
-    this.parent_ = parent ? parent : null; // parent
-    this.depth_ = parent ? parent.depth_ + 1 : 0; // depth of current node
-    this.children_ = []; // children
+    this._parent = parent ? parent : null; // parent
+    this._depth = parent ? parent._depth + 1 : 0; // depth of current node
+    this._children = []; // children
     // extended boundary for intersect test
-    this.aabbLoose_ = [Infinity, Infinity, Infinity, -Infinity, -Infinity, -Infinity];
+    this._aabbLoose = [Infinity, Infinity, Infinity, -Infinity, -Infinity, -Infinity];
     // boundary in order to store exactly the face according to their center
-    this.aabbSplit_ = [Infinity, Infinity, Infinity, -Infinity, -Infinity, -Infinity];
-    this.iFaces_ = []; // faces (if cell is a leaf)
+    this._aabbSplit = [Infinity, Infinity, Infinity, -Infinity, -Infinity, -Infinity];
+    this._iFaces = []; // faces (if cell is a leaf)
   };
 
   OctreeCell.MAX_DEPTH = 8; // maximum depth
@@ -25,12 +25,12 @@ define([], function () {
   OctreeCell.prototype = {
     /** Subdivide octree, aabbSplit must be already set, and aabbLoose will be expanded if it's a leaf  */
     build: function (mesh, iFaces) {
-      var aabbLoose = this.aabbLoose_;
-      var aabbSplit = this.aabbSplit_;
+      var aabbLoose = this._aabbLoose;
+      var aabbSplit = this._aabbSplit;
       var i = 0;
       for (i = 0; i < 6; ++i)
         aabbLoose[i] = aabbSplit[i];
-      this.iFaces_ = iFaces;
+      this._iFaces = iFaces;
 
       var stack = OctreeCell.STACK;
       stack[0] = this;
@@ -38,10 +38,10 @@ define([], function () {
       var leaves = [];
       while (curStack > 0) {
         var cell = stack[--curStack];
-        var nbFaces = cell.iFaces_.length;
-        if (nbFaces > OctreeCell.MAX_FACES && cell.depth_ < OctreeCell.MAX_DEPTH) {
+        var nbFaces = cell._iFaces.length;
+        if (nbFaces > OctreeCell.MAX_FACES && cell._depth < OctreeCell.MAX_DEPTH) {
           cell.constructChildren(mesh);
-          var children = cell.children_;
+          var children = cell._children;
           for (i = 0; i < 8; ++i)
             stack[curStack + i] = children[i];
           curStack += 8;
@@ -55,7 +55,7 @@ define([], function () {
     },
     /** Construct the leaf  */
     constructLeaf: function (mesh) {
-      var iFaces = this.iFaces_;
+      var iFaces = this._iFaces;
       var nbFaces = iFaces.length;
       var bxmin = Infinity;
       var bymin = Infinity;
@@ -88,7 +88,7 @@ define([], function () {
     },
     /** Construct sub cells of the octree */
     constructChildren: function (mesh) {
-      var split = this.aabbSplit_;
+      var split = this._aabbSplit;
       var xmin = split[0];
       var ymin = split[1];
       var zmin = split[2];
@@ -111,16 +111,16 @@ define([], function () {
       var child6 = new OctreeCell(this);
       var child7 = new OctreeCell(this);
 
-      var iFaces0 = child0.iFaces_;
-      var iFaces1 = child1.iFaces_;
-      var iFaces2 = child2.iFaces_;
-      var iFaces3 = child3.iFaces_;
-      var iFaces4 = child4.iFaces_;
-      var iFaces5 = child5.iFaces_;
-      var iFaces6 = child6.iFaces_;
-      var iFaces7 = child7.iFaces_;
+      var iFaces0 = child0._iFaces;
+      var iFaces1 = child1._iFaces;
+      var iFaces2 = child2._iFaces;
+      var iFaces3 = child3._iFaces;
+      var iFaces4 = child4._iFaces;
+      var iFaces5 = child5._iFaces;
+      var iFaces6 = child6._iFaces;
+      var iFaces7 = child7._iFaces;
       var faceCenters = mesh.getFaceCenters();
-      var iFaces = this.iFaces_;
+      var iFaces = this._iFaces;
       var nbFaces = iFaces.length;
       for (var i = 0; i < nbFaces; ++i) {
         var iFace = iFaces[i];
@@ -156,12 +156,12 @@ define([], function () {
       child6.setAabbSplit(xcen, ycen, zcen, xmax, ymax, zmax);
       child7.setAabbSplit(xcen - dX, ycen, zcen, xmax - dX, ymax, zmax);
 
-      this.children_.length = 0;
-      this.children_.push(child0, child1, child2, child3, child4, child5, child6, child7);
+      this._children.length = 0;
+      this._children.push(child0, child1, child2, child3, child4, child5, child6, child7);
       iFaces.length = 0;
     },
     setAabbSplit: function (xmin, ymin, zmin, xmax, ymax, zmax) {
-      var aabb = this.aabbSplit_;
+      var aabb = this._aabbSplit;
       aabb[0] = xmin;
       aabb[1] = ymin;
       aabb[2] = zmin;
@@ -184,7 +184,7 @@ define([], function () {
       var curStack = 1;
       while (curStack > 0) {
         var cell = stack[--curStack];
-        var loose = cell.aabbLoose_;
+        var loose = cell._aabbLoose;
         var t1 = (loose[0] - vx) * irx;
         var t3 = (loose[1] - vy) * iry;
         var t5 = (loose[2] - vz) * irz;
@@ -195,13 +195,13 @@ define([], function () {
         var tmax = Math.min(Math.min(Math.max(t1, t2), Math.max(t3, t4)), Math.max(t5, t6));
         if (tmax < 0 || tmin > tmax) // no intersection
           continue;
-        var children = cell.children_;
+        var children = cell._children;
         if (children.length === 8) {
           for (var i = 0; i < 8; ++i)
             stack[curStack + i] = children[i];
           curStack += 8;
         } else {
-          var iFaces = cell.iFaces_;
+          var iFaces = cell._iFaces;
           collectFaces.set(iFaces, acc);
           acc += iFaces.length;
         }
@@ -220,7 +220,7 @@ define([], function () {
       var curStack = 1;
       while (curStack > 0) {
         var cell = stack[--curStack];
-        var loose = cell.aabbLoose_;
+        var loose = cell._aabbLoose;
         var dx = 0.0;
         var dy = 0.0;
         var dz = 0.0;
@@ -240,14 +240,14 @@ define([], function () {
         if ((dx * dx + dy * dy + dz * dz) > radiusSquared) // no intersection
           continue;
 
-        var children = cell.children_;
+        var children = cell._children;
         if (children.length === 8) {
           for (var i = 0; i < 8; ++i)
             stack[curStack + i] = children[i];
           curStack += 8;
         } else {
           leavesHit.push(cell);
-          var iFaces = cell.iFaces_;
+          var iFaces = cell._iFaces;
           collectFaces.set(iFaces, acc);
           acc += iFaces.length;
         }
@@ -261,14 +261,14 @@ define([], function () {
       var curStack = 1;
       while (curStack > 0) {
         var cell = stack[--curStack];
-        var split = cell.aabbSplit_;
+        var split = cell._aabbSplit;
         if (cx <= split[0]) continue;
         if (cy <= split[1]) continue;
         if (cz <= split[2]) continue;
         if (cx > split[3]) continue;
         if (cy > split[4]) continue;
         if (cz > split[5]) continue;
-        var loose = cell.aabbLoose_;
+        var loose = cell._aabbLoose;
         // expands cell aabb loose with aabb face
         if (bxmin < loose[0]) loose[0] = bxmin;
         if (bymin < loose[1]) loose[1] = bymin;
@@ -276,13 +276,13 @@ define([], function () {
         if (bxmax > loose[3]) loose[3] = bxmax;
         if (bymax > loose[4]) loose[4] = bymax;
         if (bzmax > loose[5]) loose[5] = bzmax;
-        var children = cell.children_;
+        var children = cell._children;
         if (children.length === 8) {
           for (var i = 0; i < 8; ++i)
             stack[curStack + i] = children[i];
           curStack += 8;
         } else {
-          cell.iFaces_.push(faceId);
+          cell._iFaces.push(faceId);
           return cell;
         }
       }
@@ -294,16 +294,16 @@ define([], function () {
       var curStack = 1;
       while (curStack > 0) {
         var cell = stack[--curStack];
-        var parent = cell.parent_;
+        var parent = cell._parent;
         if (!parent)
           continue;
-        var children = parent.children_;
+        var children = parent._children;
         if (children.length === 0)
           continue;
         var pushParent = true;
         for (var i = 0; i < 8; ++i) {
           var child = children[i];
-          if (child.iFaces_.length > 0 || child.children_.length === 8) {
+          if (child._iFaces.length > 0 || child._children.length === 8) {
             pushParent = false;
             break;
           }
@@ -318,7 +318,7 @@ define([], function () {
     expandsAabbLoose: function (bxmin, bymin, bzmin, bxmax, bymax, bzmax) {
       var parent = this;
       while (parent) {
-        var pLoose = parent.aabbLoose_;
+        var pLoose = parent._aabbLoose;
         var proceed = false;
         if (bxmin < pLoose[0]) {
           pLoose[0] = bxmin;
@@ -344,7 +344,7 @@ define([], function () {
           pLoose[5] = bzmax;
           proceed = true;
         }
-        parent = proceed ? parent.parent_ : null;
+        parent = proceed ? parent._parent : null;
       }
     }
   };

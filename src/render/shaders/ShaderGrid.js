@@ -33,7 +33,7 @@ define([
     gl.useProgram(this.program);
     this.bindAttributes(grid);
     this.updateUniforms(grid);
-    gl.drawArrays(gl.LINES, 0, grid.getVertexBuffer().size_ / 3);
+    gl.drawArrays(gl.LINES, 0, grid.getVertexBuffer()._size / 3);
   };
   ShaderGrid.updateUniforms = function (grid) {
     grid.getGL().uniformMatrix4fv(this.uniforms.uMVP, false, grid.getMVP());

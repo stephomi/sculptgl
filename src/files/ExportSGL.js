@@ -82,9 +82,9 @@ define([
     u32a[off++] = 2;
 
     // misc stuffs
-    u32a[off++] = main.showGrid_;
+    u32a[off++] = main._showGrid;
     u32a[off++] = ShaderBase.showSymmetryLine;
-    u32a[off++] = main.showContour_;
+    u32a[off++] = main._showContour;
 
     // camera stuffs
     var cam = main.getCamera();

@@ -8,10 +8,10 @@ define([
   'use strict';
 
   var Mesh = function (gl) {
-    this.meshData_ = new MeshData(this); // the mesh data
-    this.octree_ = new Octree(this); // octree
-    this.render_ = gl ? new Render(gl, this) : null; // octree
-    this.id_ = Mesh.ID++; // useful id to retrieve a mesh (dynamic mesh, multires mesh, voxel mesh)
+    this._meshData = new MeshData(this); // the mesh data
+    this._octree = new Octree(this); // octree
+    this._render = gl ? new Render(gl, this) : null; // octree
+    this._id = Mesh.ID++; // useful id to retrieve a mesh (dynamic mesh, multires mesh, voxel mesh)
   };
 
   Mesh.ID = 0;
@@ -26,28 +26,28 @@ define([
 
   Mesh.prototype = {
     getID: function () {
-      return this.id_;
+      return this._id;
     },
     setID: function (id) {
-      this.id_ = id;
+      this._id = id;
     },
     getMeshData: function () {
-      return this.meshData_;
+      return this._meshData;
     },
     getOctree: function () {
-      return this.octree_;
+      return this._octree;
     },
     getRender: function () {
-      return this.render_;
+      return this._render;
     },
     setMeshData: function (data) {
-      this.meshData_ = data;
+      this._meshData = data;
     },
     setOctree: function (octree) {
-      this.octree_ = octree;
+      this._octree = octree;
     },
     setRender: function (render) {
-      this.render_ = render;
+      this._render = render;
     },
     getRenderVertices: function () {
       if (this.isUsingDrawArrays()) return this.getVerticesDrawArrays();

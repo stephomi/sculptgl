@@ -6,9 +6,9 @@ define([
   'use strict';
 
   var GuiTablet = function (guiParent, ctrlGui) {
-    this.ctrlGui_ = ctrlGui; // main gui controller
-    this.main_ = ctrlGui.main_; // main application
-    this.menu_ = null; // ui menu
+    this._ctrlGui = ctrlGui; // main gui controller
+    this._main = ctrlGui._main; // main application
+    this._menu = null; // ui menu
     this.init(guiParent);
   };
 
@@ -16,11 +16,11 @@ define([
     /** Initialize */
     init: function (guiParent) {
       // history fold
-      var menu = this.menu_ = guiParent.addMenu(TR('stateTitle'));
+      var menu = this._menu = guiParent.addMenu(TR('stateTitle'));
       menu.addButton(TR('stateUndo'), this, 'onUndo', 'CTRL+Z');
       menu.addButton(TR('stateRedo'), this, 'onRedo', 'CTRL+Y');
       menu.addTitle(TR('stateMaxStack'));
-      var states = this.main_.getStates();
+      var states = this._main.getStates();
       menu.addSlider('', States.STACK_LENGTH, states.setNewMaxStack.bind(states), 3, 50, 1);
       this.addEvents();
     },
@@ -41,7 +41,7 @@ define([
       if (event.handled === true)
         return;
       event.stopPropagation();
-      if (!this.main_.focusGui_)
+      if (!this._main._focusGui)
         event.preventDefault();
       var key = event.which;
       if (event.ctrlKey && key === 90) { // z key
@@ -54,15 +54,15 @@ define([
     },
     /** When the user undos an action */
     onUndo: function () {
-      this.main_.getStates().undo();
-      this.main_.render();
-      this.ctrlGui_.updateMesh();
+      this._main.getStates().undo();
+      this._main.render();
+      this._ctrlGui.updateMesh();
     },
     /** When the user redos an action */
     onRedo: function () {
-      this.main_.getStates().redo();
-      this.main_.render();
-      this.ctrlGui_.updateMesh();
+      this._main.getStates().redo();
+      this._main.render();
+      this._ctrlGui.updateMesh();
     }
   };
 

@@ -3,30 +3,30 @@ define([], function () {
   'use strict';
 
   var Buffer = function (gl, type, hint) {
-    this.gl_ = gl; // webgl context
-    this.buffer_ = gl.createBuffer(); // the buffer
-    this.type_ = type; // the type (vert data vs index)
-    this.hint_ = hint; //the buffer update hint
-    this.size_ = 0; // the size of the buffer
+    this._gl = gl; // webgl context
+    this._buffer = gl.createBuffer(); // the buffer
+    this._type = type; // the type (vert data vs index)
+    this._hint = hint; //the buffer update hint
+    this._size = 0; // the size of the buffer
   };
 
   Buffer.prototype = {
     /** Bind the buffer */
     bind: function () {
-      this.gl_.bindBuffer(this.type_, this.buffer_);
+      this._gl.bindBuffer(this._type, this._buffer);
     },
     /** Release the buffer */
     release: function () {
-      this.gl_.deleteBuffer(this.buffer_);
+      this._gl.deleteBuffer(this._buffer);
     },
     /** Update the buffer content */
     update: function (data) {
-      this.gl_.bindBuffer(this.type_, this.buffer_);
-      if (data.length > this.size_) {
-        this.gl_.bufferData(this.type_, data, this.hint_);
-        this.size_ = data.length;
+      this._gl.bindBuffer(this._type, this._buffer);
+      if (data.length > this._size) {
+        this._gl.bufferData(this._type, data, this._hint);
+        this._size = data.length;
       } else {
-        this.gl_.bufferSubData(this.type_, 0, data);
+        this._gl.bufferSubData(this._type, 0, data);
       }
     }
   };

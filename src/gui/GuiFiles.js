@@ -7,22 +7,22 @@ define([
   'use strict';
 
   var GuiFiles = function (guiParent, ctrlGui) {
-    this.main_ = ctrlGui.main_; // main application
-    this.ctrlGui_ = ctrlGui;
-    this.menu_ = null; // ui menu
-    this.parent_ = guiParent;
+    this._main = ctrlGui._main; // main application
+    this._ctrlGui = ctrlGui;
+    this._menu = null; // ui menu
+    this._parent = guiParent;
     this.init(guiParent);
   };
 
   GuiFiles.prototype = {
     /** Initialize */
     init: function (guiParent) {
-      var menu = this.menu_ = guiParent.addMenu(TR('fileTitle'));
+      var menu = this._menu = guiParent.addMenu(TR('fileTitle'));
 
       // import
       menu.addTitle(TR('fileImportTitle'));
       menu.addButton(TR('fileAdd'), this, 'addFile' /*, 'CTRL+O/I'*/ );
-      menu.addCheckbox(TR('fileAutoMatrix'), this.main_, 'autoMatrix_');
+      menu.addCheckbox(TR('fileAutoMatrix'), this._main, '_autoMatrix');
 
       // export
       menu.addTitle(TR('fileExportSceneTitle'));
@@ -48,11 +48,11 @@ define([
       if (event.handled === true)
         return;
       event.stopPropagation();
-      if (!this.main_.focusGui_)
+      if (!this._main._focusGui)
         event.preventDefault();
       var key = event.which;
       if (event.ctrlKey && event.altKey && key === 78) { // N
-        this.main_.clearScene();
+        this._main.clearScene();
         event.handled = true;
       } else if (event.ctrlKey && (key === 79 || key === 73)) { // O or I
         this.addFile();
@@ -66,43 +66,43 @@ define([
       document.getElementById('fileopen').click();
     },
     saveFileAsSGL: function () {
-      if (this.main_.getMeshes().length === 0) return;
-      var blob = Export.exportSGL(this.main_.getMeshes(), this.main_);
+      if (this._main.getMeshes().length === 0) return;
+      var blob = Export.exportSGL(this._main.getMeshes(), this._main);
       saveAs(blob, 'yourMesh.sgl');
     },
     saveFileAsOBJ: function (selection) {
-      var meshes = this.main_.getMeshes();
+      var meshes = this._main.getMeshes();
       if (meshes.length === 0) return;
       if (selection) {
-        meshes = this.main_.getSelectedMeshes();
+        meshes = this._main.getSelectedMeshes();
         if (!meshes[0]) return;
       }
       var blob = Export.exportOBJ(meshes);
       saveAs(blob, 'yourMesh.obj');
     },
     saveFileAsPLY: function () {
-      var mesh = this.main_.getMesh();
+      var mesh = this._main.getMesh();
       if (!mesh) return;
       var blob = Export.exportBinaryPLY(mesh);
       saveAs(blob, 'yourMesh.ply');
     },
     saveFileAsSTL: function () {
-      var mesh = this.main_.getMesh();
+      var mesh = this._main.getMesh();
       if (!mesh) return;
       var blob = Export.exportBinarySTL(mesh);
       saveAs(blob, 'yourMesh.stl');
     },
     exportSketchfab: function () {
-      var mesh = this.main_.getMesh();
+      var mesh = this._main.getMesh();
       if (!mesh)
         return;
 
-      var ctrlNotif = this.ctrlGui_.getWidgetNotification();
-      if (this.sketchfabXhr_ && ctrlNotif.sketchfab === true) {
+      var ctrlNotif = this._ctrlGui.getWidgetNotification();
+      if (this._sketchfabXhr && ctrlNotif.sketchfab === true) {
         if (!window.confirm(TR('sketchfabAbort')))
           return;
         ctrlNotif.sketchfab = false;
-        this.sketchfabXhr_.abort();
+        this._sketchfabXhr.abort();
       }
 
       var api = window.prompt(TR('sketchfabUploadMessage'), 'guest');
@@ -110,7 +110,7 @@ define([
         return;
 
       var key = api === 'guest' ? 'babc9a5cd4f343f9be0c7bd9cf93600c' : api;
-      this.sketchfabXhr_ = Export.exportSketchfab(this.main_, key, ctrlNotif);
+      this._sketchfabXhr = Export.exportSketchfab(this._main, key, ctrlNotif);
     }
   };
 

@@ -12,59 +12,59 @@ define([
   'use strict';
 
   var MeshData = function (mesh) {
-    this.mesh_ = mesh; // the mesh
+    this._mesh = mesh; // the mesh
 
-    this.drawArraysData_ = new DrawArraysData(mesh); // the wireframe data
-    this.edgeData_ = new EdgeData(mesh); // the edge data
-    this.indexData_ = new IndexData(mesh); // the index data
-    this.texCoordsData_ = new TexCoordsData(mesh); // the uv data
-    this.vertexData_ = new VertexData(mesh); // the vertex data
-    this.wireframeData_ = new WireframeData(mesh); // the wireframe data
-    this.transformData_ = new TransformData(mesh); // the transform data
+    this._drawArraysData = new DrawArraysData(mesh); // the wireframe data
+    this._edgeData = new EdgeData(mesh); // the edge data
+    this._indexData = new IndexData(mesh); // the index data
+    this._texCoordsData = new TexCoordsData(mesh); // the uv data
+    this._vertexData = new VertexData(mesh); // the vertex data
+    this._wireframeData = new WireframeData(mesh); // the wireframe data
+    this._transformData = new TransformData(mesh); // the transform data
   };
 
   MeshData.prototype = {
     getDrawArraysData: function () {
-      return this.drawArraysData_;
+      return this._drawArraysData;
     },
     getEdgeData: function () {
-      return this.edgeData_;
+      return this._edgeData;
     },
     getIndexData: function () {
-      return this.indexData_;
+      return this._indexData;
     },
     getTexCoordsData: function () {
-      return this.texCoordsData_;
+      return this._texCoordsData;
     },
     getTransformData: function () {
-      return this.transformData_;
+      return this._transformData;
     },
     getVertexData: function () {
-      return this.vertexData_;
+      return this._vertexData;
     },
     getWireframeData: function () {
-      return this.wireframeData_;
+      return this._wireframeData;
     },
     setDrawArraysData: function (data) {
-      this.drawArraysData_ = data;
+      this._drawArraysData = data;
     },
     setEdgeData: function (data) {
-      this.edgeData_ = data;
+      this._edgeData = data;
     },
     setIndexData: function (data) {
-      this.indexData_ = data;
+      this._indexData = data;
     },
     setTexCoordsData: function (data) {
-      this.texCoordsData_ = data;
+      this._texCoordsData = data;
     },
     setTransformData: function (data) {
-      this.transformData_ = data;
+      this._transformData = data;
     },
     setVertexData: function (data) {
-      this.vertexData_ = data;
+      this._vertexData = data;
     },
     setWireframeData: function (data) {
-      this.wireframeData_ = data;
+      this._wireframeData = data;
     }
   };
 

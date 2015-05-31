@@ -11,46 +11,46 @@ define([
   var mat4 = glm.mat4;
 
   var Grid = function (gl) {
-    this.gl_ = gl; // webgl context
+    this._gl = gl; // webgl context
 
-    this.vertexBuffer_ = new Buffer(gl, gl.ARRAY_BUFFER, gl.STATIC_DRAW); // vertices buffer
+    this._vertexBuffer = new Buffer(gl, gl.ARRAY_BUFFER, gl.STATIC_DRAW); // vertices buffer
     this.vertCoords = null;
 
-    this.matrix_ = mat4.create();
-    this.cacheMVP_ = mat4.create();
+    this._matrix = mat4.create();
+    this._cacheMVP = mat4.create();
 
-    this.shader_ = null; // the shader
-    this.bbox_ = new Float32Array(6);
+    this._shader = null; // the shader
+    this._bbox = new Float32Array(6);
     this.init();
   };
 
   Grid.prototype = {
     /** Return webgl context */
     getGL: function () {
-      return this.gl_;
+      return this._gl;
     },
     /** Return vertex buffer */
     getVertexBuffer: function () {
-      return this.vertexBuffer_;
+      return this._vertexBuffer;
     },
     /** Return model view projection */
     getMVP: function () {
-      return this.cacheMVP_;
+      return this._cacheMVP;
     },
     /** Compute mvp matrix */
     computeMatrices: (function () {
       var tmp = mat4.create();
       return function (camera) {
-        mat4.mul(tmp, camera.view_, this.matrix_);
-        mat4.mul(this.cacheMVP_, camera.proj_, tmp);
+        mat4.mul(tmp, camera._view, this._matrix);
+        mat4.mul(this._cacheMVP, camera._proj, tmp);
       };
     })(),
     /** Initialize Vertex Buffer Object (VBO) */
     init: function () {
-      mat4.translate(this.matrix_, this.matrix_, [0.0, -20.0, 0.0]);
+      mat4.translate(this._matrix, this._matrix, [0.0, -20.0, 0.0]);
       this.vertCoords = this.getGridVertices();
       this.initBuffer();
-      this.shader_ = Shader[Shader.mode.GRID].getOrCreate(this.gl_);
+      this._shader = Shader[Shader.mode.GRID].getOrCreate(this._gl);
     },
     /** Free gl memory */
     release: function () {
@@ -62,10 +62,10 @@ define([
     },
     /** Render the background */
     render: function () {
-      this.shader_.draw(this);
+      this._shader.draw(this);
     },
     getBound: function () {
-      return this.bbox_;
+      return this._bbox;
     },
     getGridVertices: function () {
       var scale = Utils.SCALE;
@@ -74,10 +74,10 @@ define([
       var cy = 0.0;
       var cz = -sdiv2;
 
-      this.bbox_[0] = this.bbox_[2] = -sdiv2;
-      this.bbox_[1] = -1e-5;
-      this.bbox_[3] = this.bbox_[5] = sdiv2;
-      this.bbox_[4] = 1e-5;
+      this._bbox[0] = this._bbox[2] = -sdiv2;
+      this._bbox[1] = -1e-5;
+      this._bbox[3] = this._bbox[5] = sdiv2;
+      this._bbox[4] = 1e-5;
 
       var wx = scale;
       var wy = 0.0;

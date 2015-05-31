@@ -235,7 +235,7 @@ define([
     newMesh.setFaces(faces);
     newMesh.init();
     newMesh.setRender(mesh.getRender());
-    mesh.getRender().mesh_ = newMesh;
+    mesh.getRender()._mesh = newMesh;
     newMesh.initRender();
     return newMesh;
   };

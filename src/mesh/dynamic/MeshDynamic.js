@@ -18,58 +18,58 @@ define([
     Mesh.call(this, mesh.getGL());
     this.setTransformData(mesh.getTransformData());
     this.setID(mesh.getID());
-    this.dynamicTopology_ = new Topology(this);
+    this._dynamicTopology = new Topology(this);
 
     // vertices rings
     var vdata = this.getVertexData();
-    this.vrings_ = vdata.vertRingVert_ = []; // vertex ring
-    this.frings_ = vdata.vertRingFace_ = []; // face ring
-    this.nbFaces_ = 0;
-    this.nbVertices_ = 0;
+    this._vrings = vdata._vertRingVert = []; // vertex ring
+    this._frings = vdata._vertRingFace = []; // face ring
+    this._nbFaces = 0;
+    this._nbVertices = 0;
 
-    this.facesStateFlags_ = null; // state flags (<= Utils.STATE_FLAG) (Int32Array)
-    this.wireframe_ = null; // Uint32Array
+    this._facesStateFlags = null; // state flags (<= Utils.STATE_FLAG) (Int32Array)
+    this._wireframe = null; // Uint32Array
     this.init(mesh);
     this.setRender(mesh.getRender());
     if (mesh.isUsingTexCoords())
       this.setShader(Shader.mode.PBR);
-    mesh.getRender().mesh_ = this;
+    mesh.getRender()._mesh = this;
     this.initRender();
   };
 
   MeshDynamic.prototype = {
     getDynamicTopology: function () {
-      return this.dynamicTopology_;
+      return this._dynamicTopology;
     },
     getVerticesProxy: function () {
       return this.getVertices(); // for now no proxy sculpting for dynamic meshes
     },
     getNbVertices: function () {
-      return this.nbVertices_;
+      return this._nbVertices;
     },
     setNbVertices: function (nbVertices) {
-      this.nbVertices_ = nbVertices;
+      this._nbVertices = nbVertices;
     },
     addNbVertice: function (nb) {
-      this.nbVertices_ += nb;
+      this._nbVertices += nb;
     },
     getNbFaces: function () {
-      return this.nbFaces_;
+      return this._nbFaces;
     },
     getNbTriangles: function () {
-      return this.nbFaces_;
+      return this._nbFaces;
     },
     setNbFaces: function (nbFaces) {
-      this.nbFaces_ = nbFaces;
+      this._nbFaces = nbFaces;
     },
     addNbFace: function (nb) {
-      this.nbFaces_ += nb;
+      this._nbFaces += nb;
     },
     getNbEdges: function () {
       return this.getNbTriangles() * 3;
     },
     getFacesStateFlags: function () {
-      return this.facesStateFlags_;
+      return this._facesStateFlags;
     },
     getRenderVertices: function () {
       if (this.isUsingDrawArrays()) return this.getVerticesDrawArrays();
@@ -121,14 +121,14 @@ define([
         this.updateDrawArrays(true, iFaces);
     },
     getWireframe: function () {
-      if (!this.wireframe_) {
-        this.wireframe_ = new Uint32Array(this.getTriangles().length * 2);
+      if (!this._wireframe) {
+        this._wireframe = new Uint32Array(this.getTriangles().length * 2);
         this.updateWireframe();
       }
-      return this.wireframe_.subarray(0, this.getNbEdges() * 2);
+      return this._wireframe.subarray(0, this.getNbEdges() * 2);
     },
     setShowWireframe: function (showWireframe) {
-      this.wireframe_ = null;
+      this._wireframe = null;
       this.getRender().setShowWireframe(showWireframe);
     },
     setFlatShading: function (flatShading) {
@@ -137,7 +137,7 @@ define([
       this.setShowWireframe(this.getShowWireframe());
     },
     updateWireframe: function (iFaces) {
-      var wire = this.wireframe_;
+      var wire = this._wireframe;
       var tris = this.getTriangles();
       var full = iFaces === undefined;
       var useDA = this.isUsingDrawArrays();
@@ -189,20 +189,20 @@ define([
       this.getOctree().reAllocateArrays(nbAddElements);
     },
     reAllocate: function (nbAddElements) {
-      var nbDyna = this.facesStateFlags_.length;
+      var nbDyna = this._facesStateFlags.length;
       var nbTriangles = this.getNbTriangles();
       var len = nbTriangles + nbAddElements;
       if (nbDyna < len || nbDyna > len * 4) {
-        this.facesStateFlags_ = this.resizeArray(this.facesStateFlags_, len);
+        this._facesStateFlags = this.resizeArray(this._facesStateFlags, len);
         if (this.getShowWireframe())
-          this.wireframe_ = this.resizeArray(this.wireframe_, len * 6);
+          this._wireframe = this.resizeArray(this._wireframe, len * 6);
       }
     },
     initTriangles: function (mesh) {
       var iArMesh = mesh.getTriangles();
       var nbTriangles = this.getNbTriangles();
       var fAr = this.getFaces();
-      this.facesStateFlags_ = new Int32Array(nbTriangles);
+      this._facesStateFlags = new Int32Array(nbTriangles);
       for (var i = 0; i < nbTriangles; ++i) {
         var id3 = i * 3;
         var id4 = i * 4;
@@ -213,8 +213,8 @@ define([
       }
     },
     initVertices: function () {
-      var vrings = this.vrings_;
-      var frings = this.frings_;
+      var vrings = this._vrings;
+      var frings = this._frings;
       var i = 0;
       var nbVertices = this.getNbVertices();
       vrings.length = frings.length = nbVertices;
@@ -238,8 +238,8 @@ define([
       var fAr = this.getFaces();
       var vflags = this.getVerticesTagFlags();
 
-      var vring = this.vrings_[iVert];
-      var fring = this.frings_[iVert];
+      var vring = this._vrings[iVert];
+      var fring = this._frings[iVert];
       vring.length = 0;
       var nbTris = fring.length;
 

@@ -10,25 +10,25 @@ define([
   var vec3 = glm.vec3;
 
   var Subdivision = function (mesh) {
-    this.mesh_ = mesh;
-    this.linear_ = false; // linear subdivision
-    this.verticesMap_ = new Map(); // to detect new vertices at the middle of edge (for subdivision)
-    this.states_ = null; // for undo-redo
+    this._mesh = mesh;
+    this._linear = false; // linear subdivision
+    this._verticesMap = new Map(); // to detect new vertices at the middle of edge (for subdivision)
+    this._states = null; // for undo-redo
 
-    this.center_ = [0.0, 0.0, 0.0]; // center point of select sphere
-    this.radius2_ = 0.0; // radius squared of select sphere
+    this._center = [0.0, 0.0, 0.0]; // center point of select sphere
+    this._radius2 = 0.0; // radius squared of select sphere
 
-    this.edgeMax2_ = 0.0; // maximal squared edge length before we subdivide it
+    this._edgeMax2 = 0.0; // maximal squared edge length before we subdivide it
   };
 
   Subdivision.prototype = {
     /** Subdivide until every selected triangles comply with a detail level */
     subdivision: function (iTris, center, radius2, detail2, states) {
-      vec3.copy(this.center_, center);
-      this.radius2_ = radius2;
-      this.edgeMax2_ = detail2;
-      this.states_ = states;
-      var mesh = this.mesh_;
+      vec3.copy(this._center, center);
+      this._radius2 = radius2;
+      this._edgeMax2 = detail2;
+      this._states = states;
+      var mesh = this._mesh;
       var nbTriangles = 0;
       while (nbTriangles !== mesh.getNbTriangles()) {
         nbTriangles = mesh.getNbTriangles();
@@ -46,10 +46,10 @@ define([
      * 6. Tag the newly created vertices if they are inside the sculpt brush radius
      */
     subdivide: function (iTris) {
-      var mesh = this.mesh_;
+      var mesh = this._mesh;
       var nbVertsInit = mesh.getNbVertices();
       var nbTrisInit = mesh.getNbTriangles();
-      this.verticesMap_ = new Map();
+      this._verticesMap = new Map();
 
       var res = this.initSplit(iTris);
       var iTrisSubd = res[0];
@@ -61,8 +61,8 @@ define([
       }
 
       // undo-redo
-      this.states_.pushVertices(mesh.getVerticesFromFaces(iTrisSubd));
-      this.states_.pushFaces(iTrisSubd);
+      this._states.pushVertices(mesh.getVerticesFromFaces(iTrisSubd));
+      this._states.pushFaces(iTrisSubd);
 
       mesh.reAllocateArrays(split.length);
       this.subdivideTriangles(iTrisSubd, split);
@@ -76,8 +76,8 @@ define([
 
       // undo-redo
       iTrisSubd = newTriangles.subarray(nbNewTris);
-      this.states_.pushVertices(mesh.getVerticesFromFaces(iTrisSubd));
-      this.states_.pushFaces(iTrisSubd);
+      this._states.pushVertices(mesh.getVerticesFromFaces(iTrisSubd));
+      this._states.pushFaces(iTrisSubd);
 
       var temp = iTris;
       var nbTris = iTris.length;
@@ -118,9 +118,9 @@ define([
         vNew[i] = nbVertsInit + i;
 
       vNew = mesh.expandsVertices(vNew, 1);
-      if (!this.linear_) {
+      if (!this._linear) {
         var smo = new Smooth();
-        smo.mesh_ = mesh;
+        smo._mesh = mesh;
         var expV = vNew.subarray(nbVNew);
         smo.smoothTangent(expV, 1.0);
         mesh.updateTopology(mesh.getFacesFromVertices(expV));
@@ -128,7 +128,7 @@ define([
 
       var vAr = mesh.getVertices();
       var vscf = mesh.getVerticesSculptFlags();
-      var centerPoint = this.center_;
+      var centerPoint = this._center;
       var xcen = centerPoint[0];
       var ycen = centerPoint[1];
       var zcen = centerPoint[2];
@@ -141,7 +141,7 @@ define([
         var dx = vAr[j] - xcen;
         var dy = vAr[j + 1] - ycen;
         var dz = vAr[j + 2] - zcen;
-        vscf[ind] = (dx * dx + dy * dy + dz * dz) < this.radius2_ ? vertexSculptMask : vertexSculptMask - 1;
+        vscf[ind] = (dx * dx + dy * dy + dz * dz) < this._radius2 ? vertexSculptMask : vertexSculptMask - 1;
       }
       return iTrisMask;
     },
@@ -171,7 +171,7 @@ define([
       var tis = Geometry.triangleInsideSphere;
       var pit = Geometry.pointInsideTriangle;
       return function (iTri, checkInsideSphere) {
-        var mesh = this.mesh_;
+        var mesh = this._mesh;
         var vAr = mesh.getVertices();
         var fAr = mesh.getFaces();
 
@@ -189,21 +189,21 @@ define([
         v3[1] = vAr[ind3 + 1];
         v3[2] = vAr[ind3 + 2];
 
-        if (checkInsideSphere && !tis(this.center_, this.radius2_, v1, v2, v3) && !pit(this.center_, v1, v2, v3))
+        if (checkInsideSphere && !tis(this._center, this._radius2, v1, v2, v3) && !pit(this._center, v1, v2, v3))
           return 0;
 
         var length1 = vec3.sqrDist(v1, v2);
         var length2 = vec3.sqrDist(v2, v3);
         var length3 = vec3.sqrDist(v1, v3);
-        if (length1 > length2 && length1 > length3) return length1 > this.edgeMax2_ ? 1 : 0;
-        else if (length2 > length3) return length2 > this.edgeMax2_ ? 2 : 0;
-        else return length3 > this.edgeMax2_ ? 3 : 0;
+        if (length1 > length2 && length1 > length3) return length1 > this._edgeMax2 ? 1 : 0;
+        else if (length2 > length3) return length2 > this._edgeMax2 ? 2 : 0;
+        else return length3 > this._edgeMax2 ? 3 : 0;
       };
     })(),
 
     /** Subdivide all the triangles that need to be subdivided */
     subdivideTriangles: function (iTrisSubd, split) {
-      var fAr = this.mesh_.getFaces();
+      var fAr = this._mesh.getFaces();
       var nbTris = iTrisSubd.length;
       for (var i = 0; i < nbTris; ++i) {
         var iTri = iTrisSubd[i];
@@ -224,7 +224,7 @@ define([
      * 4. Move the new vertex along its normal with a strengh proportional to the angle computed at step 3.
      */
     halfEdgeSplit: function (iTri, iv1, iv2, iv3) {
-      var mesh = this.mesh_;
+      var mesh = this._mesh;
       var vAr = mesh.getVertices();
       var nAr = mesh.getNormals();
       var cAr = mesh.getColors();
@@ -238,7 +238,7 @@ define([
       var fstf = mesh.getFacesStateFlags();
       var vstf = mesh.getVerticesStateFlags();
 
-      var vMap = this.verticesMap_;
+      var vMap = this._verticesMap;
       var key = Math.min(iv1, iv2) + '+' + Math.max(iv1, iv2);
       var isNewVertex = false;
       var ivMid = vMap.get(key);
@@ -266,7 +266,7 @@ define([
       vrf[iv3].push(iNewTri);
       Utils.replaceElement(vrf[iv2], iTri, iNewTri);
       var leaf = fleaf[iTri];
-      var iTrisLeaf = leaf.iFaces_;
+      var iTrisLeaf = leaf._iFaces;
       fleaf[iNewTri] = leaf;
       pil[iNewTri] = iTrisLeaf.length;
       iTrisLeaf.push(iNewTri);
@@ -311,7 +311,7 @@ define([
       mAr[id + 2] = (mAr[id1 + 2] + mAr[id2 + 2]) * 0.5;
 
       var offset = 0;
-      if (this.linear_) {
+      if (this._linear) {
         vAr[id] = (v1x + v2x) * 0.5;
         vAr[id + 1] = (v1y + v2y) * 0.5;
         vAr[id + 2] = (v1z + v2z) * 0.5;
@@ -369,14 +369,14 @@ define([
      * the valence of the vertex.
      */
     fillTriangles: function (iTris) {
-      var mesh = this.mesh_;
+      var mesh = this._mesh;
       var vrv = mesh.getVerticesRingVert();
       var fAr = mesh.getFaces();
 
       var nbTris = iTris.length;
       var iTrisNext = new Uint32Array(Utils.getMemory(4 * 2 * nbTris), 0, 2 * nbTris);
       var nbNext = 0;
-      var vMap = this.verticesMap_;
+      var vMap = this._verticesMap;
       for (var i = 0; i < nbTris; ++i) {
         var iTri = iTris[i];
         var j = iTri * 4;
@@ -418,7 +418,7 @@ define([
     },
     /** Fill crack on one triangle */
     fillTriangle: function (iTri, iv1, iv2, iv3, ivMid) {
-      var mesh = this.mesh_;
+      var mesh = this._mesh;
 
       var vrv = mesh.getVerticesRingVert();
       var vrf = mesh.getVerticesRingFace();
@@ -433,7 +433,7 @@ define([
       fAr[j + 2] = iv3;
       fAr[j + 3] = -1;
       var leaf = fleaf[iTri];
-      var iTrisLeaf = leaf.iFaces_;
+      var iTrisLeaf = leaf._iFaces;
 
       vrv[ivMid].push(iv3);
       vrv[iv3].push(ivMid);

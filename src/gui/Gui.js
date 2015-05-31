@@ -18,26 +18,26 @@ define([
   'use strict';
 
   var Gui = function (main) {
-    this.main_ = main;
+    this._main = main;
 
-    this.guiMain_ = null;
-    this.sidebar_ = null;
-    this.topbar_ = null;
+    this._guiMain = null;
+    this._sidebar = null;
+    this._topbar = null;
 
-    this.ctrlTablet_ = null;
-    this.ctrlFiles_ = null;
-    this.ctrlScene_ = null;
-    this.ctrlStates_ = null;
-    this.ctrlCamera_ = null;
-    this.ctrlBackground_ = null;
+    this._ctrlTablet = null;
+    this._ctrlFiles = null;
+    this._ctrlScene = null;
+    this._ctrlStates = null;
+    this._ctrlCamera = null;
+    this._ctrlBackground = null;
 
-    this.ctrlSculpting_ = null;
-    this.ctrlTopology_ = null;
-    this.ctrlRendering_ = null;
+    this._ctrlSculpting = null;
+    this._ctrlTopology = null;
+    this._ctrlRendering = null;
 
-    this.ctrlNotification_ = null;
+    this._ctrlNotification = null;
 
-    this.ctrls_ = []; // list of controllers
+    this._ctrls = []; // list of controllers
   };
 
   Gui.prototype = {
@@ -45,32 +45,32 @@ define([
     initGui: function () {
       this.deleteGui();
 
-      this.guiMain_ = new yagui.GuiMain(this.main_.getCanvas(), this.main_.onCanvasResize.bind(this.main_));
+      this._guiMain = new yagui.GuiMain(this._main.getCanvas(), this._main.onCanvasResize.bind(this._main));
 
-      var ctrls = this.ctrls_;
+      var ctrls = this._ctrls;
       ctrls.length = 0;
       var idc = 0;
 
       // Initialize the topbar
-      this.topbar_ = this.guiMain_.addTopbar();
-      ctrls[idc++] = this.ctrlFiles_ = new GuiFiles(this.topbar_, this);
-      ctrls[idc++] = this.ctrlScene_ = new GuiScene(this.topbar_, this);
-      ctrls[idc++] = this.ctrlStates_ = new GuiStates(this.topbar_, this);
-      ctrls[idc++] = this.ctrlBackground_ = new GuiBackground(this.topbar_, this);
-      ctrls[idc++] = this.ctrlCamera_ = new GuiCamera(this.topbar_, this);
+      this._topbar = this._guiMain.addTopbar();
+      ctrls[idc++] = this._ctrlFiles = new GuiFiles(this._topbar, this);
+      ctrls[idc++] = this._ctrlScene = new GuiScene(this._topbar, this);
+      ctrls[idc++] = this._ctrlStates = new GuiStates(this._topbar, this);
+      ctrls[idc++] = this._ctrlBackground = new GuiBackground(this._topbar, this);
+      ctrls[idc++] = this._ctrlCamera = new GuiCamera(this._topbar, this);
       // TODO find a way to get pressure event
-      // ctrls[idc++] = this.ctrlTablet_ = new GuiTablet(this.topbar_, this);
-      ctrls[idc++] = this.ctrlConfig_ = new GuiConfig(this.topbar_, this);
-      ctrls[idc++] = this.ctrlMesh_ = new GuiMesh(this.topbar_, this);
+      // ctrls[idc++] = this._ctrlTablet = new GuiTablet(this._topbar, this);
+      ctrls[idc++] = this._ctrlConfig = new GuiConfig(this._topbar, this);
+      ctrls[idc++] = this._ctrlMesh = new GuiMesh(this._topbar, this);
 
       // Initialize the sidebar
-      this.sidebar_ = this.guiMain_.addRightSidebar();
-      ctrls[idc++] = this.ctrlRendering_ = new GuiRendering(this.sidebar_, this);
-      ctrls[idc++] = this.ctrlTopology_ = new GuiTopology(this.sidebar_, this);
-      ctrls[idc++] = this.ctrlSculpting_ = new GuiSculpting(this.sidebar_, this);
+      this._sidebar = this._guiMain.addRightSidebar();
+      ctrls[idc++] = this._ctrlRendering = new GuiRendering(this._sidebar, this);
+      ctrls[idc++] = this._ctrlTopology = new GuiTopology(this._sidebar, this);
+      ctrls[idc++] = this._ctrlSculpting = new GuiSculpting(this._sidebar, this);
 
       // gui extra
-      var extra = this.topbar_.addExtra();
+      var extra = this._topbar.addExtra();
       // Extra : Настройка интерфейса
       extra.addTitle(TR('contour'));
       extra.addColor(TR('contourColor'), ShaderContour.color, this.onContourColor.bind(this));
@@ -85,10 +85,10 @@ define([
       ShaderContour.color[1] = col[1];
       ShaderContour.color[2] = col[2];
       ShaderContour.color[3] = col[3];
-      this.main_.render();
+      this._main.render();
     },
     addDonateButton: function () {
-      var ctrlDonate = this.topbar_.addMenu();
+      var ctrlDonate = this._topbar.addMenu();
       ctrlDonate.domContainer.innerHTML = TR('donate');
       ctrlDonate.domContainer.addEventListener('mousedown', function () {
         document.getElementById('donate').submit();
@@ -96,63 +96,63 @@ define([
     },
     /** Return simple widget */
     getWidgetNotification: function () {
-      if (!this.ctrlNotification_) {
-        this.ctrlNotification_ = this.topbar_.addMenu();
-        this.ctrlNotification_.setVisibility(false);
+      if (!this._ctrlNotification) {
+        this._ctrlNotification = this._topbar.addMenu();
+        this._ctrlNotification.setVisibility(false);
       }
-      return this.ctrlNotification_;
+      return this._ctrlNotification;
     },
     /** Update information on mesh */
     updateMesh: function () {
-      this.ctrlRendering_.updateMesh();
-      this.ctrlTopology_.updateMesh();
-      this.ctrlSculpting_.updateMesh();
-      this.ctrlScene_.updateMesh();
+      this._ctrlRendering.updateMesh();
+      this._ctrlTopology.updateMesh();
+      this._ctrlSculpting.updateMesh();
+      this._ctrlScene.updateMesh();
       this.updateMeshInfo();
     },
     /** Update number of vertices and triangles */
     updateMeshInfo: function () {
-      this.ctrlMesh_.updateMeshInfo();
+      this._ctrlMesh.updateMeshInfo();
     },
     /** Return true if flat shading is enabled */
     getFlatShading: function () {
-      return this.ctrlRendering_.getFlatShading();
+      return this._ctrlRendering.getFlatShading();
     },
     /** Return true if wireframe is displayed */
     getWireframe: function () {
-      return this.ctrlRendering_.getWireframe();
+      return this._ctrlRendering.getWireframe();
     },
     /** Return the value of the shader */
     getShader: function () {
-      return this.ctrlRendering_.getShader();
+      return this._ctrlRendering.getShader();
     },
     addEvents: function () {
-      for (var i = 0, ctrls = this.ctrls_, nb = ctrls.length; i < nb; ++i) {
+      for (var i = 0, ctrls = this._ctrls, nb = ctrls.length; i < nb; ++i) {
         var ct = ctrls[i];
         if (ct && ct.addEvents)
           ct.addEvents();
       }
     },
     removeEvents: function () {
-      for (var i = 0, ctrls = this.ctrls_, nb = ctrls.length; i < nb; ++i) {
+      for (var i = 0, ctrls = this._ctrls, nb = ctrls.length; i < nb; ++i) {
         var ct = ctrls[i];
         if (ct && ct.removeEvents)
           ct.removeEvents();
       }
     },
     addAlphaOptions: function (opts) {
-      this.ctrlSculpting_.addAlphaOptions(opts);
+      this._ctrlSculpting.addAlphaOptions(opts);
     },
     /** Delete the old gui */
     deleteGui: function () {
-      if (!this.guiMain_ || !this.guiMain_.domMain.parentNode)
+      if (!this._guiMain || !this._guiMain.domMain.parentNode)
         return;
       this.removeEvents();
       this.setVisibility(false);
-      this.guiMain_.domMain.parentNode.removeChild(this.guiMain_.domMain);
+      this._guiMain.domMain.parentNode.removeChild(this._guiMain.domMain);
     },
     setVisibility: function (bool) {
-      this.guiMain_.setVisibility(bool);
+      this._guiMain.setVisibility(bool);
     }
   };
 

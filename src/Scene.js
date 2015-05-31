@@ -25,178 +25,178 @@ define([
   'use strict';
 
   var Scene = function () {
-    this.gl_ = null; // webgl context
-    this.canvas_ = document.getElementById('canvas');
+    this._gl = null; // webgl context
+    this._canvas = document.getElementById('canvas');
 
     // core of the app
-    this.states_ = new States(this); // for undo-redo
-    this.sculpt_ = new Sculpt(this);
-    this.camera_ = new Camera();
-    this.picking_ = new Picking(this); // the ray picking
-    this.pickingSym_ = new Picking(this, true); // the symmetrical picking
+    this._states = new States(this); // for undo-redo
+    this._sculpt = new Sculpt(this);
+    this._camera = new Camera();
+    this._picking = new Picking(this); // the ray picking
+    this._pickingSym = new Picking(this, true); // the symmetrical picking
 
     // renderable stuffs
     var opts = getUrlOptions();
-    this.showContour_ = opts.outline;
-    this.showGrid_ = opts.grid;
-    this.grid_ = null;
-    this.background_ = null;
-    this.selection_ = null; // the selection geometry (red hover circle)
-    this.meshes_ = []; // the meshes
-    this.selectMeshes_ = []; // multi selection
-    this.mesh_ = null; // the selected mesh
-    this.rtt_ = null; // rtt
-    this.contour_ = null; // rtt for contour
+    this._showContour = opts.outline;
+    this._showGrid = opts.grid;
+    this._grid = null;
+    this._background = null;
+    this._selection = null; // the selection geometry (red hover circle)
+    this._meshes = []; // the meshes
+    this._selectMeshes = []; // multi selection
+    this._mesh = null; // the selected mesh
+    this._rtt = null; // rtt
+    this._contour = null; // rtt for contour
 
     // ui stuffs
-    this.focusGui_ = false; // if the gui is being focused
-    this.gui_ = new Gui(this);
+    this._focusGui = false; // if the gui is being focused
+    this._gui = new Gui(this);
 
-    this.preventRender_ = false; // prevent multiple render per frame
-    this.drawFullScene_ = false; // render everything on the rtt
-    this.autoMatrix_ = opts.scalecenter; // scale and center the imported meshes
+    this._preventRender = false; // prevent multiple render per frame
+    this._drawFullScene = false; // render everything on the rtt
+    this._autoMatrix = opts.scalecenter; // scale and center the imported meshes
   };
 
   Scene.prototype = {
     /** Initialization */
     start: function () {
       this.initWebGL();
-      if (!this.gl_)
+      if (!this._gl)
         return;
-      this.background_ = new Background(this.gl_, this);
-      this.selection_ = new Selection(this.gl_);
-      this.grid_ = new Grid(this.gl_);
-      this.rtt_ = new Rtt(this.gl_);
-      this.contour_ = new Contour(this.gl_);
+      this._background = new Background(this._gl, this);
+      this._selection = new Selection(this._gl);
+      this._grid = new Grid(this._gl);
+      this._rtt = new Rtt(this._gl);
+      this._contour = new Contour(this._gl);
 
       this.loadTextures();
-      this.gui_.initGui();
+      this._gui.initGui();
       this.onCanvasResize();
       this.addSphere();
     },
     getBackground: function () {
-      return this.background_;
+      return this._background;
     },
     getCanvas: function () {
-      return this.canvas_;
+      return this._canvas;
     },
     getCamera: function () {
-      return this.camera_;
+      return this._camera;
     },
     getGui: function () {
-      return this.gui_;
+      return this._gui;
     },
     getMeshes: function () {
-      return this.meshes_;
+      return this._meshes;
     },
     getMesh: function () {
-      return this.mesh_;
+      return this._mesh;
     },
     getSelectedMeshes: function () {
-      return this.selectMeshes_;
+      return this._selectMeshes;
     },
     getPicking: function () {
-      return this.picking_;
+      return this._picking;
     },
     getPickingSymmetry: function () {
-      return this.pickingSym_;
+      return this._pickingSym;
     },
     getSculpt: function () {
-      return this.sculpt_;
+      return this._sculpt;
     },
     getStates: function () {
-      return this.states_;
+      return this._states;
     },
     setMesh: function (mesh) {
       return this.setOrUnsetMesh(mesh);
     },
     setOrUnsetMesh: function (mesh, multiSelect) {
       if (!mesh) {
-        this.selectMeshes_.length = 0;
+        this._selectMeshes.length = 0;
       } else if (!multiSelect) {
-        this.selectMeshes_.length = 0;
-        this.selectMeshes_.push(mesh);
+        this._selectMeshes.length = 0;
+        this._selectMeshes.push(mesh);
       } else {
         var id = this.getIndexSelectMesh(mesh);
         if (id >= 0) {
-          if (this.selectMeshes_.length > 1) {
-            this.selectMeshes_.splice(id, 1);
-            mesh = this.selectMeshes_[0];
+          if (this._selectMeshes.length > 1) {
+            this._selectMeshes.splice(id, 1);
+            mesh = this._selectMeshes[0];
           }
         } else {
-          this.selectMeshes_.push(mesh);
+          this._selectMeshes.push(mesh);
         }
       }
 
-      this.mesh_ = mesh;
+      this._mesh = mesh;
       this.getGui().updateMesh();
       this.render();
       return mesh;
     },
     renderSelectOverRtt: function () {
       if (this.requestRender())
-        this.drawFullScene_ = false;
+        this._drawFullScene = false;
     },
     /** Request a render */
     render: function () {
-      this.drawFullScene_ = true;
+      this._drawFullScene = true;
       this.requestRender();
     },
     requestRender: function () {
-      if (this.preventRender_ === true)
+      if (this._preventRender === true)
         return false; // render already requested for the next frame
       window.requestAnimationFrame(this.applyRender.bind(this));
-      this.preventRender_ = true;
+      this._preventRender = true;
       return true;
     },
     /** Render the scene */
     applyRender: function () {
-      this.preventRender_ = false;
+      this._preventRender = false;
       this.computeMatricesAndSort();
-      var gl = this.gl_;
+      var gl = this._gl;
 
-      if (this.drawFullScene_) {
+      if (this._drawFullScene) {
         gl.disable(gl.DEPTH_TEST);
         // gl.enable(gl.CULL_FACE);
 
-        var showContour = this.selectMeshes_.length > 0 && this.showContour_ && this.contour_.isEffective();
+        var showContour = this._selectMeshes.length > 0 && this._showContour && this._contour.isEffective();
         if (showContour) {
-          gl.bindFramebuffer(gl.FRAMEBUFFER, this.contour_.getFramebuffer());
+          gl.bindFramebuffer(gl.FRAMEBUFFER, this._contour.getFramebuffer());
           gl.clear(gl.COLOR_BUFFER_BIT);
-          for (var s = 0, sel = this.selectMeshes_, nbSel = sel.length; s < nbSel; ++s)
+          for (var s = 0, sel = this._selectMeshes, nbSel = sel.length; s < nbSel; ++s)
             sel[s].renderFlatColor(this);
         }
 
-        gl.bindFramebuffer(gl.FRAMEBUFFER, this.rtt_.getFramebuffer());
+        gl.bindFramebuffer(gl.FRAMEBUFFER, this._rtt.getFramebuffer());
         gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
-        this.background_.render();
+        this._background.render();
 
         gl.enable(gl.DEPTH_TEST);
-        if (this.showGrid_)
-          this.grid_.render();
-        for (var i = 0, meshes = this.meshes_, nb = meshes.length; i < nb; ++i)
+        if (this._showGrid)
+          this._grid.render();
+        for (var i = 0, meshes = this._meshes, nb = meshes.length; i < nb; ++i)
           meshes[i].render(this);
 
         if (showContour)
-          this.contour_.render();
+          this._contour.render();
       }
 
       // render to screen
       gl.bindFramebuffer(gl.FRAMEBUFFER, null);
       gl.disable(gl.DEPTH_TEST);
-      this.rtt_.render();
-      this.selection_.render(this);
+      this._rtt.render();
+      this._selection.render(this);
     },
     /** Pre compute matrices and sort meshes */
     computeMatricesAndSort: function () {
-      var meshes = this.meshes_;
-      var cam = this.camera_;
+      var meshes = this._meshes;
+      var cam = this._camera;
       if (meshes.length > 0)
         cam.optimizeNearFar(this.computeBoundingBoxScene());
-      this.grid_.computeMatrices(cam);
+      this._grid.computeMatrices(cam);
       for (var i = 0, nb = meshes.length; i < nb; ++i)
         meshes[i].computeMatrices(cam);
-      this.selection_.computeMatrices(this);
+      this._selection.computeMatrices(this);
       meshes.sort(Mesh.sortFunction);
     },
     /** Load webgl context */
@@ -206,7 +206,7 @@ define([
         stencil: true
       };
       var canvas = document.getElementById('canvas');
-      var gl = this.gl_ = canvas.getContext('webgl', attributes) || canvas.getContext('experimental-webgl', attributes);
+      var gl = this._gl = canvas.getContext('webgl', attributes) || canvas.getContext('experimental-webgl', attributes);
       if (!gl) {
         window.alert('Could not initialise WebGL. No WebGL, no SculptGL. Sorry.');
         return;
@@ -232,7 +232,7 @@ define([
       var loadTex = function (path, idMaterial) {
         var mat = new Image();
         mat.src = path;
-        var gl = self.gl_;
+        var gl = self._gl;
         mat.onload = function () {
           var idTex = gl.createTexture();
           gl.bindTexture(gl.TEXTURE_2D, idTex);
@@ -268,14 +268,14 @@ define([
     },
     /** Called when the window is resized */
     onCanvasResize: function () {
-      var newWidth = this.gl_.viewportWidth = this.camera_.width_ = this.canvas_.width;
-      var newHeight = this.gl_.viewportHeight = this.camera_.height_ = this.canvas_.height;
+      var newWidth = this._gl.viewportWidth = this._camera._width = this._canvas.width;
+      var newHeight = this._gl.viewportHeight = this._camera._height = this._canvas.height;
 
-      this.background_.onResize(newWidth, newHeight);
-      this.rtt_.onResize(newWidth, newHeight);
-      this.contour_.onResize(newWidth, newHeight);
-      this.gl_.viewport(0, 0, newWidth, newHeight);
-      this.camera_.updateProjection();
+      this._background.onResize(newWidth, newHeight);
+      this._rtt.onResize(newWidth, newHeight);
+      this._contour.onResize(newWidth, newHeight);
+      this._gl.viewport(0, 0, newWidth, newHeight);
+      this._camera.updateProjection();
       this.render();
     },
     computeBoundingBoxMeshes: function (meshes) {
@@ -301,8 +301,8 @@ define([
       return bigBound;
     },
     computeBoundingBoxScene: function () {
-      var bb = this.computeBoundingBoxMeshes(this.meshes_);
-      var gb = this.grid_.getBound();
+      var bb = this.computeBoundingBoxMeshes(this._meshes);
+      var gb = this._grid.getBound();
       if (gb[0] < bb[0]) bb[0] = gb[0];
       if (gb[1] < bb[1]) bb[1] = gb[1];
       if (gb[2] < bb[2]) bb[2] = gb[2];
@@ -330,45 +330,45 @@ define([
     /** Load the sphere */
     addSphere: function () {
       // make a cube and subdivide it
-      var mesh = new Multimesh(Primitive.createCube(this.gl_));
+      var mesh = new Multimesh(Primitive.createCube(this._gl));
       while (mesh.getNbFaces() < 50000)
         mesh.addLevel();
       // discard the very low res
-      mesh.meshes_.splice(0, 4);
-      mesh.sel_ -= 4;
+      mesh._meshes.splice(0, 4);
+      mesh._sel -= 4;
 
       return this.addNewMesh(mesh);
     },
     addCube: function () {
-      var mesh = new Multimesh(Primitive.createCube(this.gl_));
+      var mesh = new Multimesh(Primitive.createCube(this._gl));
       glm.mat4.scale(mesh.getMatrix(), mesh.getMatrix(), [0.7, 0.7, 0.7]);
       Subdivision.LINEAR = true;
       while (mesh.getNbFaces() < 50000)
         mesh.addLevel();
       // discard the very low res
-      mesh.meshes_.splice(0, 4);
-      mesh.sel_ -= 4;
+      mesh._meshes.splice(0, 4);
+      mesh._sel -= 4;
       Subdivision.LINEAR = false;
 
       return this.addNewMesh(mesh);
     },
     addNewMesh: function (mesh) {
-      this.meshes_.push(mesh);
-      this.states_.pushStateAdd(mesh);
+      this._meshes.push(mesh);
+      this._states.pushStateAdd(mesh);
       this.setMesh(mesh);
       return mesh;
     },
     loadScene: function (fileData, fileType, autoMatrix) {
       var newMeshes;
-      if (fileType === 'obj') newMeshes = Import.importOBJ(fileData, this.gl_);
-      else if (fileType === 'sgl') newMeshes = Import.importSGL(fileData, this.gl_, this);
-      else if (fileType === 'stl') newMeshes = Import.importSTL(fileData, this.gl_);
-      else if (fileType === 'ply') newMeshes = Import.importPLY(fileData, this.gl_);
+      if (fileType === 'obj') newMeshes = Import.importOBJ(fileData, this._gl);
+      else if (fileType === 'sgl') newMeshes = Import.importSGL(fileData, this._gl, this);
+      else if (fileType === 'stl') newMeshes = Import.importSTL(fileData, this._gl);
+      else if (fileType === 'ply') newMeshes = Import.importPLY(fileData, this._gl);
       var nbNewMeshes = newMeshes.length;
       if (nbNewMeshes === 0)
         return;
 
-      var meshes = this.meshes_;
+      var meshes = this._meshes;
       for (var i = 0; i < nbNewMeshes; ++i) {
         var mesh = newMeshes[i] = new Multimesh(newMeshes[i]);
         mesh.init();
@@ -378,9 +378,9 @@ define([
 
       if (autoMatrix)
         this.scaleAndCenterMeshes(newMeshes);
-      this.states_.pushStateAdd(newMeshes);
+      this._states.pushStateAdd(newMeshes);
       this.setMesh(meshes[meshes.length - 1]);
-      this.camera_.resetView();
+      this._camera.resetView();
       return newMeshes;
     },
     clearScene: function () {
@@ -388,28 +388,28 @@ define([
       this.getMeshes().length = 0;
       this.getCamera().resetView();
       var opts = getUrlOptions();
-      this.showGrid_ = opts.grid;
-      this.showContour_ = opts.outline;
-      this.autoMatrix_ = opts.scalecenter;
+      this._showGrid = opts.grid;
+      this._showContour = opts.outline;
+      this._autoMatrix = opts.scalecenter;
       this.setMesh(null);
-      this.mouseButton_ = 0;
+      this._mouseButton = 0;
     },
     deleteCurrentSelection: function () {
-      if (!this.mesh_)
+      if (!this._mesh)
         return;
 
-      this.removeMeshes(this.selectMeshes_);
-      this.states_.pushStateRemove(this.selectMeshes_.slice());
-      this.selectMeshes_.length = 0;
+      this.removeMeshes(this._selectMeshes);
+      this._states.pushStateRemove(this._selectMeshes.slice());
+      this._selectMeshes.length = 0;
       this.setMesh(null);
     },
     removeMeshes: function (rm) {
-      var meshes = this.meshes_;
+      var meshes = this._meshes;
       for (var i = 0; i < rm.length; ++i)
         meshes.splice(this.getIndexMesh(rm[i]), 1);
     },
     getIndexMesh: function (mesh, select) {
-      var meshes = select ? this.selectMeshes_ : this.meshes_;
+      var meshes = select ? this._selectMeshes : this._meshes;
       var id = mesh.getID();
       for (var i = 0, nbMeshes = meshes.length; i < nbMeshes; ++i) {
         var testMesh = meshes[i];
@@ -424,8 +424,8 @@ define([
     /** Replace a mesh in the scene */
     replaceMesh: function (mesh, newMesh) {
       var index = this.getIndexMesh(mesh);
-      if (index >= 0) this.meshes_[index] = newMesh;
-      if (this.mesh_ === mesh) this.setMesh(newMesh);
+      if (index >= 0) this._meshes[index] = newMesh;
+      if (this._mesh === mesh) this.setMesh(newMesh);
     },
     onLoadAlphaImage: function (img, name, tool) {
       var can = document.createElement('canvas');
@@ -446,7 +446,7 @@ define([
       var entry = {};
       entry[id] = name;
       this.getGui().addAlphaOptions(entry);
-      if (tool && tool.ctrlAlpha_) tool.ctrlAlpha_.setValue(id);
+      if (tool && tool._ctrlAlpha) tool._ctrlAlpha.setValue(id);
     },
     loadAlphaTexture: function (u8, w, h, name) {
       var ans = Picking.ALPHAS_NAMES;

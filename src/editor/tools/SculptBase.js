@@ -5,20 +5,20 @@ define([
   'use strict';
 
   var SculptBase = function (main) {
-    this.main_ = main;
-    this.states_ = main ? main.getStates() : null; // for undo-redo
-    this.mesh_ = null; // the current edited mesh
-    this.cbContinuous_ = this.updateContinuous.bind(this); // callback continuous
-    this.lastMouseX_ = 0.0;
-    this.lastMouseY_ = 0.0;
+    this._main = main;
+    this._states = main ? main.getStates() : null; // for undo-redo
+    this._mesh = null; // the current edited mesh
+    this._cbContinuous = this.updateContinuous.bind(this); // callback continuous
+    this._lastMouseX = 0.0;
+    this._lastMouseY = 0.0;
   };
 
   SculptBase.prototype = {
     /** Start sculpting */
     start: function (ctrl) {
-      var main = this.main_;
+      var main = this._main;
       var picking = main.getPicking();
-      if (!picking.intersectionMouseMeshes(main.getMeshes(), main.mouseX_, main.mouseY_))
+      if (!picking.intersectionMouseMeshes(main.getMeshes(), main._mouseX, main._mouseY))
         return;
 
       var mesh = main.setOrUnsetMesh(picking.getMesh(), ctrl);
@@ -28,24 +28,24 @@ define([
       picking.initAlpha();
       var pickingSym = main.getSculpt().getSymmetry() ? main.getPickingSymmetry() : null;
       if (pickingSym) {
-        pickingSym.intersectionMouseMesh(mesh, main.mouseX_, main.mouseY_);
+        pickingSym.intersectionMouseMesh(mesh, main._mouseX, main._mouseY);
         pickingSym.initAlpha();
       }
-      this.mesh_ = mesh;
+      this._mesh = mesh;
       this.pushState();
-      this.lastMouseX_ = main.mouseX_;
-      this.lastMouseY_ = main.mouseY_;
+      this._lastMouseX = main._mouseX;
+      this._lastMouseY = main._mouseY;
       this.startSculpt();
     },
     /** End sculpting */
     end: function () {
-      if (this.mesh_) {
+      if (this._mesh) {
         this.updateMeshBuffers();
-        this.mesh_.checkLeavesUpdate();
+        this._mesh.checkLeavesUpdate();
       }
     },
     endTransform: function () {
-      var mesh = this.mesh_;
+      var mesh = this._mesh;
       if (!mesh)
         return;
       var em = mesh.getEditMatrix();
@@ -53,7 +53,7 @@ define([
       if ((em[0] * em[5] * em[10]) === 1.0 && em[12] === 0.0 && em[13] === 0.0 && em[14] === 0.0)
         return;
       var iVerts = this.getUnmaskedVertices();
-      this.states_.pushVertices(iVerts);
+      this._states.pushVertices(iVerts);
 
       this.applyEditMatrix(iVerts);
       if (iVerts.length === 0) return;
@@ -61,53 +61,53 @@ define([
     },
     /** Push undo operation */
     pushState: function () {
-      this.states_.pushStateGeometry(this.mesh_);
+      this._states.pushStateGeometry(this._mesh);
     },
     /** Start sculpting operation */
     startSculpt: function () {
-      if (this.lockPosition_ === true)
+      if (this._lockPosition === true)
         return;
       this.sculptStroke();
     },
     /** Update sculpting operation */
     update: function (continuous) {
-      if (this.lockPosition_ === true)
+      if (this._lockPosition === true)
         return this.updateSculptLock(continuous);
       this.sculptStroke();
     },
     /** Update lock position */
     updateSculptLock: function (continuous) {
-      var main = this.main_;
+      var main = this._main;
       if (!continuous)
-        this.states_.getCurrentState().undo(); // I can't believe it actually worked
+        this._states.getCurrentState().undo(); // I can't believe it actually worked
 
       var picking = main.getPicking();
-      var origRad = this.radius_;
+      var origRad = this._radius;
       var pickingSym = main.getSculpt().getSymmetry() ? main.getPickingSymmetry() : null;
 
-      var dx = main.mouseX_ - this.lastMouseX_;
-      var dy = main.mouseY_ - this.lastMouseY_;
-      this.radius_ = Math.sqrt(dx * dx + dy * dy);
+      var dx = main._mouseX - this._lastMouseX;
+      var dy = main._mouseY - this._lastMouseY;
+      this._radius = Math.sqrt(dx * dx + dy * dy);
       // it's a bit hacky... I just simulate another stroke with a very small offset
       // so that the stroke still has a direction (the mask can be rotated correctly then)
-      var offx = dx / this.radius_;
-      var offy = dy / this.radius_;
-      this.makeStroke(this.lastMouseX_ + offx * 1e-3, this.lastMouseY_ + offy * 1e-3, picking, pickingSym);
-      this.radius_ = origRad;
+      var offx = dx / this._radius;
+      var offy = dy / this._radius;
+      this.makeStroke(this._lastMouseX + offx * 1e-3, this._lastMouseY + offy * 1e-3, picking, pickingSym);
+      this._radius = origRad;
 
       this.updateRender();
       main.getCanvas().style.cursor = 'default';
     },
     /** Make a brush stroke */
     sculptStroke: function () {
-      var main = this.main_;
+      var main = this._main;
       var picking = main.getPicking();
       var pickingSym = main.getSculpt().getSymmetry() ? main.getPickingSymmetry() : null;
 
-      var dx = main.mouseX_ - this.lastMouseX_;
-      var dy = main.mouseY_ - this.lastMouseY_;
+      var dx = main._mouseX - this._lastMouseX;
+      var dy = main._mouseY - this._lastMouseY;
       var dist = Math.sqrt(dx * dx + dy * dy);
-      var minSpacing = 0.15 * this.radius_;
+      var minSpacing = 0.15 * this._radius;
 
       if (dist <= minSpacing)
         return;
@@ -115,8 +115,8 @@ define([
       var step = 1.0 / Math.floor(dist / minSpacing);
       dx *= step;
       dy *= step;
-      var mouseX = this.lastMouseX_ + dx;
-      var mouseY = this.lastMouseY_ + dy;
+      var mouseX = this._lastMouseX + dx;
+      var mouseY = this._lastMouseY + dy;
 
       for (var i = step; i <= 1.0; i += step) {
         if (!this.makeStroke(mouseX, mouseY, picking, pickingSym))
@@ -127,15 +127,15 @@ define([
 
       this.updateRender();
 
-      this.lastMouseX_ = main.mouseX_;
-      this.lastMouseY_ = main.mouseY_;
+      this._lastMouseX = main._mouseX;
+      this._lastMouseY = main._mouseY;
     },
     updateRender: function () {
       this.updateMeshBuffers();
-      this.main_.render();
+      this._main.render();
     },
     makeStroke: function (mouseX, mouseY, picking, pickingSym) {
-      var mesh = this.mesh_;
+      var mesh = this._mesh;
       picking.intersectionMouseMesh(mesh, mouseX, mouseY);
       var pick1 = picking.getMesh();
       if (pick1) {
@@ -143,7 +143,7 @@ define([
         picking.computePickedNormal();
       }
       // if dyn topo, we need to the picking and the sculpting altogether
-      var dynTopo = mesh.getDynamicTopology && !this.lockPosition_;
+      var dynTopo = mesh.getDynamicTopology && !this._lockPosition;
       if (dynTopo && pick1)
         this.stroke(picking, false);
 
@@ -163,17 +163,17 @@ define([
       return pick1 || pick2;
     },
     updateMeshBuffers: function () {
-      if (this.mesh_.getDynamicTopology)
-        this.mesh_.updateBuffers();
+      if (this._mesh.getDynamicTopology)
+        this._mesh.updateBuffers();
       else
-        this.mesh_.updateGeometryBuffers();
+        this._mesh.updateGeometryBuffers();
     },
     updateContinuous: function () {
-      if (this.lockPosition_) return this.update(true);
-      var main = this.main_;
+      if (this._lockPosition) return this.update(true);
+      var main = this._main;
       var picking = main.getPicking();
       var pickingSym = main.getSculpt().getSymmetry() ? main.getPickingSymmetry() : null;
-      this.makeStroke(main.mouseX_, main.mouseY_, picking, pickingSym);
+      this.makeStroke(main._mouseX, main._mouseY, picking, pickingSym);
       this.updateRender();
     },
     /** Return the vertices that point toward the camera */
@@ -181,7 +181,7 @@ define([
       var nbVertsSelected = iVertsInRadius.length;
       var iVertsFront = new Uint32Array(Utils.getMemory(4 * nbVertsSelected), 0, nbVertsSelected);
       var acc = 0;
-      var nAr = this.mesh_.getNormals();
+      var nAr = this._mesh.getNormals();
       var eyeX = eyeDir[0];
       var eyeY = eyeDir[1];
       var eyeZ = eyeDir[2];
@@ -195,8 +195,8 @@ define([
     },
     /** Compute average normal of a group of vertices with culling */
     areaNormal: function (iVerts) {
-      var nAr = this.mesh_.getNormals();
-      var mAr = this.mesh_.getMaterials();
+      var nAr = this._mesh.getNormals();
+      var mAr = this._mesh.getMaterials();
       var anx = 0.0;
       var any = 0.0;
       var anz = 0.0;
@@ -215,8 +215,8 @@ define([
     },
     /** Compute average center of a group of vertices (with culling) */
     areaCenter: function (iVerts) {
-      var vAr = this.mesh_.getVertices();
-      var mAr = this.mesh_.getMaterials();
+      var vAr = this._mesh.getVertices();
+      var mAr = this._mesh.getMaterials();
       var nbVerts = iVerts.length;
       var ax = 0.0;
       var ay = 0.0;
@@ -234,7 +234,7 @@ define([
     },
     /** Updates the vertices original coords that are sculpted for the first time in this stroke */
     updateProxy: function (iVerts) {
-      var mesh = this.mesh_;
+      var mesh = this._mesh;
       var vAr = mesh.getVertices();
       var vProxy = mesh.getVerticesProxy();
       if (vAr === vProxy)
@@ -253,7 +253,7 @@ define([
     },
     /** Laplacian smooth. Special rule for vertex on the edge of the mesh. */
     laplacianSmooth: function (iVerts, smoothVerts, vField) {
-      var mesh = this.mesh_;
+      var mesh = this._mesh;
       var vrvStartCount = mesh.getVerticesRingVertStartCount();
       var vertRingVert = mesh.getVerticesRingVert();
       var ringVerts = vertRingVert instanceof Array ? vertRingVert : null;
@@ -311,14 +311,14 @@ define([
       }
     },
     dynamicTopology: function (picking) {
-      var mesh = this.mesh_;
+      var mesh = this._mesh;
       var iVerts = picking.getPickedVertices();
       if (!mesh.getDynamicTopology)
         return iVerts;
       if (iVerts.length === 0) {
         iVerts = mesh.getVerticesFromFaces([picking.getPickedFace()]);
         // undo-redo
-        this.states_.pushVertices(iVerts);
+        this._states.pushVertices(iVerts);
       }
 
       var topo = mesh.getDynamicTopology();
@@ -334,12 +334,12 @@ define([
       var d2Min = (d2Max / 4.2025) * decFactor;
 
       // undo-redo
-      this.states_.pushFaces(iFaces);
+      this._states.pushFaces(iFaces);
 
       if (subFactor)
-        iFaces = topo.subdivision(iFaces, center, radius2, d2Max, this.states_);
+        iFaces = topo.subdivision(iFaces, center, radius2, d2Max, this._states);
       if (decFactor)
-        iFaces = topo.decimation(iFaces, center, radius2, d2Min, this.states_);
+        iFaces = topo.decimation(iFaces, center, radius2, d2Min, this._states);
       iVerts = mesh.getVerticesFromFaces(iFaces);
 
       var nbVerts = iVerts.length;
@@ -366,9 +366,9 @@ define([
     filterMaskedVertices: function (lowerBound, upperBound) {
       var lb = lowerBound === undefined ? -Infinity : lowerBound;
       var ub = upperBound === undefined ? Infinity : upperBound;
-      var nbVertices = this.mesh_.getNbVertices();
+      var nbVertices = this._mesh.getNbVertices();
       var cleaned = new Uint32Array(Utils.getMemory(4 * nbVertices), 0, nbVertices);
-      var mAr = this.mesh_.getMaterials();
+      var mAr = this._mesh.getMaterials();
       var acc = 0;
       for (var i = 0; i < nbVertices; ++i) {
         var mask = mAr[i * 3 + 2];

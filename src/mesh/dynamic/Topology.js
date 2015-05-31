@@ -6,9 +6,9 @@ define([
   'use strict';
 
   var Topology = function (mesh) {
-    this.mesh_ = mesh;
-    this.subdivision_ = new Subdivision(mesh);
-    this.decimation_ = new Decimation(mesh);
+    this._mesh = mesh;
+    this._subdivision = new Subdivision(mesh);
+    this._decimation = new Decimation(mesh);
   };
 
   Topology.subFactor = 75; // subdivision factor
@@ -23,11 +23,11 @@ define([
       return Topology.decFactor * 0.01;
     },
     subdivision: function (iTris, center, radius2, detail2, states) {
-      this.subdivision_.linear_ = Topology.linear;
-      return this.subdivision_.subdivision(iTris, center, radius2, detail2, states);
+      this._subdivision._linear = Topology.linear;
+      return this._subdivision.subdivision(iTris, center, radius2, detail2, states);
     },
     decimation: function (iTris, center, radius2, detail2, states) {
-      return this.decimation_.decimation(iTris, center, radius2, detail2, states);
+      return this._decimation.decimation(iTris, center, radius2, detail2, states);
     }
   };
 

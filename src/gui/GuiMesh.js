@@ -5,7 +5,7 @@ define([
   'use strict';
 
   var GuiMesh = function (guiParent, ctrlGui) {
-    this.main_ = ctrlGui.main_; // main application
+    this._main = ctrlGui._main; // main application
 
     this.domVerts = null; // ctrl nb vertices
     this.domFaces = null; // ctrl nb faces
@@ -34,7 +34,7 @@ define([
     },
     /** Update number of vertices and faces */
     updateMeshInfo: function () {
-      var mesh = this.main_.getMesh();
+      var mesh = this._main.getMesh();
       this.domVerts.innerHTML = TR('meshNbVertices') + (mesh ? mesh.getNbVertices() : 0);
       this.domFaces.innerHTML = TR('meshNbFaces') + (mesh ? mesh.getNbFaces() : 0);
     }

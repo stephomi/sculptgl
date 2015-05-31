@@ -8,12 +8,12 @@ define([
   var vec3 = glm.vec3;
 
   var StateGeometry = function (main, mesh) {
-    this.main_ = main; // main application
-    this.mesh_ = mesh; // the mesh
-    this.center_ = vec3.copy([0.0, 0.0, 0.0], mesh.getCenter());
+    this._main = main; // main application
+    this._mesh = mesh; // the mesh
+    this._center = vec3.copy([0.0, 0.0, 0.0], mesh.getCenter());
 
-    this.idVertState_ = []; // ids of vertices
-    this.vArState_ = []; // copies of vertices coordinates
+    this._idVertState = []; // ids of vertices
+    this._vArState = []; // copies of vertices coordinates
   };
 
   StateGeometry.prototype = {
@@ -21,11 +21,11 @@ define([
     undo: function (skipUpdate) {
       this.pullVertices();
       if (skipUpdate) return;
-      var mesh = this.mesh_;
-      mesh.updateGeometry(mesh.getFacesFromVertices(this.idVertState_), this.idVertState_);
+      var mesh = this._mesh;
+      mesh.updateGeometry(mesh.getFacesFromVertices(this._idVertState), this._idVertState);
       mesh.updateGeometryBuffers();
-      vec3.copy(mesh.getCenter(), this.center_);
-      this.main_.setMesh(mesh);
+      vec3.copy(mesh.getCenter(), this._center);
+      this._main.setMesh(mesh);
     },
     /** On redo */
     redo: function () {
@@ -33,16 +33,16 @@ define([
     },
     /** Push the redo state */
     createRedo: function () {
-      var redo = new StateGeometry(this.main_, this.mesh_);
+      var redo = new StateGeometry(this._main, this._mesh);
       this.pushRedoVertices(redo);
       return redo;
     },
     /** Push vertices */
     pushVertices: function (iVerts) {
-      var idVertState = this.idVertState_;
-      var vArState = this.vArState_;
+      var idVertState = this._idVertState;
+      var vArState = this._vArState;
 
-      var mesh = this.mesh_;
+      var mesh = this._mesh;
       var vAr = mesh.getVertices();
       var vertStateFlags = mesh.getVerticesStateFlags();
 
@@ -60,14 +60,14 @@ define([
     },
     /** Push redo vertices */
     pushRedoVertices: function (redoState) {
-      var mesh = redoState.mesh_;
+      var mesh = redoState._mesh;
       var vAr = mesh.getVertices();
 
-      var idVertUndoState = this.idVertState_;
+      var idVertUndoState = this._idVertState;
       var nbVerts = idVertUndoState.length;
 
-      var vArRedoState = redoState.vArState_ = new Float32Array(nbVerts * 3);
-      var idVertRedoState = redoState.idVertState_ = new Uint32Array(nbVerts);
+      var vArRedoState = redoState._vArState = new Float32Array(nbVerts * 3);
+      var idVertRedoState = redoState._idVertState = new Uint32Array(nbVerts);
       for (var i = 0; i < nbVerts; ++i) {
         var id = idVertRedoState[i] = idVertUndoState[i];
         id *= 3;
@@ -79,11 +79,11 @@ define([
     },
     /** Pull vertices */
     pullVertices: function () {
-      var vArState = this.vArState_;
-      var idVertState = this.idVertState_;
+      var vArState = this._vArState;
+      var idVertState = this._idVertState;
       var nbVerts = idVertState.length;
 
-      var mesh = this.mesh_;
+      var mesh = this._mesh;
       var vAr = mesh.getVertices();
       for (var i = 0; i < nbVerts; ++i) {
         var id = idVertState[i] * 3;

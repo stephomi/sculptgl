@@ -10,11 +10,11 @@ define([
 
   var Multimesh = function (mesh) {
     // every submeshes will share the same render/transformData
-    mesh.getRender().mesh_ = this;
-    mesh.getTransformData().mesh_ = this;
-    this.meshes_ = [new MeshResolution(mesh.getTransformData(), mesh.getRender(), mesh)];
-    this.sel_ = 0;
-    this.lowRender_ = new LowRender(mesh.getRender());
+    mesh.getRender()._mesh = this;
+    mesh.getTransformData()._mesh = this;
+    this._meshes = [new MeshResolution(mesh.getTransformData(), mesh.getRender(), mesh)];
+    this._sel = 0;
+    this._lowRender = new LowRender(mesh.getRender());
   };
 
   Multimesh.RENDER_HINT = 0;
@@ -26,11 +26,11 @@ define([
   Multimesh.prototype = {
     /** Return the current mesh */
     getCurrentMesh: function () {
-      return this.meshes_[this.sel_];
+      return this._meshes[this._sel];
     },
     /** Add an extra level to the mesh (subdivision) */
     addLevel: function () {
-      if ((this.meshes_.length - 1) !== this.sel_)
+      if ((this._meshes.length - 1) !== this._sel)
         return this.getCurrentMesh();
       var baseMesh = this.getCurrentMesh();
       var newMesh = new MeshResolution(baseMesh.getTransformData(), baseMesh.getRender());
@@ -46,7 +46,7 @@ define([
     },
     /** Reverse the mesh (reverse subdivision) */
     computeReverse: function () {
-      if (this.sel_ !== 0)
+      if (this._sel !== 0)
         return this.getCurrentMesh();
       var baseMesh = this.getCurrentMesh();
       var newMesh = new MeshResolution(baseMesh.getTransformData(), baseMesh.getRender());
@@ -63,19 +63,19 @@ define([
     },
     /** Go to one level below in mesh resolution */
     lowerLevel: function () {
-      if (this.sel_ === 0)
-        return this.meshes_[0];
-      this.meshes_[this.sel_ - 1].lowerAnalysis(this.getCurrentMesh());
-      --this.sel_;
+      if (this._sel === 0)
+        return this._meshes[0];
+      this._meshes[this._sel - 1].lowerAnalysis(this.getCurrentMesh());
+      --this._sel;
       this.updateResolution();
       return this.getCurrentMesh();
     },
     /** Go to one level higher in mesh resolution, if available */
     higherLevel: function () {
-      if (this.sel_ === this.meshes_.length - 1)
+      if (this._sel === this._meshes.length - 1)
         return this.getCurrentMesh();
-      this.meshes_[this.sel_ + 1].higherSynthesis(this.getCurrentMesh());
-      ++this.sel_;
+      this._meshes[this._sel + 1].higherSynthesis(this.getCurrentMesh());
+      ++this._sel;
       this.updateResolution();
       return this.getCurrentMesh();
     },
@@ -84,20 +84,20 @@ define([
       this.updateGeometry();
       this.updateDuplicateColorsAndMaterials();
       this.updateBuffers();
-      this.lowRender_.updateBuffers(this.meshes_[this.getLowIndexRender()]);
+      this._lowRender.updateBuffers(this._meshes[this.getLowIndexRender()]);
     },
     /** Change the resolution */
     selectResolution: function (sel) {
-      while (this.sel_ > sel) {
+      while (this._sel > sel) {
         this.lowerLevel();
       }
-      while (this.sel_ < sel) {
+      while (this._sel < sel) {
         this.higherLevel();
       }
     },
     /** Find a select index of a mesh */
     findIndexFromMesh: function (mesh) {
-      var meshes = this.meshes_;
+      var meshes = this._meshes;
       for (var i = 0, l = meshes.length; i < l; ++i) {
         if (mesh === meshes[i])
           return i;
@@ -110,47 +110,47 @@ define([
     },
     /** Push a mesh */
     pushMesh: function (mesh) {
-      this.meshes_.push(mesh);
-      this.sel_ = this.meshes_.length - 1;
+      this._meshes.push(mesh);
+      this._sel = this._meshes.length - 1;
       this.updateResolution();
     },
     /** Unshift a mesh */
     unshiftMesh: function (mesh) {
-      this.meshes_.unshift(mesh);
-      this.sel_ = 1;
+      this._meshes.unshift(mesh);
+      this._sel = 1;
       this.lowerLevel();
     },
     /** Pop the last mesh */
     popMesh: function () {
-      this.meshes_.pop();
-      this.sel_ = this.meshes_.length - 1;
+      this._meshes.pop();
+      this._sel = this._meshes.length - 1;
       this.updateResolution();
     },
     /** Shift the first mesh */
     shiftMesh: function () {
-      this.meshes_.shift();
-      this.sel_ = 0;
+      this._meshes.shift();
+      this._sel = 0;
       this.updateResolution();
     },
     /** Delete the lower resolution meshes */
     deleteLower: function () {
-      this.meshes_.splice(0, this.sel_);
-      this.sel_ = 0;
+      this._meshes.splice(0, this._sel);
+      this._sel = 0;
     },
     /** Delete the higher resolution meshes */
     deleteHigher: function () {
-      this.meshes_.splice(this.sel_ + 1);
+      this._meshes.splice(this._sel + 1);
     },
     /** Return the rendering mesh index */
     getLowIndexRender: function () {
       var limit = 500000;
-      var sel = this.sel_;
+      var sel = this._sel;
       while (sel >= 0) {
-        var mesh = this.meshes_[sel];
+        var mesh = this._meshes[sel];
         // we disable low rendering for lower resolution mesh with
         // an index indirection for even vertices
         if (mesh.getEvenMapping() === true)
-          return sel === this.sel_ ? sel : sel + 1;
+          return sel === this._sel ? sel : sel + 1;
         if (mesh.getNbTriangles() < limit)
           return sel;
         --sel;
@@ -160,12 +160,12 @@ define([
     /** Render the at a lower resolution */
     lowRender: function (main) {
       var lowSel = this.getLowIndexRender();
-      if (lowSel === this.sel_)
+      if (lowSel === this._sel)
         return this.getCurrentMesh().render(main);
-      var tmpSel = this.sel_;
-      this.sel_ = lowSel;
-      this.lowRender_.render(main);
-      this.sel_ = tmpSel;
+      var tmpSel = this._sel;
+      this._sel = lowSel;
+      this._lowRender.render(main);
+      this._sel = tmpSel;
     },
     /** Render the mesh */
     render: function (main) {

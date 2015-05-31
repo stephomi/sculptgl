@@ -3,19 +3,19 @@ define([], function () {
   'use strict';
 
   var StateCustom = function (undocb, redocb) {
-    this.undocb_ = undocb;
-    this.redocb_ = redocb ? redocb : undocb;
+    this._undocb = undocb;
+    this._redocb = redocb ? redocb : undocb;
   };
 
   StateCustom.prototype = {
     undo: function () {
-      this.undocb_();
+      this._undocb();
     },
     redo: function () {
-      this.redocb_();
+      this._redocb();
     },
     createRedo: function () {
-      return new StateCustom(this.undocb_, this.redocb_);
+      return new StateCustom(this._undocb, this._redocb);
     }
   };
 

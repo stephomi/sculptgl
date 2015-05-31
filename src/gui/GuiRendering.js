@@ -10,15 +10,15 @@ define([
   var ShaderMatcap = Shader[Shader.mode.MATCAP];
 
   var GuiRendering = function (guiParent, ctrlGui) {
-    this.main_ = ctrlGui.main_; // main application
+    this._main = ctrlGui._main; // main application
 
     // ui rendering
-    this.menu_ = null; // ui menu
-    this.ctrlFlatShading_ = null; // flat shading controller
-    this.ctrlShowWireframe_ = null; // wireframe controller
-    this.ctrlShaders_ = null; // shaders controller
-    this.ctrlMatcap_ = null; // matcap texture controller
-    this.ctrlUV_ = null; // upload a texture
+    this._menu = null; // ui menu
+    this._ctrlFlatShading = null; // flat shading controller
+    this._ctrlShowWireframe = null; // wireframe controller
+    this._ctrlShaders = null; // shaders controller
+    this._ctrlMatcap = null; // matcap texture controller
+    this._ctrlUV = null; // upload a texture
 
     this.init(guiParent);
   };
@@ -26,7 +26,7 @@ define([
   GuiRendering.prototype = {
     /** Initialize */
     init: function (guiParent) {
-      var menu = this.menu_ = guiParent.addMenu(TR('renderingTitle'));
+      var menu = this._menu = guiParent.addMenu(TR('renderingTitle'));
       menu.close();
 
       // shader selection
@@ -36,47 +36,47 @@ define([
       optionsShaders[Shader.mode.NORMAL] = TR('renderingNormal');
       optionsShaders[Shader.mode.UV] = TR('renderingUV');
       menu.addTitle(TR('renderingShader'));
-      this.ctrlShaders_ = menu.addCombobox('', Shader.mode.PBR, this.onShaderChanged.bind(this), optionsShaders);
+      this._ctrlShaders = menu.addCombobox('', Shader.mode.PBR, this.onShaderChanged.bind(this), optionsShaders);
 
       // flat shading
-      this.ctrlCurvature_ = menu.addSlider(TR('renderingCurvature'), 20, this.onCurvatureChanged.bind(this), 0, 100, 1);
+      this._ctrlCurvature = menu.addSlider(TR('renderingCurvature'), 20, this.onCurvatureChanged.bind(this), 0, 100, 1);
 
       // environments
       var optionEnvs = {};
       for (var i = 0, envs = ShaderPBR.environments, l = envs.length; i < l; ++i)
         optionEnvs[i] = envs[i].name;
-      this.ctrlEnvTitle_ = menu.addTitle(TR('renderingEnvironment'));
-      this.ctrlEnv_ = menu.addCombobox('', ShaderPBR.idEnv, this.onEnvironmentChanged.bind(this), optionEnvs);
+      this._ctrlEnvTitle = menu.addTitle(TR('renderingEnvironment'));
+      this._ctrlEnv = menu.addCombobox('', ShaderPBR.idEnv, this.onEnvironmentChanged.bind(this), optionEnvs);
 
       // matcap texture
       var optionMatcaps = {};
       for (var j = 0, mats = ShaderMatcap.matcaps, k = mats.length; j < k; ++j)
         optionMatcaps[j] = mats[j].name;
-      this.ctrlMatcapTitle_ = menu.addTitle(TR('renderingMaterial'));
-      this.ctrlMatcap_ = menu.addCombobox('', 0, this.onMatcapChanged.bind(this), optionMatcaps);
+      this._ctrlMatcapTitle = menu.addTitle(TR('renderingMaterial'));
+      this._ctrlMatcap = menu.addCombobox('', 0, this.onMatcapChanged.bind(this), optionMatcaps);
 
       // uv texture
-      this.ctrlUV_ = menu.addButton(TR('renderingImportUV'), this, 'importTexture');
-      this.ctrlUV_.setVisibility(false);
+      this._ctrlUV = menu.addButton(TR('renderingImportUV'), this, 'importTexture');
+      this._ctrlUV.setVisibility(false);
 
-      this.ctrlExposure_ = menu.addSlider(TR('renderingExposure'), 20, this.onExposureChanged.bind(this), 0, 100, 1);
-      this.ctrlExposure_.setVisibility(false);
+      this._ctrlExposure = menu.addSlider(TR('renderingExposure'), 20, this.onExposureChanged.bind(this), 0, 100, 1);
+      this._ctrlExposure.setVisibility(false);
 
       menu.addTitle(TR('renderingExtra'));
-      this.ctrlTransparency_ = menu.addSlider(TR('renderingTransparency'), 0.0, this.onTransparencyChanged.bind(this), 0, 100, 1);
+      this._ctrlTransparency = menu.addSlider(TR('renderingTransparency'), 0.0, this.onTransparencyChanged.bind(this), 0, 100, 1);
 
       // flat shading
-      this.ctrlFlatShading_ = menu.addCheckbox(TR('renderingFlat'), false, this.onFlatShading.bind(this));
+      this._ctrlFlatShading = menu.addCheckbox(TR('renderingFlat'), false, this.onFlatShading.bind(this));
 
       // wireframe
-      this.ctrlShowWireframe_ = menu.addCheckbox(TR('renderingWireframe'), false, this.onShowWireframe.bind(this));
+      this._ctrlShowWireframe = menu.addCheckbox(TR('renderingWireframe'), false, this.onShowWireframe.bind(this));
       if (Render.ONLY_DRAW_ARRAYS)
-        this.ctrlShowWireframe_.setVisibility(false);
+        this._ctrlShowWireframe.setVisibility(false);
 
       this.addEvents();
     },
     onCurvatureChanged: function (val) {
-      var main = this.main_;
+      var main = this._main;
       var mesh = main.getMesh();
       if (!mesh)
         return;
@@ -85,14 +85,14 @@ define([
     },
     onEnvironmentChanged: function (val) {
       ShaderPBR.idEnv = val;
-      this.main_.render();
+      this._main.render();
     },
     onExposureChanged: function (val) {
       ShaderPBR.exposure = val / 20;
-      this.main_.render();
+      this._main.render();
     },
     onTransparencyChanged: function (val) {
-      var main = this.main_;
+      var main = this._main;
       var mesh = main.getMesh();
       if (!mesh)
         return;
@@ -101,7 +101,7 @@ define([
     },
     /** On shader change */
     onShaderChanged: function (value) {
-      var main = this.main_;
+      var main = this._main;
       var val = parseInt(value, 10);
       var mesh = main.getMesh();
       if (mesh) {
@@ -117,7 +117,7 @@ define([
     },
     /** On matcap change */
     onMatcapChanged: function (value) {
-      var main = this.main_;
+      var main = this._main;
       var mesh = main.getMesh();
       if (!mesh)
         return;
@@ -126,7 +126,7 @@ define([
     },
     /** On flat shading change */
     onFlatShading: function (bool) {
-      var main = this.main_;
+      var main = this._main;
       var mesh = main.getMesh();
       if (!mesh)
         return;
@@ -135,7 +135,7 @@ define([
     },
     /** On wireframe change */
     onShowWireframe: function (bool) {
-      var main = this.main_;
+      var main = this._main;
       var mesh = main.getMesh();
       if (!mesh)
         return;
@@ -156,42 +156,42 @@ define([
     },
     /** Update information on mesh */
     updateMesh: function () {
-      var mesh = this.main_.getMesh();
+      var mesh = this._main.getMesh();
       if (!mesh) {
-        this.menu_.setVisibility(false);
+        this._menu.setVisibility(false);
         return;
       }
-      this.menu_.setVisibility(true);
-      this.ctrlShaders_.setValue(mesh.getShaderType(), true);
-      this.ctrlFlatShading_.setValue(mesh.getFlatShading(), true);
-      this.ctrlShowWireframe_.setValue(mesh.getShowWireframe(), true);
-      this.ctrlMatcap_.setValue(mesh.getMatcap(), true);
-      this.ctrlTransparency_.setValue(100 - 100 * mesh.getOpacity(), true);
-      this.ctrlCurvature_.setValue(20 * mesh.getCurvature(), true);
+      this._menu.setVisibility(true);
+      this._ctrlShaders.setValue(mesh.getShaderType(), true);
+      this._ctrlFlatShading.setValue(mesh.getFlatShading(), true);
+      this._ctrlShowWireframe.setValue(mesh.getShowWireframe(), true);
+      this._ctrlMatcap.setValue(mesh.getMatcap(), true);
+      this._ctrlTransparency.setValue(100 - 100 * mesh.getOpacity(), true);
+      this._ctrlCurvature.setValue(20 * mesh.getCurvature(), true);
       this.updateVisibility();
     },
     updateVisibility: function () {
-      var mesh = this.main_.getMesh();
+      var mesh = this._main.getMesh();
       if (!mesh) return;
-      var val = mesh.getRender().shader_.type_;
-      this.ctrlMatcapTitle_.setVisibility(val === Shader.mode.MATCAP);
-      this.ctrlMatcap_.setVisibility(val === Shader.mode.MATCAP);
-      this.ctrlUV_.setVisibility(val === Shader.mode.UV);
-      this.ctrlExposure_.setVisibility(val === Shader.mode.PBR);
-      this.ctrlEnvTitle_.setVisibility(val === Shader.mode.PBR);
-      this.ctrlEnv_.setVisibility(val === Shader.mode.PBR);
+      var val = mesh.getRender()._shader._type;
+      this._ctrlMatcapTitle.setVisibility(val === Shader.mode.MATCAP);
+      this._ctrlMatcap.setVisibility(val === Shader.mode.MATCAP);
+      this._ctrlUV.setVisibility(val === Shader.mode.UV);
+      this._ctrlExposure.setVisibility(val === Shader.mode.PBR);
+      this._ctrlEnvTitle.setVisibility(val === Shader.mode.PBR);
+      this._ctrlEnv.setVisibility(val === Shader.mode.PBR);
     },
     /** Return true if flat shading is enabled */
     getFlatShading: function () {
-      return this.ctrlFlatShading_.getValue();
+      return this._ctrlFlatShading.getValue();
     },
     /** Return true if wireframe is displayed */
     getWireframe: function () {
-      return this.ctrlShowWireframe_.getValue();
+      return this._ctrlShowWireframe.getValue();
     },
     /** Return the value of the shader */
     getShader: function () {
-      return this.ctrlShaders_.getValue();
+      return this._ctrlShaders.getValue();
     },
     /** Immort texture */
     importTexture: function () {
@@ -205,7 +205,7 @@ define([
       if (!file.type.match('image.*'))
         return;
       var reader = new FileReader();
-      var main = this.main_;
+      var main = this._main;
       reader.onload = function (evt) {
         // urk...
         var shaderUV = Shader[Shader.mode.UV];

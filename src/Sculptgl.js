@@ -13,21 +13,21 @@ define([
     Scene.call(this);
 
     // controllers stuffs
-    this.mouseX_ = 0;
-    this.mouseY_ = 0;
-    this.lastMouseX_ = 0;
-    this.lastMouseY_ = 0;
-    this.lastScale_ = 0;
-    this.mouseButton_ = 0;
-    this.lastNbPointers_ = 0;
+    this._mouseX = 0;
+    this._mouseY = 0;
+    this._lastMouseX = 0;
+    this._lastMouseY = 0;
+    this._lastScale = 0;
+    this._mouseButton = 0;
+    this._lastNbPointers = 0;
 
     // masking
-    this.checkMask_ = false;
-    this.maskX_ = 0;
-    this.maskY_ = 0;
-    this.hammer_ = new Hammer.Manager(this.canvas_);
+    this._checkMask = false;
+    this._maskX = 0;
+    this._maskY = 0;
+    this._hammer = new Hammer.Manager(this._canvas);
 
-    this.eventProxy_ = {};
+    this._eventProxy = {};
 
     this.initHammer();
     this.addEvents();
@@ -39,7 +39,7 @@ define([
       this.initHammerEvents();
     },
     initHammerRecognizers: function () {
-      var hm = this.hammer_;
+      var hm = this._hammer;
       // double tap
       hm.add(new Hammer.Tap({
         event: 'doubletap',
@@ -66,7 +66,7 @@ define([
       hm.get('pinch').recognizeWith(hm.get('pan'));
     },
     initHammerEvents: function () {
-      var hm = this.hammer_;
+      var hm = this._hammer;
       hm.on('panstart', this.onPanStart.bind(this));
       hm.on('panmove', this.onPanMove.bind(this));
       hm.on('panend pancancel', this.onPanEnd.bind(this));
@@ -78,25 +78,25 @@ define([
     onPanStart: function (e) {
       if (e.pointerType === 'mouse')
         return;
-      this.focusGui_ = false;
-      var evProxy = this.eventProxy_;
+      this._focusGui = false;
+      var evProxy = this._eventProxy;
       evProxy.pageX = e.center.x;
       evProxy.pageY = e.center.y;
-      this.lastNbPointers_ = evProxy.which = Math.min(2, e.pointers.length);
+      this._lastNbPointers = evProxy.which = Math.min(2, e.pointers.length);
       this.onDeviceDown(evProxy);
     },
     onPanMove: function (e) {
       if (e.pointerType === 'mouse')
         return;
-      var evProxy = this.eventProxy_;
+      var evProxy = this._eventProxy;
       evProxy.pageX = e.center.x;
       evProxy.pageY = e.center.y;
       var nbPointers = Math.min(2, e.pointers.length);
-      if (nbPointers !== this.lastNbPointers_) {
+      if (nbPointers !== this._lastNbPointers) {
         this.onDeviceUp();
         evProxy.which = nbPointers;
         this.onDeviceDown(evProxy);
-        this.lastNbPointers_ = nbPointers;
+        this._lastNbPointers = nbPointers;
       }
       this.onDeviceMove(evProxy);
     },
@@ -106,45 +106,44 @@ define([
       this.onDeviceUp();
     },
     onDoubleTap: function (e) {
-      if (this.focusGui_)
+      if (this._focusGui)
         return;
-      var evProxy = this.eventProxy_;
+      var evProxy = this._eventProxy;
       evProxy.pageX = e.center.x;
       evProxy.pageY = e.center.y;
       this.setMousePosition(evProxy);
 
-      var picking = this.picking_;
-      var res = picking.intersectionMouseMeshes(this.meshes_, this.mouseX_, this.mouseY_);
-      var cam = this.camera_;
+      var picking = this._picking;
+      var res = picking.intersectionMouseMeshes(this._meshes, this._mouseX, this._mouseY);
+      var cam = this._camera;
       var pivot = [0.0, 0.0, 0.0];
       if (!res) {
         var diag = 70.0;
-        if (this.meshes_.length > 0) {
-          var box = this.computeBoundingBoxMeshes(this.meshes_);
+        if (this._meshes.length > 0) {
+          var box = this.computeBoundingBoxMeshes(this._meshes);
           diag = 0.8 * glm.vec3.dist([box[0], box[1], box[2]], [box[3], box[4], box[5]]);
         }
         cam.setPivot(pivot);
-        cam.moveAnimationTo(cam.offset_[0], cam.offset_[1], diag, this);
+        cam.moveAnimationTo(cam._offset[0], cam._offset[1], diag, this);
       } else {
         glm.vec3.transformMat4(pivot, picking.getIntersectionPoint(), picking.getMesh().getMatrix());
         cam.setPivot(pivot);
-        cam.moveAnimationTo(cam.offset_[0], cam.offset_[1], 20.0, this);
+        cam.moveAnimationTo(cam._offset[0], cam._offset[1], 20.0, this);
       }
       this.render();
     },
     onPinchStart: function (e) {
-      this.focusGui_ = false;
-      this.lastScale_ = e.scale;
+      this._focusGui = false;
+      this._lastScale = e.scale;
     },
     onPinchInOut: function (e) {
-      var dir = (e.scale - this.lastScale_) * 25;
-      this.lastScale_ = e.scale;
-      dir = new Float32Array([dir])[0]; // f32 cast for sgl exporter consistency
+      var dir = (e.scale - this._lastScale) * 25;
+      this._lastScale = e.scale;
       this.onDeviceWheel(dir);
     },
     addEvents: function () {
-      this.hammer_.options.enable = true;
-      var canvas = this.canvas_;
+      this._hammer.options.enable = true;
+      var canvas = this._canvas;
 
       var cbMouseMove = Utils.throttle(this.onMouseMove.bind(this), 16.66);
       var cbMouseDown = this.onMouseDown.bind(this);
@@ -176,7 +175,7 @@ define([
       document.getElementById('fileopen').addEventListener('change', cbLoadFiles, false);
 
       this.removeCallback = function () {
-        this.hammer_.options.enable = false;
+        this._hammer.options.enable = false;
 
         // mouse
         canvas.removeEventListener('mousedown', cbMouseDown, false);
@@ -231,7 +230,7 @@ define([
       var reader = new FileReader();
       var self = this;
       reader.onload = function (evt) {
-        self.loadScene(evt.target.result, fileType, self.autoMatrix_);
+        self.loadScene(evt.target.result, fileType, self._autoMatrix);
         document.getElementById('fileopen').value = '';
       };
 
@@ -247,10 +246,10 @@ define([
       window.alert('Wow... Context is restored.');
     },
     onMouseOver: function () {
-      this.focusGui_ = false;
+      this._focusGui = false;
     },
     onMouseOut: function (event) {
-      this.focusGui_ = true;
+      this._focusGui = true;
       this.onMouseUp(event);
     },
     onMouseUp: function (event) {
@@ -258,17 +257,17 @@ define([
       this.onDeviceUp();
     },
     onDeviceUp: function () {
-      this.canvas_.style.cursor = 'default';
-      this.mouseButton_ = 0;
+      this._canvas.style.cursor = 'default';
+      this._mouseButton = 0;
       Multimesh.RENDER_HINT = Multimesh.NONE;
-      this.sculpt_.end();
-      if (this.checkMask_) {
-        this.checkMask_ = false;
-        if (this.mesh_) {
-          if (this.lastMouseX_ === this.maskX_ && this.lastMouseY_ === this.maskY_)
-            this.getSculpt().getTool('MASKING').invert(this.mesh_, this);
+      this._sculpt.end();
+      if (this._checkMask) {
+        this._checkMask = false;
+        if (this._mesh) {
+          if (this._lastMouseX === this._maskX && this._lastMouseY === this._maskY)
+            this.getSculpt().getTool('MASKING').invert(this._mesh, this);
           else
-            this.getSculpt().getTool('MASKING').clear(this.mesh_, this);
+            this.getSculpt().getTool('MASKING').clear(this._mesh, this);
         }
       }
       this.render();
@@ -280,22 +279,22 @@ define([
       this.onDeviceWheel(dir > 0 ? 1 : -1);
     },
     onDeviceWheel: function (dir) {
-      this.camera_.start(this.mouseX_, this.mouseY_, this);
-      this.camera_.zoom(dir * 0.02);
+      this._camera.start(this._mouseX, this._mouseY, this);
+      this._camera.zoom(dir * 0.02);
       Multimesh.RENDER_HINT = Multimesh.CAMERA;
       this.render();
       // workaround for "end mouse wheel" event
-      if (this.timerEndWheel_)
-        window.clearTimeout(this.timerEndWheel_);
-      this.timerEndWheel_ = window.setTimeout(this.endWheel.bind(this), 300);
+      if (this._timerEndWheel)
+        window.clearTimeout(this._timerEndWheel);
+      this._timerEndWheel = window.setTimeout(this.endWheel.bind(this), 300);
     },
     endWheel: function () {
       Multimesh.RENDER_HINT = Multimesh.NONE;
       this.render();
     },
     setMousePosition: function (event) {
-      this.mouseX_ = event.pageX - this.canvas_.offsetLeft;
-      this.mouseY_ = event.pageY - this.canvas_.offsetTop;
+      this._mouseX = event.pageX - this._canvas.offsetLeft;
+      this._mouseY = event.pageY - this._canvas.offsetTop;
     },
     onMouseDown: function (event) {
       event.stopPropagation();
@@ -308,84 +307,84 @@ define([
       this.onDeviceMove(event);
     },
     onDeviceDown: function (event) {
-      if (this.focusGui_)
+      if (this._focusGui)
         return;
       this.setMousePosition(event);
 
-      var mouseX = this.mouseX_;
-      var mouseY = this.mouseY_;
-      var button = this.mouseButton_ = event.which;
+      var mouseX = this._mouseX;
+      var mouseY = this._mouseY;
+      var button = this._mouseButton = event.which;
 
       if (button === 1)
-        this.sculpt_.start(event.shiftKey);
-      var picking = this.picking_;
+        this._sculpt.start(event.shiftKey);
+      var picking = this._picking;
       var pickedMesh = picking.getMesh();
       if (button === 1 && pickedMesh)
-        this.canvas_.style.cursor = 'none';
+        this._canvas.style.cursor = 'none';
 
-      this.checkMask_ = false;
+      this._checkMask = false;
       if (button === 3 && event.ctrlKey)
-        this.mouseButton_ = 4; // zoom camera
+        this._mouseButton = 4; // zoom camera
       else if (button === 2)
-        this.mouseButton_ = 5; // pan camera (wheel mode)
+        this._mouseButton = 5; // pan camera (wheel mode)
       else if (!pickedMesh && event.ctrlKey) {
-        this.maskX_ = mouseX;
-        this.maskY_ = mouseY;
-        this.checkMask_ = true;
-        this.mouseButton_ = 0; // mask edit mode
+        this._maskX = mouseX;
+        this._maskY = mouseY;
+        this._checkMask = true;
+        this._mouseButton = 0; // mask edit mode
       } else if ((!pickedMesh || button === 3) && event.altKey)
-        this.mouseButton_ = 2; // pan camera
+        this._mouseButton = 2; // pan camera
       else if (button === 3 || (button === 1 && !pickedMesh)) {
-        this.mouseButton_ = 3; // rotate camera
+        this._mouseButton = 3; // rotate camera
       }
       // zoom or rotate camera
-      if (this.mouseButton_ === 3 || this.mouseButton_ === 4)
-        this.camera_.start(mouseX, mouseY, this);
+      if (this._mouseButton === 3 || this._mouseButton === 4)
+        this._camera.start(mouseX, mouseY, this);
 
-      this.lastMouseX_ = mouseX;
-      this.lastMouseY_ = mouseY;
+      this._lastMouseX = mouseX;
+      this._lastMouseY = mouseY;
     },
     onDeviceMove: function (event) {
-      if (this.focusGui_)
+      if (this._focusGui)
         return;
       this.setMousePosition(event);
 
-      var mouseX = this.mouseX_;
-      var mouseY = this.mouseY_;
-      var button = this.mouseButton_;
+      var mouseX = this._mouseX;
+      var mouseY = this._mouseY;
+      var button = this._mouseButton;
 
-      if (button !== 1 || this.sculpt_.allowPicking()) {
+      if (button !== 1 || this._sculpt.allowPicking()) {
         Multimesh.RENDER_HINT = Multimesh.PICKING;
-        if (this.mesh_ && button === 1)
-          this.picking_.intersectionMouseMesh(this.mesh_, mouseX, mouseY);
+        if (this._mesh && button === 1)
+          this._picking.intersectionMouseMesh(this._mesh, mouseX, mouseY);
         else
-          this.picking_.intersectionMouseMeshes(this.meshes_, mouseX, mouseY);
-        if (this.sculpt_.getSymmetry() && this.mesh_)
-          this.pickingSym_.intersectionMouseMesh(this.mesh_, mouseX, mouseY);
+          this._picking.intersectionMouseMeshes(this._meshes, mouseX, mouseY);
+        if (this._sculpt.getSymmetry() && this._mesh)
+          this._pickingSym.intersectionMouseMesh(this._mesh, mouseX, mouseY);
       }
       if (button !== 0) {
         if (button === 4 || (button === 2 && !event.altKey)) {
-          this.camera_.zoom((mouseX - this.lastMouseX_ + mouseY - this.lastMouseY_) / 1000);
+          this._camera.zoom((mouseX - this._lastMouseX + mouseY - this._lastMouseY) / 1000);
           Multimesh.RENDER_HINT = Multimesh.CAMERA;
           this.render();
         } else if (button === 2 || button === 5) {
-          this.camera_.translate((mouseX - this.lastMouseX_) / 1000, (mouseY - this.lastMouseY_) / 1000);
+          this._camera.translate((mouseX - this._lastMouseX) / 1000, (mouseY - this._lastMouseY) / 1000);
           Multimesh.RENDER_HINT = Multimesh.CAMERA;
           this.render();
         } else if (button === 3) {
-          if (event.shiftKey) this.camera_.snapClosestRotation();
-          else this.camera_.rotate(mouseX, mouseY);
+          if (event.shiftKey) this._camera.snapClosestRotation();
+          else this._camera.rotate(mouseX, mouseY);
           Multimesh.RENDER_HINT = Multimesh.CAMERA;
           this.render();
         } else if (button === 1) {
           Multimesh.RENDER_HINT = Multimesh.SCULPT;
-          this.sculpt_.update(this);
+          this._sculpt.update(this);
           if (this.getMesh().getDynamicTopology)
-            this.gui_.updateMeshInfo();
+            this._gui.updateMeshInfo();
         }
       }
-      this.lastMouseX_ = mouseX;
-      this.lastMouseY_ = mouseY;
+      this._lastMouseX = mouseX;
+      this._lastMouseY = mouseY;
       this.renderSelectOverRtt();
     }
   };

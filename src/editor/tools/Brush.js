@@ -12,58 +12,58 @@ define([
 
   var Brush = function (main) {
     SculptBase.call(this, main);
-    this.radius_ = 50;
-    this.intensity_ = 0.5;
-    this.negative_ = false;
-    this.clay_ = true;
-    this.culling_ = false;
-    this.accumulate_ = true; // if we ignore the proxy
-    this.idAlpha_ = 0;
-    this.lockPosition_ = false;
+    this._radius = 50;
+    this._intensity = 0.5;
+    this._negative = false;
+    this._clay = true;
+    this._culling = false;
+    this._accumulate = true; // if we ignore the proxy
+    this._idAlpha = 0;
+    this._lockPosition = false;
   };
 
   Brush.prototype = {
     stroke: function (picking) {
       var iVertsInRadius = picking.getPickedVertices();
-      var intensity = this.intensity_ * Tablet.getPressureIntensity();
+      var intensity = this._intensity * Tablet.getPressureIntensity();
 
-      if (!this.accumulate_ && !this.lockPosition_)
+      if (!this._accumulate && !this._lockPosition)
         this.updateProxy(iVertsInRadius);
       // undo-redo
-      this.states_.pushVertices(iVertsInRadius);
-      if (!this.lockPosition_)
+      this._states.pushVertices(iVertsInRadius);
+      if (!this._lockPosition)
         iVertsInRadius = this.dynamicTopology(picking);
 
       var iVertsFront = this.getFrontVertices(iVertsInRadius, picking.getEyeDirection());
-      if (this.culling_)
+      if (this._culling)
         iVertsInRadius = iVertsFront;
 
       var r2 = picking.getLocalRadius2();
-      picking.updateAlpha(this.lockPosition_);
-      picking.setIdAlpha(this.idAlpha_);
+      picking.updateAlpha(this._lockPosition);
+      picking.setIdAlpha(this._idAlpha);
 
-      if (!this.clay_) {
+      if (!this._clay) {
         this.brush(iVertsInRadius, picking.getPickedNormal(), picking.getIntersectionPoint(), r2, intensity, picking);
       } else {
         var aNormal = this.areaNormal(iVertsFront);
         if (!aNormal)
           return;
-        var aCenter = this.lockPosition_ ? picking.getIntersectionPoint() : this.areaCenter(iVertsFront);
+        var aCenter = this._lockPosition ? picking.getIntersectionPoint() : this.areaCenter(iVertsFront);
         var off = Math.sqrt(r2) * 0.1;
-        vec3.scaleAndAdd(aCenter, aCenter, aNormal, this.negative_ ? -off : off);
+        vec3.scaleAndAdd(aCenter, aCenter, aNormal, this._negative ? -off : off);
         Flatten.prototype.flatten.call(this, iVertsInRadius, aNormal, aCenter, picking.getIntersectionPoint(), r2, intensity, picking);
       }
 
-      this.mesh_.updateGeometry(this.mesh_.getFacesFromVertices(iVertsInRadius), iVertsInRadius);
+      this._mesh.updateGeometry(this._mesh.getFacesFromVertices(iVertsInRadius), iVertsInRadius);
     },
     brush: function (iVertsInRadius, aNormal, center, radiusSquared, intensity, picking) {
-      var mesh = this.mesh_;
+      var mesh = this._mesh;
       var vAr = mesh.getVertices();
       var mAr = mesh.getMaterials();
-      var vProxy = this.accumulate_ || this.lockPosition_ ? vAr : mesh.getVerticesProxy();
+      var vProxy = this._accumulate || this._lockPosition ? vAr : mesh.getVerticesProxy();
       var radius = Math.sqrt(radiusSquared);
       var deformIntensityBrush = intensity * radius * 0.1;
-      if (this.negative_)
+      if (this._negative)
         deformIntensityBrush = -deformIntensityBrush;
       var cx = center[0];
       var cy = center[1];

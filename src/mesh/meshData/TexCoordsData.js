@@ -5,82 +5,82 @@ define([
   'use strict';
 
   var TexCoordsData = function (mesh) {
-    this.mesh_ = mesh; // the mesh
+    this._mesh = mesh; // the mesh
 
-    this.texCoordsST_ = null; // tex coords (Float32Array)
-    this.duplicateStartCount_ = null; // array of vertex duplicates location (start/count) (Uint32Array)
-    this.UVfacesABCD_ = null; // faces unwrap (Int32Array)
+    this._texCoordsST = null; // tex coords (Float32Array)
+    this._duplicateStartCount = null; // array of vertex duplicates location (start/count) (Uint32Array)
+    this._UVfacesABCD = null; // faces unwrap (Int32Array)
 
     // attributes vertex (duplicated for rendering because of tex coords)
-    this.UVverticesXYZ_ = null; // vertices + duplicates (Float32Array)
-    this.UVcolorsRGB_ = null; // color vertices + duplicates (Float32Array)
-    this.UVmaterialsPBR_ = null; // materials vertices + duplicates (Float32Array)
-    this.UVnormalsXYZ_ = null; // normals + duplicates (Float32Array)
+    this._UVverticesXYZ = null; // vertices + duplicates (Float32Array)
+    this._UVcolorsRGB = null; // color vertices + duplicates (Float32Array)
+    this._UVmaterialsPBR = null; // materials vertices + duplicates (Float32Array)
+    this._UVnormalsXYZ = null; // normals + duplicates (Float32Array)
   };
 
   TexCoordsData.prototype = {
     hasUV: function () {
-      return this.texCoordsST_ !== null;
+      return this._texCoordsST !== null;
     },
     setTexCoords: function (tAr) {
-      this.texCoordsST_ = tAr;
+      this._texCoordsST = tAr;
     },
     setVerticesDuplicateStartCount: function (startCount) {
-      this.duplicateStartCount_ = startCount;
+      this._duplicateStartCount = startCount;
     },
     setFacesTexCoord: function (fuAr) {
-      this.UVfacesABCD_ = fuAr;
+      this._UVfacesABCD = fuAr;
     },
     getVerticesTexCoord: function () {
-      return this.UVverticesXYZ_;
+      return this._UVverticesXYZ;
     },
     getColorsTexCoord: function () {
-      return this.UVcolorsRGB_;
+      return this._UVcolorsRGB;
     },
     getMaterialsTexCoord: function () {
-      return this.UVmaterialsPBR_;
+      return this._UVmaterialsPBR;
     },
     getNormalsTexCoord: function () {
-      return this.UVnormalsXYZ_;
+      return this._UVnormalsXYZ;
     },
     getTexCoords: function () {
-      return this.texCoordsST_;
+      return this._texCoordsST;
     },
     getVerticesDuplicateStartCount: function () {
-      return this.duplicateStartCount_;
+      return this._duplicateStartCount;
     },
     getFacesTexCoord: function () {
-      return this.UVfacesABCD_;
+      return this._UVfacesABCD;
     },
     getNbTexCoords: function () {
-      return this.texCoordsST_ ? this.texCoordsST_.length / 2 : 0;
+      return this._texCoordsST ? this._texCoordsST.length / 2 : 0;
     },
     allocateArrays: function () {
       if (!this.hasUV())
         return;
 
-      var mesh = this.mesh_;
-      var nbTexCoords = this.texCoordsST_.length / 2;
+      var mesh = this._mesh;
+      var nbTexCoords = this._texCoordsST.length / 2;
       var nbVertices = mesh.getNbVertices();
 
-      var verts = this.UVverticesXYZ_ = new Float32Array(nbTexCoords * 3);
+      var verts = this._UVverticesXYZ = new Float32Array(nbTexCoords * 3);
       verts.set(mesh.getVertices());
       mesh.setVertices(verts.subarray(0, nbVertices * 3));
 
-      var normals = this.UVnormalsXYZ_ = new Float32Array(nbTexCoords * 3);
+      var normals = this._UVnormalsXYZ = new Float32Array(nbTexCoords * 3);
       normals.set(mesh.getNormals());
       mesh.setNormals(normals.subarray(0, nbVertices * 3));
 
-      var colors = this.UVcolorsRGB_ = new Float32Array(nbTexCoords * 3);
+      var colors = this._UVcolorsRGB = new Float32Array(nbTexCoords * 3);
       colors.set(mesh.getColors());
       mesh.setColors(colors.subarray(0, nbVertices * 3));
 
-      var materials = this.UVmaterialsPBR_ = new Float32Array(nbTexCoords * 3);
+      var materials = this._UVmaterialsPBR = new Float32Array(nbTexCoords * 3);
       materials.set(mesh.getMaterials());
       mesh.setMaterials(materials.subarray(0, nbVertices * 3));
     },
     updateDuplicateGeometry: function (iVerts) {
-      var mesh = this.mesh_;
+      var mesh = this._mesh;
       if (!mesh.isUsingTexCoords() || !this.hasUV())
         return;
 
@@ -129,7 +129,7 @@ define([
       }
     },
     updateDuplicateColorsAndMaterials: function (iVerts) {
-      var mesh = this.mesh_;
+      var mesh = this._mesh;
       if (!mesh.isUsingTexCoords() || !this.hasUV())
         return;
 
@@ -164,7 +164,7 @@ define([
       }
     },
     initTexCoordsDataFromOBJData: function (uvAr, uvfArOrig) {
-      var mesh = this.mesh_;
+      var mesh = this._mesh;
       var fAr = mesh.getFaces();
       var nbVertices = mesh.getNbVertices();
       var i = 0;
@@ -218,7 +218,7 @@ define([
       // order the duplicates vertices (and tex coords)
       var tAr = new Float32Array((nbVertices + nbDuplicates) * 2);
       tAr.set(tArTemp);
-      var startCount = this.duplicateStartCount_ = new Uint32Array(nbVertices * 2);
+      var startCount = this._duplicateStartCount = new Uint32Array(nbVertices * 2);
       acc = 0;
       for (i = 0; i < nbVertices; ++i) {
         tag = tagV[i];

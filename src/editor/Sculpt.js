@@ -19,17 +19,17 @@ define([
   'use strict';
 
   var Sculpt = function (main) {
-    this.main_ = main;
+    this._main = main;
 
-    this.tool_ = Sculpt.tool.BRUSH; // sculpting mode
-    this.tools_ = []; // the sculpting tools
+    this._tool = Sculpt.tool.BRUSH; // sculpting mode
+    this._tools = []; // the sculpting tools
 
     // symmetry stuffs
-    this.symmetry_ = true; // if symmetric sculpting is enabled  
+    this._symmetry = true; // if symmetric sculpting is enabled  
 
     // continous stuffs
-    this.continuous_ = false; // continuous sculpting
-    this.sculptTimer_ = -1; // continuous interval timer
+    this._continuous = false; // continuous sculpting
+    this._sculptTimer = -1; // continuous interval timer
 
     this.init();
   };
@@ -55,54 +55,54 @@ define([
 
   Sculpt.prototype = {
     getCurrentTool: function () {
-      return this.tools_[this.tool_];
+      return this._tools[this._tool];
     },
     getSymmetry: function () {
-      return this.symmetry_;
+      return this._symmetry;
     },
     getTool: function (key) {
-      return this.tools_[key] ? this.tools_[key] : this.tools_[Sculpt.tool[key]];
+      return this._tools[key] ? this._tools[key] : this._tools[Sculpt.tool[key]];
     },
     init: function () {
-      var main = this.main_;
-      this.tools_[Sculpt.tool.BRUSH] = new Brush(main);
-      this.tools_[Sculpt.tool.INFLATE] = new Inflate(main);
-      this.tools_[Sculpt.tool.TWIST] = new Twist(main);
-      this.tools_[Sculpt.tool.SMOOTH] = new Smooth(main);
-      this.tools_[Sculpt.tool.FLATTEN] = new Flatten(main);
-      this.tools_[Sculpt.tool.PINCH] = new Pinch(main);
-      this.tools_[Sculpt.tool.CREASE] = new Crease(main);
-      this.tools_[Sculpt.tool.DRAG] = new Drag(main);
-      this.tools_[Sculpt.tool.PAINT] = new Paint(main);
-      this.tools_[Sculpt.tool.MOVE] = new Move(main);
-      this.tools_[Sculpt.tool.MASKING] = new Masking(main);
-      this.tools_[Sculpt.tool.LOCALSCALE] = new LocalScale(main);
-      this.tools_[Sculpt.tool.TRANSLATE] = new Translate(main);
-      this.tools_[Sculpt.tool.ROTATE] = new Rotate(main);
-      this.tools_[Sculpt.tool.SCALE] = new Scale(main);
+      var main = this._main;
+      this._tools[Sculpt.tool.BRUSH] = new Brush(main);
+      this._tools[Sculpt.tool.INFLATE] = new Inflate(main);
+      this._tools[Sculpt.tool.TWIST] = new Twist(main);
+      this._tools[Sculpt.tool.SMOOTH] = new Smooth(main);
+      this._tools[Sculpt.tool.FLATTEN] = new Flatten(main);
+      this._tools[Sculpt.tool.PINCH] = new Pinch(main);
+      this._tools[Sculpt.tool.CREASE] = new Crease(main);
+      this._tools[Sculpt.tool.DRAG] = new Drag(main);
+      this._tools[Sculpt.tool.PAINT] = new Paint(main);
+      this._tools[Sculpt.tool.MOVE] = new Move(main);
+      this._tools[Sculpt.tool.MASKING] = new Masking(main);
+      this._tools[Sculpt.tool.LOCALSCALE] = new LocalScale(main);
+      this._tools[Sculpt.tool.TRANSLATE] = new Translate(main);
+      this._tools[Sculpt.tool.ROTATE] = new Rotate(main);
+      this._tools[Sculpt.tool.SCALE] = new Scale(main);
     },
     /** Return true if the current tool doesn't prevent picking */
     allowPicking: function () {
-      var tool = this.tool_;
+      var tool = this._tool;
       var st = Sculpt.tool;
       return tool !== st.TWIST && tool !== st.MOVE && tool !== st.DRAG && tool !== st.LOCALSCALE && tool !== st.TRANSLATE && tool !== st.ROTATE && tool !== st.SCALE;
     },
     /** Return true if the current tool is using continous sculpting */
     isUsingContinuous: function () {
-      return this.continuous_ && this.allowPicking();
+      return this._continuous && this.allowPicking();
     },
     start: function (ctrl) {
       var tool = this.getCurrentTool();
       tool.start(ctrl);
-      if (!this.main_.getPicking().getMesh() || !this.isUsingContinuous())
+      if (!this._main.getPicking().getMesh() || !this.isUsingContinuous())
         return;
-      this.sculptTimer_ = window.setInterval(tool.cbContinuous_, 16.6);
+      this._sculptTimer = window.setInterval(tool._cbContinuous, 16.6);
     },
     end: function () {
       this.getCurrentTool().end();
-      if (this.sculptTimer_ !== -1) {
-        clearInterval(this.sculptTimer_);
-        this.sculptTimer_ = -1;
+      if (this._sculptTimer !== -1) {
+        clearInterval(this._sculptTimer);
+        this._sculptTimer = -1;
       }
     },
     update: function () {

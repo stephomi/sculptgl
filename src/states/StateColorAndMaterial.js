@@ -5,11 +5,11 @@ define([
   'use strict';
 
   var StateColorAndMaterial = function (main, mesh) {
-    this.main_ = main; // main application
-    this.mesh_ = mesh; // the mesh
-    this.idVertState_ = []; // ids of vertices
-    this.cArState_ = []; // copies of color vertices
-    this.mArState_ = []; // copies of material vertices
+    this._main = main; // main application
+    this._mesh = mesh; // the mesh
+    this._idVertState = []; // ids of vertices
+    this._cArState = []; // copies of color vertices
+    this._mArState = []; // copies of material vertices
   };
 
   StateColorAndMaterial.prototype = {
@@ -17,12 +17,12 @@ define([
     undo: function (skipUpdate) {
       this.pullVertices();
       if (skipUpdate) return;
-      var mesh = this.mesh_;
+      var mesh = this._mesh;
       mesh.updateDuplicateColorsAndMaterials();
       mesh.updateFlatShading();
       mesh.updateColorBuffer();
       mesh.updateMaterialBuffer();
-      this.main_.setMesh(mesh);
+      this._main.setMesh(mesh);
     },
     /** On redo */
     redo: function () {
@@ -30,17 +30,17 @@ define([
     },
     /** Push the redo state */
     createRedo: function () {
-      var redo = new StateColorAndMaterial(this.main_, this.mesh_);
+      var redo = new StateColorAndMaterial(this._main, this._mesh);
       this.pushRedoVertices(redo);
       return redo;
     },
     /** Push vertices */
     pushVertices: function (iVerts) {
-      var idVertState = this.idVertState_;
-      var cArState = this.cArState_;
-      var mArState = this.mArState_;
+      var idVertState = this._idVertState;
+      var cArState = this._cArState;
+      var mArState = this._mArState;
 
-      var mesh = this.mesh_;
+      var mesh = this._mesh;
       var cAr = mesh.getColors();
       var mAr = mesh.getMaterials();
       var vertStateFlags = mesh.getVerticesStateFlags();
@@ -60,16 +60,16 @@ define([
     },
     /** Push redo vertices */
     pushRedoVertices: function (redoState) {
-      var mesh = redoState.mesh_;
+      var mesh = redoState._mesh;
       var cAr = mesh.getColors();
       var mAr = mesh.getMaterials();
 
-      var idVertUndoState = this.idVertState_;
+      var idVertUndoState = this._idVertState;
       var nbVerts = idVertUndoState.length;
 
-      var cArRedoState = redoState.cArState_ = new Float32Array(nbVerts * 3);
-      var mArRedoState = redoState.mArState_ = new Float32Array(nbVerts * 3);
-      var idVertRedoState = redoState.idVertState_ = new Uint32Array(nbVerts);
+      var cArRedoState = redoState._cArState = new Float32Array(nbVerts * 3);
+      var mArRedoState = redoState._mArState = new Float32Array(nbVerts * 3);
+      var idVertRedoState = redoState._idVertState = new Uint32Array(nbVerts);
       for (var i = 0; i < nbVerts; ++i) {
         var id = idVertRedoState[i] = idVertUndoState[i];
         id *= 3;
@@ -84,12 +84,12 @@ define([
     },
     /** Pull vertices */
     pullVertices: function () {
-      var cArState = this.cArState_;
-      var mArState = this.mArState_;
-      var idVertState = this.idVertState_;
+      var cArState = this._cArState;
+      var mArState = this._mArState;
+      var idVertState = this._idVertState;
       var nbVerts = idVertState.length;
 
-      var mesh = this.mesh_;
+      var mesh = this._mesh;
       var cAr = mesh.getColors();
       var mAr = mesh.getMaterials();
       for (var i = 0; i < nbVerts; ++i) {

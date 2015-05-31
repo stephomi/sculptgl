@@ -3,21 +3,21 @@ define([], function () {
   'use strict';
 
   var EdgeData = function (mesh) {
-    this.mesh_ = mesh; // the mesh
+    this._mesh = mesh; // the mesh
 
-    this.edges_ = null; // edges (Uint8Array) (1 => outer edge, 0 or 2 => inner edge, >=3 non manifold)
+    this._edges = null; // edges (Uint8Array) (1 => outer edge, 0 or 2 => inner edge, >=3 non manifold)
   };
 
   EdgeData.prototype = {
     getEdges: function () {
-      return this.edges_;
+      return this._edges;
     },
     getNbEdges: function () {
-      return this.edges_.length;
+      return this._edges.length;
     },
     /** Computes the edges */
     initEdges: function () {
-      var mesh = this.mesh_;
+      var mesh = this._mesh;
       var fAr = mesh.getFaces();
       var feAr = mesh.getFaceEdges();
       var nbEdges = 0;
@@ -112,7 +112,7 @@ define([], function () {
           }
         }
       }
-      var eAr = this.edges_ = new Uint8Array(nbEdges);
+      var eAr = this._edges = new Uint8Array(nbEdges);
       for (var k = 0, nbFaceEdges = feAr.length; k < nbFaceEdges; ++k)
         eAr[feAr[k]] ++;
     }

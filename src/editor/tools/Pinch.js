@@ -8,43 +8,43 @@ define([
 
   var Pinch = function (main) {
     SculptBase.call(this, main);
-    this.radius_ = 50;
-    this.intensity_ = 0.75;
-    this.negative_ = false;
-    this.culling_ = false;
-    this.idAlpha_ = 0;
-    this.lockPosition_ = false;
+    this._radius = 50;
+    this._intensity = 0.75;
+    this._negative = false;
+    this._culling = false;
+    this._idAlpha = 0;
+    this._lockPosition = false;
   };
 
   Pinch.prototype = {
     /** On stroke */
     stroke: function (picking) {
       var iVertsInRadius = picking.getPickedVertices();
-      var intensity = this.intensity_ * Tablet.getPressureIntensity();
+      var intensity = this._intensity * Tablet.getPressureIntensity();
 
       // undo-redo
-      this.states_.pushVertices(iVertsInRadius);
+      this._states.pushVertices(iVertsInRadius);
       iVertsInRadius = this.dynamicTopology(picking);
 
-      if (this.culling_)
+      if (this._culling)
         iVertsInRadius = this.getFrontVertices(iVertsInRadius, picking.getEyeDirection());
 
-      picking.updateAlpha(this.lockPosition_);
-      picking.setIdAlpha(this.idAlpha_);
+      picking.updateAlpha(this._lockPosition);
+      picking.setIdAlpha(this._idAlpha);
       this.pinch(iVertsInRadius, picking.getIntersectionPoint(), picking.getLocalRadius2(), intensity, picking);
 
-      this.mesh_.updateGeometry(this.mesh_.getFacesFromVertices(iVertsInRadius), iVertsInRadius);
+      this._mesh.updateGeometry(this._mesh.getFacesFromVertices(iVertsInRadius), iVertsInRadius);
     },
     /** Pinch, vertices gather around intersection point */
     pinch: function (iVertsInRadius, center, radiusSquared, intensity, picking) {
-      var vAr = this.mesh_.getVertices();
-      var mAr = this.mesh_.getMaterials();
+      var vAr = this._mesh.getVertices();
+      var mAr = this._mesh.getMaterials();
       var radius = Math.sqrt(radiusSquared);
       var cx = center[0];
       var cy = center[1];
       var cz = center[2];
       var deformIntensity = intensity * 0.05;
-      if (this.negative_)
+      if (this._negative)
         deformIntensity = -deformIntensity;
       for (var i = 0, l = iVertsInRadius.length; i < l; ++i) {
         var ind = iVertsInRadius[i] * 3;

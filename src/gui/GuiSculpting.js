@@ -8,20 +8,20 @@ define([
   'use strict';
 
   var GuiSculpting = function (guiParent, ctrlGui) {
-    this.main_ = ctrlGui.main_; // main application
-    this.ctrlGui_ = ctrlGui; // main gui
-    this.sculpt_ = ctrlGui.main_.getSculpt(); // sculpting management
-    this.toolOnRelease_ = -1; // tool to apply when the mouse or the key is released
-    this.invertSign_ = false; // invert sign of tool (add/sub)
+    this._main = ctrlGui._main; // main application
+    this._ctrlGui = ctrlGui; // main gui
+    this._sculpt = ctrlGui._main.getSculpt(); // sculpting management
+    this._toolOnRelease = -1; // tool to apply when the mouse or the key is released
+    this._invertSign = false; // invert sign of tool (add/sub)
 
-    this.modalBrushRadius_ = false; // modal brush radius change
-    this.modalBrushIntensity_ = false; // modal brush intensity change
-    this.lastMouseX_ = 0;
+    this._modalBrushRadius = false; // modal brush radius change
+    this._modalBrushIntensity = false; // modal brush intensity change
+    this._lastMouseX = 0;
 
-    this.menu_ = null;
-    this.ctrlSculpt_ = null;
-    this.ctrlSymmetry_ = null;
-    this.ctrlContinuous_ = null;
+    this._menu = null;
+    this._ctrlSculpt = null;
+    this._ctrlSymmetry = null;
+    this._ctrlContinuous = null;
     this.init(guiParent);
   };
 
@@ -30,7 +30,7 @@ define([
   GuiSculpting.prototype = {
     /** Initialisculze */
     init: function (guiParent) {
-      var menu = this.menu_ = guiParent.addMenu(TR('sculptTitle'));
+      var menu = this._menu = guiParent.addMenu(TR('sculptTitle'));
       menu.open();
 
       menu.addTitle(TR('sculptTool'));
@@ -52,7 +52,7 @@ define([
       optionsSculpt[Sculpt.tool.TRANSLATE] = TR('sculptTranslate');
       optionsSculpt[Sculpt.tool.ROTATE] = TR('sculptRotate');
       optionsSculpt[Sculpt.tool.SCALE] = TR('sculptScale');
-      this.ctrlSculpt_ = menu.addCombobox(TR('sculptTool'), this.sculpt_.tool_, this.onChangeTool.bind(this), optionsSculpt);
+      this._ctrlSculpt = menu.addCombobox(TR('sculptTool'), this._sculpt._tool, this.onChangeTool.bind(this), optionsSculpt);
 
       // init all the specific subtools ui
       this.initTool(Sculpt.tool.BRUSH);
@@ -73,16 +73,16 @@ define([
 
       menu.addTitle(TR('Extra'));
       // symmetry
-      this.ctrlSymmetry_ = menu.addCheckbox(TR('sculptSymmetry'), this.sculpt_.symmetry_, this.onSymmetryChange.bind(this));
+      this._ctrlSymmetry = menu.addCheckbox(TR('sculptSymmetry'), this._sculpt._symmetry, this.onSymmetryChange.bind(this));
       // continuous
-      this.ctrlContinuous_ = menu.addCheckbox(TR('sculptContinuous'), this.sculpt_, 'continuous_');
+      this._ctrlContinuous = menu.addCheckbox(TR('sculptContinuous'), this._sculpt, '_continuous');
 
-      GuiSculptingTools.show(this.sculpt_.tool_);
+      GuiSculptingTools.show(this._sculpt._tool);
       this.addEvents();
     },
     onSymmetryChange: function (value) {
-      this.sculpt_.symmetry_ = value;
-      this.main_.render();
+      this._sculpt._symmetry = value;
+      this._main.render();
     },
     /** Add events */
     addEvents: function () {
@@ -116,32 +116,32 @@ define([
     },
     /** Return selected tool */
     getSelectedTool: function () {
-      return parseInt(this.ctrlSculpt_.getValue(), 10);
+      return parseInt(this._ctrlSculpt.getValue(), 10);
     },
     checkModifierKey: function (event) {
       var selectedTool = this.getSelectedTool();
 
-      if (this.main_.mouseButton_ === 0) {
+      if (this._main._mouseButton === 0) {
         if (event.shiftKey && !event.altKey && !event.ctrlKey) {
           // smoothing on shift key
           if (selectedTool === Sculpt.tool.SMOOTH)
             return true;
-          this.toolOnRelease_ = selectedTool;
-          this.ctrlSculpt_.setValue(Sculpt.tool.SMOOTH);
+          this._toolOnRelease = selectedTool;
+          this._ctrlSculpt.setValue(Sculpt.tool.SMOOTH);
           return true;
         }
         if (event.ctrlKey && !event.shiftKey && !event.altKey) {
           // masking on ctrl key
           if (selectedTool !== Sculpt.tool.MASKING) {
-            this.toolOnRelease_ = selectedTool;
-            this.ctrlSculpt_.setValue(Sculpt.tool.MASKING);
+            this._toolOnRelease = selectedTool;
+            this._ctrlSculpt.setValue(Sculpt.tool.MASKING);
           }
         }
       }
       if (event.altKey) {
         // invert sign on alt key
-        if (this.invertSign_ || event.shiftKey) return true;
-        this.invertSign_ = true;
+        if (this._invertSign || event.shiftKey) return true;
+        this._invertSign = true;
         var curTool = uiTools[selectedTool];
         if (curTool.toggleNegative)
           curTool.toggleNegative();
@@ -155,26 +155,26 @@ define([
         return;
       var key = event.which;
       event.stopPropagation();
-      if (!this.main_.focusGui_ || key === 88 || key === 67)
+      if (!this._main._focusGui || key === 88 || key === 67)
         event.preventDefault();
       event.handled = true;
       if (this.checkModifierKey(event))
         return;
 
-      if (this.main_.mouseButton_ !== 0)
+      if (this._main._mouseButton !== 0)
         return;
 
-      var ctrlSculpt = this.ctrlSculpt_;
+      var ctrlSculpt = this._ctrlSculpt;
       switch (key) {
       case 88: // X
-        this.modalBrushRadius_ = this.main_.focusGui_ = true;
+        this._modalBrushRadius = this._main._focusGui = true;
         break;
       case 67: // C
-        this.modalBrushIntensity_ = this.main_.focusGui_ = true;
+        this._modalBrushIntensity = this._main._focusGui = true;
         break;
       case 46: // DEL
         if (window.confirm(TR('sculptDeleteSelection')))
-          this.main_.deleteCurrentSelection();
+          this._main.deleteCurrentSelection();
         break;
       case 48: // 0
       case 96: // NUMPAD 0
@@ -235,66 +235,66 @@ define([
       }
     },
     releaseInvertSign: function () {
-      if (!this.invertSign_)
+      if (!this._invertSign)
         return;
-      this.invertSign_ = false;
+      this._invertSign = false;
       var tool = uiTools[this.getSelectedTool()];
       if (tool.toggleNegative)
         tool.toggleNegative();
     },
     /** Key released event */
     onKeyUp: function (event) {
-      var releaseTool = this.main_.mouseButton_ === 0 && this.toolOnRelease_ !== -1 && !event.ctrlKey && !event.shiftKey;
+      var releaseTool = this._main._mouseButton === 0 && this._toolOnRelease !== -1 && !event.ctrlKey && !event.shiftKey;
       if (!event.altKey || releaseTool)
         this.releaseInvertSign();
       if (releaseTool) {
-        this.ctrlSculpt_.setValue(this.toolOnRelease_);
-        this.toolOnRelease_ = -1;
+        this._ctrlSculpt.setValue(this._toolOnRelease);
+        this._toolOnRelease = -1;
       }
       if (event.which === 88) // X
-        this.modalBrushRadius_ = this.main_.focusGui_ = false;
+        this._modalBrushRadius = this._main._focusGui = false;
       else if (event.which === 67) // C
-        this.modalBrushIntensity_ = this.main_.focusGui_ = false;
+        this._modalBrushIntensity = this._main._focusGui = false;
     },
     /** Mouse released event */
     onMouseUp: function (event) {
-      if (this.toolOnRelease_ !== -1 && !event.ctrlKey && !event.shiftKey) {
+      if (this._toolOnRelease !== -1 && !event.ctrlKey && !event.shiftKey) {
         this.releaseInvertSign();
-        this.ctrlSculpt_.setValue(this.toolOnRelease_);
-        this.toolOnRelease_ = -1;
+        this._ctrlSculpt.setValue(this._toolOnRelease);
+        this._toolOnRelease = -1;
       }
     },
     /** Mouse move event */
     onMouseMove: function (e) {
       var wid = uiTools[this.getSelectedTool()];
-      if (this.modalBrushRadius_ && wid.ctrlRadius_) {
-        wid.ctrlRadius_.setValue(wid.ctrlRadius_.getValue() + e.pageX - this.lastMouseX_);
+      if (this._modalBrushRadius && wid._ctrlRadius) {
+        wid._ctrlRadius.setValue(wid._ctrlRadius.getValue() + e.pageX - this._lastMouseX);
         this.updateRadiusPicking();
-        this.main_.render();
+        this._main.render();
       }
-      if (this.modalBrushIntensity_ && wid.ctrlIntensity_) {
-        wid.ctrlIntensity_.setValue(wid.ctrlIntensity_.getValue() + e.pageX - this.lastMouseX_);
+      if (this._modalBrushIntensity && wid._ctrlIntensity) {
+        wid._ctrlIntensity.setValue(wid._ctrlIntensity.getValue() + e.pageX - this._lastMouseX);
       }
-      this.lastMouseX_ = e.pageX;
+      this._lastMouseX = e.pageX;
     },
     /** Updates radius picking */
     updateRadiusPicking: function () {
-      this.main_.getPicking().computeLocalAndWorldRadius2(this.main_.mouseX_, this.main_.mouseY_);
+      this._main.getPicking().computeLocalAndWorldRadius2(this._main._mouseX, this._main._mouseY);
     },
     /** Initialize tool */
     initTool: function (toolKey) {
-      uiTools[toolKey].init(this.sculpt_.tools_[toolKey], this.menu_, this.main_);
+      uiTools[toolKey].init(this._sculpt._tools[toolKey], this._menu, this._main);
       GuiSculptingTools.hide(toolKey);
     },
     /** When the sculpting tool is changed */
     onChangeTool: function (newValue) {
       newValue = parseInt(newValue, 10);
-      GuiSculptingTools.hide(this.sculpt_.tool_);
-      this.sculpt_.tool_ = newValue;
+      GuiSculptingTools.hide(this._sculpt._tool);
+      this._sculpt._tool = newValue;
       GuiSculptingTools.show(newValue);
-      this.ctrlContinuous_.setVisibility(this.sculpt_.allowPicking() === true);
+      this._ctrlContinuous.setVisibility(this._sculpt.allowPicking() === true);
       var show = newValue !== Sculpt.tool.TRANSLATE && newValue !== Sculpt.tool.ROTATE && newValue !== Sculpt.tool.SCALE;
-      this.ctrlSymmetry_.setVisibility(show);
+      this._ctrlSymmetry.setVisibility(show);
       this.updateRadiusPicking();
     },
     loadAlpha: function (event) {
@@ -304,8 +304,8 @@ define([
       if (!file.type.match('image.*'))
         return;
       var reader = new FileReader();
-      var main = this.main_;
-      var tool = uiTools[main.getSculpt().tool_];
+      var main = this._main;
+      var tool = uiTools[main.getSculpt()._tool];
 
       reader.onload = function (evt) {
         var img = new Image();
@@ -318,11 +318,11 @@ define([
     addAlphaOptions: function (opts) {
       for (var i = 0, nb = uiTools.length; i < nb; ++i) {
         var t = uiTools[i];
-        if (t && t.ctrlAlpha_) t.ctrlAlpha_.addOptions(opts);
+        if (t && t._ctrlAlpha) t._ctrlAlpha.addOptions(opts);
       }
     },
     updateMesh: function () {
-      this.menu_.setVisibility(!!this.main_.getMesh());
+      this._menu.setVisibility(!!this._main.getMesh());
     }
   };
 

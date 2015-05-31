@@ -8,38 +8,38 @@ define([
 
   var Crease = function (main) {
     SculptBase.call(this, main);
-    this.radius_ = 25;
-    this.intensity_ = 0.75;
-    this.negative_ = true;
-    this.culling_ = false;
-    this.idAlpha_ = 0;
-    this.lockPosition_ = false;
+    this._radius = 25;
+    this._intensity = 0.75;
+    this._negative = true;
+    this._culling = false;
+    this._idAlpha = 0;
+    this._lockPosition = false;
   };
 
   Crease.prototype = {
     /** On stroke */
     stroke: function (picking) {
       var iVertsInRadius = picking.getPickedVertices();
-      var intensity = this.intensity_ * Tablet.getPressureIntensity();
+      var intensity = this._intensity * Tablet.getPressureIntensity();
 
       this.updateProxy(iVertsInRadius);
       // undo-redo
-      this.states_.pushVertices(iVertsInRadius);
+      this._states.pushVertices(iVertsInRadius);
       iVertsInRadius = this.dynamicTopology(picking);
 
       var iVertsFront = this.getFrontVertices(iVertsInRadius, picking.getEyeDirection());
-      if (this.culling_)
+      if (this._culling)
         iVertsInRadius = iVertsFront;
 
-      picking.updateAlpha(this.lockPosition_);
-      picking.setIdAlpha(this.idAlpha_);
+      picking.updateAlpha(this._lockPosition);
+      picking.setIdAlpha(this._idAlpha);
       this.crease(iVertsInRadius, picking.getPickedNormal(), picking.getIntersectionPoint(), picking.getLocalRadius2(), intensity, picking);
 
-      this.mesh_.updateGeometry(this.mesh_.getFacesFromVertices(iVertsInRadius), iVertsInRadius);
+      this._mesh.updateGeometry(this._mesh.getFacesFromVertices(iVertsInRadius), iVertsInRadius);
     },
     /** Pinch+brush-like sculpt */
     crease: function (iVertsInRadius, aNormal, center, radiusSquared, intensity, picking) {
-      var mesh = this.mesh_;
+      var mesh = this._mesh;
       var vAr = mesh.getVertices();
       var mAr = mesh.getMaterials();
       var vProxy = mesh.getVerticesProxy();
@@ -52,7 +52,7 @@ define([
       var anz = aNormal[2];
       var deformIntensity = intensity * 0.07;
       var brushFactor = deformIntensity * radius;
-      if (this.negative_)
+      if (this._negative)
         brushFactor = -brushFactor;
       for (var i = 0, l = iVertsInRadius.length; i < l; ++i) {
         var ind = iVertsInRadius[i] * 3;

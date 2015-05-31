@@ -6,7 +6,7 @@ define([
   'use strict';
 
   var GuiTablet = function (guiParent) {
-    this.menu_ = null; // ui menu
+    this._menu = null; // ui menu
     this.init(guiParent);
   };
 
@@ -14,7 +14,7 @@ define([
     /** Initialize */
     init: function (guiParent) {
       // Pen tablet ui stuffs
-      var menu = this.menu_ = guiParent.addMenu(TR('wacomTitle'));
+      var menu = this._menu = guiParent.addMenu(TR('wacomTitle'));
       menu.addCheckbox(TR('wacomRadius'), Tablet, 'useOnRadius');
       menu.addCheckbox(TR('wacomIntensity'), Tablet, 'useOnIntensity');
     }

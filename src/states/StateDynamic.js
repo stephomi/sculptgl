@@ -8,22 +8,22 @@ define([
   var vec3 = glm.vec3;
 
   var StateDynamic = function (main, mesh) {
-    this.main_ = main; // main application
-    this.mesh_ = mesh; // the mesh
-    this.center_ = vec3.copy([0.0, 0.0, 0.0], mesh.getCenter());
+    this._main = main; // main application
+    this._mesh = mesh; // the mesh
+    this._center = vec3.copy([0.0, 0.0, 0.0], mesh.getCenter());
 
-    this.nbFacesState_ = mesh.getNbFaces(); // number of faces
-    this.nbVerticesState_ = mesh.getNbVertices(); // number of vertices
+    this._nbFacesState = mesh.getNbFaces(); // number of faces
+    this._nbVerticesState = mesh.getNbVertices(); // number of vertices
 
-    this.idVertState_ = []; // ids of vertices
-    this.fRingState_ = []; // ring of faces around vertices
-    this.vRingState_ = []; // ring of faces around vertices
-    this.vArState_ = []; // copies of vertices coordinates
-    this.cArState_ = []; // copies of color vertices
-    this.mArState_ = []; // copies of material vertices
+    this._idVertState = []; // ids of vertices
+    this._fRingState = []; // ring of faces around vertices
+    this._vRingState = []; // ring of faces around vertices
+    this._vArState = []; // copies of vertices coordinates
+    this._cArState = []; // copies of color vertices
+    this._mArState = []; // copies of material vertices
 
-    this.idFaceState_ = []; // ids of faces
-    this.fArState_ = []; // copies of face indices
+    this._idFaceState = []; // ids of faces
+    this._fArState = []; // copies of face indices
   };
 
   StateDynamic.prototype = {
@@ -31,22 +31,23 @@ define([
     undo: function (skipUpdate) {
       this.pullVertices();
       this.pullFaces();
-      var mesh = this.mesh_;
-      // mesh.getVerticesRingFace().length = this.nbVerticesState_;
-      // mesh.getVerticesRingVert().length = this.nbVerticesState_;
-      mesh.setNbVertices(this.nbVerticesState_);
-      mesh.setNbFaces(this.nbFacesState_);
+      var mesh = this._mesh;
+      // mesh.getVerticesRingFace().length = this._nbVerticesState;
+      // mesh.getVerticesRingVert().length = this._nbVerticesState;
+      mesh.setNbVertices(this._nbVerticesState);
+      mesh.setNbFaces(this._nbFacesState);
 
-      if (skipUpdate) return;
-      mesh.updateGeometry( /*this.idFaceState_, this.idVertState_*/ ); // TODO local update ?
-      mesh.updateTopology( /*this.idFaceState_*/ ); // TODO local update ?
+      if (skipUpdate)
+        return;
+      mesh.updateGeometry( /*this._idFaceState, this._idVertState*/ ); // TODO local update ?
+      mesh.updateTopology( /*this._idFaceState*/ ); // TODO local update ?
       mesh.updateDuplicateColorsAndMaterials();
       mesh.updateFlatShading();
       mesh.updateColorBuffer();
       mesh.updateMaterialBuffer();
       mesh.updateBuffers();
-      vec3.copy(mesh.getCenter(), this.center_);
-      this.main_.setMesh(mesh);
+      vec3.copy(mesh.getCenter(), this._center);
+      this._main.setMesh(mesh);
     },
     /** On redo */
     redo: function () {
@@ -54,21 +55,21 @@ define([
     },
     /** Push the redo state */
     createRedo: function () {
-      var redo = new StateDynamic(this.main_, this.mesh_);
+      var redo = new StateDynamic(this._main, this._mesh);
       this.pushRedoVertices(redo);
       this.pushRedoFaces(redo);
       return redo;
     },
     /** Push vertices */
     pushVertices: function (iVerts) {
-      var idVertState = this.idVertState_;
-      var fRingState = this.fRingState_;
-      var vRingState = this.vRingState_;
-      var vArState = this.vArState_;
-      var cArState = this.cArState_;
-      var mArState = this.mArState_;
+      var idVertState = this._idVertState;
+      var fRingState = this._fRingState;
+      var vRingState = this._vRingState;
+      var vArState = this._vArState;
+      var cArState = this._cArState;
+      var mArState = this._mArState;
 
-      var mesh = this.mesh_;
+      var mesh = this._mesh;
       var fRing = mesh.getVerticesRingFace();
       var vRing = mesh.getVerticesRingVert();
       var vAr = mesh.getVertices();
@@ -94,10 +95,10 @@ define([
     },
     /** Push faces */
     pushFaces: function (iFaces) {
-      var idFaceState = this.idFaceState_;
-      var fArState = this.fArState_;
+      var idFaceState = this._idFaceState;
+      var fArState = this._fArState;
 
-      var mesh = this.mesh_;
+      var mesh = this._mesh;
       var fAr = mesh.getFaces();
       var fStateFlags = mesh.getFacesStateFlags();
 
@@ -115,7 +116,7 @@ define([
     },
     /** Push redo vertices */
     pushRedoVertices: function (redoState) {
-      var mesh = redoState.mesh_;
+      var mesh = redoState._mesh;
       var nbMeshVertices = mesh.getNbVertices();
       var fRing = mesh.getVerticesRingFace();
       var vRing = mesh.getVerticesRingVert();
@@ -126,9 +127,9 @@ define([
       var i = 0;
       var id = 0;
       var acc = 0;
-      var idVertUndoState = this.idVertState_;
+      var idVertUndoState = this._idVertState;
       var nbVerts = idVertUndoState.length;
-      var nbVerticesState = this.nbVerticesState_;
+      var nbVerticesState = this._nbVerticesState;
       var nbMin = Math.min(nbVerticesState, nbMeshVertices);
       var idVertRedoState = new Uint32Array(Utils.getMemory(nbMeshVertices * 4), 0, nbMeshVertices);
       for (i = 0; i < nbVerts; ++i) {
@@ -141,12 +142,12 @@ define([
       }
 
       nbVerts = acc;
-      idVertRedoState = redoState.idVertState_ = new Uint32Array(idVertRedoState.subarray(0, nbVerts));
-      var fRingRedoState = redoState.fRingState_ = new Array(nbVerts);
-      var vRingRedoState = redoState.vRingState_ = new Array(nbVerts);
-      var vArRedoState = redoState.vArState_ = new Float32Array(nbVerts * 3);
-      var cArRedoState = redoState.cArState_ = new Float32Array(nbVerts * 3);
-      var mArRedoState = redoState.mArState_ = new Float32Array(nbVerts * 3);
+      idVertRedoState = redoState._idVertState = new Uint32Array(idVertRedoState.subarray(0, nbVerts));
+      var fRingRedoState = redoState._fRingState = new Array(nbVerts);
+      var vRingRedoState = redoState._vRingState = new Array(nbVerts);
+      var vArRedoState = redoState._vArState = new Float32Array(nbVerts * 3);
+      var cArRedoState = redoState._cArState = new Float32Array(nbVerts * 3);
+      var mArRedoState = redoState._mArState = new Float32Array(nbVerts * 3);
       for (i = 0; i < nbVerts; ++i) {
         id = idVertRedoState[i];
         fRingRedoState[i] = fRing[id].slice();
@@ -166,16 +167,16 @@ define([
     },
     /** Push redo faces */
     pushRedoFaces: function (redoState) {
-      var mesh = redoState.mesh_;
+      var mesh = redoState._mesh;
       var nbMeshFaces = mesh.getNbFaces();
       var fAr = mesh.getFaces();
 
       var i = 0;
       var id = 0;
       var acc = 0;
-      var idFaceUndoState = this.idFaceState_;
+      var idFaceUndoState = this._idFaceState;
       var nbFaces = idFaceUndoState.length;
-      var nbFacesState = this.nbFacesState_;
+      var nbFacesState = this._nbFacesState;
       var nbMin = Math.min(nbFacesState, nbMeshFaces);
       var idFaceRedoState = new Uint32Array(Utils.getMemory(nbMeshFaces * 4), 0, nbMeshFaces);
       for (i = 0; i < nbFaces; ++i) {
@@ -188,8 +189,8 @@ define([
       }
 
       nbFaces = acc;
-      idFaceRedoState = redoState.idFaceState_ = new Uint32Array(idFaceRedoState.subarray(0, nbFaces));
-      var fArRedoState = redoState.fArState_ = new Int32Array(nbFaces * 4);
+      idFaceRedoState = redoState._idFaceState = new Uint32Array(idFaceRedoState.subarray(0, nbFaces));
+      var fArRedoState = redoState._fArState = new Int32Array(nbFaces * 4);
       for (i = 0; i < nbFaces; ++i) {
         id = idFaceRedoState[i];
         id *= 4;
@@ -202,16 +203,16 @@ define([
     },
     /** Pull vertices */
     pullVertices: function () {
-      var nbMeshVertices = this.nbVerticesState_;
-      var fRingState = this.fRingState_;
-      var vRingState = this.vRingState_;
-      var vArState = this.vArState_;
-      var cArState = this.cArState_;
-      var mArState = this.mArState_;
-      var idVertState = this.idVertState_;
+      var nbMeshVertices = this._nbVerticesState;
+      var fRingState = this._fRingState;
+      var vRingState = this._vRingState;
+      var vArState = this._vArState;
+      var cArState = this._cArState;
+      var mArState = this._mArState;
+      var idVertState = this._idVertState;
       var nbVerts = idVertState.length;
 
-      var mesh = this.mesh_;
+      var mesh = this._mesh;
       var fRing = mesh.getVerticesRingFace();
       var vRing = mesh.getVerticesRingVert();
       var vAr = mesh.getVertices();
@@ -238,12 +239,12 @@ define([
     },
     /** Pull faces */
     pullFaces: function () {
-      var nbMeshFaces = this.nbFacesState_;
-      var fArState = this.fArState_;
-      var idFaceState = this.idFaceState_;
+      var nbMeshFaces = this._nbFacesState;
+      var fArState = this._fArState;
+      var idFaceState = this._idFaceState;
       var nbFaces = idFaceState.length;
 
-      var mesh = this.mesh_;
+      var mesh = this._mesh;
       var fAr = mesh.getFaces();
       for (var i = 0; i < nbFaces; ++i) {
         var id = idFaceState[i];

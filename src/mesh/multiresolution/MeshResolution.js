@@ -7,50 +7,50 @@ define([
   'use strict';
 
   var MeshResolution = function (transformData, render, mesh) {
-    this.meshOrigin_ = mesh || new Mesh();
-    if (mesh) this.meshOrigin_.setID(mesh.getID());
-    this.meshOrigin_.setTransformData(transformData);
-    this.meshOrigin_.setRender(render);
-    this.detailsXYZ_ = null; // details vectors (Float32Array)
-    this.detailsRGB_ = null; // details vectors (Float32Array)
-    this.detailsPBR_ = null; // details vectors (Float32Array)
-    this.vertMapping_ = null; // vertex mapping to higher res (Uint32Array)
-    this.evenMapping_ = false; // if the even vertices are not aligned with higher res
+    this._meshOrigin = mesh || new Mesh();
+    if (mesh) this._meshOrigin.setID(mesh.getID());
+    this._meshOrigin.setTransformData(transformData);
+    this._meshOrigin.setRender(render);
+    this._detailsXYZ = null; // details vectors (Float32Array)
+    this._detailsRGB = null; // details vectors (Float32Array)
+    this._detailsPBR = null; // details vectors (Float32Array)
+    this._vertMapping = null; // vertex mapping to higher res (Uint32Array)
+    this._evenMapping = false; // if the even vertices are not aligned with higher res
   };
 
   MeshResolution.prototype = {
     getMeshOrigin: function () {
-      return this.meshOrigin_;
+      return this._meshOrigin;
     },
     getDetailsVertices: function () {
-      return this.detailsXYZ_;
+      return this._detailsXYZ;
     },
     getDetailsColors: function () {
-      return this.detailsRGB_;
+      return this._detailsRGB;
     },
     getDetailsMaterials: function () {
-      return this.detailsPBR_;
+      return this._detailsPBR;
     },
     getEvenMapping: function () {
-      return this.evenMapping_;
+      return this._evenMapping;
     },
     getVerticesMapping: function () {
-      return this.vertMapping_;
+      return this._vertMapping;
     },
     setDetailsVertices: function (dAr) {
-      this.detailsXYZ_ = dAr;
+      this._detailsXYZ = dAr;
     },
     setDetailsColors: function (dcAr) {
-      this.detailsRGB_ = dcAr;
+      this._detailsRGB = dcAr;
     },
     setDetailsMaterials: function (dmAr) {
-      this.detailsPBR_ = dmAr;
+      this._detailsPBR = dmAr;
     },
     setVerticesMapping: function (vmAr) {
-      this.vertMapping_ = vmAr;
+      this._vertMapping = vmAr;
     },
     setEvenMapping: function (bool) {
-      this.evenMapping_ = bool;
+      this._evenMapping = bool;
     },
     /** Go to one level above (down to up) */
     higherSynthesis: function (meshDown) {

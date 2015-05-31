@@ -22,9 +22,9 @@ define([
 
     // camera stuffs
     if (version >= 2) {
-      main.showGrid_ = u32a[off++];
+      main._showGrid = u32a[off++];
       ShaderBase.showSymmetryLine = u32a[off++];
-      main.showContour_ = u32a[off++];
+      main._showContour = u32a[off++];
 
       var cam = main.getCamera();
       cam.setProjType(u32a[off++]);
@@ -45,8 +45,8 @@ define([
         // we don't want to call updateBuffers
         render.getShader().setType(u32a[off++]);
         render.setMatcap(u32a[off++]);
-        render.showWireframe_ = u32a[off++];
-        render.flatShading_ = u32a[off++];
+        render._showWireframe = u32a[off++];
+        render._flatShading = u32a[off++];
         render.setOpacity(f32a[off++]);
       }
 

@@ -3,28 +3,28 @@ define([], function () {
   'use strict';
 
   var WireframeData = function (mesh) {
-    this.mesh_ = mesh; // the mesh
-    this.drawArraysWireframe_ = null; // array for the wireframe (base on drawArrays vertices)
-    this.drawElementsWireframe_ = null; // array for the wireframe (base on drawElements vertices)
+    this._mesh = mesh; // the mesh
+    this._drawArraysWireframe = null; // array for the wireframe (base on drawArrays vertices)
+    this._drawElementsWireframe = null; // array for the wireframe (base on drawElements vertices)
   };
 
   WireframeData.prototype = {
     /** Return wireframe array (or compute it if not up to date) */
     getWireframe: function () {
-      var mesh = this.mesh_;
+      var mesh = this._mesh;
       var nbEdges = mesh.getNbEdges();
       var cdw;
-      var useDrawArrays = this.mesh_.isUsingDrawArrays();
+      var useDrawArrays = this._mesh.isUsingDrawArrays();
       if (useDrawArrays) {
-        if (this.drawArraysWireframe_ && this.drawArraysWireframe_.length === nbEdges * 2) {
-          return this.drawArraysWireframe_;
+        if (this._drawArraysWireframe && this._drawArraysWireframe.length === nbEdges * 2) {
+          return this._drawArraysWireframe;
         }
-        cdw = this.drawArraysWireframe_ = new Uint32Array(nbEdges * 2);
+        cdw = this._drawArraysWireframe = new Uint32Array(nbEdges * 2);
       } else {
-        if (this.drawElementsWireframe_ && this.drawElementsWireframe_.length === nbEdges * 2) {
-          return this.drawElementsWireframe_;
+        if (this._drawElementsWireframe && this._drawElementsWireframe.length === nbEdges * 2) {
+          return this._drawElementsWireframe;
         }
-        cdw = this.drawElementsWireframe_ = new Uint32Array(nbEdges * 2);
+        cdw = this._drawElementsWireframe = new Uint32Array(nbEdges * 2);
       }
 
       var fAr = mesh.getFaces();
@@ -82,7 +82,7 @@ define([], function () {
           nbLines++;
         }
       }
-      return useDrawArrays ? this.drawArraysWireframe_ : this.drawElementsWireframe_;
+      return useDrawArrays ? this._drawArraysWireframe : this._drawElementsWireframe;
     }
   };
 

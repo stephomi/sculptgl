@@ -3,49 +3,49 @@ define([], function () {
   'use strict';
 
   var DrawArraysData = function (mesh) {
-    this.mesh_ = mesh; // the mesh
+    this._mesh = mesh; // the mesh
 
-    this.verticesXYZ_ = null; // vertices (Float32Array)
-    this.normalsXYZ_ = null; // normals (Float32Array)
-    this.colorsRGB_ = null; // color vertices (Float32Array)
-    this.materialsPBR_ = null; // material vertices (Float32Array)
-    this.texCoordsST_ = null; // texCoords (Float32Array)
+    this._verticesXYZ = null; // vertices (Float32Array)
+    this._normalsXYZ = null; // normals (Float32Array)
+    this._colorsRGB = null; // color vertices (Float32Array)
+    this._materialsPBR = null; // material vertices (Float32Array)
+    this._texCoordsST = null; // texCoords (Float32Array)
   };
 
   DrawArraysData.prototype = {
     getVerticesDrawArrays: function () {
-      if (!this.verticesXYZ_) this.updateDrawArrays(true);
-      return this.verticesXYZ_;
+      if (!this._verticesXYZ) this.updateDrawArrays(true);
+      return this._verticesXYZ;
     },
     getNormalsDrawArrays: function () {
-      return this.normalsXYZ_;
+      return this._normalsXYZ;
     },
     getColorsDrawArrays: function () {
-      return this.colorsRGB_;
+      return this._colorsRGB;
     },
     getMaterialsDrawArrays: function () {
-      return this.materialsPBR_;
+      return this._materialsPBR;
     },
     getTexCoordsDrawArrays: function () {
-      return this.texCoordsST_;
+      return this._texCoordsST;
     },
     /** ONLY FOR DYNAMIC MESH */
     reAllocateArrays: function (nbAddElements) {
-      var mesh = this.mesh_;
+      var mesh = this._mesh;
       var nbMagic = 10;
-      var nbDyna = this.verticesXYZ_.length / 9;
+      var nbDyna = this._verticesXYZ.length / 9;
       var nbTriangles = mesh.getNbTriangles();
       var len = nbTriangles + nbAddElements * nbMagic;
       if (nbDyna < len || nbDyna > len * 4) {
-        this.verticesXYZ_ = mesh.resizeArray(this.verticesXYZ_, len * 9);
-        this.normalsXYZ_ = mesh.resizeArray(this.normalsXYZ_, len * 9);
-        this.colorsRGB_ = mesh.resizeArray(this.colorsRGB_, len * 9);
-        this.materialsPBR_ = mesh.resizeArray(this.materialsPBR_, len * 9);
+        this._verticesXYZ = mesh.resizeArray(this._verticesXYZ, len * 9);
+        this._normalsXYZ = mesh.resizeArray(this._normalsXYZ, len * 9);
+        this._colorsRGB = mesh.resizeArray(this._colorsRGB, len * 9);
+        this._materialsPBR = mesh.resizeArray(this._materialsPBR, len * 9);
       }
     },
     /** Updates the arrays that are going to be used by webgl */
     updateDrawArrays: function (flat, iFaces) {
-      var mesh = this.mesh_;
+      var mesh = this._mesh;
 
       var vAr = mesh.getVertices();
       var nAr = mesh.getNormals();
@@ -59,16 +59,16 @@ define([], function () {
       var facesToTris = mesh.hasOnlyTriangles() ? null : mesh.getFacesToTriangles();
 
       var full = iFaces === undefined;
-      var cdv = this.verticesXYZ_;
-      var cdn = this.normalsXYZ_;
-      var cdc = this.colorsRGB_;
-      var cdm = this.materialsPBR_;
+      var cdv = this._verticesXYZ;
+      var cdn = this._normalsXYZ;
+      var cdc = this._colorsRGB;
+      var cdm = this._materialsPBR;
 
       if (!cdv || cdv.length < nbTriangles * 9) {
-        cdv = this.verticesXYZ_ = new Float32Array(nbTriangles * 9);
-        cdn = this.normalsXYZ_ = new Float32Array(nbTriangles * 9);
-        cdc = this.colorsRGB_ = new Float32Array(nbTriangles * 9);
-        cdm = this.materialsPBR_ = new Float32Array(nbTriangles * 9);
+        cdv = this._verticesXYZ = new Float32Array(nbTriangles * 9);
+        cdn = this._normalsXYZ = new Float32Array(nbTriangles * 9);
+        cdc = this._colorsRGB = new Float32Array(nbTriangles * 9);
+        cdm = this._materialsPBR = new Float32Array(nbTriangles * 9);
       }
 
       var nbFaces = full ? mesh.getNbFaces() : iFaces.length;
@@ -193,14 +193,14 @@ define([], function () {
     },
     /** Updates the UV array data for drawArrays */
     updateDrawArraysTexCoord: function (iFaces) {
-      var mesh = this.mesh_;
+      var mesh = this._mesh;
       var nbTriangles = mesh.getNbTriangles();
       var facesToTris = mesh.getFacesToTriangles();
 
       var full = iFaces === undefined;
-      var cdt = this.texCoordsST_;
+      var cdt = this._texCoordsST;
       if (!cdt || cdt.length !== nbTriangles * 6)
-        cdt = this.texCoordsST_ = new Float32Array(nbTriangles * 6);
+        cdt = this._texCoordsST = new Float32Array(nbTriangles * 6);
 
       var tAr = mesh.getTexCoords();
       var fArUV = mesh.getFacesTexCoord();

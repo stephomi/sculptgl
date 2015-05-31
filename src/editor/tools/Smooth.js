@@ -8,36 +8,36 @@ define([
 
   var Smooth = function (main) {
     SculptBase.call(this, main);
-    this.radius_ = 50;
-    this.intensity_ = 0.75;
-    this.culling_ = false;
-    this.tangent_ = false;
-    this.idAlpha_ = 0;
-    this.lockPosition_ = false;
+    this._radius = 50;
+    this._intensity = 0.75;
+    this._culling = false;
+    this._tangent = false;
+    this._idAlpha = 0;
+    this._lockPosition = false;
   };
 
   Smooth.prototype = {
     /** On stroke */
     stroke: function (picking) {
       var iVertsInRadius = picking.getPickedVertices();
-      var intensity = this.intensity_ * Tablet.getPressureIntensity();
+      var intensity = this._intensity * Tablet.getPressureIntensity();
 
       // undo-redo
-      this.states_.pushVertices(iVertsInRadius);
+      this._states.pushVertices(iVertsInRadius);
 
-      if (this.culling_)
+      if (this._culling)
         iVertsInRadius = this.getFrontVertices(iVertsInRadius, picking.getEyeDirection());
 
-      picking.updateAlpha(this.lockPosition_);
-      picking.setIdAlpha(this.idAlpha_);
-      if (this.tangent_) this.smoothTangent(iVertsInRadius, intensity, picking);
+      picking.updateAlpha(this._lockPosition);
+      picking.setIdAlpha(this._idAlpha);
+      if (this._tangent) this.smoothTangent(iVertsInRadius, intensity, picking);
       else this.smooth(iVertsInRadius, intensity, picking);
 
-      this.mesh_.updateGeometry(this.mesh_.getFacesFromVertices(iVertsInRadius), iVertsInRadius);
+      this._mesh.updateGeometry(this._mesh.getFacesFromVertices(iVertsInRadius), iVertsInRadius);
     },
     /** Smooth a group of vertices. New position is given by simple averaging */
     smooth: function (iVerts, intensity, picking) {
-      var mesh = this.mesh_;
+      var mesh = this._mesh;
       var vAr = mesh.getVertices();
       var mAr = mesh.getMaterials();
       var nbVerts = iVerts.length;
@@ -60,7 +60,7 @@ define([
     },
     /** Smooth a group of vertices. Reproject the position on each vertex normals plane */
     smoothTangent: function (iVerts, intensity, picking) {
-      var mesh = this.mesh_;
+      var mesh = this._mesh;
       var vAr = mesh.getVertices();
       var mAr = mesh.getMaterials();
       var nAr = mesh.getNormals();
@@ -97,7 +97,7 @@ define([
     },
     /** Smooth a group of vertices along their normals */
     smoothAlongNormals: function (iVerts, intensity, picking) {
-      var mesh = this.mesh_;
+      var mesh = this._mesh;
       var vAr = mesh.getVertices();
       var mAr = mesh.getMaterials();
       var nAr = mesh.getNormals();

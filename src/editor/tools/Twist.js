@@ -13,33 +13,33 @@ define([
 
   var Twist = function (main) {
     SculptBase.call(this, main);
-    this.radius_ = 75;
-    this.culling_ = false;
-    this.twistData_ = {
+    this._radius = 75;
+    this._culling = false;
+    this._twistData = {
       normal: [0.0, 0.0, 0.0], // normal of rotation plane
       center: [0.0, 0.0] // 2D center of rotation 
     };
-    this.twistDataSym_ = {
+    this._twistDataSym = {
       normal: [0.0, 0.0, 0.0], // normal of rotation plane
       center: [0.0, 0.0] // 2D center of rotation 
     };
-    this.idAlpha_ = 0;
+    this._idAlpha = 0;
   };
 
   Twist.prototype = {
     /** Start a twist sculpt stroke */
     startSculpt: function () {
-      var main = this.main_;
-      var mouseX = main.mouseX_;
-      var mouseY = main.mouseY_;
+      var main = this._main;
+      var mouseX = main._mouseX;
+      var mouseY = main._mouseY;
       var picking = main.getPicking();
-      this.initTwistData(picking, mouseX, mouseY, this.twistData_);
+      this.initTwistData(picking, mouseX, mouseY, this._twistData);
       if (main.getSculpt().getSymmetry()) {
         var pickingSym = main.getPickingSymmetry();
-        pickingSym.intersectionMouseMesh(this.mesh_, mouseX, mouseY);
+        pickingSym.intersectionMouseMesh(this._mesh, mouseX, mouseY);
         pickingSym.setLocalRadius2(picking.getLocalRadius2());
         if (pickingSym.getMesh())
-          this.initTwistData(pickingSym, mouseX, mouseY, this.twistDataSym_);
+          this.initTwistData(pickingSym, mouseX, mouseY, this._twistDataSym);
       }
     },
     /** Set a few infos that will be needed for the twist function afterwards */
@@ -50,21 +50,21 @@ define([
     },
     /** Make a brush twist stroke */
     sculptStroke: function () {
-      var main = this.main_;
-      var mx = main.mouseX_;
-      var my = main.mouseY_;
-      var lx = main.lastMouseX_;
-      var ly = main.lastMouseY_;
+      var main = this._main;
+      var mx = main._mouseX;
+      var my = main._mouseY;
+      var lx = main._lastMouseX;
+      var ly = main._lastMouseY;
       var picking = main.getPicking();
       var rLocal2 = picking.getLocalRadius2();
       picking.pickVerticesInSphere(rLocal2);
-      this.stroke(picking, mx, my, lx, ly, this.twistData_);
+      this.stroke(picking, mx, my, lx, ly, this._twistData);
 
       if (main.getSculpt().getSymmetry()) {
         var pickingSym = main.getPickingSymmetry();
         if (pickingSym.getMesh()) {
           pickingSym.pickVerticesInSphere(rLocal2);
-          this.stroke(pickingSym, lx, ly, mx, my, this.twistDataSym_);
+          this.stroke(pickingSym, lx, ly, mx, my, this._twistDataSym);
         }
       }
       this.updateRender();
@@ -75,21 +75,21 @@ define([
       var iVertsInRadius = picking.getPickedVertices();
 
       // undo-redo
-      this.states_.pushVertices(iVertsInRadius);
+      this._states.pushVertices(iVertsInRadius);
       iVertsInRadius = this.dynamicTopology(picking);
 
-      if (this.culling_)
+      if (this._culling)
         iVertsInRadius = this.getFrontVertices(iVertsInRadius, picking.getEyeDirection());
 
       picking.updateAlpha(false);
-      picking.setIdAlpha(this.idAlpha_);
+      picking.setIdAlpha(this._idAlpha);
       this.twist(iVertsInRadius, picking.getIntersectionPoint(), picking.getLocalRadius2(), mx, my, lx, ly, twistData, picking);
 
-      this.mesh_.updateGeometry(this.mesh_.getFacesFromVertices(iVertsInRadius), iVertsInRadius);
+      this._mesh.updateGeometry(this._mesh.getFacesFromVertices(iVertsInRadius), iVertsInRadius);
     },
     /** Twist the vertices around the mouse point intersection */
     twist: function (iVerts, center, radiusSquared, mouseX, mouseY, lastMouseX, lastMouseY, twistData, picking) {
-      var mesh = this.mesh_;
+      var mesh = this._mesh;
       var mouseCenter = twistData.center;
       var vecMouse = [mouseX - mouseCenter[0], mouseY - mouseCenter[1]];
       if (vec2.len(vecMouse) < 30)

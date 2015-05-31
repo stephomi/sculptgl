@@ -39,16 +39,16 @@ define([
     if (drawCircle) {
       gl.uniformMatrix4fv(this.uniforms.uMVP, false, geom.getCircleMVP());
       ShaderSelection.attributes.aVertex.bindToBuffer(geom.getCircleBuffer());
-      gl.drawArrays(gl.LINE_LOOP, 0, geom.getCircleBuffer().size_ / 3);
+      gl.drawArrays(gl.LINE_LOOP, 0, geom.getCircleBuffer()._size / 3);
     }
 
     gl.uniformMatrix4fv(this.uniforms.uMVP, false, geom.getDotMVP());
     ShaderSelection.attributes.aVertex.bindToBuffer(geom.getDotBuffer());
-    gl.drawArrays(gl.TRIANGLE_FAN, 0, geom.getDotBuffer().size_ / 3);
+    gl.drawArrays(gl.TRIANGLE_FAN, 0, geom.getDotBuffer()._size / 3);
 
     if (drawSym) {
       gl.uniformMatrix4fv(this.uniforms.uMVP, false, geom.getDotSymmetryMVP());
-      gl.drawArrays(gl.TRIANGLE_FAN, 0, geom.getDotBuffer().size_ / 3);
+      gl.drawArrays(gl.TRIANGLE_FAN, 0, geom.getDotBuffer()._size / 3);
     }
   };
 

@@ -12,46 +12,46 @@ define([
   var vec3 = glm.vec3;
 
   var Selection = function (gl) {
-    this.gl_ = gl;
+    this._gl = gl;
 
-    this.circleBuffer_ = new Buffer(gl, gl.ARRAY_BUFFER, gl.STATIC_DRAW);
-    this.dotBuffer_ = new Buffer(gl, gl.ARRAY_BUFFER, gl.STATIC_DRAW);
+    this._circleBuffer = new Buffer(gl, gl.ARRAY_BUFFER, gl.STATIC_DRAW);
+    this._dotBuffer = new Buffer(gl, gl.ARRAY_BUFFER, gl.STATIC_DRAW);
 
-    this.cacheDotMVP_ = mat4.create();
-    this.cacheDotSymMVP_ = mat4.create();
-    this.cacheCircleMVP_ = mat4.create();
-    this.color_ = new Float32Array([0.8, 0.0, 0.0]);
+    this._cacheDotMVP = mat4.create();
+    this._cacheDotSymMVP = mat4.create();
+    this._cacheCircleMVP = mat4.create();
+    this._color = new Float32Array([0.8, 0.0, 0.0]);
 
-    this.shader_ = null;
+    this._shader = null;
     this.init();
   };
 
   Selection.prototype = {
     getGL: function () {
-      return this.gl_;
+      return this._gl;
     },
     getCircleBuffer: function () {
-      return this.circleBuffer_;
+      return this._circleBuffer;
     },
     getDotBuffer: function () {
-      return this.dotBuffer_;
+      return this._dotBuffer;
     },
     getCircleMVP: function () {
-      return this.cacheCircleMVP_;
+      return this._cacheCircleMVP;
     },
     getDotMVP: function () {
-      return this.cacheDotMVP_;
+      return this._cacheDotMVP;
     },
     getDotSymmetryMVP: function () {
-      return this.cacheDotSymMVP_;
+      return this._cacheDotSymMVP;
     },
     getColor: function () {
-      return this.color_;
+      return this._color;
     },
     init: function () {
       this.getCircleBuffer().update(this.getCircleVertices(1.0));
       this.getDotBuffer().update(this.getDotVertices(0.05, 10));
-      this.shader_ = Shader[Shader.mode.SELECTION].getOrCreate(this.gl_);
+      this._shader = Shader[Shader.mode.SELECTION].getOrCreate(this._gl);
     },
     computeMatrices: (function () {
       var tmp = mat4.create();
@@ -68,7 +68,7 @@ define([
         var pickingSym = main.getPickingSymmetry();
 
         var worldRadius = picking.getWorldRadius();
-        var screenRadius = main.getSculpt().getCurrentTool().radius_ || 1;
+        var screenRadius = main.getSculpt().getCurrentTool()._radius || 1;
         var constRadius = 50.0 * (worldRadius / screenRadius);
         vec3.transformMat4(tra, picking.getIntersectionPoint(), mesh.getMatrix());
 
@@ -83,12 +83,12 @@ define([
         mat4.rotate(tmp, tmp, rad, axis);
 
         // circle mvp
-        mat4.scale(this.cacheCircleMVP_, tmp, [worldRadius, worldRadius, worldRadius]);
-        mat4.mul(this.cacheCircleMVP_, camera.proj_, mat4.mul(this.cacheCircleMVP_, camera.view_, this.cacheCircleMVP_));
+        mat4.scale(this._cacheCircleMVP, tmp, [worldRadius, worldRadius, worldRadius]);
+        mat4.mul(this._cacheCircleMVP, camera._proj, mat4.mul(this._cacheCircleMVP, camera._view, this._cacheCircleMVP));
 
         // dot mvp
-        mat4.scale(this.cacheDotMVP_, tmp, [constRadius, constRadius, constRadius]);
-        mat4.mul(this.cacheDotMVP_, camera.proj_, mat4.mul(this.cacheDotMVP_, camera.view_, this.cacheDotMVP_));
+        mat4.scale(this._cacheDotMVP, tmp, [constRadius, constRadius, constRadius]);
+        mat4.mul(this._cacheDotMVP, camera._proj, mat4.mul(this._cacheDotMVP, camera._view, this._cacheDotMVP));
 
         // symmetry mvp
         vec3.transformMat4(tra, pickingSym.getIntersectionPoint(), mesh.getMatrix());
@@ -97,7 +97,7 @@ define([
         mat4.rotate(tmp, tmp, rad, axis);
 
         mat4.scale(tmp, tmp, [constRadius, constRadius, constRadius]);
-        mat4.mul(this.cacheDotSymMVP_, camera.proj_, mat4.mul(tmp, camera.view_, tmp));
+        mat4.mul(this._cacheDotSymMVP, camera._proj, mat4.mul(tmp, camera._view, tmp));
       };
     })(),
     release: function () {
@@ -107,12 +107,12 @@ define([
     render: function (main) {
       if (!main.getPicking().getMesh())
         return;
-      var isSculpting = main.mouseButton_ === 0;
+      var isSculpting = main._mouseButton === 0;
       if (isSculpting)
-        vec3.set(this.color_, 0.8, 0.0, 0.0);
+        vec3.set(this._color, 0.8, 0.0, 0.0);
       else
-        vec3.set(this.color_, 0.8, 0.2, 0.0);
-      this.shader_.draw(this, isSculpting, main.getSculpt().getSymmetry());
+        vec3.set(this._color, 0.8, 0.2, 0.0);
+      this._shader.draw(this, isSculpting, main.getSculpt().getSymmetry());
     },
     getCircleVertices: function (r, nb, full) {
       var nbVertices = nb || 50;

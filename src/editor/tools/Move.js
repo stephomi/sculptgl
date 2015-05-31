@@ -12,47 +12,47 @@ define([
 
   var Move = function (main) {
     SculptBase.call(this, main);
-    this.radius_ = 150;
-    this.intensity_ = 1.0;
-    this.topoCheck_ = true;
-    this.negative_ = false; // along normal
-    this.moveData_ = {
+    this._radius = 150;
+    this._intensity = 1.0;
+    this._topoCheck = true;
+    this._negative = false; // along normal
+    this._moveData = {
       center: [0.0, 0.0, 0.0],
       dir: [0.0, 0.0],
       vProxy: null
     };
-    this.moveDataSym_ = {
+    this._moveDataSym = {
       center: [0.0, 0.0, 0.0],
       dir: [0.0, 0.0],
       vProxy: null
     };
-    this.idAlpha_ = 0;
+    this._idAlpha = 0;
   };
 
   Move.prototype = {
     startSculpt: function () {
-      var main = this.main_;
+      var main = this._main;
       var picking = main.getPicking();
-      this.initMoveData(picking, this.moveData_);
+      this.initMoveData(picking, this._moveData);
 
       if (main.getSculpt().getSymmetry()) {
         var pickingSym = main.getPickingSymmetry();
-        pickingSym.intersectionMouseMesh(this.mesh_, main.mouseX_, main.mouseY_);
+        pickingSym.intersectionMouseMesh(this._mesh, main._mouseX, main._mouseY);
         pickingSym.setLocalRadius2(picking.getLocalRadius2());
 
         if (pickingSym.getMesh())
-          this.initMoveData(pickingSym, this.moveDataSym_);
+          this.initMoveData(pickingSym, this._moveDataSym);
       }
     },
     initMoveData: function (picking, moveData) {
-      if (this.topoCheck_)
+      if (this._topoCheck)
         picking.pickVerticesInSphereTopological(picking.getLocalRadius2());
       else
         picking.pickVerticesInSphere(picking.getLocalRadius2());
       vec3.copy(moveData.center, picking.getIntersectionPoint());
       var iVerts = picking.getPickedVertices();
       // undo-redo
-      this.states_.pushVertices(iVerts);
+      this._states.pushVertices(iVerts);
 
       var vAr = picking.getMesh().getVertices();
       var nbVerts = iVerts.length;
@@ -67,7 +67,7 @@ define([
     },
     copyVerticesProxy: function (picking, moveData) {
       var iVerts = picking.getPickedVertices();
-      var vAr = this.mesh_.getVertices();
+      var vAr = this._mesh.getVertices();
       var vProxy = moveData.vProxy;
       for (var i = 0, nbVerts = iVerts.length; i < nbVerts; ++i) {
         var ind = iVerts[i] * 3;
@@ -78,40 +78,40 @@ define([
       }
     },
     sculptStroke: function () {
-      var main = this.main_;
+      var main = this._main;
       var picking = main.getPicking();
       var pickingSym = main.getPickingSymmetry();
       var useSym = main.getSculpt().getSymmetry() && pickingSym.getMesh();
 
-      picking.updateAlpha(this.lockPosition_);
-      picking.setIdAlpha(this.idAlpha_);
+      picking.updateAlpha(this._lockPosition);
+      picking.setIdAlpha(this._idAlpha);
       if (useSym) {
         pickingSym.updateAlpha(false);
-        pickingSym.setIdAlpha(this.idAlpha_);
+        pickingSym.setIdAlpha(this._idAlpha);
       }
 
-      this.copyVerticesProxy(picking, this.moveData_);
+      this.copyVerticesProxy(picking, this._moveData);
       if (useSym)
-        this.copyVerticesProxy(pickingSym, this.moveDataSym_);
+        this.copyVerticesProxy(pickingSym, this._moveDataSym);
 
-      var mouseX = main.mouseX_;
-      var mouseY = main.mouseY_;
+      var mouseX = main._mouseX;
+      var mouseY = main._mouseY;
       this.updateMoveDir(picking, mouseX, mouseY);
-      this.move(picking.getPickedVertices(), picking.getIntersectionPoint(), picking.getLocalRadius2(), this.moveData_, picking);
+      this.move(picking.getPickedVertices(), picking.getIntersectionPoint(), picking.getLocalRadius2(), this._moveData, picking);
 
       if (useSym) {
         this.updateMoveDir(pickingSym, mouseX, mouseY, true);
-        this.move(pickingSym.getPickedVertices(), pickingSym.getIntersectionPoint(), pickingSym.getLocalRadius2(), this.moveDataSym_, pickingSym);
+        this.move(pickingSym.getPickedVertices(), pickingSym.getIntersectionPoint(), pickingSym.getLocalRadius2(), this._moveDataSym, pickingSym);
       }
-      this.mesh_.updateGeometry(this.mesh_.getFacesFromVertices(picking.getPickedVertices()), picking.getPickedVertices());
+      this._mesh.updateGeometry(this._mesh.getFacesFromVertices(picking.getPickedVertices()), picking.getPickedVertices());
       if (useSym)
-        this.mesh_.updateGeometry(this.mesh_.getFacesFromVertices(pickingSym.getPickedVertices()), pickingSym.getPickedVertices());
+        this._mesh.updateGeometry(this._mesh.getFacesFromVertices(pickingSym.getPickedVertices()), pickingSym.getPickedVertices());
       this.updateRender();
       main.getCanvas().style.cursor = 'default';
     },
     move: function (iVerts, center, radiusSquared, moveData, picking) {
-      var vAr = this.mesh_.getVertices();
-      var mAr = this.mesh_.getMaterials();
+      var vAr = this._mesh.getVertices();
+      var mAr = this._mesh.getMaterials();
       var radius = Math.sqrt(radiusSquared);
       var vProxy = moveData.vProxy;
       var cx = center[0];
@@ -140,7 +140,7 @@ define([
       }
     },
     updateMoveDir: function (picking, mouseX, mouseY, useSymmetry) {
-      var mesh = this.mesh_;
+      var mesh = this._mesh;
       var vNear = picking.unproject(mouseX, mouseY, 0.0);
       var vFar = picking.unproject(mouseX, mouseY, 0.1);
       var matInverse = mat4.create();
@@ -148,7 +148,7 @@ define([
       vec3.transformMat4(vNear, vNear, matInverse);
       vec3.transformMat4(vFar, vFar, matInverse);
 
-      var moveData = useSymmetry ? this.moveDataSym_ : this.moveData_;
+      var moveData = useSymmetry ? this._moveDataSym : this._moveData;
       if (useSymmetry) {
         var ptPlane = mesh.getSymmetryOrigin();
         var nPlane = mesh.getSymmetryNormal();
@@ -156,14 +156,14 @@ define([
         Geometry.mirrorPoint(vFar, ptPlane, nPlane);
       }
 
-      if (this.negative_) {
+      if (this._negative) {
         var len = vec3.dist(Geometry.vertexOnLine(moveData.center, vNear, vFar), moveData.center);
         vec3.normalize(moveData.dir, picking.computePickedNormal());
-        vec3.scale(moveData.dir, moveData.dir, mouseX < this.lastMouseX_ ? -len : len);
+        vec3.scale(moveData.dir, moveData.dir, mouseX < this._lastMouseX ? -len : len);
       } else {
         vec3.sub(moveData.dir, Geometry.vertexOnLine(moveData.center, vNear, vFar), moveData.center);
       }
-      vec3.scale(moveData.dir, moveData.dir, this.intensity_);
+      vec3.scale(moveData.dir, moveData.dir, this._intensity);
 
       var eyeDir = picking.getEyeDirection();
       vec3.sub(eyeDir, vFar, vNear);

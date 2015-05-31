@@ -14,23 +14,23 @@ define([
 
   var Rotate = function (main) {
     SculptBase.call(this, main);
-    this.lastNormalizedMouseXY_ = [0.0, 0.0];
-    this.matrixInv_ = mat4.create();
-    this.preTranslate_ = mat4.create();
-    this.postTranslate_ = mat4.create();
-    this.dir_ = [0.0, 0.0, 0.0];
-    this.negative_ = false;
-    this.isNegative_ = false;
-    this.refMX_ = 0.0;
-    this.refMY_ = 0.0;
-    this.appliedRot_ = mat4.create();
-    this.editRot_ = mat4.create();
+    this._lastNormalizedMouseXY = [0.0, 0.0];
+    this._matrixInv = mat4.create();
+    this._preTranslate = mat4.create();
+    this._postTranslate = mat4.create();
+    this._dir = [0.0, 0.0, 0.0];
+    this._negative = false;
+    this._isNegative = false;
+    this._refMX = 0.0;
+    this._refMY = 0.0;
+    this._appliedRot = mat4.create();
+    this._editRot = mat4.create();
   };
 
   Rotate.prototype = {
     end: SculptBase.prototype.endTransform,
     applyEditMatrix: function (iVerts) {
-      var mesh = this.mesh_;
+      var mesh = this._mesh;
       var em = mesh.getEditMatrix();
       var mAr = mesh.getMaterials();
       var vAr = mesh.getVertices();
@@ -56,26 +56,26 @@ define([
       var tmp = [0.0, 0.0, 0.0];
       var qu = [0.0, 0.0, 0.0, 1.0];
       return function () {
-        var main = this.main_;
+        var main = this._main;
         var camera = main.getCamera();
-        this.lastNormalizedMouseXY_ = Geometry.normalizedMouse(main.mouseX_, main.mouseY_, camera.width_, camera.height_);
+        this._lastNormalizedMouseXY = Geometry.normalizedMouse(main._mouseX, main._mouseY, camera._width, camera._height);
 
-        var matrix = this.mesh_.getMatrix();
-        mat4.invert(this.matrixInv_, matrix);
-        vec3.transformMat4(tmp, this.mesh_.getCenter(), matrix);
-        mat4.translate(this.preTranslate_, mat4.identity(this.preTranslate_), tmp);
-        mat4.translate(this.postTranslate_, mat4.identity(this.postTranslate_), vec3.negate(tmp, tmp));
+        var matrix = this._mesh.getMatrix();
+        mat4.invert(this._matrixInv, matrix);
+        vec3.transformMat4(tmp, this._mesh.getCenter(), matrix);
+        mat4.translate(this._preTranslate, mat4.identity(this._preTranslate), tmp);
+        mat4.translate(this._postTranslate, mat4.identity(this._postTranslate), vec3.negate(tmp, tmp));
 
-        var near = camera.unproject(camera.width_ * 0.5, camera.height_ * 0.5, 0.0);
-        var far = camera.unproject(camera.width_ * 0.5, camera.height_ * 0.5, 0.1);
-        quat.invert(qu, camera.quatRot_);
+        var near = camera.unproject(camera._width * 0.5, camera._height * 0.5, 0.0);
+        var far = camera.unproject(camera._width * 0.5, camera._height * 0.5, 0.1);
+        quat.invert(qu, camera._quatRot);
         vec3.transformQuat(near, near, qu);
         vec3.transformQuat(far, far, qu);
-        vec3.normalize(this.dir_, vec3.sub(this.dir_, far, near));
-        this.refMX_ = main.mouseX_;
-        this.refMY_ = main.mouseY_;
-        mat4.identity(this.appliedRot_);
-        this.isNegative_ = this.negative_;
+        vec3.normalize(this._dir, vec3.sub(this._dir, far, near));
+        this._refMX = main._mouseX;
+        this._refMY = main._mouseY;
+        mat4.identity(this._appliedRot);
+        this._isNegative = this._negative;
       };
     })(),
     /** Update sculpting operation */
@@ -83,42 +83,42 @@ define([
       var qu = [0.0, 0.0, 0.0, 1.0];
       var axis = [0.0, 0.0, 0.0];
       return function () {
-        var main = this.main_;
-        var mesh = this.mesh_;
+        var main = this._main;
+        var mesh = this._mesh;
         var camera = main.getCamera();
 
-        if (this.isNegative_ !== this.negative_)
-          mat4.copy(this.appliedRot_, this.editRot_);
+        if (this._isNegative !== this._negative)
+          mat4.copy(this._appliedRot, this._editRot);
 
-        if (this.negative_) {
-          var angle = (main.mouseX_ - this.refMX_ + main.mouseY_ - this.refMY_) / 100.0;
-          vec3.transformQuat(axis, this.dir_, camera.quatRot_);
-          mat4.fromQuat(this.editRot_, quat.setAxisAngle(qu, axis, angle));
+        if (this._negative) {
+          var angle = (main._mouseX - this._refMX + main._mouseY - this._refMY) / 100.0;
+          vec3.transformQuat(axis, this._dir, camera._quatRot);
+          mat4.fromQuat(this._editRot, quat.setAxisAngle(qu, axis, angle));
 
-          this.isNegative_ = true;
-          this.lastNormalizedMouseXY_ = Geometry.normalizedMouse(main.mouseX_, main.mouseY_, camera.width_, camera.height_);
+          this._isNegative = true;
+          this._lastNormalizedMouseXY = Geometry.normalizedMouse(main._mouseX, main._mouseY, camera._width, camera._height);
         } else {
-          var lastNormalized = this.lastNormalizedMouseXY_;
-          var normalizedMouseXY = Geometry.normalizedMouse(main.mouseX_, main.mouseY_, camera.width_, camera.height_);
+          var lastNormalized = this._lastNormalizedMouseXY;
+          var normalizedMouseXY = Geometry.normalizedMouse(main._mouseX, main._mouseY, camera._width, camera._height);
           var length = vec2.dist(lastNormalized, normalizedMouseXY);
           vec3.set(axis, lastNormalized[1] - normalizedMouseXY[1], normalizedMouseXY[0] - lastNormalized[0], 0.0);
           vec3.normalize(axis, axis);
 
-          vec3.transformQuat(axis, axis, quat.invert(qu, camera.quatRot_));
-          mat4.fromQuat(this.editRot_, quat.setAxisAngle(qu, axis, length * 2.0));
+          vec3.transformQuat(axis, axis, quat.invert(qu, camera._quatRot));
+          mat4.fromQuat(this._editRot, quat.setAxisAngle(qu, axis, length * 2.0));
 
-          this.refMX_ = main.mouseX_;
-          this.refMY_ = main.mouseY_;
-          this.isNegative_ = false;
+          this._refMX = main._mouseX;
+          this._refMY = main._mouseY;
+          this._isNegative = false;
         }
 
-        mat4.mul(this.editRot_, this.editRot_, this.appliedRot_);
+        mat4.mul(this._editRot, this._editRot, this._appliedRot);
 
         var mEdit = mesh.getEditMatrix();
-        mat4.mul(mEdit, this.preTranslate_, this.editRot_);
-        mat4.mul(mEdit, mEdit, this.postTranslate_);
+        mat4.mul(mEdit, this._preTranslate, this._editRot);
+        mat4.mul(mEdit, mEdit, this._postTranslate);
 
-        mat4.mul(mEdit, this.matrixInv_, mEdit);
+        mat4.mul(mEdit, this._matrixInv, mEdit);
         mat4.mul(mEdit, mEdit, mesh.getMatrix());
 
         main.render();

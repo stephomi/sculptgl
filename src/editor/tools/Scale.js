@@ -13,11 +13,11 @@ define([
 
   var Scale = function (main) {
     SculptBase.call(this, main);
-    this.matrixInv_ = mat4.create();
-    this.preTranslate_ = mat4.create();
-    this.postTranslate_ = mat4.create();
-    this.refMX_ = 0.0;
-    this.refMY_ = 0.0;
+    this._matrixInv = mat4.create();
+    this._preTranslate = mat4.create();
+    this._postTranslate = mat4.create();
+    this._refMX = 0.0;
+    this._refMY = 0.0;
   };
 
   Scale.prototype = {
@@ -26,31 +26,31 @@ define([
     startSculpt: (function () {
       var tmp = [0.0, 0.0, 0.0];
       return function () {
-        var matrix = this.mesh_.getMatrix();
-        mat4.invert(this.matrixInv_, matrix);
-        vec3.transformMat4(tmp, this.mesh_.getCenter(), matrix);
-        mat4.translate(this.preTranslate_, mat4.identity(this.preTranslate_), tmp);
-        mat4.translate(this.postTranslate_, mat4.identity(this.postTranslate_), vec3.negate(tmp, tmp));
+        var matrix = this._mesh.getMatrix();
+        mat4.invert(this._matrixInv, matrix);
+        vec3.transformMat4(tmp, this._mesh.getCenter(), matrix);
+        mat4.translate(this._preTranslate, mat4.identity(this._preTranslate), tmp);
+        mat4.translate(this._postTranslate, mat4.identity(this._postTranslate), vec3.negate(tmp, tmp));
 
-        var main = this.main_;
-        this.refMX_ = main.mouseX_;
-        this.refMY_ = main.mouseY_;
+        var main = this._main;
+        this._refMX = main._mouseX;
+        this._refMY = main._mouseY;
       };
     })(),
     update: (function () {
       var tmp = [0.0, 0.0, 0.0];
       return function () {
-        var main = this.main_;
-        tmp[0] = tmp[1] = tmp[2] = 1.0 + (main.mouseX_ - this.refMX_ + main.mouseY_ - this.refMY_) / 400;
-        var mEdit = this.mesh_.getEditMatrix();
+        var main = this._main;
+        tmp[0] = tmp[1] = tmp[2] = 1.0 + (main._mouseX - this._refMX + main._mouseY - this._refMY) / 400;
+        var mEdit = this._mesh.getEditMatrix();
         mat4.identity(mEdit);
         mat4.scale(mEdit, mEdit, tmp);
 
-        mat4.mul(mEdit, this.preTranslate_, mEdit);
-        mat4.mul(mEdit, mEdit, this.postTranslate_);
+        mat4.mul(mEdit, this._preTranslate, mEdit);
+        mat4.mul(mEdit, mEdit, this._postTranslate);
 
-        mat4.mul(mEdit, this.matrixInv_, mEdit);
-        mat4.mul(mEdit, mEdit, this.mesh_.getMatrix());
+        mat4.mul(mEdit, this._matrixInv, mEdit);
+        mat4.mul(mEdit, mEdit, this._mesh.getMatrix());
 
         main.render();
         main.getCanvas().style.cursor = 'default';

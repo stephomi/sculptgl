@@ -15,34 +15,34 @@ define([
 
   var Masking = function (main) {
     SculptBase.call(this, main);
-    this.radius_ = 50;
-    this.hardness_ = 0.25;
-    this.intensity_ = 1.0;
-    this.negative_ = true;
-    this.culling_ = false;
-    this.idAlpha_ = 0;
-    this.lockPosition_ = false;
+    this._radius = 50;
+    this._hardness = 0.25;
+    this._intensity = 1.0;
+    this._negative = true;
+    this._culling = false;
+    this._idAlpha = 0;
+    this._lockPosition = false;
 
-    this.thickness_ = 1.0;
+    this._thickness = 1.0;
   };
 
   Masking.prototype = {
     pushState: function () {
       // too lazy to add a pushStateMaterial
-      this.states_.pushStateColorAndMaterial(this.mesh_);
+      this._states.pushStateColorAndMaterial(this._mesh);
     },
     updateMeshBuffers: function () {
-      if (this.mesh_.getDynamicTopology)
-        this.mesh_.updateBuffers();
+      if (this._mesh.getDynamicTopology)
+        this._mesh.updateBuffers();
       else
-        this.mesh_.updateMaterialBuffer();
+        this._mesh.updateMaterialBuffer();
     },
     stroke: function (picking) {
       Paint.prototype.stroke.call(this, picking);
     },
     /** Paint color vertices */
     paint: function (iVerts, center, radiusSquared, intensity, hardness, picking) {
-      var mesh = this.mesh_;
+      var mesh = this._mesh;
       var vAr = mesh.getVertices();
       var mAr = mesh.getMaterials();
       var radius = Math.sqrt(radiusSquared);
@@ -50,7 +50,7 @@ define([
       var cy = center[1];
       var cz = center[2];
       var softness = 2 * (1 - hardness);
-      var maskIntensity = this.negative_ ? -intensity : intensity;
+      var maskIntensity = this._negative ? -intensity : intensity;
       for (var i = 0, l = iVerts.length; i < l; ++i) {
         var ind = iVerts[i] * 3;
         var vx = vAr[ind];
@@ -66,19 +66,19 @@ define([
       }
     },
     updateAndRenderMask: function () {
-      this.mesh_.updateDuplicateColorsAndMaterials();
-      this.mesh_.updateFlatShading();
+      this._mesh.updateDuplicateColorsAndMaterials();
+      this._mesh.updateFlatShading();
       this.updateRender();
     },
     blur: function () {
-      var mesh = this.mesh_;
+      var mesh = this._mesh;
       var iVerts = this.getMaskedVertices();
       if (iVerts.length === 0)
         return;
       iVerts = mesh.expandsVertices(iVerts, 1);
 
       this.pushState();
-      this.states_.pushVertices(iVerts);
+      this._states.pushVertices(iVerts);
 
       var mAr = mesh.getMaterials();
       var nbVerts = iVerts.length;
@@ -89,13 +89,13 @@ define([
       this.updateAndRenderMask();
     },
     sharpen: function () {
-      var mesh = this.mesh_;
+      var mesh = this._mesh;
       var iVerts = this.getMaskedVertices();
       if (iVerts.length === 0)
         return;
 
       this.pushState();
-      this.states_.pushVertices(iVerts);
+      this._states.pushVertices(iVerts);
 
       var mAr = mesh.getMaterials();
       var nbVerts = iVerts.length;
@@ -107,13 +107,13 @@ define([
       this.updateAndRenderMask();
     },
     clear: function () {
-      var mesh = this.mesh_;
+      var mesh = this._mesh;
       var iVerts = this.getMaskedVertices();
       if (iVerts.length === 0)
         return;
 
       this.pushState();
-      this.states_.pushVertices(iVerts);
+      this._states.pushVertices(iVerts);
 
       var mAr = mesh.getMaterials();
       for (var i = 0, nb = iVerts.length; i < nb; ++i)
@@ -122,9 +122,9 @@ define([
       this.updateAndRenderMask();
     },
     invert: function (isState, meshState) {
-      var mesh = meshState || this.mesh_;
+      var mesh = meshState || this._mesh;
       if (!isState)
-        this.states_.pushStateCustom(this.invert.bind(this, true, mesh));
+        this._states.pushStateCustom(this.invert.bind(this, true, mesh));
 
       var mAr = mesh.getMaterials();
       for (var i = 0, nb = mesh.getNbVertices(); i < nb; ++i)
@@ -133,7 +133,7 @@ define([
       this.updateAndRenderMask();
     },
     remapAndMirrorIndices: function (fAr, nbFaces, iVerts) {
-      var nbVertices = this.mesh_.getNbVertices();
+      var nbVertices = this._mesh.getNbVertices();
       var iTag = new Uint32Array(Utils.getMemory(nbVertices * 4), 0, nbVertices);
       var i = 0;
       var j = 0;
@@ -169,12 +169,12 @@ define([
       }
     },
     extractFaces: function (iFaces, iVerts, maskClamp) {
-      var mesh = this.mesh_;
+      var mesh = this._mesh;
       var fAr = mesh.getFaces();
       var mAr = mesh.getMaterials();
       var eAr = mesh.getVerticesOnEdge();
 
-      var noThick = this.thickness_ === 0;
+      var noThick = this._thickness === 0;
 
       var nbFaces = iFaces.length;
       var nbNewFaces = new Int32Array(Utils.getMemory(nbFaces * 4 * 4 * 3), 0, nbFaces * 4 * 3);
@@ -246,12 +246,12 @@ define([
 
       var fArNew = new Int32Array(nbNewFaces.subarray(0, offsetFLink * 4));
       this.remapAndMirrorIndices(fArNew, nbFaces, iVerts);
-      if (this.thickness_ > 0)
+      if (this._thickness > 0)
         this.invertFaces(fArNew);
       return fArNew;
     },
     extractVertices: function (iVerts) {
-      var mesh = this.mesh_;
+      var mesh = this._mesh;
 
       var vAr = mesh.getVertices();
       var nAr = mesh.getNormals();
@@ -262,7 +262,7 @@ define([
       var vTemp = [0.0, 0.0, 0.0];
       var nTemp = [0.0, 0.0, 0.0];
       var vOffset = nbVerts * 3;
-      var thick = this.thickness_;
+      var thick = this._thickness;
       var eps = 0.01;
       if (thick < 0) eps = -eps;
       for (var i = 0; i < nbVerts; ++i) {
@@ -293,7 +293,7 @@ define([
     },
     smoothBorder: function (mesh, iFaces) {
       var smo = new Smooth();
-      smo.mesh_ = mesh;
+      smo._mesh = mesh;
       var startBridge = iFaces.length * 2;
       var fBridge = new Uint32Array(mesh.getNbFaces() - startBridge);
       for (var i = 0, nbBridge = fBridge.length; i < nbBridge; ++i)
@@ -304,7 +304,7 @@ define([
       smo.smooth(vBridge, 1.0);
     },
     extract: function () {
-      var mesh = this.mesh_;
+      var mesh = this._mesh;
       var maskClamp = 0.5;
 
       var iVerts = this.filterMaskedVertices(-Infinity, maskClamp);
@@ -325,7 +325,7 @@ define([
       newMesh.initColorsAndMaterials();
       newMesh.allocateArrays();
       newMesh.initTopology();
-      if (this.thickness_ !== 0.0)
+      if (this._thickness !== 0.0)
         this.smoothBorder(newMesh, iFaces);
       newMesh.updateGeometry();
       newMesh.updateDuplicateColorsAndMaterials();
@@ -333,7 +333,7 @@ define([
       newMesh.copyRenderConfig(mesh);
       newMesh.initRender();
 
-      var main = this.main_;
+      var main = this._main;
       main.addNewMesh(newMesh);
       main.setMesh(mesh);
     }

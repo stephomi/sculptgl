@@ -11,10 +11,10 @@ define([
   'use strict';
 
   var States = function (main) {
-    this.main_ = main; // main
-    this.undos_ = []; // undo actions
-    this.redos_ = []; // redo actions
-    this.curUndoIndex_ = -1; // current index in undo
+    this._main = main; // main
+    this._undos = []; // undo actions
+    this._redos = []; // redo actions
+    this._curUndoIndex = -1; // current index in undo
   };
 
   States.STACK_LENGTH = 15;
@@ -26,38 +26,38 @@ define([
       this.pushState(st);
     },
     pushStateAddRemove: function (addMesh, remMesh, squash) {
-      var st = new StAddRemove(this.main_, addMesh, remMesh);
+      var st = new StAddRemove(this._main, addMesh, remMesh);
       st.squash = squash;
       this.pushState(st);
     },
     pushStateRemove: function (remMesh) {
-      this.pushState(new StAddRemove(this.main_, [], remMesh));
+      this.pushState(new StAddRemove(this._main, [], remMesh));
     },
     pushStateAdd: function (addMesh) {
-      this.pushState(new StAddRemove(this.main_, addMesh, []));
+      this.pushState(new StAddRemove(this._main, addMesh, []));
     },
     pushStateColorAndMaterial: function (mesh) {
       if (mesh.getDynamicTopology)
-        this.pushState(new StDynamic(this.main_, mesh));
+        this.pushState(new StDynamic(this._main, mesh));
       else
-        this.pushState(new StColorAndMaterial(this.main_, mesh));
+        this.pushState(new StColorAndMaterial(this._main, mesh));
     },
     pushStateGeometry: function (mesh) {
       if (mesh.getDynamicTopology)
-        this.pushState(new StDynamic(this.main_, mesh));
+        this.pushState(new StDynamic(this._main, mesh));
       else
-        this.pushState(new StGeometry(this.main_, mesh));
+        this.pushState(new StGeometry(this._main, mesh));
     },
     pushStateMultiresolution: function (multimesh, type) {
-      this.pushState(new StMultiresolution(this.main_, multimesh, type));
+      this.pushState(new StMultiresolution(this._main, multimesh, type));
     },
     setNewMaxStack: function (maxStack) {
       States.STACK_LENGTH = maxStack;
-      var undos = this.undos_;
-      var redos = this.redos_;
-      while (this.curUndoIndex_ >= maxStack) {
+      var undos = this._undos;
+      var redos = this._redos;
+      while (this._curUndoIndex >= maxStack) {
         undos.shift();
-        --this.curUndoIndex_;
+        --this._curUndoIndex;
       }
       while (undos.length > maxStack) {
         undos.pop();
@@ -67,20 +67,20 @@ define([
     /** Start push state */
     pushState: function (state) {
       ++Utils.STATE_FLAG;
-      var undos = this.undos_;
-      if (this.curUndoIndex_ === -1) undos.length = 0;
+      var undos = this._undos;
+      if (this._curUndoIndex === -1) undos.length = 0;
       else if (undos.length >= States.STACK_LENGTH) {
         undos.shift();
-        --this.curUndoIndex_;
+        --this._curUndoIndex;
       }
-      this.redos_.length = 0;
-      ++this.curUndoIndex_;
+      this._redos.length = 0;
+      ++this._curUndoIndex;
       if (undos.length > 0)
-        undos.length = this.curUndoIndex_;
+        undos.length = this._curUndoIndex;
       undos.push(state);
     },
     getCurrentState: function () {
-      return this.undos_[this.curUndoIndex_];
+      return this._undos[this._curUndoIndex];
     },
     /** Push verts */
     pushVertices: function (iVerts) {
@@ -94,36 +94,36 @@ define([
     },
     /** Undo (also push the redo) */
     undo: function () {
-      if (!this.undos_.length || this.curUndoIndex_ < 0)
+      if (!this._undos.length || this._curUndoIndex < 0)
         return;
 
       var state = this.getCurrentState();
       var redoState = state.createRedo();
       redoState.squash = state.squash;
-      this.redos_.push(redoState);
+      this._redos.push(redoState);
       state.undo();
 
-      this.curUndoIndex_--;
+      this._curUndoIndex--;
       if (state.squash === true)
         this.undo();
     },
     /** Redo */
     redo: function () {
-      if (!this.redos_.length)
+      if (!this._redos.length)
         return;
 
-      var state = this.redos_[this.redos_.length - 1];
+      var state = this._redos[this._redos.length - 1];
       state.redo();
-      this.curUndoIndex_++;
-      this.redos_.pop();
+      this._curUndoIndex++;
+      this._redos.pop();
       if (state.squash === true)
         this.redo();
     },
     /** Reset */
     reset: function () {
-      this.undos_.length = 0;
-      this.redos_.length = 0;
-      this.curUndoIndex_ = -1;
+      this._undos.length = 0;
+      this._redos.length = 0;
+      this._curUndoIndex = -1;
     }
   };
 

@@ -52,7 +52,7 @@ define([
   ShaderBackground.updateUniforms = function (bg) {
     var gl = bg.getGL();
     gl.activeTexture(gl.TEXTURE0);
-    gl.bindTexture(gl.TEXTURE_2D, bg.backgroundLoc_);
+    gl.bindTexture(gl.TEXTURE_2D, bg._backgroundLoc);
     gl.uniform1i(this.uniforms.uTexture0, 0);
   };
 

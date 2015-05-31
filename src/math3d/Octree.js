@@ -6,54 +6,54 @@ define([
   'use strict';
 
   var Octree = function (mesh) {
-    this.mesh_ = mesh; // the mesh
-    this.root_ = null; // root octree cell
+    this._mesh = mesh; // the mesh
+    this._root = null; // root octree cell
 
-    this.facePosInLeaf_ = null; // position index in the leaf (Uint32Array)
-    this.faceLeaf_ = []; // octree leaf
-    this.leavesUpdate_ = []; // leaves of the octree to check
+    this._facePosInLeaf = null; // position index in the leaf (Uint32Array)
+    this._faceLeaf = []; // octree leaf
+    this._leavesUpdate = []; // leaves of the octree to check
   };
 
   Octree.prototype = {
     getFacePosInLeaf: function () {
-      return this.facePosInLeaf_;
+      return this._facePosInLeaf;
     },
     getFaceLeaf: function () {
-      return this.faceLeaf_;
+      return this._faceLeaf;
     },
     getLeavesUpdate: function () {
-      return this.leavesUpdate_;
+      return this._leavesUpdate;
     },
     getBound: function () {
-      return this.root_.aabbSplit_;
+      return this._root._aabbSplit;
     },
     allocateArrays: function () {
-      var nbFaces = this.mesh_.getNbFaces();
-      this.facePosInLeaf_ = new Uint32Array(nbFaces);
-      var faceLeaf = this.faceLeaf_;
+      var nbFaces = this._mesh.getNbFaces();
+      this._facePosInLeaf = new Uint32Array(nbFaces);
+      var faceLeaf = this._faceLeaf;
       faceLeaf.length = nbFaces;
       for (var i = 0; i < nbFaces; ++i)
         faceLeaf[i] = null;
     },
     /** ONLY FOR DYNAMIC MESH */
     reAllocateArrays: function (nbAddElements) {
-      var mesh = this.mesh_;
-      var nbDyna = this.facePosInLeaf_.length;
+      var mesh = this._mesh;
+      var nbDyna = this._facePosInLeaf.length;
       var nbTriangles = mesh.getNbTriangles();
       var len = nbTriangles + nbAddElements;
       if (nbDyna < len || nbDyna > len * 4) {
-        this.facePosInLeaf_ = mesh.resizeArray(this.facePosInLeaf_, len);
+        this._facePosInLeaf = mesh.resizeArray(this._facePosInLeaf, len);
       }
     },
     /** Return faces intersected by a ray */
     intersectRay: function (vNear, eyeDir, hint) {
       var collectFaces = new Uint32Array(Utils.getMemory(hint * 4), 0, hint);
-      return this.root_.collectIntersectRay(vNear, eyeDir, collectFaces);
+      return this._root.collectIntersectRay(vNear, eyeDir, collectFaces);
     },
     /** Return faces inside a sphere */
     intersectSphere: function (vert, radiusSquared, leavesHit, hint) {
       var collectFaces = new Uint32Array(Utils.getMemory(hint * 4), 0, hint);
-      return this.root_.collectIntersectSphere(vert, radiusSquared, leavesHit, collectFaces);
+      return this._root.collectIntersectSphere(vert, radiusSquared, leavesHit, collectFaces);
     },
     /**
      * Update Octree
@@ -69,7 +69,7 @@ define([
     },
     /** Compute Aabb */
     computeAabb: function () {
-      var mesh = this.mesh_;
+      var mesh = this._mesh;
       var nbVertices = mesh.getNbVertices();
       var vAr = mesh.getVertices();
       var xmin = Infinity;
@@ -94,7 +94,7 @@ define([
     },
     /** Compute the mesh octree */
     computeOctree: function (abRoot, factor) {
-      var mesh = this.mesh_;
+      var mesh = this._mesh;
       if (abRoot === undefined)
         abRoot = this.computeAabb();
       var xmin = abRoot[0];
@@ -138,16 +138,16 @@ define([
       facesAll.length = nbFaces;
       for (var i = 0; i < nbFaces; ++i)
         facesAll[i] = i;
-      this.root_ = new OctreeCell();
-      this.root_.setAabbSplit(xmin, ymin, zmin, xmax, ymax, zmax);
-      this.root_.build(mesh, facesAll);
+      this._root = new OctreeCell();
+      this._root.setAabbSplit(xmin, ymin, zmin, xmax, ymax, zmax);
+      this._root.build(mesh, facesAll);
     },
     updateOctreeRemove: function (iFaces) {
-      var mesh = this.mesh_;
+      var mesh = this._mesh;
       var faceCenters = mesh.getFaceCenters();
       var fboxes = mesh.getFaceBoxes();
-      var facePosInLeaf = this.facePosInLeaf_;
-      var faceLeaf = this.faceLeaf_;
+      var facePosInLeaf = this._facePosInLeaf;
+      var faceLeaf = this._faceLeaf;
       var nbFaces = iFaces.length;
       var acc = 0;
       var facesToMove = new Uint32Array(Utils.getMemory(4 * nbFaces), 0, nbFaces);
@@ -157,7 +157,7 @@ define([
         var idb = idFace * 6;
         var idCen = idFace * 3;
         var leaf = faceLeaf[idFace];
-        var ab = leaf.aabbSplit_;
+        var ab = leaf._aabbSplit;
 
         var vx = faceCenters[idCen];
         var vy = faceCenters[idCen + 1];
@@ -166,7 +166,7 @@ define([
         if (vx <= ab[0] || vy <= ab[1] || vz <= ab[2] || vx > ab[3] || vy > ab[4] || vz > ab[5]) {
           // a face center has moved from its cell
           facesToMove[acc++] = iFaces[i];
-          var facesInLeaf = leaf.iFaces_;
+          var facesInLeaf = leaf._iFaces;
           if (facesInLeaf.length > 0) { // remove faces from octree cell
             var iFaceLast = facesInLeaf[facesInLeaf.length - 1];
             var iPos = facePosInLeaf[idFace];
@@ -181,15 +181,15 @@ define([
       return new Uint32Array(facesToMove.subarray(0, acc));
     },
     updateOctreeAdd: function (facesToMove) {
-      var mesh = this.mesh_;
+      var mesh = this._mesh;
       var fc = mesh.getFaceCenters();
       var fb = mesh.getFaceBoxes();
-      var facePosInLeaf = this.facePosInLeaf_;
-      var faceLeaf = this.faceLeaf_;
+      var facePosInLeaf = this._facePosInLeaf;
+      var faceLeaf = this._faceLeaf;
       var nbFacesToMove = facesToMove.length;
 
-      var root = this.root_;
-      var rootLoose = root.aabbLoose_;
+      var root = this._root;
+      var rootLoose = root._aabbLoose;
       var xmin = rootLoose[0];
       var ymin = rootLoose[1];
       var zmin = rootLoose[2];
@@ -209,17 +209,17 @@ define([
           // a face is outside the root node
           // we reconstruct the whole octree, slow... but rare
           this.computeOctree(undefined, 0.3);
-          this.leavesUpdate_.length = 0;
+          this._leavesUpdate.length = 0;
           break;
         } else {
           var idc = idFace * 3;
           var leaf = faceLeaf[idFace];
           var newleaf = root.addFace(idFace, ibux, ibuy, ibuz, iblx, ibly, iblz, fc[idc], fc[idc + 1], fc[idc + 2]);
           if (newleaf) {
-            facePosInLeaf[idFace] = newleaf.iFaces_.length - 1;
+            facePosInLeaf[idFace] = newleaf._iFaces.length - 1;
             faceLeaf[idFace] = newleaf;
           } else { // failed to insert face in octree, re-insert it back
-            var facesInLeaf = leaf.iFaces_;
+            var facesInLeaf = leaf._iFaces;
             facePosInLeaf[idFace] = facesInLeaf.length;
             facesInLeaf.push(facesToMove[i]);
           }
@@ -228,8 +228,8 @@ define([
     },
     /** End of stroke, update octree (cut empty leaves or go deeper if needed) */
     checkLeavesUpdate: function () {
-      Utils.tidy(this.leavesUpdate_);
-      var leavesUpdate = this.leavesUpdate_;
+      Utils.tidy(this._leavesUpdate);
+      var leavesUpdate = this._leavesUpdate;
       var nbLeaves = leavesUpdate.length;
       var cutLeaves = [];
       var maxFaces = OctreeCell.MAX_FACES;
@@ -238,12 +238,12 @@ define([
         var leaf = leavesUpdate[i];
         if (!leaf)
           break;
-        if (!leaf.iFaces_.length)
+        if (!leaf._iFaces.length)
           leaf.checkEmptiness(cutLeaves);
-        else if (leaf.iFaces_.length > maxFaces && leaf.depth_ < maxDepth)
-          leaf.build(this.mesh_, leaf.iFaces_);
+        else if (leaf._iFaces.length > maxFaces && leaf._depth < maxDepth)
+          leaf.build(this._mesh, leaf._iFaces);
       }
-      this.leavesUpdate_.length = 0;
+      this._leavesUpdate.length = 0;
     }
   };
 

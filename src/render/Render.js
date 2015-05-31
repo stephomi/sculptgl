@@ -8,90 +8,90 @@ define([
   'use strict';
 
   var Render = function (gl, mesh) {
-    this.mesh_ = mesh;
-    this.gl_ = gl;
+    this._mesh = mesh;
+    this._gl = gl;
 
-    this.shader_ = new Shader(gl);
-    this.shaderWireframe_ = new Shader(gl);
+    this._shader = new Shader(gl);
+    this._shaderWireframe = new Shader(gl);
 
     var opts = getUrlOptions();
-    this.flatShading_ = opts.flatshading;
-    this.showWireframe_ = opts.wireframe;
-    this.matcap_ = Math.min(opts.matcap, ShaderMatcap.matcaps.length - 1); // matcap id
-    this.curvature_ = Math.min(opts.curvature, 5.0);
-    this.texture0_ = null;
+    this._flatShading = opts.flatshading;
+    this._showWireframe = opts.wireframe;
+    this._matcap = Math.min(opts.matcap, ShaderMatcap.matcaps.length - 1); // matcap id
+    this._curvature = Math.min(opts.curvature, 5.0);
+    this._texture0 = null;
 
-    this.vertexBuffer_ = new Buffer(gl, gl.ARRAY_BUFFER, gl.DYNAMIC_DRAW);
-    this.normalBuffer_ = new Buffer(gl, gl.ARRAY_BUFFER, gl.DYNAMIC_DRAW);
-    this.colorBuffer_ = new Buffer(gl, gl.ARRAY_BUFFER, gl.DYNAMIC_DRAW);
-    this.materialBuffer_ = new Buffer(gl, gl.ARRAY_BUFFER, gl.DYNAMIC_DRAW);
-    this.texCoordBuffer_ = new Buffer(gl, gl.ARRAY_BUFFER, gl.STATIC_DRAW);
-    this.indexBuffer_ = new Buffer(gl, gl.ELEMENT_ARRAY_BUFFER, gl.STATIC_DRAW);
-    this.wireframeBuffer_ = new Buffer(gl, gl.ELEMENT_ARRAY_BUFFER, gl.STATIC_DRAW);
+    this._vertexBuffer = new Buffer(gl, gl.ARRAY_BUFFER, gl.DYNAMIC_DRAW);
+    this._normalBuffer = new Buffer(gl, gl.ARRAY_BUFFER, gl.DYNAMIC_DRAW);
+    this._colorBuffer = new Buffer(gl, gl.ARRAY_BUFFER, gl.DYNAMIC_DRAW);
+    this._materialBuffer = new Buffer(gl, gl.ARRAY_BUFFER, gl.DYNAMIC_DRAW);
+    this._texCoordBuffer = new Buffer(gl, gl.ARRAY_BUFFER, gl.STATIC_DRAW);
+    this._indexBuffer = new Buffer(gl, gl.ELEMENT_ARRAY_BUFFER, gl.STATIC_DRAW);
+    this._wireframeBuffer = new Buffer(gl, gl.ELEMENT_ARRAY_BUFFER, gl.STATIC_DRAW);
 
     // these material values overrides the vertex attributes
     // it's here for debug or preview
-    this.albedo_ = new Float32Array([-1.0, -1.0, -1.0]);
-    this.roughness_ = -0.18;
-    this.metallic_ = -0.78;
-    this.alpha_ = 1.0;
+    this._albedo = new Float32Array([-1.0, -1.0, -1.0]);
+    this._roughness = -0.18;
+    this._metallic = -0.78;
+    this._alpha = 1.0;
   };
 
   Render.ONLY_DRAW_ARRAYS = false;
 
   Render.prototype = {
     getGL: function () {
-      return this.gl_;
+      return this._gl;
     },
     getMesh: function () {
-      return this.mesh_;
+      return this._mesh;
     },
     getAlbedo: function () {
-      return this.albedo_;
+      return this._albedo;
     },
     getRoughness: function () {
-      return this.roughness_;
+      return this._roughness;
     },
     getMetallic: function () {
-      return this.metallic_;
+      return this._metallic;
     },
     setAlbedo: function (val) {
-      this.albedo_[0] = val[0];
-      this.albedo_[1] = val[1];
-      this.albedo_[2] = val[2];
+      this._albedo[0] = val[0];
+      this._albedo[1] = val[1];
+      this._albedo[2] = val[2];
     },
     setRoughness: function (val) {
-      this.roughness_ = val;
+      this._roughness = val;
     },
     setMetallic: function (val) {
-      this.metallic_ = val;
+      this._metallic = val;
     },
     getShader: function () {
-      return this.shader_;
+      return this._shader;
     },
     getShaderType: function () {
       return this.getShader().getType();
     },
     getVertexBuffer: function () {
-      return this.vertexBuffer_;
+      return this._vertexBuffer;
     },
     getNormalBuffer: function () {
-      return this.normalBuffer_;
+      return this._normalBuffer;
     },
     getColorBuffer: function () {
-      return this.colorBuffer_;
+      return this._colorBuffer;
     },
     getMaterialBuffer: function () {
-      return this.materialBuffer_;
+      return this._materialBuffer;
     },
     getTexCoordBuffer: function () {
-      return this.texCoordBuffer_;
+      return this._texCoordBuffer;
     },
     getIndexBuffer: function () {
-      return this.indexBuffer_;
+      return this._indexBuffer;
     },
     getWireframeBuffer: function () {
-      return this.wireframeBuffer_;
+      return this._wireframeBuffer;
     },
     /** Return true if the render is using drawArrays instead of drawElements */
     isUsingDrawArrays: function () {
@@ -99,59 +99,59 @@ define([
     },
     /** Return true if the shader is using UVs */
     isUsingTexCoords: function () {
-      return this.shader_.isUsingTexCoords();
+      return this._shader.isUsingTexCoords();
     },
     setOpacity: function (alpha) {
-      this.alpha_ = alpha;
+      this._alpha = alpha;
     },
     getOpacity: function () {
-      return this.alpha_;
+      return this._alpha;
     },
     setCurvature: function (cur) {
-      this.curvature_ = cur;
+      this._curvature = cur;
     },
     getCurvature: function () {
-      return this.curvature_;
+      return this._curvature;
     },
     isTransparent: function () {
-      return this.alpha_ < 0.99;
+      return this._alpha < 0.99;
     },
     getFlatShading: function () {
-      return this.flatShading_;
+      return this._flatShading;
     },
     getShowWireframe: function () {
-      return this.showWireframe_;
+      return this._showWireframe;
     },
     getTexture0: function () {
-      return this.texture0_;
+      return this._texture0;
     },
     setTexture0: function (tex) {
-      this.texture0_ = tex;
+      this._texture0 = tex;
     },
     getMatcap: function () {
-      return this.matcap_;
+      return this._matcap;
     },
     setMatcap: function (idMat) {
-      this.matcap_ = idMat;
+      this._matcap = idMat;
     },
     // this.setTexture0(ShaderMatcap.textures[idMat]);
     setShowWireframe: function (showWireframe) {
-      this.showWireframe_ = Render.ONLY_DRAW_ARRAYS ? false : showWireframe;
+      this._showWireframe = Render.ONLY_DRAW_ARRAYS ? false : showWireframe;
       this.updateWireframeBuffer();
     },
     setFlatShading: function (flatShading) {
-      this.flatShading_ = flatShading;
+      this._flatShading = flatShading;
       this.updateFlatShading();
       this.updateBuffers();
     },
     setShader: function (shaderType) {
-      var hasUV = this.mesh_.hasUV();
+      var hasUV = this._mesh.hasUV();
       if (shaderType === Shader.mode.UV && !hasUV)
         return;
-      this.shader_.setType(shaderType);
+      this._shader.setType(shaderType);
       if (hasUV) {
-        this.mesh_.updateDuplicateGeometry();
-        this.mesh_.updateDuplicateColorsAndMaterials();
+        this._mesh.updateDuplicateGeometry();
+        this._mesh.updateDuplicateColorsAndMaterials();
         if (this.isUsingTexCoords())
           this.updateFlatShading();
       }
@@ -159,46 +159,46 @@ define([
     },
     updateFlatShading: function (iFaces) {
       if (this.isUsingDrawArrays())
-        this.mesh_.updateDrawArrays(this.getFlatShading(), iFaces);
+        this._mesh.updateDrawArrays(this.getFlatShading(), iFaces);
     },
     initRender: function () {
-      this.shaderWireframe_.setType(Shader.mode.WIREFRAME);
-      if (this.getShaderType() === Shader.mode.MATCAP && !this.texture0_)
-        this.setMatcap(this.matcap_);
+      this._shaderWireframe.setType(Shader.mode.WIREFRAME);
+      if (this.getShaderType() === Shader.mode.MATCAP && !this._texture0)
+        this.setMatcap(this._matcap);
       this.setShader(this.getShaderType());
       this.setShowWireframe(this.getShowWireframe());
     },
     render: function (main) {
-      this.shader_.draw(this, main);
+      this._shader.draw(this, main);
       if (this.getShowWireframe())
-        this.shaderWireframe_.draw(this, main);
+        this._shaderWireframe.draw(this, main);
     },
     renderFlatColor: function (main) {
       Shader[Shader.mode.FLAT].getOrCreate(this.getGL()).draw(this, main);
     },
     updateVertexBuffer: function () {
-      this.getVertexBuffer().update(this.mesh_.getRenderVertices());
+      this.getVertexBuffer().update(this._mesh.getRenderVertices());
     },
     updateNormalBuffer: function () {
-      this.getNormalBuffer().update(this.mesh_.getRenderNormals());
+      this.getNormalBuffer().update(this._mesh.getRenderNormals());
     },
     updateColorBuffer: function () {
-      this.getColorBuffer().update(this.mesh_.getRenderColors());
+      this.getColorBuffer().update(this._mesh.getRenderColors());
     },
     updateMaterialBuffer: function () {
-      this.getMaterialBuffer().update(this.mesh_.getRenderMaterials());
+      this.getMaterialBuffer().update(this._mesh.getRenderMaterials());
     },
     updateTexCoordBuffer: function () {
       if (this.isUsingTexCoords())
-        this.getTexCoordBuffer().update(this.mesh_.getRenderTexCoords());
+        this.getTexCoordBuffer().update(this._mesh.getRenderTexCoords());
     },
     updateIndexBuffer: function () {
       if (!this.isUsingDrawArrays())
-        this.getIndexBuffer().update(this.mesh_.getRenderTriangles());
+        this.getIndexBuffer().update(this._mesh.getRenderTriangles());
     },
     updateWireframeBuffer: function () {
       if (this.getShowWireframe())
-        this.getWireframeBuffer().update(this.mesh_.getWireframe());
+        this.getWireframeBuffer().update(this._mesh.getWireframe());
     },
     updateGeometryBuffers: function () {
       this.updateVertexBuffer();

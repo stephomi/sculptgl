@@ -5,102 +5,102 @@ define([
   'use strict';
 
   var IndexData = function (mesh) {
-    this.mesh_ = mesh; // the mesh
+    this._mesh = mesh; // the mesh
 
-    this.facesABCD_ = null; // faces (Int32Array)
+    this._facesABCD = null; // faces (Int32Array)
 
-    this.faceEdges_ = null; // faces to edges (Int32Array)
-    this.faceNormalsXYZ_ = null; // faces normals (Float32Array)
-    this.faceBoxes_ = null; // faces bbox (Float32Array)
-    this.faceCentersXYZ_ = null; // faces center (Float32Array)
+    this._faceEdges = null; // faces to edges (Int32Array)
+    this._faceNormalsXYZ = null; // faces normals (Float32Array)
+    this._faceBoxes = null; // faces bbox (Float32Array)
+    this._faceCentersXYZ = null; // faces center (Float32Array)
 
-    this.facesToTriangles_ = null; // faces to triangles (Uint32Array)
-    this.UVtrianglesABC_ = null; // triangles tex coords (Uint32Array)
-    this.trianglesABC_ = null; // triangles (Uint32Array)
+    this._facesToTriangles = null; // faces to triangles (Uint32Array)
+    this._UVtrianglesABC = null; // triangles tex coords (Uint32Array)
+    this._trianglesABC = null; // triangles (Uint32Array)
 
-    this.facesTagFlags_ = null; // triangles tag (<= Utils.TAG_FLAG) (Int32Array)
+    this._facesTagFlags = null; // triangles tag (<= Utils.TAG_FLAG) (Int32Array)
   };
 
   IndexData.prototype = {
     setFaces: function (fAr) {
-      this.facesABCD_ = fAr;
+      this._facesABCD = fAr;
     },
     getFaces: function () {
-      return this.facesABCD_;
+      return this._facesABCD;
     },
     hasOnlyTriangles: function () {
-      return this.mesh_.getNbTriangles() === this.mesh_.getNbFaces();
+      return this._mesh.getNbTriangles() === this._mesh.getNbFaces();
     },
     hasOnlyQuads: function () {
-      return this.mesh_.getNbTriangles() === this.mesh_.getNbFaces() * 2;
+      return this._mesh.getNbTriangles() === this._mesh.getNbFaces() * 2;
     },
     getNbQuads: function () {
-      return this.mesh_.getNbTriangles() - this.mesh_.getNbFaces();
+      return this._mesh.getNbTriangles() - this._mesh.getNbFaces();
     },
     getFaceNormals: function () {
-      return this.faceNormalsXYZ_;
+      return this._faceNormalsXYZ;
     },
     getFaceBoxes: function () {
-      return this.faceBoxes_;
+      return this._faceBoxes;
     },
     getFaceCenters: function () {
-      return this.faceCentersXYZ_;
+      return this._faceCentersXYZ;
     },
     getFacesTagFlags: function () {
-      return this.facesTagFlags_;
+      return this._facesTagFlags;
     },
     getFaceEdges: function () {
-      return this.faceEdges_;
+      return this._faceEdges;
     },
     getFacesToTriangles: function () {
-      return this.facesToTriangles_;
+      return this._facesToTriangles;
     },
     getNbFaces: function () {
-      return this.facesABCD_.length / 4;
+      return this._facesABCD.length / 4;
     },
     getTrianglesTexCoord: function () {
-      return this.UVtrianglesABC_;
+      return this._UVtrianglesABC;
     },
     getTriangles: function () {
-      return this.trianglesABC_;
+      return this._trianglesABC;
     },
     getNbTriangles: function () {
-      return this.trianglesABC_.length / 3;
+      return this._trianglesABC.length / 3;
     },
     allocateArrays: function () {
-      var nbFaces = this.mesh_.getNbFaces();
+      var nbFaces = this._mesh.getNbFaces();
 
-      this.faceEdges_ = new Int32Array(nbFaces * 4);
-      this.facesToTriangles_ = new Uint32Array(nbFaces);
+      this._faceEdges = new Int32Array(nbFaces * 4);
+      this._facesToTriangles = new Uint32Array(nbFaces);
 
-      this.faceBoxes_ = new Float32Array(nbFaces * 6);
-      this.faceNormalsXYZ_ = new Float32Array(nbFaces * 3);
-      this.faceCentersXYZ_ = new Float32Array(nbFaces * 3);
+      this._faceBoxes = new Float32Array(nbFaces * 6);
+      this._faceNormalsXYZ = new Float32Array(nbFaces * 3);
+      this._faceCentersXYZ = new Float32Array(nbFaces * 3);
 
-      this.facesTagFlags_ = new Int32Array(nbFaces);
+      this._facesTagFlags = new Int32Array(nbFaces);
     },
     /** ONLY FOR DYNAMIC MESH */
     reAllocateArrays: function (nbAddElements) {
-      var mesh = this.mesh_;
-      var nbDyna = this.facesABCD_.length / 4;
+      var mesh = this._mesh;
+      var nbDyna = this._facesABCD.length / 4;
       var nbTriangles = mesh.getNbTriangles();
       var len = nbTriangles + nbAddElements;
       if (nbDyna < len || nbDyna > len * 4) {
-        this.facesABCD_ = mesh.resizeArray(this.facesABCD_, len * 4);
-        this.trianglesABC_ = mesh.resizeArray(this.trianglesABC_, len * 3);
-        // this.faceEdges_ = mesh.resizeArray(this.faceEdges_, len * 4); // TODO used ?
-        // this.facesToTriangles_ = mesh.resizeArray(this.facesToTriangles_, len); // TODO used ?
+        this._facesABCD = mesh.resizeArray(this._facesABCD, len * 4);
+        this._trianglesABC = mesh.resizeArray(this._trianglesABC, len * 3);
+        // this._faceEdges = mesh.resizeArray(this._faceEdges, len * 4); // TODO used ?
+        // this._facesToTriangles = mesh.resizeArray(this._facesToTriangles, len); // TODO used ?
 
-        this.faceBoxes_ = mesh.resizeArray(this.faceBoxes_, len * 6);
-        this.faceNormalsXYZ_ = mesh.resizeArray(this.faceNormalsXYZ_, len * 3);
-        this.faceCentersXYZ_ = mesh.resizeArray(this.faceCentersXYZ_, len * 3);
+        this._faceBoxes = mesh.resizeArray(this._faceBoxes, len * 6);
+        this._faceNormalsXYZ = mesh.resizeArray(this._faceNormalsXYZ, len * 3);
+        this._faceCentersXYZ = mesh.resizeArray(this._faceCentersXYZ, len * 3);
 
-        this.facesTagFlags_ = mesh.resizeArray(this.facesTagFlags_, len);
+        this._facesTagFlags = mesh.resizeArray(this._facesTagFlags, len);
       }
     },
     /** Update a group of faces normal and aabb */
     updateFacesAabbAndNormal: function (iFaces) {
-      var mesh = this.mesh_;
+      var mesh = this._mesh;
       var faceNormals = this.getFaceNormals();
       var faceBoxes = this.getFaceBoxes();
       var faceCenters = this.getFaceCenters();
@@ -181,7 +181,7 @@ define([
     },
     /** Get more faces (n-ring) */
     expandsFaces: function (iFaces, nRing) {
-      var mesh = this.mesh_;
+      var mesh = this._mesh;
       var tagFlag = ++Utils.TAG_FLAG;
       var nbFaces = iFaces.length;
       var vrfStartCount = mesh.getVerticesRingFaceStartCount();
@@ -230,7 +230,7 @@ define([
     },
     /** Return all the faces linked to a group of vertices */
     getFacesFromVertices: function (iVerts) {
-      var mesh = this.mesh_;
+      var mesh = this._mesh;
       var tagFlag = ++Utils.TAG_FLAG;
       var nbVerts = iVerts.length;
       var vrfStartCount = mesh.getVerticesRingFaceStartCount();
@@ -262,14 +262,14 @@ define([
     },
     /** Computes triangles */
     initRenderTriangles: function () {
-      var mesh = this.mesh_;
+      var mesh = this._mesh;
       if (mesh.hasUV())
-        this.UVtrianglesABC_ = this.computeTrianglesFromFaces(mesh.getFacesTexCoord());
-      this.trianglesABC_ = this.computeTrianglesFromFaces(mesh.getFaces());
+        this._UVtrianglesABC = this.computeTrianglesFromFaces(mesh.getFacesTexCoord());
+      this._trianglesABC = this.computeTrianglesFromFaces(mesh.getFaces());
     },
     /** Computes triangles from faces */
     computeTrianglesFromFaces: function (faces) {
-      var nbFaces = this.mesh_.getNbFaces();
+      var nbFaces = this._mesh.getNbFaces();
       var facesToTris = this.getFacesToTriangles();
       var iAr = new Uint32Array(Utils.getMemory(4 * nbFaces * 6), 0, nbFaces * 6);
       var acc = 0;

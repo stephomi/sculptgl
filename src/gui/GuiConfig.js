@@ -5,8 +5,8 @@ define([
   'use strict';
 
   var GuiConfig = function (guiParent, ctrlGui) {
-    this.ctrlGui_ = ctrlGui;
-    this.menu_ = null; // ui menu
+    this._ctrlGui = ctrlGui;
+    this._menu = null; // ui menu
     this.init(guiParent);
   };
 
@@ -14,13 +14,13 @@ define([
     /** Initialize */
     init: function (guiParent) {
       // config stuffs
-      this.langs_ = Object.keys(TR.languages);
-      this.menu_ = guiParent.addMenu('Language');
-      this.menu_.addCombobox('', this.langs_.indexOf(TR.select), this.onLangChange.bind(this), this.langs_);
+      this._langs = Object.keys(TR.languages);
+      this._menu = guiParent.addMenu('Language');
+      this._menu.addCombobox('', this._langs.indexOf(TR.select), this.onLangChange.bind(this), this._langs);
     },
     onLangChange: function (value) {
-      TR.select = this.langs_[parseInt(value, 10)];
-      this.ctrlGui_.initGui();
+      TR.select = this._langs[parseInt(value, 10)];
+      this._ctrlGui.initGui();
     }
   };
 

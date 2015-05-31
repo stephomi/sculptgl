@@ -13,36 +13,36 @@ define([
 
   var Drag = function (main) {
     SculptBase.call(this, main);
-    this.radius_ = 150;
-    this.dragDir_ = [0.0, 0.0, 0.0];
-    this.dragDirSym_ = [0.0, 0.0, 0.0];
-    this.idAlpha_ = 0;
+    this._radius = 150;
+    this._dragDir = [0.0, 0.0, 0.0];
+    this._dragDirSym = [0.0, 0.0, 0.0];
+    this._idAlpha = 0;
   };
 
   Drag.prototype = {
     /** Make a brush stroke */
     sculptStroke: function () {
-      var main = this.main_;
-      var mesh = this.mesh_;
+      var main = this._main;
+      var mesh = this._mesh;
       var picking = main.getPicking();
       var pickingSym = main.getSculpt().getSymmetry() ? main.getPickingSymmetry() : null;
 
-      var dx = main.mouseX_ - this.lastMouseX_;
-      var dy = main.mouseY_ - this.lastMouseY_;
+      var dx = main._mouseX - this._lastMouseX;
+      var dy = main._mouseY - this._lastMouseY;
       var dist = Math.sqrt(dx * dx + dy * dy);
-      var minSpacing = 0.15 * this.radius_;
+      var minSpacing = 0.15 * this._radius;
 
       var step = 1.0 / Math.floor(dist / minSpacing);
       dx *= step;
       dy *= step;
-      var mouseX = this.lastMouseX_;
-      var mouseY = this.lastMouseY_;
+      var mouseX = this._lastMouseX;
+      var mouseY = this._lastMouseY;
 
       if (!picking.getMesh())
         return;
-      picking.mesh_ = mesh;
+      picking._mesh = mesh;
       if (pickingSym) {
-        pickingSym.mesh_ = mesh;
+        pickingSym._mesh = mesh;
         vec3.copy(pickingSym.getIntersectionPoint(), picking.getIntersectionPoint());
         Geometry.mirrorPoint(pickingSym.getIntersectionPoint(), mesh.getSymmetryOrigin(), mesh.getSymmetryNormal());
       }
@@ -56,11 +56,11 @@ define([
 
       this.updateRender();
 
-      this.lastMouseX_ = main.mouseX_;
-      this.lastMouseY_ = main.mouseY_;
+      this._lastMouseX = main._mouseX;
+      this._lastMouseY = main._mouseY;
     },
     makeStroke: function (mouseX, mouseY, picking, pickingSym) {
-      var mesh = this.mesh_;
+      var mesh = this._mesh;
       this.updateDragDir(picking, mouseX, mouseY);
       picking.pickVerticesInSphere(picking.getLocalRadius2());
       picking.computePickedNormal();
@@ -83,25 +83,25 @@ define([
       var iVertsInRadius = picking.getPickedVertices();
 
       // undo-redo
-      this.states_.pushVertices(iVertsInRadius);
+      this._states.pushVertices(iVertsInRadius);
       iVertsInRadius = this.dynamicTopology(picking);
 
-      picking.updateAlpha(this.lockPosition_);
-      picking.setIdAlpha(this.idAlpha_);
+      picking.updateAlpha(this._lockPosition);
+      picking.setIdAlpha(this._idAlpha);
       this.drag(iVertsInRadius, picking.getIntersectionPoint(), picking.getLocalRadius2(), sym, picking);
       Smooth.prototype.smoothTangent.call(this, iVertsInRadius, 1.0, picking);
 
-      this.mesh_.updateGeometry(this.mesh_.getFacesFromVertices(iVertsInRadius), iVertsInRadius);
+      this._mesh.updateGeometry(this._mesh.getFacesFromVertices(iVertsInRadius), iVertsInRadius);
     },
     /** Drag deformation */
     drag: function (iVerts, center, radiusSquared, sym, picking) {
-      var vAr = this.mesh_.getVertices();
-      var mAr = this.mesh_.getMaterials();
+      var vAr = this._mesh.getVertices();
+      var mAr = this._mesh.getMaterials();
       var radius = Math.sqrt(radiusSquared);
       var cx = center[0];
       var cy = center[1];
       var cz = center[2];
-      var dir = sym ? this.dragDirSym_ : this.dragDir_;
+      var dir = sym ? this._dragDirSym : this._dragDir;
       var dirx = dir[0];
       var diry = dir[1];
       var dirz = dir[2];
@@ -124,16 +124,16 @@ define([
     },
     /** Set a few infos that will be needed for the drag function afterwards */
     updateDragDir: function (picking, mouseX, mouseY, useSymmetry) {
-      var mesh = this.mesh_;
+      var mesh = this._mesh;
       var vNear = picking.unproject(mouseX, mouseY, 0.0);
       var vFar = picking.unproject(mouseX, mouseY, 0.1);
       var matInverse = mat4.create();
       mat4.invert(matInverse, mesh.getMatrix());
       vec3.transformMat4(vNear, vNear, matInverse);
       vec3.transformMat4(vFar, vFar, matInverse);
-      var dir = this.dragDir_;
+      var dir = this._dragDir;
       if (useSymmetry) {
-        dir = this.dragDirSym_;
+        dir = this._dragDirSym;
         var ptPlane = mesh.getSymmetryOrigin();
         var nPlane = mesh.getSymmetryNormal();
         Geometry.mirrorPoint(vNear, ptPlane, nPlane);
@@ -142,7 +142,7 @@ define([
       var center = picking.getIntersectionPoint();
       picking.setIntersectionPoint(Geometry.vertexOnLine(center, vNear, vFar));
       vec3.sub(dir, picking.getIntersectionPoint(), center);
-      picking.mesh_ = mesh;
+      picking._mesh = mesh;
       picking.computeLocalAndWorldRadius2(mouseX, mouseY);
       var eyeDir = picking.getEyeDirection();
       vec3.sub(eyeDir, vFar, vNear);

@@ -6,19 +6,19 @@ define([
   'use strict';
 
   var Background = function (gl, main) {
-    this.main_ = main;
-    this.gl_ = gl; // webgl context
+    this._main = main;
+    this._gl = gl; // webgl context
 
-    this.vertexBuffer_ = new Buffer(gl, gl.ARRAY_BUFFER, gl.STATIC_DRAW); // vertices buffer
-    this.texCoordBuffer_ = new Buffer(gl, gl.ARRAY_BUFFER, gl.STATIC_DRAW); // tex coord buffer
-    this.backgroundLoc_ = null; // texture background
-    this.tex_ = null; // the texture
-    this.fill_ = true; // if the canvas should be fille by the background
+    this._vertexBuffer = new Buffer(gl, gl.ARRAY_BUFFER, gl.STATIC_DRAW); // vertices buffer
+    this._texCoordBuffer = new Buffer(gl, gl.ARRAY_BUFFER, gl.STATIC_DRAW); // tex coord buffer
+    this._backgroundLoc = null; // texture background
+    this._tex = null; // the texture
+    this._fill = true; // if the canvas should be fille by the background
 
     this.vertCoords = new Float32Array([-1.0, -1.0, 1.0, -1.0, -1.0, 1.0, 1.0, 1.0]);
     this.texCoords = new Float32Array([0.0, 0.0, 1.0, 0.0, 0.0, 1.0, 1.0, 1.0]);
 
-    this.shader_ = null; // the shader
+    this._shader = null; // the shader
     this.init();
   };
 
@@ -30,29 +30,29 @@ define([
       if (!file.type.match('image.*'))
         return;
       var reader = new FileReader();
-      var canvas = this.main_.getCanvas();
+      var canvas = this._main.getCanvas();
       reader.onload = function (evt) {
         var bg = new Image();
         bg.src = evt.target.result;
         this.loadBackgroundTexture(bg);
         this.onResize(canvas.width, canvas.height);
-        this.main_.render();
+        this._main.render();
         document.getElementById('backgroundopen').value = '';
       }.bind(this);
       reader.readAsDataURL(file);
     },
     getGL: function () {
-      return this.gl_;
+      return this._gl;
     },
     getVertexBuffer: function () {
-      return this.vertexBuffer_;
+      return this._vertexBuffer;
     },
     getTexCoordBuffer: function () {
-      return this.texCoordBuffer_;
+      return this._texCoordBuffer;
     },
     init: function () {
       this.initBuffer();
-      this.shader_ = Shader[Shader.mode.BACKGROUND].getOrCreate(this.gl_);
+      this._shader = Shader[Shader.mode.BACKGROUND].getOrCreate(this._gl);
 
       var cbLoadBackground = this.loadBackground.bind(this);
       document.getElementById('backgroundopen').addEventListener('change', cbLoadBackground, false);
@@ -64,8 +64,8 @@ define([
       if (this.removeCallback) this.removeCallback();
     },
     release: function () {
-      if (this.backgroundLoc_)
-        this.gl_.deleteTexture(this.backgroundLoc_);
+      if (this._backgroundLoc)
+        this._gl.deleteTexture(this._backgroundLoc);
       this.getVertexBuffer().release();
       this.getTexCoordBuffer().release();
     },
@@ -74,21 +74,21 @@ define([
       this.getTexCoordBuffer().update(this.texCoords);
     },
     onResize: function (width, height) {
-      if (!this.tex_) return;
-      var ratio = (width / height) / (this.tex_.width / this.tex_.height);
-      var comp = this.fill_ ? 1.0 / ratio : ratio;
+      if (!this._tex) return;
+      var ratio = (width / height) / (this._tex.width / this._tex.height);
+      var comp = this._fill ? 1.0 / ratio : ratio;
       var x = comp < 1.0 ? 1.0 : 1.0 / ratio;
       var y = comp < 1.0 ? ratio : 1.0;
       this.vertCoords.set([-x, -y, x, -y, -x, y, x, y]);
       this.getVertexBuffer().update(this.vertCoords);
     },
     loadBackgroundTexture: function (tex) {
-      var gl = this.gl_;
-      if (this.backgroundLoc_)
-        gl.deleteTexture(this.backgroundLoc_);
-      this.tex_ = tex;
-      this.backgroundLoc_ = gl.createTexture();
-      gl.bindTexture(gl.TEXTURE_2D, this.backgroundLoc_);
+      var gl = this._gl;
+      if (this._backgroundLoc)
+        gl.deleteTexture(this._backgroundLoc);
+      this._tex = tex;
+      this._backgroundLoc = gl.createTexture();
+      gl.bindTexture(gl.TEXTURE_2D, this._backgroundLoc);
       gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, tex);
       gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
       gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
@@ -96,8 +96,8 @@ define([
       gl.bindTexture(gl.TEXTURE_2D, null);
     },
     render: function () {
-      if (!this.tex_) return;
-      this.shader_.draw(this);
+      if (!this._tex) return;
+      this._shader.draw(this);
     }
   };
 

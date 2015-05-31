@@ -11,30 +11,30 @@ define([
   'use strict';
 
   var GuiMultiresolution = function (guiParent, ctrlGui) {
-    this.ctrlGui_ = ctrlGui;
-    this.main_ = ctrlGui.main_; // main application
-    this.menu_ = null; // ui menu
-    this.ctrlResolution_ = null; // multiresolution controller
-    this.ctrlDynamic_ = null; // dynamic topology controller
+    this._ctrlGui = ctrlGui;
+    this._main = ctrlGui._main; // main application
+    this._menu = null; // ui menu
+    this._ctrlResolution = null; // multiresolution controller
+    this._ctrlDynamic = null; // dynamic topology controller
     this.init(guiParent);
   };
 
   GuiMultiresolution.prototype = {
     /** Initialize */
     init: function (guiParent) {
-      var menu = this.menu_ = guiParent.addMenu(TR('topologyTitle'));
+      var menu = this._menu = guiParent.addMenu(TR('topologyTitle'));
       menu.close();
 
       // multires
       menu.addTitle(TR('multiresTitle'));
-      this.ctrlResolution_ = menu.addSlider(TR('multiresResolution'), 1, this.onResolutionChanged.bind(this), 1, 1, 1);
+      this._ctrlResolution = menu.addSlider(TR('multiresResolution'), 1, this.onResolutionChanged.bind(this), 1, 1, 1);
       var dual = menu.addDualButton(TR('multiresReverse'), TR('multiresSubdivide'), this, this, 'reverse', 'subdivide');
-      this.ctrlReverse_ = dual[0];
-      this.ctrlSubdivide_ = dual[1];
-      dual = this.dualButtonDel_ = menu.addDualButton(TR('multiresDelLower'), TR('multiresDelHigher'), this, this, 'deleteLower', 'deleteHigher');
-      this.ctrlDelLower_ = dual[0];
-      this.ctrlDelHigher_ = dual[1];
-      this.ctrlDelLower_.domButton.style.background = this.ctrlDelHigher_.domButton.style.background = 'rgba(230,53,59,0.35)';
+      this._ctrlReverse = dual[0];
+      this._ctrlSubdivide = dual[1];
+      dual = this._dualButtonDel = menu.addDualButton(TR('multiresDelLower'), TR('multiresDelHigher'), this, this, 'deleteLower', 'deleteHigher');
+      this._ctrlDelLower = dual[0];
+      this._ctrlDelHigher = dual[1];
+      this._ctrlDelLower.domButton.style.background = this._ctrlDelHigher.domButton.style.background = 'rgba(230,53,59,0.35)';
 
       // remeshing
       menu.addTitle(TR('remeshTitle'));
@@ -44,19 +44,19 @@ define([
 
       // dynamic
       menu.addTitle(TR('dynamicTitle'));
-      this.ctrlDynamic_ = menu.addCheckbox(TR('dynamicActivated'), false, this.dynamicToggleActivate.bind(this));
-      this.ctrlDynSubd_ = menu.addSlider(TR('dynamicSubdivision'), Topology, 'subFactor', 0, 100, 1);
-      this.ctrlDynDec_ = menu.addSlider(TR('dynamicDecimation'), Topology, 'decFactor', 0, 100, 1);
-      this.ctrlDynLin_ = menu.addCheckbox(TR('dynamicLinear'), Topology, 'linear');
+      this._ctrlDynamic = menu.addCheckbox(TR('dynamicActivated'), false, this.dynamicToggleActivate.bind(this));
+      this._ctrlDynSubd = menu.addSlider(TR('dynamicSubdivision'), Topology, 'subFactor', 0, 100, 1);
+      this._ctrlDynDec = menu.addSlider(TR('dynamicDecimation'), Topology, 'decFactor', 0, 100, 1);
+      this._ctrlDynLin = menu.addCheckbox(TR('dynamicLinear'), Topology, 'linear');
       this.updateDynamicVisibility(false);
     },
     updateDynamicVisibility: function (bool) {
-      this.ctrlDynSubd_.setVisibility(bool);
-      this.ctrlDynDec_.setVisibility(bool);
-      this.ctrlDynLin_.setVisibility(bool);
+      this._ctrlDynSubd.setVisibility(bool);
+      this._ctrlDynDec.setVisibility(bool);
+      this._ctrlDynLin.setVisibility(bool);
     },
     dynamicToggleActivate: function () {
-      var main = this.main_;
+      var main = this._main;
       var mesh = main.getMesh();
       if (!mesh)
         return;
@@ -68,7 +68,7 @@ define([
       main.getStates().pushStateAddRemove(newMesh, mesh);
     },
     remesh: function () {
-      var main = this.main_;
+      var main = this._main;
       var mesh = main.getMesh();
       if (!mesh)
         return;
@@ -89,7 +89,7 @@ define([
     },
     /** Check if the mesh is a multiresolution one */
     isMultimesh: function (mesh) {
-      return !!(mesh && mesh.meshes_);
+      return !!(mesh && mesh._meshes);
     },
     convertToStaticMesh: function (mesh) {
       if (!mesh.getDynamicTopology) // already static
@@ -104,7 +104,7 @@ define([
       newMesh.setFaces(mesh.getFaces().subarray(0, mesh.getNbFaces() * 4));
       newMesh.init();
       newMesh.setRender(mesh.getRender());
-      mesh.getRender().mesh_ = newMesh;
+      mesh.getRender()._mesh = newMesh;
       newMesh.initRender();
       return newMesh;
     },
@@ -117,19 +117,19 @@ define([
     },
     /** Subdivide the mesh */
     subdivide: function () {
-      var main = this.main_;
+      var main = this._main;
       var mesh = main.getMesh();
       if (!mesh)
         return;
       var mul = this.convertToMultimesh(mesh);
-      if (mul.sel_ !== mul.meshes_.length - 1) {
+      if (mul._sel !== mul._meshes.length - 1) {
         window.alert(TR('multiresSelectHighest'));
         return;
       }
       if (mul.getNbTriangles() > 400000) {
         if (!window.confirm(TR('multiresWarnBigMesh', mul.getNbFaces() * 4))) {
           if (mesh !== mul)
-            mesh.getRender().mesh_ = mesh;
+            mesh.getRender()._mesh = mesh;
           return;
         }
       }
@@ -145,12 +145,12 @@ define([
     },
     /** Inverse subdivision */
     reverse: function () {
-      var main = this.main_;
+      var main = this._main;
       var mesh = main.getMesh();
       if (!mesh)
         return;
       var mul = this.convertToMultimesh(mesh);
-      if (mul.sel_ !== 0) {
+      if (mul._sel !== 0) {
         window.alert(TR('multiresSelectLowest'));
         return;
       }
@@ -158,7 +158,7 @@ define([
       var newMesh = mul.computeReverse();
       if (!newMesh) {
         if (mesh !== mul)
-          mesh.getRender().mesh_ = mesh;
+          mesh.getRender()._mesh = mesh;
         window.alert(TR('multiresNotReversible'));
         return;
       }
@@ -173,9 +173,9 @@ define([
     },
     /** Delete the lower meshes */
     deleteLower: function () {
-      var main = this.main_;
-      var mul = main.mesh_;
-      if (!this.isMultimesh(mul) || mul.sel_ === 0) {
+      var main = this._main;
+      var mul = main._mesh;
+      if (!this.isMultimesh(mul) || mul._sel === 0) {
         window.alert(TR('multiresNoLower'));
         return;
       }
@@ -186,9 +186,9 @@ define([
     },
     /** Delete the higher meshes */
     deleteHigher: function () {
-      var main = this.main_;
+      var main = this._main;
       var mul = main.getMesh();
-      if (!this.isMultimesh(mul) || mul.sel_ === mul.meshes_.length - 1) {
+      if (!this.isMultimesh(mul) || mul._sel === mul._meshes.length - 1) {
         window.alert(TR('multiresNoHigher'));
         return;
       }
@@ -200,47 +200,47 @@ define([
     /** Change resoltuion */
     onResolutionChanged: function (value) {
       var uiRes = value - 1;
-      var main = this.main_;
+      var main = this._main;
       var multimesh = main.getMesh();
       if (!multimesh) return;
       var isMulti = this.isMultimesh(multimesh);
-      var isLast = isMulti && multimesh.meshes_.length - 1 === uiRes;
+      var isLast = isMulti && multimesh._meshes.length - 1 === uiRes;
 
-      this.ctrlReverse_.setEnable(!isMulti || uiRes === 0);
-      this.ctrlSubdivide_.setEnable(!isMulti || isLast);
-      this.ctrlDelLower_.setEnable(isMulti && uiRes !== 0);
-      this.ctrlDelHigher_.setEnable(isMulti && !isLast);
+      this._ctrlReverse.setEnable(!isMulti || uiRes === 0);
+      this._ctrlSubdivide.setEnable(!isMulti || isLast);
+      this._ctrlDelLower.setEnable(isMulti && uiRes !== 0);
+      this._ctrlDelHigher.setEnable(isMulti && !isLast);
 
-      if (!isMulti || multimesh.sel_ === uiRes)
+      if (!isMulti || multimesh._sel === uiRes)
         return;
 
       main.getStates().pushState(new StateMultiresolution(main, multimesh, StateMultiresolution.SELECTION));
       multimesh.selectResolution(uiRes);
-      this.ctrlGui_.updateMeshInfo();
+      this._ctrlGui.updateMeshInfo();
       main.render();
     },
     /** Update the mesh resolution slider */
     updateMeshResolution: function () {
-      var multimesh = this.main_.getMesh();
+      var multimesh = this._main.getMesh();
       if (!multimesh || !this.isMultimesh(multimesh)) {
-        this.ctrlResolution_.setMax(1);
-        this.ctrlResolution_.setValue(0);
+        this._ctrlResolution.setMax(1);
+        this._ctrlResolution.setValue(0);
         return;
       }
-      this.ctrlResolution_.setMax(multimesh.meshes_.length);
-      this.ctrlResolution_.setValue(multimesh.sel_ + 1);
+      this._ctrlResolution.setMax(multimesh._meshes.length);
+      this._ctrlResolution.setValue(multimesh._sel + 1);
     },
     /** Update topology information */
     updateMesh: function () {
-      if (!this.main_.getMesh()) {
-        this.menu_.setVisibility(false);
+      if (!this._main.getMesh()) {
+        this._menu.setVisibility(false);
         return;
       }
-      this.menu_.setVisibility(true);
+      this._menu.setVisibility(true);
       this.updateMeshResolution();
-      var bool = this.main_.getMesh().getDynamicTopology;
+      var bool = this._main.getMesh().getDynamicTopology;
       this.updateDynamicVisibility(bool);
-      this.ctrlDynamic_.setValue(bool, true);
+      this._ctrlDynamic.setValue(bool, true);
     }
   };
 

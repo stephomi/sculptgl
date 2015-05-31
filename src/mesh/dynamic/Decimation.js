@@ -5,12 +5,12 @@ define([
   'use strict';
 
   var Decimation = function (mesh) {
-    this.mesh_ = mesh;
-    this.states_ = null; // for undo-redo
+    this._mesh = mesh;
+    this._states = null; // for undo-redo
 
-    this.iTrisToDelete_ = []; // triangles to be deleted
-    this.iVertsToDelete_ = []; // vertices to be deleted
-    this.iVertsDecimated_ = []; // vertices to be updated (mainly for the VBO's, used in decimation and adaptive topo)
+    this._iTrisToDelete = []; // triangles to be deleted
+    this._iVertsToDelete = []; // vertices to be deleted
+    this._iVertsDecimated = []; // vertices to be updated (mainly for the VBO's, used in decimation and adaptive topo)
   };
 
   var sortFunc = function (a, b) {
@@ -20,13 +20,13 @@ define([
   Decimation.prototype = {
     /** Decimation */
     decimation: function (iTris, center, radius2, detail2, states) {
-      this.states_ = states;
-      this.iVertsDecimated_.length = 0;
-      this.iTrisToDelete_.length = 0;
-      this.iVertsToDelete_.length = 0;
+      this._states = states;
+      this._iVertsDecimated.length = 0;
+      this._iTrisToDelete.length = 0;
+      this._iVertsToDelete.length = 0;
 
       var radius = Math.sqrt(radius2);
-      var mesh = this.mesh_;
+      var mesh = this._mesh;
       var ftf = mesh.getFacesTagFlags();
       var vAr = mesh.getVertices();
       var fAr = mesh.getFaces();
@@ -112,14 +112,14 @@ define([
     },
     /** Apply deletion on vertices and triangles */
     applyDeletion: function () {
-      var iTrisToDelete = this.iTrisToDelete_;
+      var iTrisToDelete = this._iTrisToDelete;
       Utils.tidy(iTrisToDelete);
       var nbTrisDelete = iTrisToDelete.length;
       var i = 0;
       for (i = nbTrisDelete - 1; i >= 0; --i)
         this.deleteTriangle(iTrisToDelete[i]);
 
-      var iVertsToDelete = this.iVertsToDelete_;
+      var iVertsToDelete = this._iVertsToDelete;
       Utils.tidy(iVertsToDelete);
       var nbVertsToDelete = iVertsToDelete.length;
       for (i = nbVertsToDelete - 1; i >= 0; --i)
@@ -127,12 +127,12 @@ define([
     },
     /** Return the valid modified vertices (no duplicates) */
     getValidModifiedVertices: function () {
-      var mesh = this.mesh_;
+      var mesh = this._mesh;
       var vtf = mesh.getVerticesTagFlags();
       var nbVertices = mesh.getNbVertices();
 
       var tagFlag = ++Utils.TAG_FLAG;
-      var iVertsDecimated = this.iVertsDecimated_;
+      var iVertsDecimated = this._iVertsDecimated;
       var nbVertsDecimated = iVertsDecimated.length;
       var validVertices = new Uint32Array(Utils.getMemory(nbVertsDecimated * 4), 0, nbVertsDecimated);
       var nbValid = 0;
@@ -149,7 +149,7 @@ define([
     },
     /** Return the valid modified triangles (no duplicates) */
     getValidModifiedTriangles: function (iVerts, iTris) {
-      var mesh = this.mesh_;
+      var mesh = this._mesh;
       var ftf = mesh.getFacesTagFlags();
       var nbTriangles = mesh.getNbTriangles();
 
@@ -177,7 +177,7 @@ define([
     },
     /** Find opposite triangle */
     findOppositeTriangle: function (iTri, iv1, iv2) {
-      var vrf = this.mesh_.getVerticesRingFace();
+      var vrf = this._mesh.getVerticesRingFace();
       var iTris1 = vrf[iv1];
       var iTris2 = vrf[iv2];
       iTris1.sort(sortFunc);
@@ -191,7 +191,7 @@ define([
     decimateTriangles: function (iTri1, iTri2, iTris) {
       if (iTri2 === -1)
         return;
-      var fAr = this.mesh_.getFaces();
+      var fAr = this._mesh.getFaces();
 
       var id = iTri1 * 4;
       var iv11 = fAr[id];
@@ -218,7 +218,7 @@ define([
     },
     /** Decimate 2 triangles (collapse 1 edge) */
     edgeCollapse: function (iTri1, iTri2, iv1, iv2, ivOpp1, ivOpp2, iTris) {
-      var mesh = this.mesh_;
+      var mesh = this._mesh;
       var vAr = mesh.getVertices();
       var nAr = mesh.getNormals();
       var cAr = mesh.getColors();
@@ -246,13 +246,13 @@ define([
       if (ringOpp1.length !== trisOpp1.length || ringOpp2.length !== trisOpp2.length)
         return;
 
-      this.iVertsDecimated_.push(iv1, iv2);
+      this._iVertsDecimated.push(iv1, iv2);
 
       // undo-redo
-      this.states_.pushVertices(ring1);
-      this.states_.pushVertices(ring2);
-      this.states_.pushFaces(tris1);
-      this.states_.pushFaces(tris2);
+      this._states.pushVertices(ring1);
+      this._states.pushVertices(ring2);
+      this._states.pushFaces(tris1);
+      this._states.pushFaces(tris2);
 
       ring1.sort(sortFunc);
       ring2.sort(sortFunc);
@@ -354,8 +354,8 @@ define([
       vAr[id + 2] = meanZ - nz * dot;
 
       vtf[iv2] = ftf[iTri1] = ftf[iTri2] = -1;
-      this.iVertsToDelete_.push(iv2);
-      this.iTrisToDelete_.push(iTri1, iTri2);
+      this._iVertsToDelete.push(iv2);
+      this._iTrisToDelete.push(iTri1, iTri2);
 
       nb = tris1.length;
       for (i = 0; i < nb; ++i)
@@ -365,7 +365,7 @@ define([
     },
     /** Update last triangle of array and move its position */
     deleteTriangle: function (iTri) {
-      var mesh = this.mesh_;
+      var mesh = this._mesh;
       var vrf = mesh.getVerticesRingFace();
       var ftf = mesh.getFacesTagFlags();
       var fAr = mesh.getFaces();
@@ -374,7 +374,7 @@ define([
       var fstf = mesh.getFacesStateFlags();
 
       var oldPos = pil[iTri];
-      var iTrisLeaf = fleaf[iTri].iFaces_;
+      var iTrisLeaf = fleaf[iTri]._iFaces;
       var lastTri = iTrisLeaf[iTrisLeaf.length - 1];
       if (iTri !== lastTri) {
         iTrisLeaf[oldPos] = lastTri;
@@ -393,8 +393,8 @@ define([
       var iv3 = fAr[id + 2];
 
       // undo-redo
-      this.states_.pushVertices([iv1, iv2, iv3]);
-      this.states_.pushFaces([lastPos]);
+      this._states.pushVertices([iv1, iv2, iv3]);
+      this._states.pushFaces([lastPos]);
 
       Utils.replaceElement(vrf[iv1], lastPos, iTri);
       Utils.replaceElement(vrf[iv2], lastPos, iTri);
@@ -402,7 +402,7 @@ define([
 
       var leafLast = fleaf[lastPos];
       var pilLast = pil[lastPos];
-      leafLast.iFaces_[pilLast] = iTri;
+      leafLast._iFaces[pilLast] = iTri;
       fleaf[iTri] = leafLast;
       pil[iTri] = pilLast;
 
@@ -414,13 +414,13 @@ define([
       fAr[iTri + 2] = iv3;
       fAr[iTri + 3] = -1;
 
-      this.iVertsDecimated_.push(iv1, iv2, iv3);
+      this._iVertsDecimated.push(iv1, iv2, iv3);
 
       mesh.addNbFace(-1);
     },
     /** Update last vertex of array and move its position */
     deleteVertex: function (iVert) {
-      var mesh = this.mesh_;
+      var mesh = this._mesh;
       var vrv = mesh.getVerticesRingVert();
       var vrf = mesh.getVerticesRingFace();
       var vAr = mesh.getVertices();
@@ -440,7 +440,7 @@ define([
       var id = 0;
 
       // undo-redo
-      var states = this.states_;
+      var states = this._states;
       states.pushVertices([lastPos]);
 
       var iTris = vrf[lastPos];
