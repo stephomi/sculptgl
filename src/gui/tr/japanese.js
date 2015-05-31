@@ -40,20 +40,6 @@ define([], function () {
     fileExportOBJ: null,
     fileExportPLY: null,
     fileExportSTL: null,
-    fileReplayerTitle: null,
-    fileReplayerImport: null,
-    fileReplayerExport: null,
-    fileReplayerUpload: null,
-    fileReplayerUploadStart: null,
-    fileReplayerError: null,
-    fileReplayerSuccess: null,
-    fileReplayerAbort: null,
-
-    // replayer
-    replayTitle: null,
-    replayPaused: null,
-    replaySpeed: null,
-    replayOverride: null,
 
     // scene
     sceneTitle: null,

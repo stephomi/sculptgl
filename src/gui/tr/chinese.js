@@ -40,20 +40,6 @@ define([], function () {
     fileExportOBJ: '儲存 .obj',
     fileExportPLY: '儲存 .ply',
     fileExportSTL: '儲存 .stl',
-    fileReplayerTitle: '重播器 (測試版)',
-    fileReplayerImport: '載入 .rep',
-    fileReplayerExport: '儲存 .rep',
-    fileReplayerUpload: null,
-    fileReplayerUploadStart: null,
-    fileReplayerError: null,
-    fileReplayerSuccess: null,
-    fileReplayerAbort: null,
-
-    // replayer
-    replayTitle: '重播設定',
-    replayPaused: '已暫停',
-    replaySpeed: '重播速度',
-    replayOverride: '覆蓋',
 
     // scene
     sceneTitle: '場景',

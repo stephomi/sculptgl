@@ -150,11 +150,8 @@ define([
       tool.material_[1] = metallic;
     },
     paintAll: function (main, tool) {
-      if (!main.getMesh()) return;
-      if (!main.isReplayed()) {
-        main.getReplayWriter().checkSculptTools();
-        main.getReplayWriter().pushAction('PAINT_ALL');
-      }
+      if (!main.getMesh())
+        return;
       tool.paintAll(main.getMesh(), main);
     },
     init: function (tool, fold, main) {
@@ -245,38 +242,14 @@ define([
       this.ctrls_.push(addCtrlCulling(tool, fold));
       this.main_ = main;
       this.tool_ = tool;
-      var bci = fold.addDualButton(TR('sculptMaskingClear'), TR('sculptMaskingInvert'), this, this, 'clear', 'invert');
-      var bbs = fold.addDualButton(TR('sculptMaskingBlur'), TR('sculptMaskingSharpen'), this, this, 'blur', 'sharpen');
+      var bci = fold.addDualButton(TR('sculptMaskingClear'), TR('sculptMaskingInvert'), tool, tool, 'clear', 'invert');
+      var bbs = fold.addDualButton(TR('sculptMaskingBlur'), TR('sculptMaskingSharpen'), tool, tool, 'blur', 'sharpen');
       this.ctrls_.push(bci[0], bci[1], bbs[0], bbs[1]);
       // mask extract
       this.ctrls_.push(fold.addTitle(TR('sculptExtractTitle')));
       this.ctrls_.push(fold.addSlider(TR('sculptExtractThickness'), tool, 'thickness_', -5, 5, 0.001));
-      this.ctrls_.push(fold.addButton(TR('sculptExtractAction'), this, 'extract'));
+      this.ctrls_.push(fold.addButton(TR('sculptExtractAction'), tool, 'extract'));
       addCtrlAlpha(this.ctrls_, fold, tool, this);
-    },
-    maskAction: function (key, akey) {
-      var main = this.main_;
-      if (!main.getMesh()) return;
-      if (!main.isReplayed()) main.getReplayWriter().pushAction(akey);
-      this.tool_[key](main.getMesh(), main);
-    },
-    blur: function () {
-      this.maskAction('blur', 'MASKING_BLUR');
-    },
-    sharpen: function () {
-      this.maskAction('sharpen', 'MASKING_SHARPEN');
-    },
-    clear: function () {
-      this.maskAction('clear', 'MASKING_CLEAR');
-    },
-    invert: function () {
-      this.maskAction('invert', 'MASKING_INVERT');
-    },
-    extract: function () {
-      var main = this.main_;
-      if (!main.getMesh()) return;
-      if (!main.isReplayed()) main.getReplayWriter().pushAction('MASKING_EXTRACT', this.tool_.thickness_);
-      this.tool_.extract(main.getMesh(), main);
     }
   };
 

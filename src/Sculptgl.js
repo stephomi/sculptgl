@@ -106,18 +106,15 @@ define([
       this.onDeviceUp();
     },
     onDoubleTap: function (e) {
-      if (!this.isReplayed()) {
-        if (this.focusGui_)
-          return;
-        var evProxy = this.eventProxy_;
-        evProxy.pageX = e.center.x;
-        evProxy.pageY = e.center.y;
-        this.setMousePosition(evProxy);
-      }
+      if (this.focusGui_)
+        return;
+      var evProxy = this.eventProxy_;
+      evProxy.pageX = e.center.x;
+      evProxy.pageY = e.center.y;
+      this.setMousePosition(evProxy);
+
       var mouseX = this.mouseX_;
       var mouseY = this.mouseY_;
-      if (!this.isReplayed())
-        this.getReplayWriter().pushAction('DOUBLE_TAP', mouseX, mouseY);
 
       var picking = this.picking_;
       var res = picking.intersectionMouseMeshes(this.meshes_, mouseX, mouseY);
@@ -216,7 +213,6 @@ define([
       if (lower.endsWith('.sgl')) return 'sgl';
       if (lower.endsWith('.stl')) return 'stl';
       if (lower.endsWith('.ply')) return 'ply';
-      if (lower.endsWith('.rep')) return 'rep';
       return;
     },
     /** Load file */
@@ -228,8 +224,6 @@ define([
         var file = files[i];
         var fileType = this.getFileType(file.name);
         this.readFile(file, fileType);
-        if (fileType === 'rep')
-          return;
       }
     },
     readFile: function (file, ftype) {
@@ -240,10 +234,7 @@ define([
       var reader = new FileReader();
       var self = this;
       reader.onload = function (evt) {
-        if (fileType === 'rep')
-          self.getReplayReader().import(evt.target.result, null, file.name.substr(0, file.name.length - 4));
-        else
-          self.loadScene(evt.target.result, fileType, self.autoMatrix_);
+        self.loadScene(evt.target.result, fileType, self.autoMatrix_);
         document.getElementById('fileopen').value = '';
       };
 
@@ -270,9 +261,6 @@ define([
       this.onDeviceUp();
     },
     onDeviceUp: function () {
-      if (!this.isReplayed())
-        this.getReplayWriter().pushDeviceUp();
-
       this.canvas_.style.cursor = 'default';
       this.mouseButton_ = 0;
       Multimesh.RENDER_HINT = Multimesh.NONE;
@@ -295,9 +283,6 @@ define([
       this.onDeviceWheel(dir > 0 ? 1 : -1);
     },
     onDeviceWheel: function (dir) {
-      if (!this.isReplayed())
-        this.getReplayWriter().pushAction('DEVICE_WHEEL', dir);
-
       this.camera_.start(this.mouseX_, this.mouseY_, this);
       this.camera_.zoom(dir * 0.02);
       Multimesh.RENDER_HINT = Multimesh.CAMERA;
@@ -326,17 +311,13 @@ define([
       this.onDeviceMove(event);
     },
     onDeviceDown: function (event) {
-      if (!this.isReplayed()) {
-        if (this.focusGui_)
-          return;
-        this.setMousePosition(event);
-      }
+      if (this.focusGui_)
+        return;
+      this.setMousePosition(event);
+
       var mouseX = this.mouseX_;
       var mouseY = this.mouseY_;
       var button = this.mouseButton_ = event.which;
-
-      if (!this.isReplayed())
-        this.getReplayWriter().pushDeviceDown(button, mouseX, mouseY, event);
 
       if (button === 1)
         this.sculpt_.start(this, event.shiftKey);
@@ -368,17 +349,13 @@ define([
       this.lastMouseY_ = mouseY;
     },
     onDeviceMove: function (event) {
-      if (!this.isReplayed()) {
-        if (this.focusGui_)
-          return;
-        this.setMousePosition(event);
-      }
+      if (this.focusGui_)
+        return;
+      this.setMousePosition(event);
+
       var mouseX = this.mouseX_;
       var mouseY = this.mouseY_;
       var button = this.mouseButton_;
-
-      if (!this.isReplayed())
-        this.getReplayWriter().pushDeviceMove(mouseX, mouseY, event);
 
       if (button !== 1 || this.sculpt_.allowPicking()) {
         Multimesh.RENDER_HINT = Multimesh.PICKING;

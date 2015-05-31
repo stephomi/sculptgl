@@ -418,11 +418,6 @@ define([
         this.setFov(cam.getFov());
     },
     moveAnimationTo: function (x, y, z, main) {
-      if (main.isReplayed()) {
-        this.moveTo(x, y, z);
-        return;
-      }
-
       main.focusGui_ = true;
       var duration = 400;
       var tx = this.transX_;

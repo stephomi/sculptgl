@@ -52,27 +52,18 @@ define([
     /** On camera mode change */
     onCameraModeChange: function (value) {
       var mode = parseInt(value, 10);
-      if (!this.main_.isReplayed())
-        this.main_.getReplayWriter().pushAction('CAMERA_MODE', mode);
-
       this.camera_.setMode(mode);
       this.main_.render();
     },
     /** On camera type change */
     onCameraTypeChange: function (value) {
       var type = parseInt(value, 10);
-      if (!this.main_.isReplayed())
-        this.main_.getReplayWriter().pushAction('CAMERA_PROJ_TYPE', type);
-
       this.camera_.setProjType(type);
       this.ctrlFov_.setVisibility(type === Camera.projType.PERSPECTIVE);
       this.main_.render();
     },
     /** On fov change */
     onFovChange: function (value) {
-      if (!this.main_.isReplayed())
-        this.main_.getReplayWriter().pushCameraFov(value);
-
       this.camera_.setFov(value);
       this.main_.render();
     },
@@ -135,11 +126,7 @@ define([
     },
     cbOnTranslation: function () {
       var main = this.main_;
-      var cam = main.getCamera();
-      if (!main.isReplayed())
-        main.getReplayWriter().pushAction('CAMERA_FPS', cam.moveX_, cam.moveZ_);
-
-      cam.updateTranslation();
+      main.getCamera().updateTranslation();
       main.render();
     },
     /** Key released event */
@@ -186,26 +173,25 @@ define([
         this.cameraTimer_ = -1;
       }
     },
-    cameraAction: function (key, akey) {
-      var main = this.main_;
-      if (!main.isReplayed()) main.getReplayWriter().pushAction(akey);
-      this.camera_[key]();
-      main.render();
-    },
     resetCamera: function () {
-      this.cameraAction('resetView', 'CAMERA_RESET');
+      this.camera_.resetView();
+      this.main_.render();
     },
     resetFront: function () {
-      this.cameraAction('toggleViewFront', 'CAMERA_TOGGLE_FRONT');
+      this.camera_.toggleViewFront();
+      this.main_.render();
     },
     resetLeft: function () {
-      this.cameraAction('toggleViewLeft', 'CAMERA_TOGGLE_LEFT');
+      this.camera_.toggleViewLeft();
+      this.main_.render();
     },
     resetTop: function () {
-      this.cameraAction('toggleViewTop', 'CAMERA_TOGGLE_TOP');
+      this.camera_.toggleViewTop();
+      this.main_.render();
     },
     onPivotChange: function () {
-      this.cameraAction('toggleUsePivot', 'CAMERA_TOGGLE_PIVOT');
+      this.camera_.toggleUsePivot();
+      this.main_.render();
     }
   };
 

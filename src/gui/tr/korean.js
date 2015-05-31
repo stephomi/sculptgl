@@ -40,20 +40,6 @@ define([], function () {
     fileExportOBJ: 'obj로 저장하기',
     fileExportPLY: 'ply로 저장하기',
     fileExportSTL: 'stl로 저장하기',
-    fileReplayerTitle: '리플레이어 (BETA)',
-    fileReplayerImport: 'rep 로드하기',
-    fileReplayerExport: 'rep 저장하기',
-    fileReplayerUpload: null,
-    fileReplayerUploadStart: null,
-    fileReplayerError: null,
-    fileReplayerSuccess: null,
-    fileReplayerAbort: null,
-
-    // replayer
-    replayTitle: '리플레이 환경설정',
-    replayPaused: '정지',
-    replaySpeed: '리플레이 속도',
-    replayOverride: '덮기',
 
     // scene
     sceneTitle: '장면',

@@ -40,20 +40,6 @@ define([], function () {
     fileExportOBJ: 'Save .obj',
     fileExportPLY: 'Save .ply',
     fileExportSTL: 'Save .stl',
-    fileReplayerTitle: 'Replayer (BETA)',
-    fileReplayerImport: 'Load .rep',
-    fileReplayerExport: 'Save .rep',
-    fileReplayerUpload: 'Upload .rep (<10Mb)',
-    fileReplayerUploadStart: 'Please confirm the upload. \nYour replay will be available at :',
-    fileReplayerError: 'Error : replay file is too big (you probably imported a mesh). Clear scene will reset the replay file.',
-    fileReplayerSuccess: 'Upload success !\nHere is your link :',
-    fileReplayerAbort: 'Abort the last upload ?',
-
-    // replayer
-    replayTitle: 'Replay config',
-    replayPaused: 'Paused',
-    replaySpeed: 'Replay speed',
-    replayOverride: 'Override',
 
     // scene
     sceneTitle: 'Scene',

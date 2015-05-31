@@ -80,37 +80,22 @@ define([
       var mesh = main.getMesh();
       if (!mesh)
         return;
-
-      if (!main.isReplayed())
-        main.getReplayWriter().pushCurvature(val);
-
       mesh.getRender().setCurvature(val / 20.0);
       main.render();
     },
     onEnvironmentChanged: function (val) {
       ShaderPBR.idEnv = val;
-      var main = this.main_;
-      if (!main.isReplayed())
-        main.getReplayWriter().pushAction('ENVIRONMENT_SELECT', val);
-      main.render();
+      this.main_.render();
     },
     onExposureChanged: function (val) {
-      var main = this.main_;
-      if (!main.isReplayed())
-        main.getReplayWriter().pushExposure(val);
-
       ShaderPBR.exposure = val / 20;
-      main.render();
+      this.main_.render();
     },
     onTransparencyChanged: function (val) {
       var main = this.main_;
       var mesh = main.getMesh();
       if (!mesh)
         return;
-
-      if (!main.isReplayed())
-        main.getReplayWriter().pushTransparency(val);
-
       mesh.getRender().setOpacity(1.0 - val / 100.0);
       main.render();
     },
@@ -124,10 +109,6 @@ define([
           this.updateMesh();
           window.alert('No UV on this mesh.');
         } else {
-
-          if (!main.isReplayed())
-            main.getReplayWriter().pushAction('SHADER_SELECT', value);
-
           mesh.setShader(val);
           main.render();
         }
@@ -140,10 +121,6 @@ define([
       var mesh = main.getMesh();
       if (!mesh)
         return;
-
-      if (!main.isReplayed())
-        main.getReplayWriter().pushAction('MATCAP_SELECT', value);
-
       mesh.setMatcap(value);
       main.render();
     },
@@ -153,10 +130,6 @@ define([
       var mesh = main.getMesh();
       if (!mesh)
         return;
-
-      if (!main.isReplayed())
-        main.getReplayWriter().pushAction('FLAT_SHADING', bool);
-
       mesh.setFlatShading(bool);
       main.render();
     },
@@ -166,10 +139,6 @@ define([
       var mesh = main.getMesh();
       if (!mesh)
         return;
-
-      if (!main.isReplayed())
-        main.getReplayWriter().pushAction('SHOW_WIREFRAME', bool);
-
       mesh.setShowWireframe(bool);
       main.render();
     },

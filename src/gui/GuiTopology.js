@@ -45,9 +45,9 @@ define([
       // dynamic
       menu.addTitle(TR('dynamicTitle'));
       this.ctrlDynamic_ = menu.addCheckbox(TR('dynamicActivated'), false, this.dynamicToggleActivate.bind(this));
-      this.ctrlDynSubd_ = menu.addSlider(TR('dynamicSubdivision'), Topology.subFactor, this.dynamicSubdivision.bind(this), 0, 100, 1);
-      this.ctrlDynDec_ = menu.addSlider(TR('dynamicDecimation'), Topology.decFactor, this.dynamicDecimation.bind(this), 0, 100, 1);
-      this.ctrlDynLin_ = menu.addCheckbox(TR('dynamicLinear'), Topology.linear, this.dynamicToggleLinear.bind(this));
+      this.ctrlDynSubd_ = menu.addSlider(TR('dynamicSubdivision'), Topology, 'subFactor', 0, 100, 1);
+      this.ctrlDynDec_ = menu.addSlider(TR('dynamicDecimation'), Topology, 'decFactor', 0, 100, 1);
+      this.ctrlDynLin_ = menu.addCheckbox(TR('dynamicLinear'), Topology, 'linear');
       this.updateDynamicVisibility(false);
     },
     updateDynamicVisibility: function (bool) {
@@ -61,42 +61,17 @@ define([
       if (!mesh)
         return;
 
-      if (!main.isReplayed())
-        main.getReplayWriter().pushAction('DYNAMIC_TOGGLE_ACTIVATE');
-
       var newMesh = !mesh.getDynamicTopology ? new MeshDynamic(mesh) : this.convertToStaticMesh(mesh);
       this.updateDynamicVisibility(!mesh.getDynamicTopology);
 
       main.replaceMesh(mesh, newMesh);
       main.getStates().pushStateAddRemove(newMesh, mesh);
     },
-    dynamicToggleLinear: function () {
-      var main = this.main_;
-      if (!main.isReplayed())
-        main.getReplayWriter().pushAction('DYNAMIC_TOGGLE_LINEAR');
-      Topology.linear = !Topology.linear;
-    },
-    dynamicSubdivision: function (val) {
-      var main = this.main_;
-      if (!main.isReplayed())
-        main.getReplayWriter().pushAction('DYNAMIC_SUBDIVISION', val);
-      Topology.subFactor = val;
-    },
-    dynamicDecimation: function (val) {
-      var main = this.main_;
-      if (!main.isReplayed())
-        main.getReplayWriter().pushAction('DYNAMIC_DECIMATION', val);
-      Topology.decFactor = val;
-    },
-    /** Remesh the mesh */
     remesh: function () {
       var main = this.main_;
       var mesh = main.getMesh();
       if (!mesh)
         return;
-
-      if (!main.isReplayed())
-        main.getReplayWriter().pushAction('VOXEL_REMESH', Remesh.RESOLUTION, Remesh.BLOCK);
 
       var meshes = main.getMeshes();
       var selMeshes = main.getSelectedMeshes().slice();
@@ -151,16 +126,13 @@ define([
         window.alert(TR('multiresSelectHighest'));
         return;
       }
-      if (mul.getNbTriangles() > 400000 && !main.isReplayed()) {
+      if (mul.getNbTriangles() > 400000) {
         if (!window.confirm(TR('multiresWarnBigMesh', mul.getNbFaces() * 4))) {
           if (mesh !== mul)
             mesh.getRender().mesh_ = mesh;
           return;
         }
       }
-
-      if (!main.isReplayed())
-        main.getReplayWriter().pushAction('MULTI_SUBDIVIDE');
 
       if (mesh !== mul) {
         main.replaceMesh(mesh, mul);
@@ -191,9 +163,6 @@ define([
         return;
       }
 
-      if (!main.isReplayed())
-        main.getReplayWriter().pushAction('MULTI_REVERSE');
-
       if (mesh !== mul) {
         main.replaceMesh(mesh, mul);
         main.getStates().pushStateAddRemove(mul, mesh, true);
@@ -211,9 +180,6 @@ define([
         return;
       }
 
-      if (!main.isReplayed())
-        main.getReplayWriter().pushAction('MULTI_DEL_LOWER');
-
       main.getStates().pushState(new StateMultiresolution(main, mul, StateMultiresolution.DELETE_LOWER));
       mul.deleteLower();
       this.updateMeshResolution();
@@ -226,9 +192,6 @@ define([
         window.alert(TR('multiresNoHigher'));
         return;
       }
-
-      if (!main.isReplayed())
-        main.getReplayWriter().pushAction('MULTI_DEL_HIGHER');
 
       main.getStates().pushState(new StateMultiresolution(main, mul, StateMultiresolution.DELETE_HIGHER));
       mul.deleteHigher();
@@ -250,9 +213,6 @@ define([
 
       if (!isMulti || multimesh.sel_ === uiRes)
         return;
-
-      if (!main.isReplayed())
-        main.getReplayWriter().pushAction('MULTI_RESOLUTION', value);
 
       main.getStates().pushState(new StateMultiresolution(main, multimesh, StateMultiresolution.SELECTION));
       multimesh.selectResolution(uiRes);

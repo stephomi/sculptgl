@@ -21,8 +21,7 @@ define([
         domStatus.innerHTML = 'Uploading : ' + Math.round(event.loaded * 100.0 / event.total) + '%';
     };
     var hideStatus = function () {
-      if (!statusWidget.replay)
-        statusWidget.setVisibility(false);
+      statusWidget.setVisibility(false);
       statusWidget.sketchfab = false;
     };
     xhr.onerror = hideStatus;
@@ -69,7 +68,7 @@ define([
     var fd = new FormData();
     fd.append('token', key);
     fd.append('modelFile', blob, 'sculptglModel.zip');
-    fd.append('name', 'My model - ' + main.getReplayWriter().uid_);
+    fd.append('name', 'My model');
     fd.append('tags', 'sculptgl');
     xhr.send(fd);
   };

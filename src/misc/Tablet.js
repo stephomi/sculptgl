@@ -8,21 +8,13 @@ define([], function () {
   // maybe I should take a look at pointer events, or extended touch events
   var Tablet = {
     useOnRadius: true, // the pen pressure acts on the tool's radius
-    useOnIntensity: false, // the pen pressure acts on the tool's intensity
-    overridePressure: -1.0 // negative : no override, positive : use replay value
+    useOnIntensity: false // the pen pressure acts on the tool's intensity
   };
-
-  // f32 cast for sgl exporter consistency
-  // var d32cast = new Float32Array(1);
 
   /** Returns the pressure of pen: [0, 1] **/
   Tablet.pressure = function () {
-    if (Tablet.overridePressure > 0.0)
-      return Tablet.overridePressure;
     if (!Tablet.plugin)
       return 1.0;
-    // d32cast[0] = pressure;
-    // return d32cast[0];
   };
 
   Tablet.getPressureIntensity = function () {

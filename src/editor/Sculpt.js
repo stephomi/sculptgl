@@ -97,13 +97,7 @@ define([
       tool.start(main, ctrl);
       if (!main.getPicking().getMesh() || !this.isUsingContinuous())
         return;
-      // we do not execute this code if we are replaying
-      if (main.isReplayed())
-        return;
-      this.sculptTimer_ = window.setInterval(function () {
-        main.getReplayWriter().pushAction('SCULPT_UPDATE_CONTINOUS');
-        tool.updateContinuous(main);
-      }, 16.6);
+      this.sculptTimer_ = window.setInterval(tool.updateContinuous.bind(tool, main), 16.6);
     },
     /** End sculpting */
     end: function () {

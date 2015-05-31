@@ -48,9 +48,6 @@ define([
       var selMeshes = main.getSelectedMeshes();
       if (selMeshes.length < 2) return;
 
-      if (!main.isReplayed())
-        main.getReplayWriter().pushAction('MERGE_SELECTION');
-
       var newMesh = Remesh.mergeMeshes(selMeshes, main.getMesh() || selMeshes[0]);
       main.removeMeshes(selMeshes);
       main.getStates().pushStateAddRemove(newMesh, selMeshes.slice());
@@ -95,9 +92,6 @@ define([
         return;
       }
 
-      if (!main.isReplayed())
-        main.getReplayWriter().pushAction('ISOLATE_SELECTION');
-
       var hMeshes = this.hideMeshes_;
       hMeshes.length = 0;
       for (var i = 0; i < meshes.length; ++i) {
@@ -113,9 +107,6 @@ define([
     },
     showAll: function () {
       var main = this.main_;
-      if (!main.isReplayed())
-        main.getReplayWriter().pushAction('SHOW_ALL');
-
       var meshes = main.getMeshes();
       var hMeshes = this.hideMeshes_;
       for (var i = 0, nbAdd = hMeshes.length; i < nbAdd; ++i) {
@@ -126,21 +117,16 @@ define([
       hMeshes.length = 0;
     },
     onShowSymmetryLine: function (val) {
-      // TODO push in the replayer...
       ShaderBase.showSymmetryLine = val;
       this.main_.render();
     },
     onShowGrid: function (bool) {
       var main = this.main_;
-      if (!main.isReplayed())
-        main.getReplayWriter().pushAction('SHOW_GRID', bool);
       main.showGrid_ = bool;
       main.render();
     },
     onShowContour: function (bool) {
       var main = this.main_;
-      if (!main.isReplayed())
-        main.getReplayWriter().pushAction('SHOW_CONTOUR', bool);
       main.showContour_ = bool;
       main.render();
     }

@@ -40,20 +40,6 @@ define([], function () {
     fileExportOBJ: 'Сохранить .obj',
     fileExportPLY: 'Сохранить .ply',
     fileExportSTL: 'Сохранить .stl',
-    fileReplayerTitle: 'Проиграть (BETA)',
-    fileReplayerImport: 'Открыть .rep',
-    fileReplayerExport: 'Сохранить .rep',
-    fileReplayerUpload: 'Выгрузить(<10Mb).rep ',
-    fileReplayerUploadStart: null,
-    fileReplayerError: null,
-    fileReplayerSuccess: null,
-    fileReplayerAbort: null,
-
-    // replayer
-    replayTitle: 'Конфигурация',
-    replayPaused: 'Пауза',
-    replaySpeed: 'Скорость',
-    replayOverride: 'Задать',
 
     // scene
     sceneTitle: 'Сцена',

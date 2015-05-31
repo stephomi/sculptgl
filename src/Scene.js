@@ -5,8 +5,6 @@ define([
   'editor/Sculpt',
   'editor/Subdivision',
   'files/Import',
-  'files/ReplayWriter',
-  'files/ReplayReader',
   'gui/Gui',
   'math3d/Camera',
   'math3d/Picking',
@@ -22,7 +20,7 @@ define([
   'render/Rtt',
   'render/shaders/ShaderMatcap',
   'render/WebGLCaps'
-], function (glm, getUrlOptions, Utils, Sculpt, Subdivision, Import, ReplayWriter, ReplayReader, Gui, Camera, Picking, Background, Selection, Grid, Mesh, Multimesh, Primitive, States, Contour, Render, Rtt, ShaderMatcap, WebGLCaps) {
+], function (glm, getUrlOptions, Utils, Sculpt, Subdivision, Import, Gui, Camera, Picking, Background, Selection, Grid, Mesh, Multimesh, Primitive, States, Contour, Render, Rtt, ShaderMatcap, WebGLCaps) {
 
   'use strict';
 
@@ -54,11 +52,6 @@ define([
     this.focusGui_ = false; // if the gui is being focused
     this.gui_ = new Gui(this);
 
-    // misc stuffs
-    this.replayerWriter_ = new ReplayWriter(this); // the user event stack replayer
-    this.replayerReader_ = new ReplayReader(this); // reader replayer
-    this.isReplayed_ = false; // if we want to save the replay mode
-
     this.preventRender_ = false; // prevent multiple render per frame
     this.drawFullScene_ = false; // render everything on the rtt
     this.autoMatrix_ = opts.scalecenter; // scale and center the imported meshes
@@ -80,13 +73,6 @@ define([
       this.gui_.initGui();
       this.onCanvasResize();
       this.addSphere();
-      this.getReplayReader().checkURL();
-    },
-    getReplayWriter: function () {
-      return this.replayerWriter_;
-    },
-    getReplayReader: function () {
-      return this.replayerReader_;
     },
     getBackground: function () {
       return this.background_;
@@ -120,12 +106,6 @@ define([
     },
     getStates: function () {
       return this.states_;
-    },
-    isReplayed: function () {
-      return this.isReplayed_;
-    },
-    setReplayed: function (isReplayed) {
-      this.isReplayed_ = isReplayed;
     },
     setMesh: function (mesh) {
       return this.setOrUnsetMesh(mesh);
@@ -291,9 +271,6 @@ define([
       var newWidth = this.gl_.viewportWidth = this.camera_.width_ = this.canvas_.width;
       var newHeight = this.gl_.viewportHeight = this.camera_.height_ = this.canvas_.height;
 
-      if (!this.isReplayed())
-        this.getReplayWriter().pushAction('CAMERA_SIZE', newWidth, newHeight);
-
       this.background_.onResize(newWidth, newHeight);
       this.rtt_.onResize(newWidth, newHeight);
       this.contour_.onResize(newWidth, newHeight);
@@ -352,9 +329,6 @@ define([
     },
     /** Load the sphere */
     addSphere: function () {
-      if (!this.isReplayed())
-        this.getReplayWriter().pushAction('ADD_SPHERE');
-
       // make a cube and subdivide it
       var mesh = new Multimesh(Primitive.createCube(this.gl_));
       while (mesh.getNbFaces() < 50000)
@@ -366,9 +340,6 @@ define([
       return this.addNewMesh(mesh);
     },
     addCube: function () {
-      if (!this.isReplayed())
-        this.getReplayWriter().pushAction('ADD_CUBE');
-
       var mesh = new Multimesh(Primitive.createCube(this.gl_));
       glm.mat4.scale(mesh.getMatrix(), mesh.getMatrix(), [0.7, 0.7, 0.7]);
       Subdivision.LINEAR = true;
@@ -405,9 +376,6 @@ define([
         meshes.push(mesh);
       }
 
-      if (!this.isReplayed())
-        this.getReplayWriter().pushLoadMeshes(newMeshes, fileData, fileType, autoMatrix);
-
       if (autoMatrix)
         this.scaleAndCenterMeshes(newMeshes);
       this.states_.pushStateAdd(newMeshes);
@@ -425,14 +393,10 @@ define([
       this.autoMatrix_ = opts.scalecenter;
       this.setMesh(null);
       this.mouseButton_ = 0;
-      this.getReplayWriter().reset();
     },
     deleteCurrentSelection: function () {
       if (!this.mesh_)
         return;
-
-      if (!this.isReplayed())
-        this.getReplayWriter().pushAction('DELETE_SELECTION');
 
       this.removeMeshes(this.selectMeshes_);
       this.states_.pushStateRemove(this.selectMeshes_.slice());
@@ -485,8 +449,6 @@ define([
       if (tool && tool.ctrlAlpha_) tool.ctrlAlpha_.setValue(id);
     },
     loadAlphaTexture: function (u8, w, h, name) {
-      if (!this.isReplayed() && name)
-        this.getReplayWriter().pushLoadAlpha(u8, w, h);
       var ans = Picking.ALPHAS_NAMES;
       ans.push(name || 'alpha_' + ans.length);
       return Picking.addAlpha(u8, w, h);
