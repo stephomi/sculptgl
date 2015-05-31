@@ -96,21 +96,15 @@ define([
       }
       switch (key) {
       case 37: // LEFT
-      case 81: // Q
-      case 65: // A
         camera.moveX_ = -1;
         break;
       case 39: // RIGHT
-      case 68: // D
         camera.moveX_ = 1;
         break;
       case 38: // UP
-      case 90: // Z
-      case 87: // W
         camera.moveZ_ = -1;
         break;
       case 40: // DOWN
-      case 83: // S
         camera.moveZ_ = 1;
         break;
       default:
@@ -138,17 +132,11 @@ define([
       var camera = this.camera_;
       switch (key) {
       case 37: // LEFT
-      case 81: // Q
-      case 65: // A
       case 39: // RIGHT
-      case 68: // D
         camera.moveX_ = 0;
         break;
       case 38: // UP
-      case 90: // Z
-      case 87: // W
       case 40: // DOWN
-      case 83: // S
         camera.moveZ_ = 0;
         break;
       case 32: // SPACE

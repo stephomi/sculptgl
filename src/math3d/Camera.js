@@ -31,9 +31,7 @@ define([
     this.fov_ = Math.min(opts.fov, 150); // vertical field of view
 
     // translation stuffs
-    this.zoom_ = 30.0; // zoom value
-    this.transX_ = 0.0; // translation in x
-    this.transY_ = 0.0; // translation in y
+    this.trans_ = [0.0, 0.0, 30.0];
     this.moveX_ = 0; // free look (strafe), possible values : -1, 0, 1
     this.moveZ_ = 0; // free look (strafe), possible values : -1, 0, 1
 
@@ -131,7 +129,7 @@ define([
         // adjust zoom
         if (this.projType_ === Camera.projType.PERSPECTIVE) {
           var oldZoom = this.getTransZ();
-          this.zoom_ = vec3.dist(this.computePosition(), this.center_) * this.fov_ / 45;
+          this.trans_[2] = vec3.dist(this.computePosition(), this.center_) * this.fov_ / 45;
           var newZoom = this.getTransZ();
           this.offset_[2] += newZoom - oldZoom;
         }
@@ -171,7 +169,7 @@ define([
       };
     })(),
     getTransZ: function () {
-      return this.projType_ === Camera.projType.PERSPECTIVE ? this.zoom_ * 45 / this.fov_ : 1000.0;
+      return this.projType_ === Camera.projType.PERSPECTIVE ? this.trans_[2] * 45 / this.fov_ : 1000.0;
     },
     updateView: (function () {
       var up = [0.0, 1.0, 0.0];
@@ -182,8 +180,8 @@ define([
 
       return function () {
         var view = this.view_;
-        var tx = this.transX_;
-        var ty = this.transY_;
+        var tx = this.trans_[0];
+        var ty = this.trans_[1];
 
         var off = this.offset_;
         vec3.set(eye, tx - off[0], ty - off[1], this.getTransZ() - off[2]);
@@ -201,7 +199,7 @@ define([
         if (!bb) bb = this.lastBBox_;
         if (!bb) return;
         this.lastBBox_ = bb;
-        vec3.set(eye, this.transX_, this.transY_, this.getTransZ());
+        vec3.set(eye, this.trans_[0], this.trans_[1], this.getTransZ());
         var diag = vec3.dist(bb, vec3.set(tmp, bb[3], bb[4], bb[5]));
         var dist = vec3.dist(eye, vec3.set(tmp, (bb[0] + bb[3]) * 0.5, (bb[1] + bb[4]) * 0.5, (bb[2] + bb[5]) * 0.5));
         this.near_ = Math.max(0.01, dist - diag);
@@ -219,31 +217,32 @@ define([
       }
     },
     updateTranslation: function () {
-      this.transX_ += this.moveX_ * this.speed_ * this.zoom_ / 50 / 400.0;
-      this.zoom_ = Math.max(0.00001, this.zoom_ + this.moveZ_ * this.speed_ / 400.0);
+      var trans = this.trans_;
+      trans[0] += this.moveX_ * this.speed_ * trans[2] / 50 / 400.0;
+      trans[2] = Math.max(0.00001, trans[2] + this.moveZ_ * this.speed_ / 400.0);
       if (this.projType_ === Camera.projType.ORTHOGRAPHIC)
         this.updateOrtho();
       this.updateView();
     },
     translate: function (dx, dy) {
-      var factor = this.speed_ * this.zoom_ / 50;
-      this.transX_ -= dx * factor;
-      this.transY_ += dy * factor;
+      var factor = this.speed_ * this.trans_[2] / 50;
+      this.trans_[0] -= dx * factor;
+      this.trans_[1] += dy * factor;
       this.updateView();
     },
     zoom: function (delta) {
       var off = this.offset_;
       var factor = delta * this.speed_ / 54;
-      this.transX_ += (off[0] - this.transX_) * Math.max(factor, 0.0);
-      this.transY_ += (off[1] - this.transY_) * Math.max(factor, 0.0);
-      this.zoom_ += (off[2] - this.zoom_) * factor;
+      this.trans_[0] += (off[0] - this.trans_[0]) * Math.max(factor, 0.0);
+      this.trans_[1] += (off[1] - this.trans_[1]) * Math.max(factor, 0.0);
+      this.trans_[2] += (off[2] - this.trans_[2]) * factor;
 
       if (this.projType_ === Camera.projType.ORTHOGRAPHIC)
         this.updateOrtho();
       this.updateView();
     },
     updateOrtho: function () {
-      var delta = Math.abs(this.zoom_) * 0.00055;
+      var delta = Math.abs(this.trans_[2]) * 0.00055;
       mat4.ortho(this.proj_, -this.width_ * delta, this.width_ * delta, -this.height_ * delta, this.height_ * delta, -this.near_, this.far_);
     },
     computePosition: function () {
@@ -253,14 +252,13 @@ define([
       mat3.fromMat4(rot, view);
       return vec3.transformMat3(pos, pos, mat3.transpose(rot, rot));
     },
-    /** Reset camera */
     resetView: function () {
-      this.transX_ = this.transY_ = this.rotX_ = this.rotY_ = 0.0;
+      this.rotX_ = this.rotY_ = 0.0;
       this.speed_ = Utils.SCALE * 0.9;
       quat.identity(this.quatRot_);
       vec3.set(this.center_, 0.0, 0.0, 0.0);
       vec3.set(this.offset_, 0.0, 0.0, 0.0);
-      this.zoom_ = 30;
+      vec3.set(this.trans_, 0.0, 0.0, 30.0);
       this.zoom(-0.6);
     },
     resetViewFront: function () {
@@ -398,59 +396,35 @@ define([
         this.updateView();
       };
     })(),
-    copyCamera: function (cam) {
-      mat4.copy(this.view_, cam.view_);
-      quat.copy(this.quatRot_, cam.quatRot_);
-      vec3.copy(this.center_, cam.center_);
-      vec3.copy(this.offset_, cam.offset_);
-
-      this.transX_ = cam.transX_;
-      this.transY_ = cam.transY_;
-      this.rotX_ = cam.rotX_;
-      this.rotY_ = cam.rotY_;
-      this.zoom_ = cam.zoom_;
-
-      if (this.getMode() !== cam.getMode())
-        this.setMode(cam.getMode());
-      if (this.getProjType() !== cam.getProjType())
-        this.setProjType(cam.getProjType());
-      if (this.getFov() !== cam.getFov())
-        this.setFov(cam.getFov());
-    },
     moveAnimationTo: function (x, y, z, main) {
-      main.focusGui_ = true;
-      var duration = 400;
-      var tx = this.transX_;
-      var ty = this.transY_;
-      var tz = this.zoom_;
+      if (this.timer_)
+        window.clearInterval(this.timer_);
+
+      var duration = 1000;
+      var trans = this.trans_;
+      var delta = [x, y, z];
+      vec3.sub(delta, delta, trans);
+      var lastR = 0;
 
       var tStart = (new Date()).getTime();
-      var timer = window.setInterval(function () {
+      this.timer_ = window.setInterval(function () {
         var r = ((new Date()).getTime() - tStart) / duration;
         r = Math.min(1.0, r);
         // ease out quart
         r = r - 1;
         r = -(r * r * r * r - 1);
 
-        var newx = tx * (1.0 - r) + x * r;
-        var newy = ty * (1.0 - r) + y * r;
-        var newz = tz * (1.0 - r) + z * r;
-        this.moveTo(newx, newy, newz);
+        var dr = r - lastR;
+        lastR = r;
+        vec3.scaleAndAdd(trans, trans, delta, dr);
+        if (this.projType_ === Camera.projType.ORTHOGRAPHIC)
+          this.updateOrtho();
+        this.updateView();
 
         main.render();
-        if (r === 1.0) {
-          main.focusGui_ = false;
-          window.clearInterval(timer);
-        }
+        if (r >= 1.0)
+          window.clearInterval(this.timer_);
       }.bind(this), 16.6);
-    },
-    moveTo: function (tx, ty, tz) {
-      this.transX_ = tx;
-      this.transY_ = ty;
-      this.zoom_ = tz;
-      if (this.projType_ === Camera.projType.ORTHOGRAPHIC)
-        this.updateOrtho();
-      this.updateView();
     }
   };
 
