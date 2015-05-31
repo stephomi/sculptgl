@@ -103,12 +103,15 @@ define([
     getUsePivot: function () {
       return this.usePivot_;
     },
-    /** Start camera (store mouse coordinates) */
     start: (function () {
       var pivot = [0.0, 0.0, 0.0];
-      return function (mouseX, mouseY, picking) {
+      return function (mouseX, mouseY, main) {
         this.lastNormalizedMouseXY_ = Geometry.normalizedMouse(mouseX, mouseY, this.width_, this.height_);
-        if (this.usePivot_ && picking.getMesh()) {
+        if (!this.usePivot_)
+          return;
+        var picking = main.getPicking();
+        picking.intersectionMouseMeshes(main.getMeshes(), mouseX, mouseY);
+        if (picking.getMesh()) {
           vec3.transformMat4(pivot, picking.getIntersectionPoint(), picking.getMesh().getMatrix());
           this.setPivot(pivot);
         }
@@ -170,7 +173,6 @@ define([
     getTransZ: function () {
       return this.projType_ === Camera.projType.PERSPECTIVE ? this.zoom_ * 45 / this.fov_ : 1000.0;
     },
-    /** Update model view matrices */
     updateView: (function () {
       var up = [0.0, 1.0, 0.0];
       var eye = [0.0, 0.0, 0.0];
@@ -224,28 +226,26 @@ define([
       this.updateView();
     },
     translate: function (dx, dy) {
-      this.transX_ -= dx * this.speed_ * this.zoom_ / 50;
-      this.transY_ += dy * this.speed_ * this.zoom_ / 50;
+      var factor = this.speed_ * this.zoom_ / 50;
+      this.transX_ -= dx * factor;
+      this.transY_ += dy * factor;
       this.updateView();
     },
-    /** Zoom */
     zoom: function (delta) {
-      this.zoom_ = Math.max(0.00001, this.zoom_ * (1.0 - delta * this.speed_ / 54));
-
-      var focus = Math.min(1.0, Math.abs(delta) * 5.0);
-      this.transX_ -= (this.transX_ - this.offset_[0]) * focus;
-      this.transY_ -= (this.transY_ - this.offset_[1]) * focus;
+      var off = this.offset_;
+      var factor = delta * this.speed_ / 54;
+      this.transX_ += (off[0] - this.transX_) * Math.max(factor, 0.0);
+      this.transY_ += (off[1] - this.transY_) * Math.max(factor, 0.0);
+      this.zoom_ += (off[2] - this.zoom_) * factor;
 
       if (this.projType_ === Camera.projType.ORTHOGRAPHIC)
         this.updateOrtho();
       this.updateView();
     },
-    /** Update orthographic projection */
     updateOrtho: function () {
       var delta = Math.abs(this.zoom_) * 0.00055;
       mat4.ortho(this.proj_, -this.width_ * delta, this.width_ * delta, -this.height_ * delta, this.height_ * delta, -this.near_, this.far_);
     },
-    /** Return the position of the camera */
     computePosition: function () {
       var view = this.view_;
       var pos = [-view[12], -view[13], -view[14]];

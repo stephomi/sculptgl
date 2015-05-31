@@ -298,6 +298,7 @@ define([
       if (!this.isReplayed())
         this.getReplayWriter().pushAction('DEVICE_WHEEL', dir);
 
+      this.camera_.start(this.mouseX_, this.mouseY_, this);
       this.camera_.zoom(dir * 0.02);
       Multimesh.RENDER_HINT = Multimesh.CAMERA;
       this.render();
@@ -360,11 +361,8 @@ define([
         this.mouseButton_ = 3; // rotate camera
       }
       // zoom or rotate camera
-      if (this.mouseButton_ === 3 || this.mouseButton_ === 4) {
-        if (this.camera_.usePivot_)
-          picking.intersectionMouseMeshes(this.meshes_, mouseX, mouseY);
-        this.camera_.start(mouseX, mouseY, picking);
-      }
+      if (this.mouseButton_ === 3 || this.mouseButton_ === 4)
+        this.camera_.start(mouseX, mouseY, this);
 
       this.lastMouseX_ = mouseX;
       this.lastMouseY_ = mouseY;
