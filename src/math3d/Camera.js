@@ -14,12 +14,25 @@ define([
   var mat4 = glm.mat4;
   var quat = glm.quat;
 
-  var Camera = function () {
+  var easeOutQuart = function (r) {
+    r = Math.min(1.0, r);
+    r = r - 1;
+    return -(r * r * r * r - 1);
+  };
+
+  var DELAY_SNAP = 200;
+  var DELAY_ROTATE = 200;
+  var DELAY_TRANSLATE = 200;
+  var DELAY_MOVE_TO = 500;
+
+  var Camera = function (main) {
+    this._main = main;
+
     var opts = getUrlOptions();
     this._mode = Camera.mode[opts.cameramode] || Camera.mode.ORBIT;
     this._projType = Camera.projType[opts.projection] || Camera.projType.PERSPECTIVE;
 
-    this._quatRot = quat.create(); // quaternion rotation
+    this._quatRot = [0.0, 0.0, 0.0, 1.0]; // quaternion rotation
     this._view = mat4.create(); // view matrix
     this._proj = mat4.create(); // projection matrix
 
@@ -47,6 +60,8 @@ define([
     // near far
     this._near = 0.05;
     this._far = 5000.0;
+
+    this._timers = {}; // animation timers
 
     this.resetView();
   };
@@ -103,10 +118,11 @@ define([
     },
     start: (function () {
       var pivot = [0.0, 0.0, 0.0];
-      return function (mouseX, mouseY, main) {
+      return function (mouseX, mouseY) {
         this._lastNormalizedMouseXY = Geometry.normalizedMouse(mouseX, mouseY, this._width, this._height);
         if (!this._usePivot)
           return;
+        var main = this._main;
         var picking = main.getPicking();
         picking.intersectionMouseMeshes(main.getMeshes(), mouseX, mouseY);
         if (picking.getMesh()) {
@@ -116,9 +132,9 @@ define([
       };
     })(),
     setPivot: (function () {
-      var qTemp = quat.create();
+      var qTmp = [0.0, 0.0, 0.0, 1.0];
       return function (pivot) {
-        vec3.transformQuat(this._offset, this._offset, quat.invert(qTemp, this._quatRot));
+        vec3.transformQuat(this._offset, this._offset, quat.invert(qTmp, this._quatRot));
         vec3.sub(this._offset, this._offset, this._center);
 
         // set new pivot
@@ -130,8 +146,7 @@ define([
         if (this._projType === Camera.projType.PERSPECTIVE) {
           var oldZoom = this.getTransZ();
           this._trans[2] = vec3.dist(this.computePosition(), this._center) * this._fov / 45;
-          var newZoom = this.getTransZ();
-          this._offset[2] += newZoom - oldZoom;
+          this._offset[2] += this.getTransZ() - oldZoom;
         }
       };
     })(),
@@ -147,27 +162,37 @@ define([
         var normalizedMouseXY = Geometry.normalizedMouse(mouseX, mouseY, this._width, this._height);
         if (this._mode === Camera.mode.ORBIT) {
           vec2.sub(diff, normalizedMouseXY, this._lastNormalizedMouseXY);
-          this._rotX = Math.max(Math.min(this._rotX - diff[1] * 2, Math.PI * 0.5), -Math.PI * 0.5);
-          this._rotY = this._rotY + diff[0] * 2;
-          quat.identity(this._quatRot);
-          quat.rotateX(this._quatRot, this._quatRot, this._rotX);
-          quat.rotateY(this._quatRot, this._quatRot, this._rotY);
+          this.setOrbit(this._rotX - diff[1] * 2, this._rotY + diff[0] * 2);
+
+          this.rotateDelay([-diff[1] * 6, diff[0] * 6], DELAY_ROTATE);
         } else if (this._mode === Camera.mode.PLANE) {
           var length = vec2.dist(this._lastNormalizedMouseXY, normalizedMouseXY);
           vec2.sub(diff, normalizedMouseXY, this._lastNormalizedMouseXY);
           vec3.normalize(axisRot, vec3.set(axisRot, -diff[1], diff[0], 0.0));
           quat.mul(this._quatRot, quat.setAxisAngle(quatTmp, axisRot, length * 2.0), this._quatRot);
+
+          this.rotateDelay([axisRot[0], axisRot[1], axisRot[2], length * 6], DELAY_ROTATE);
         } else if (this._mode === Camera.mode.SPHERICAL) {
           var mouseOnSphereBefore = Geometry.mouseOnUnitSphere(this._lastNormalizedMouseXY);
           var mouseOnSphereAfter = Geometry.mouseOnUnitSphere(normalizedMouseXY);
           var angle = Math.acos(Math.min(1.0, vec3.dot(mouseOnSphereBefore, mouseOnSphereAfter)));
           vec3.normalize(axisRot, vec3.cross(axisRot, mouseOnSphereBefore, mouseOnSphereAfter));
           quat.mul(this._quatRot, quat.setAxisAngle(quatTmp, axisRot, angle * 2.0), this._quatRot);
+
+          this.rotateDelay([axisRot[0], axisRot[1], axisRot[2], angle * 6], DELAY_ROTATE);
         }
         this._lastNormalizedMouseXY = normalizedMouseXY;
         this.updateView();
       };
     })(),
+    setOrbit: function (rx, ry) {
+      this._rotX = Math.max(Math.min(rx, Math.PI * 0.5), -Math.PI * 0.5);
+      this._rotY = ry;
+      var qrt = this._quatRot;
+      quat.identity(qrt);
+      quat.rotateX(qrt, qrt, this._rotX);
+      quat.rotateY(qrt, qrt, this._rotY);
+    },
     getTransZ: function () {
       return this._projType === Camera.projType.PERSPECTIVE ? this._trans[2] * 45 / this._fov : 1000.0;
     },
@@ -225,25 +250,40 @@ define([
       this.updateView();
     },
     translate: function (dx, dy) {
-      var factor = this._speed * this._trans[2] / 50;
-      this._trans[0] -= dx * factor;
-      this._trans[1] += dy * factor;
-      this.updateView();
-    },
-    zoom: function (delta) {
-      var off = this._offset;
-      var factor = delta * this._speed / 54;
-      this._trans[0] += (off[0] - this._trans[0]) * Math.max(factor, 0.0);
-      this._trans[1] += (off[1] - this._trans[1]) * Math.max(factor, 0.0);
-      this._trans[2] += (off[2] - this._trans[2]) * factor;
+      var factor = this._speed * this._trans[2] / 54;
+      var delta = [-dx * factor, dy * factor, 0.0];
+      this.setTrans(vec3.add(this._trans, this._trans, delta));
 
+      vec3.scale(delta, delta, 5);
+      this.translateDelay(delta, DELAY_TRANSLATE);
+    },
+    zoom: function (df) {
+      var delta = [0.0, 0.0, 0.0];
+      vec3.sub(delta, this._offset, this._trans);
+      vec3.scale(delta, delta, df * this._speed / 54);
+      if (df < 0.0)
+        delta[0] = delta[1] = 0.0;
+      this.setTrans(vec3.add(this._trans, this._trans, delta));
+
+      vec3.scale(delta, delta, 5);
+      this.translateDelay(delta, DELAY_TRANSLATE);
+    },
+    moveToDelay: function (x, y, z) {
+      var delta = [x, y, z];
+      vec3.sub(delta, delta, this._trans);
+      this.translateDelay(delta, DELAY_MOVE_TO);
+    },
+    setTrans: function (trans) {
+      vec3.copy(this._trans, trans);
       if (this._projType === Camera.projType.ORTHOGRAPHIC)
         this.updateOrtho();
       this.updateView();
     },
     updateOrtho: function () {
       var delta = Math.abs(this._trans[2]) * 0.00055;
-      mat4.ortho(this._proj, -this._width * delta, this._width * delta, -this._height * delta, this._height * delta, -this._near, this._far);
+      var w = this._width * delta;
+      var h = this._height * delta;
+      mat4.ortho(this._proj, -w, w, -h, h, -this._near, this._far);
     },
     computePosition: function () {
       var view = this._view;
@@ -253,51 +293,34 @@ define([
       return vec3.transformMat3(pos, pos, mat3.transpose(rot, rot));
     },
     resetView: function () {
-      this._rotX = this._rotY = 0.0;
       this._speed = Utils.SCALE * 0.9;
-      quat.identity(this._quatRot);
-      vec3.set(this._center, 0.0, 0.0, 0.0);
-      vec3.set(this._offset, 0.0, 0.0, 0.0);
-      vec3.set(this._trans, 0.0, 0.0, 30.0);
-      this.zoom(-0.6);
+      this.centerDelay([0.0, 0.0, 0.0], DELAY_MOVE_TO);
+      this.offsetDelay([0.0, 0.0, 0.0], DELAY_MOVE_TO);
+      var delta = [0.0, 0.0, 30.0 + this._speed / 3.0];
+      vec3.sub(delta, delta, this._trans);
+      this.translateDelay(delta, DELAY_MOVE_TO);
+      this.quatDelay([0.0, 0.0, 0.0, 1.0], DELAY_MOVE_TO);
     },
     resetViewFront: function () {
-      this._rotX = this._rotY = 0.0;
-      quat.set(this._quatRot, 0, 0, 0, 1);
-      this.updateView();
+      this.quatDelay([0.0, 0.0, 0.0, 1.0], DELAY_SNAP);
     },
     resetViewBack: function () {
-      this._rotX = 0.0;
-      this._rotY = Math.PI;
-      quat.set(this._quatRot, 0, 1, 0, 0);
-      this.updateView();
+      this.quatDelay([0.0, 1.0, 0.0, 0.0], DELAY_SNAP);
     },
     resetViewTop: function () {
-      this._rotX = Math.PI * 0.5;
-      this._rotY = 0.0;
-      quat.set(this._quatRot, Math.SQRT1_2, 0, 0, Math.SQRT1_2);
-      this.updateView();
+      this.quatDelay([Math.SQRT1_2, 0.0, 0.0, Math.SQRT1_2], DELAY_SNAP);
     },
     resetViewBottom: function () {
-      this._rotX = -Math.PI * 0.5;
-      this._rotY = 0.0;
-      quat.set(this._quatRot, -Math.SQRT1_2, 0, 0, Math.SQRT1_2);
-      this.updateView();
+      this.quatDelay([-Math.SQRT1_2, 0.0, 0.0, Math.SQRT1_2], DELAY_SNAP);
     },
     resetViewLeft: function () {
-      this._rotX = 0.0;
-      this._rotY = -Math.PI * 0.5;
-      quat.set(this._quatRot, 0, -Math.SQRT1_2, 0, Math.SQRT1_2);
-      this.updateView();
+      this.quatDelay([0.0, -Math.SQRT1_2, 0.0, Math.SQRT1_2], DELAY_SNAP);
     },
     resetViewRight: function () {
-      this._rotX = 0.0;
-      this._rotY = Math.PI * 0.5;
-      quat.set(this._quatRot, 0, Math.SQRT1_2, 0, Math.SQRT1_2);
-      this.updateView();
+      this.quatDelay([0.0, Math.SQRT1_2, 0.0, Math.SQRT1_2], DELAY_SNAP);
     },
     toggleViewFront: function () {
-      if (this._quatRot[3] > 0.99) this.resetViewBack();
+      if (Math.abs(this._quatRot[3]) > 0.99) this.resetViewBack();
       else this.resetViewFront();
     },
     toggleViewTop: function () {
@@ -371,9 +394,8 @@ define([
       ];
       var nbQComp = qComp.length;
       return function () {
-        // probably not the fastest way to do this thing :)
         var qrot = this._quatRot;
-        var min = 50;
+        var min = Infinity;
         var id = 0;
         for (var i = 0; i < nbQComp; ++i) {
           var dot = quat.dot(qrot, qComp[i]);
@@ -383,48 +405,107 @@ define([
           min = dot;
           id = i;
         }
-        quat.copy(qrot, qComp[id]);
-        if (this._mode === Camera.mode.ORBIT) {
-          var qx = qrot[3];
-          var qy = qrot[1];
-          var qz = qrot[2];
-          var qw = qrot[0];
-          // find back euler values
-          this._rotY = Math.atan2(2 * (qx * qy + qz * qw), 1 - 2 * (qy * qy + qz * qz));
-          this._rotX = Math.atan2(2 * (qx * qw + qy * qz), 1 - 2 * (qz * qz + qw * qw));
-        }
-        this.updateView();
+        this.quatDelay(qComp[id], DELAY_SNAP);
       };
     })(),
-    moveAnimationTo: function (x, y, z, main) {
-      if (this._timer)
-        window.clearInterval(this._timer);
+    delay: function (cb, duration, name) {
+      var nTimer = name || 'default';
+      if (this._timers[nTimer])
+        window.clearInterval(this._timers[nTimer]);
 
-      var duration = 1000;
-      var trans = this._trans;
-      var delta = [x, y, z];
-      vec3.sub(delta, delta, trans);
       var lastR = 0;
-
       var tStart = (new Date()).getTime();
-      this._timer = window.setInterval(function () {
+      this._timers[nTimer] = window.setInterval(function () {
         var r = ((new Date()).getTime() - tStart) / duration;
-        r = Math.min(1.0, r);
-        // ease out quart
-        r = r - 1;
-        r = -(r * r * r * r - 1);
-
-        var dr = r - lastR;
+        r = easeOutQuart(r);
+        cb(r - lastR, r);
         lastR = r;
-        vec3.scaleAndAdd(trans, trans, delta, dr);
-        if (this._projType === Camera.projType.ORTHOGRAPHIC)
-          this.updateOrtho();
-        this.updateView();
-
-        main.render();
-        if (r >= 1.0)
-          window.clearInterval(this._timer);
+        if (r >= 1.0) {
+          window.clearInterval(this._timers[nTimer]);
+          this._timers[nTimer] = 0;
+        }
       }.bind(this), 16.6);
+    },
+    _translateDelta: function (delta, dr) {
+      var trans = this._trans;
+      vec3.scaleAndAdd(trans, trans, delta, dr);
+      this.setTrans(trans);
+      this._main.render();
+    },
+    translateDelay: function (delta, duration) {
+      var cb = this._translateDelta.bind(this, delta);
+      this.delay(cb, duration, 'translate');
+    },
+    _rotDelta: (function () {
+      var qTmp = [0.0, 0.0, 0.0, 0.0];
+      return function (delta, dr) {
+        if (this._mode === Camera.mode.ORBIT) {
+          var rx = this._rotX + delta[0] * dr;
+          var ry = this._rotY + delta[1] * dr;
+          this.setOrbit(rx, ry);
+        } else {
+          quat.mul(this._quatRot, quat.setAxisAngle(qTmp, delta, delta[3] * dr), this._quatRot);
+        }
+        this.updateView();
+        this._main.render();
+      };
+    })(),
+    rotateDelay: function (delta, duration) {
+      var cb = this._rotDelta.bind(this, delta);
+      this.delay(cb, duration, 'rotate');
+    },
+    _quatDelta: (function () {
+      var qr = [0.0, 0.0, 0.0, 0.0];
+      return function (qDelta, dr) {
+        quat.identity(qr);
+        quat.slerp(qr, qr, qDelta, dr);
+        var qrt = this._quatRot;
+        quat.mul(this._quatRot, this._quatRot, qr);
+
+        if (this._mode === Camera.mode.ORBIT) {
+          var qx = qrt[0];
+          var qy = qrt[1];
+          var qz = qrt[2];
+          var qw = qrt[3];
+          // find back euler values
+          this._rotY = Math.atan2(2 * (qw * qy + qz * qx), 1 - 2 * (qy * qy + qz * qz));
+          this._rotX = Math.atan2(2 * (qw * qx + qy * qz), 1 - 2 * (qz * qz + qx * qx));
+        }
+
+        this.updateView();
+        this._main.render();
+      };
+    })(),
+    quatDelay: function (target, duration) {
+      var qDelta = [0.0, 0.0, 0.0, 0.0];
+      quat.conjugate(qDelta, this._quatRot);
+      quat.mul(qDelta, qDelta, target);
+      quat.normalize(qDelta, qDelta);
+
+      var cb = this._quatDelta.bind(this, qDelta);
+      this.delay(cb, duration, 'quat');
+    },
+    _centerDelta: function (delta, dr) {
+      vec3.scaleAndAdd(this._center, this._center, delta, dr);
+      this.updateView();
+      this._main.render();
+    },
+    centerDelay: function (target, duration) {
+      var delta = [0.0, 0.0, 0.0];
+      vec3.sub(delta, target, this._center);
+      var cb = this._centerDelta.bind(this, delta);
+      this.delay(cb, duration, 'center');
+    },
+    _offsetDelta: function (delta, dr) {
+      vec3.scaleAndAdd(this._offset, this._offset, delta, dr);
+      this.updateView();
+      this._main.render();
+    },
+    offsetDelay: function (target, duration) {
+      var delta = [0.0, 0.0, 0.0];
+      vec3.sub(delta, target, this._offset);
+      var cb = this._offsetDelta.bind(this, delta);
+      this.delay(cb, duration, 'offset');
     }
   };
 

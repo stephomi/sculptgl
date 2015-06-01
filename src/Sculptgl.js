@@ -20,6 +20,7 @@ define([
     this._lastScale = 0;
     this._mouseButton = 0;
     this._lastNbPointers = 0;
+    this._isWheelingIn = false;
 
     // masking
     this._checkMask = false;
@@ -124,11 +125,11 @@ define([
           diag = 0.8 * glm.vec3.dist([box[0], box[1], box[2]], [box[3], box[4], box[5]]);
         }
         cam.setPivot(pivot);
-        cam.moveAnimationTo(cam._offset[0], cam._offset[1], diag, this);
+        cam.moveToDelay(cam._offset[0], cam._offset[1], diag);
       } else {
         glm.vec3.transformMat4(pivot, picking.getIntersectionPoint(), picking.getMesh().getMatrix());
         cam.setPivot(pivot);
-        cam.moveAnimationTo(cam._offset[0], cam._offset[1], 20.0, this);
+        cam.moveToDelay(cam._offset[0], cam._offset[1], 20.0);
       }
       this.render();
     },
@@ -279,7 +280,10 @@ define([
       this.onDeviceWheel(dir > 0 ? 1 : -1);
     },
     onDeviceWheel: function (dir) {
-      this._camera.start(this._mouseX, this._mouseY, this);
+      if (dir > 0.0 && !this._isWheelingIn) {
+        this._isWheelingIn = true;
+        this._camera.start(this._mouseX, this._mouseY);
+      }
       this._camera.zoom(dir * 0.02);
       Multimesh.RENDER_HINT = Multimesh.CAMERA;
       this.render();
@@ -290,6 +294,7 @@ define([
     },
     endWheel: function () {
       Multimesh.RENDER_HINT = Multimesh.NONE;
+      this._isWheelingIn = false;
       this.render();
     },
     setMousePosition: function (event) {
@@ -339,7 +344,7 @@ define([
       }
       // zoom or rotate camera
       if (this._mouseButton === 3 || this._mouseButton === 4)
-        this._camera.start(mouseX, mouseY, this);
+        this._camera.start(mouseX, mouseY);
 
       this._lastMouseX = mouseX;
       this._lastMouseY = mouseY;

@@ -31,7 +31,7 @@ define([
     // core of the app
     this._states = new States(this); // for undo-redo
     this._sculpt = new Sculpt(this);
-    this._camera = new Camera();
+    this._camera = new Camera(this);
     this._picking = new Picking(this); // the ray picking
     this._pickingSym = new Picking(this, true); // the symmetrical picking
 
