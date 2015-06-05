@@ -71,7 +71,7 @@ define([
       this.updateRender();
     },
     blur: function () {
-      var mesh = this._mesh;
+      var mesh = this._mesh = this._main.getMesh();
       var iVerts = this.getMaskedVertices();
       if (iVerts.length === 0)
         return;
@@ -89,7 +89,7 @@ define([
       this.updateAndRenderMask();
     },
     sharpen: function () {
-      var mesh = this._mesh;
+      var mesh = this._mesh = this._main.getMesh();
       var iVerts = this.getMaskedVertices();
       if (iVerts.length === 0)
         return;
@@ -107,7 +107,7 @@ define([
       this.updateAndRenderMask();
     },
     clear: function () {
-      var mesh = this._mesh;
+      var mesh = this._mesh = this._main.getMesh();
       var iVerts = this.getMaskedVertices();
       if (iVerts.length === 0)
         return;
@@ -122,7 +122,8 @@ define([
       this.updateAndRenderMask();
     },
     invert: function (isState, meshState) {
-      var mesh = meshState || this._mesh;
+      var mesh = meshState;
+      if (!mesh) mesh = this._mesh = this._main.getMesh();
       if (!isState)
         this._states.pushStateCustom(this.invert.bind(this, true, mesh));
 

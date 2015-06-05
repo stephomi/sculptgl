@@ -131,7 +131,7 @@ define([
       }
     },
     paintAll: function () {
-      var mesh = this._mesh;
+      var mesh = this._mesh = this._main.getMesh();
       var iVerts = this.getUnmaskedVertices();
       if (iVerts.length === 0)
         return;
