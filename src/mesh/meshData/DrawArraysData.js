@@ -29,6 +29,14 @@ define([], function () {
     getTexCoordsDrawArrays: function () {
       return this._texCoordsST;
     },
+    forceDrawArrays: function () {
+      // kind of a hack, to be used if the main arrays are already draw arrays
+      var mesh = this._mesh;
+      this._verticesXYZ = mesh.getVertices();
+      this._normalsXYZ = mesh.getNormals();
+      this._colorsRGB = mesh.getColors();
+      this._materialsPBR = mesh.getMaterials();
+    },
     /** ONLY FOR DYNAMIC MESH */
     reAllocateArrays: function (nbAddElements) {
       var mesh = this._mesh;

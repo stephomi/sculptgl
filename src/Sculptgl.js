@@ -8,6 +8,8 @@ define([
 
   'use strict';
 
+  var vec3 = glm.vec3;
+
   // Manage events
   var SculptGL = function () {
     Scene.call(this);
@@ -18,12 +20,12 @@ define([
     this._lastMouseX = 0;
     this._lastMouseY = 0;
     this._lastScale = 0;
-    this._mouseButton = 0;
+    // NOTHING, MASK_EDIT, SCULPT_EDIT, CAMERA_ZOOM, CAMERA_ROTATE, CAMERA_PAN_ALT, CAMERA_PAN_WHEEL
+    this._action = 'NOTHING';
     this._lastNbPointers = 0;
     this._isWheelingIn = false;
 
     // masking
-    this._checkMask = false;
     this._maskX = 0;
     this._maskY = 0;
     this._hammer = new Hammer.Manager(this._canvas);
@@ -33,6 +35,10 @@ define([
     this.initHammer();
     this.addEvents();
   };
+
+  var MOUSE_LEFT = 1;
+  var MOUSE_MIDDLE = 2;
+  var MOUSE_RIGHT = 3;
 
   SculptGL.prototype = {
     initHammer: function () {
@@ -118,19 +124,19 @@ define([
       var res = picking.intersectionMouseMeshes(this._meshes, this._mouseX, this._mouseY);
       var cam = this._camera;
       var pivot = [0.0, 0.0, 0.0];
+      var zoom = 0;
       if (!res) {
-        var diag = 70.0;
+        zoom = 70.0;
         if (this._meshes.length > 0) {
           var box = this.computeBoundingBoxMeshes(this._meshes);
-          diag = 0.8 * glm.vec3.dist([box[0], box[1], box[2]], [box[3], box[4], box[5]]);
+          zoom = 0.8 * vec3.dist([box[0], box[1], box[2]], [box[3], box[4], box[5]]);
+          vec3.set(pivot, (box[0] + box[3]) * 0.5, (box[1] + box[4]) * 0.5, (box[2] + box[5]) * 0.5);
         }
-        cam.setPivot(pivot);
-        cam.moveToDelay(cam._offset[0], cam._offset[1], diag);
       } else {
-        glm.vec3.transformMat4(pivot, picking.getIntersectionPoint(), picking.getMesh().getMatrix());
-        cam.setPivot(pivot);
-        cam.moveToDelay(cam._offset[0], cam._offset[1], 20.0);
+        vec3.transformMat4(pivot, picking.getIntersectionPoint(), picking.getMesh().getMatrix());
+        zoom = Math.min(cam.getTransZ(), vec3.dist(pivot, cam.computePosition()));
       }
+      cam.setAndFocusOnPivot(pivot, zoom);
       this.render();
     },
     onPinchStart: function (e) {
@@ -259,11 +265,9 @@ define([
     },
     onDeviceUp: function () {
       this._canvas.style.cursor = 'default';
-      this._mouseButton = 0;
       Multimesh.RENDER_HINT = Multimesh.NONE;
       this._sculpt.end();
-      if (this._checkMask) {
-        this._checkMask = false;
+      if (this._action === 'MASK_EDIT') {
         if (this._mesh) {
           if (this._lastMouseX === this._maskX && this._lastMouseY === this._maskY)
             this.getSculpt().getTool('MASKING').invert();
@@ -271,6 +275,7 @@ define([
             this.getSculpt().getTool('MASKING').clear();
         }
       }
+      this._action = 'NOTHING';
       this.render();
     },
     onMouseWheel: function (event) {
@@ -318,32 +323,31 @@ define([
 
       var mouseX = this._mouseX;
       var mouseY = this._mouseY;
-      var button = this._mouseButton = event.which;
+      var button = event.which;
 
-      if (button === 1)
+      if (button === MOUSE_LEFT)
         this._sculpt.start(event.shiftKey);
-      var picking = this._picking;
-      var pickedMesh = picking.getMesh();
-      if (button === 1 && pickedMesh)
+
+      var pickedMesh = this._picking.getMesh();
+      if (button === MOUSE_LEFT && pickedMesh)
         this._canvas.style.cursor = 'none';
 
-      this._checkMask = false;
-      if (button === 3 && event.ctrlKey)
-        this._mouseButton = 4; // zoom camera
-      else if (button === 2)
-        this._mouseButton = 5; // pan camera (wheel mode)
+      if (button === MOUSE_RIGHT && event.ctrlKey)
+        this._action = 'CAMERA_ZOOM';
+      else if (button === MOUSE_MIDDLE)
+        this._action = 'CAMERA_PAN_WHEEL';
       else if (!pickedMesh && event.ctrlKey) {
         this._maskX = mouseX;
         this._maskY = mouseY;
-        this._checkMask = true;
-        this._mouseButton = 0; // mask edit mode
-      } else if ((!pickedMesh || button === 3) && event.altKey)
-        this._mouseButton = 2; // pan camera
-      else if (button === 3 || (button === 1 && !pickedMesh)) {
-        this._mouseButton = 3; // rotate camera
-      }
-      // zoom or rotate camera
-      if (this._mouseButton === 3 || this._mouseButton === 4)
+        this._action = 'MASK_EDIT';
+      } else if ((!pickedMesh || button === MOUSE_RIGHT) && event.altKey)
+        this._action = 'CAMERA_PAN_ALT';
+      else if (button === MOUSE_RIGHT || (button === MOUSE_LEFT && !pickedMesh))
+        this._action = 'CAMERA_ROTATE';
+      else
+        this._action = 'SCULPT_EDIT';
+
+      if (this._action === 'CAMERA_ROTATE' || this._action === 'CAMERA_ZOOM')
         this._camera.start(mouseX, mouseY);
 
       this._lastMouseX = mouseX;
@@ -356,38 +360,40 @@ define([
 
       var mouseX = this._mouseX;
       var mouseY = this._mouseY;
-      var button = this._mouseButton;
+      var action = this._action;
 
-      if (button !== 1 || this._sculpt.allowPicking()) {
+      if (action === 'CAMERA_ZOOM' || (action === 'CAMERA_PAN_ALT' && !event.altKey)) {
+
+        Multimesh.RENDER_HINT = Multimesh.CAMERA;
+        this._camera.zoom((mouseX - this._lastMouseX + mouseY - this._lastMouseY) / 1000);
+        this.render();
+
+      } else if (action === 'CAMERA_PAN_ALT' || action === 'CAMERA_PAN_WHEEL') {
+
+        Multimesh.RENDER_HINT = Multimesh.CAMERA;
+        this._camera.translate((mouseX - this._lastMouseX) / 1000, (mouseY - this._lastMouseY) / 1000);
+        this.render();
+
+      } else if (action === 'CAMERA_ROTATE') {
+
+        Multimesh.RENDER_HINT = Multimesh.CAMERA;
+        if (!event.shiftKey)
+          this._camera.rotate(mouseX, mouseY);
+        this.render();
+
+      } else {
+
         Multimesh.RENDER_HINT = Multimesh.PICKING;
-        if (this._mesh && button === 1)
-          this._picking.intersectionMouseMesh(this._mesh, mouseX, mouseY);
-        else
-          this._picking.intersectionMouseMeshes(this._meshes, mouseX, mouseY);
-        if (this._sculpt.getSymmetry() && this._mesh)
-          this._pickingSym.intersectionMouseMesh(this._mesh, mouseX, mouseY);
-      }
-      if (button !== 0) {
-        if (button === 4 || (button === 2 && !event.altKey)) {
-          this._camera.zoom((mouseX - this._lastMouseX + mouseY - this._lastMouseY) / 1000);
-          Multimesh.RENDER_HINT = Multimesh.CAMERA;
-          this.render();
-        } else if (button === 2 || button === 5) {
-          this._camera.translate((mouseX - this._lastMouseX) / 1000, (mouseY - this._lastMouseY) / 1000);
-          Multimesh.RENDER_HINT = Multimesh.CAMERA;
-          this.render();
-        } else if (button === 3) {
-          if (event.shiftKey) this._camera.snapClosestRotation();
-          else this._camera.rotate(mouseX, mouseY);
-          Multimesh.RENDER_HINT = Multimesh.CAMERA;
-          this.render();
-        } else if (button === 1) {
+        this._sculpt.preUpdate();
+
+        if (action === 'SCULPT_EDIT') {
           Multimesh.RENDER_HINT = Multimesh.SCULPT;
           this._sculpt.update(this);
           if (this.getMesh().getDynamicTopology)
             this._gui.updateMeshInfo();
         }
       }
+
       this._lastMouseX = mouseX;
       this._lastMouseY = mouseY;
       this.renderSelectOverRtt();

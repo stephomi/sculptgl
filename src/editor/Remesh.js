@@ -4,9 +4,8 @@ define([
   'editor/SurfaceNets',
   'math3d/Geometry',
   'mesh/Mesh',
-  'misc/Utils',
-  'render/Shader'
-], function (glm, HoleFilling, SurfaceNets, Geometry, Mesh, Utils, Shader) {
+  'misc/Utils'
+], function (glm, HoleFilling, SurfaceNets, Geometry, Mesh, Utils) {
 
   'use strict';
 
@@ -247,7 +246,7 @@ define([
     for (var i = 0, nbm = meshes.length; i < nbm; ++i) {
       var mesh = meshes[i];
       if (mesh.isUsingTexCoords())
-        mesh.setShader(Shader.mode.PBR);
+        mesh.setShader('PBR');
       var matrix = mesh.getMatrix();
       mesh = HoleFilling.closeHoles(mesh);
       if (mesh === meshes[i])
@@ -334,7 +333,6 @@ define([
     var mAr = arr.materials = arr.materials !== undefined ? new Int32Array(nbFaces * 4) : null;
     var fAr = arr.faces = arr.faces !== undefined ? new Int32Array(nbFaces * 4) : null;
 
-    // multiple meshes => swap xy (sketchfab)
     var ver = [0.0, 0.0, 0.0];
     var offsetVerts = 0;
     var offsetFaces = 0;

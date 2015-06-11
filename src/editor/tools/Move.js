@@ -37,7 +37,7 @@ define([
 
       if (main.getSculpt().getSymmetry()) {
         var pickingSym = main.getPickingSymmetry();
-        pickingSym.intersectionMouseMesh(this._mesh, main._mouseX, main._mouseY);
+        pickingSym.intersectionMouseMesh(this.getMesh(), main._mouseX, main._mouseY);
         pickingSym.setLocalRadius2(picking.getLocalRadius2());
 
         if (pickingSym.getMesh())
@@ -67,7 +67,7 @@ define([
     },
     copyVerticesProxy: function (picking, moveData) {
       var iVerts = picking.getPickedVertices();
-      var vAr = this._mesh.getVertices();
+      var vAr = this.getMesh().getVertices();
       var vProxy = moveData.vProxy;
       for (var i = 0, nbVerts = iVerts.length; i < nbVerts; ++i) {
         var ind = iVerts[i] * 3;
@@ -103,15 +103,18 @@ define([
         this.updateMoveDir(pickingSym, mouseX, mouseY, true);
         this.move(pickingSym.getPickedVertices(), pickingSym.getIntersectionPoint(), pickingSym.getLocalRadius2(), this._moveDataSym, pickingSym);
       }
-      this._mesh.updateGeometry(this._mesh.getFacesFromVertices(picking.getPickedVertices()), picking.getPickedVertices());
+
+      var mesh = this.getMesh();
+      mesh.updateGeometry(mesh.getFacesFromVertices(picking.getPickedVertices()), picking.getPickedVertices());
       if (useSym)
-        this._mesh.updateGeometry(this._mesh.getFacesFromVertices(pickingSym.getPickedVertices()), pickingSym.getPickedVertices());
+        mesh.updateGeometry(mesh.getFacesFromVertices(pickingSym.getPickedVertices()), pickingSym.getPickedVertices());
       this.updateRender();
       main.getCanvas().style.cursor = 'default';
     },
     move: function (iVerts, center, radiusSquared, moveData, picking) {
-      var vAr = this._mesh.getVertices();
-      var mAr = this._mesh.getMaterials();
+      var mesh = this.getMesh();
+      var vAr = mesh.getVertices();
+      var mAr = mesh.getMaterials();
       var radius = Math.sqrt(radiusSquared);
       var vProxy = moveData.vProxy;
       var cx = center[0];
@@ -140,7 +143,7 @@ define([
       }
     },
     updateMoveDir: function (picking, mouseX, mouseY, useSymmetry) {
-      var mesh = this._mesh;
+      var mesh = this.getMesh();
       var vNear = picking.unproject(mouseX, mouseY, 0.0);
       var vFar = picking.unproject(mouseX, mouseY, 0.1);
       var matInverse = mat4.create();

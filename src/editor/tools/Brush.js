@@ -54,10 +54,11 @@ define([
         Flatten.prototype.flatten.call(this, iVertsInRadius, aNormal, aCenter, picking.getIntersectionPoint(), r2, intensity, picking);
       }
 
-      this._mesh.updateGeometry(this._mesh.getFacesFromVertices(iVertsInRadius), iVertsInRadius);
+      var mesh = this.getMesh();
+      mesh.updateGeometry(mesh.getFacesFromVertices(iVertsInRadius), iVertsInRadius);
     },
     brush: function (iVertsInRadius, aNormal, center, radiusSquared, intensity, picking) {
-      var mesh = this._mesh;
+      var mesh = this.getMesh();
       var vAr = mesh.getVertices();
       var mAr = mesh.getMaterials();
       var vProxy = this._accumulate || this._lockPosition ? vAr : mesh.getVerticesProxy();

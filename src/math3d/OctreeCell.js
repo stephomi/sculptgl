@@ -186,13 +186,13 @@ define([], function () {
         var cell = stack[--curStack];
         var loose = cell._aabbLoose;
         var t1 = (loose[0] - vx) * irx;
-        var t3 = (loose[1] - vy) * iry;
-        var t5 = (loose[2] - vz) * irz;
         var t2 = (loose[3] - vx) * irx;
+        var t3 = (loose[1] - vy) * iry;
         var t4 = (loose[4] - vy) * iry;
+        var t5 = (loose[2] - vz) * irz;
         var t6 = (loose[5] - vz) * irz;
-        var tmin = Math.max(Math.max(Math.min(t1, t2), Math.min(t3, t4)), Math.min(t5, t6));
-        var tmax = Math.min(Math.min(Math.max(t1, t2), Math.max(t3, t4)), Math.max(t5, t6));
+        var tmin = Math.max(Math.min(t1, t2), Math.min(t3, t4), Math.min(t5, t6));
+        var tmax = Math.min(Math.max(t1, t2), Math.max(t3, t4), Math.max(t5, t6));
         if (tmax < 0 || tmin > tmax) // no intersection
           continue;
         var children = cell._children;

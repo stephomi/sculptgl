@@ -33,11 +33,12 @@ define([
       if (this._tangent) this.smoothTangent(iVertsInRadius, intensity, picking);
       else this.smooth(iVertsInRadius, intensity, picking);
 
-      this._mesh.updateGeometry(this._mesh.getFacesFromVertices(iVertsInRadius), iVertsInRadius);
+      var mesh = this.getMesh();
+      mesh.updateGeometry(mesh.getFacesFromVertices(iVertsInRadius), iVertsInRadius);
     },
     /** Smooth a group of vertices. New position is given by simple averaging */
     smooth: function (iVerts, intensity, picking) {
-      var mesh = this._mesh;
+      var mesh = this.getMesh();
       var vAr = mesh.getVertices();
       var mAr = mesh.getMaterials();
       var nbVerts = iVerts.length;
@@ -60,7 +61,7 @@ define([
     },
     /** Smooth a group of vertices. Reproject the position on each vertex normals plane */
     smoothTangent: function (iVerts, intensity, picking) {
-      var mesh = this._mesh;
+      var mesh = this.getMesh();
       var vAr = mesh.getVertices();
       var mAr = mesh.getMaterials();
       var nAr = mesh.getNormals();
@@ -97,7 +98,7 @@ define([
     },
     /** Smooth a group of vertices along their normals */
     smoothAlongNormals: function (iVerts, intensity, picking) {
-      var mesh = this._mesh;
+      var mesh = this.getMesh();
       var vAr = mesh.getVertices();
       var mAr = mesh.getMaterials();
       var nAr = mesh.getNormals();

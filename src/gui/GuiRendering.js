@@ -6,8 +6,8 @@ define([
 
   'use strict';
 
-  var ShaderPBR = Shader[Shader.mode.PBR];
-  var ShaderMatcap = Shader[Shader.mode.MATCAP];
+  var ShaderPBR = Shader.PBR;
+  var ShaderMatcap = Shader.MATCAP;
 
   var GuiRendering = function (guiParent, ctrlGui) {
     this._main = ctrlGui._main; // main application
@@ -31,12 +31,12 @@ define([
 
       // shader selection
       var optionsShaders = {};
-      optionsShaders[Shader.mode.MATCAP] = TR('renderingMatcap');
-      optionsShaders[Shader.mode.PBR] = TR('renderingPBR');
-      optionsShaders[Shader.mode.NORMAL] = TR('renderingNormal');
-      optionsShaders[Shader.mode.UV] = TR('renderingUV');
+      optionsShaders.MATCAP = TR('renderingMatcap');
+      optionsShaders.PBR = TR('renderingPBR');
+      optionsShaders.NORMAL = TR('renderingNormal');
+      optionsShaders.UV = TR('renderingUV');
       menu.addTitle(TR('renderingShader'));
-      this._ctrlShaders = menu.addCombobox('', Shader.mode.PBR, this.onShaderChanged.bind(this), optionsShaders);
+      this._ctrlShaders = menu.addCombobox('', 'PBR', this.onShaderChanged.bind(this), optionsShaders);
 
       // flat shading
       this._ctrlCurvature = menu.addSlider(TR('renderingCurvature'), 20, this.onCurvatureChanged.bind(this), 0, 100, 1);
@@ -100,12 +100,11 @@ define([
       main.render();
     },
     /** On shader change */
-    onShaderChanged: function (value) {
+    onShaderChanged: function (val) {
       var main = this._main;
-      var val = parseInt(value, 10);
       var mesh = main.getMesh();
       if (mesh) {
-        if (val === Shader.mode.UV && !mesh.hasUV()) {
+        if (val === 'UV' && !mesh.hasUV()) {
           this.updateMesh();
           window.alert('No UV on this mesh.');
         } else {
@@ -174,12 +173,12 @@ define([
       var mesh = this._main.getMesh();
       if (!mesh) return;
       var val = mesh.getRender()._shader._type;
-      this._ctrlMatcapTitle.setVisibility(val === Shader.mode.MATCAP);
-      this._ctrlMatcap.setVisibility(val === Shader.mode.MATCAP);
-      this._ctrlUV.setVisibility(val === Shader.mode.UV);
-      this._ctrlExposure.setVisibility(val === Shader.mode.PBR);
-      this._ctrlEnvTitle.setVisibility(val === Shader.mode.PBR);
-      this._ctrlEnv.setVisibility(val === Shader.mode.PBR);
+      this._ctrlMatcapTitle.setVisibility(val === 'MATCAP');
+      this._ctrlMatcap.setVisibility(val === 'MATCAP');
+      this._ctrlUV.setVisibility(val === 'UV');
+      this._ctrlExposure.setVisibility(val === 'PBR');
+      this._ctrlEnvTitle.setVisibility(val === 'PBR');
+      this._ctrlEnv.setVisibility(val === 'PBR');
     },
     /** Return true if flat shading is enabled */
     getFlatShading: function () {
@@ -208,7 +207,7 @@ define([
       var main = this._main;
       reader.onload = function (evt) {
         // urk...
-        var shaderUV = Shader[Shader.mode.UV];
+        var shaderUV = Shader.UV;
         shaderUV.texture0 = undefined;
         shaderUV.texPath = evt.target.result;
         main.render();

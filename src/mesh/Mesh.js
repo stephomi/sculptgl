@@ -71,37 +71,33 @@ define([
     getRenderTriangles: function () {
       return this.isUsingTexCoords() ? this.getTrianglesTexCoord() : this.getTriangles();
     },
-    getRenderNbTriangles: function () {
-      return this.getNbTriangles();
-    },
     getRenderNbEdges: function () {
       return this.getNbEdges();
     },
-    /** Initialize stuffs for the mesh */
     init: function () {
       this.initColorsAndMaterials();
       this.allocateArrays();
       this.initTopology();
       this.updateGeometry();
-      this.updateDuplicateColorsAndMaterials();
+      if (this._render)
+        this.updateDuplicateColorsAndMaterials();
       this.updateCenter();
     },
-    /** Init topoloy stuffs */
     initTopology: function () {
       this.initFaceRings();
       this.initEdges();
       this.initVertexRings();
       this.initRenderTriangles();
     },
-    /** Updates the mesh Geometry */
     updateGeometry: function (iFaces, iVerts) {
       this.updateFacesAabbAndNormal(iFaces);
       this.updateVerticesNormal(iVerts);
       this.updateOctree(iFaces);
-      this.updateDuplicateGeometry(iVerts);
-      this.updateFlatShading(iFaces);
+      if (this._render) {
+        this.updateDuplicateGeometry(iVerts);
+        this.updateFlatShading(iFaces);
+      }
     },
-    /** Allocate mesh resources */
     allocateArrays: function () {
       this.getIndexData().allocateArrays();
       this.getVertexData().allocateArrays();

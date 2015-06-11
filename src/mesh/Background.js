@@ -49,7 +49,7 @@ define([
     },
     init: function () {
       this.getTexCoordBuffer().update(new Float32Array([0.0, 0.0, 1.0, 0.0, 0.0, 1.0, 1.0, 1.0]));
-      this._shader = Shader[Shader.mode.BACKGROUND].getOrCreate(this._gl);
+      this._shader = Shader.BACKGROUND.getOrCreate(this._gl);
 
       var cbLoadBackground = this.loadBackground.bind(this);
       document.getElementById('backgroundopen').addEventListener('change', cbLoadBackground, false);

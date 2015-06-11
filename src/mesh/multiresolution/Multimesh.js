@@ -169,14 +169,15 @@ define([
     },
     /** Render the mesh */
     render: function (main) {
-      if (this.getCurrentMesh().isUsingTexCoords())
+      if (this.getCurrentMesh().isUsingTexCoords() || this.isUsingDrawArrays())
         return this.getCurrentMesh().render(main);
+
       if (Multimesh.RENDER_HINT === Multimesh.PICKING || Multimesh.RENDER_HINT === Multimesh.NONE)
         return this.getCurrentMesh().render(main);
-      if (this.isUsingDrawArrays())
-        return this.getCurrentMesh().render(main);
+
       if (main.getMesh() === this && Multimesh.RENDER_HINT !== Multimesh.CAMERA)
         return this.getCurrentMesh().render(main);
+
       this.lowRender(main);
     }
   };

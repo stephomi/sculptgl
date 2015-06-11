@@ -10,7 +10,6 @@ define([
   'math3d/Picking',
   'mesh/Background',
   'mesh/Selection',
-  'mesh/Grid',
   'mesh/Mesh',
   'mesh/multiresolution/Multimesh',
   'mesh/Primitive',
@@ -20,9 +19,12 @@ define([
   'render/Rtt',
   'render/shaders/ShaderMatcap',
   'render/WebGLCaps'
-], function (glm, getUrlOptions, Utils, Sculpt, Subdivision, Import, Gui, Camera, Picking, Background, Selection, Grid, Mesh, Multimesh, Primitive, States, Contour, Render, Rtt, ShaderMatcap, WebGLCaps) {
+], function (glm, getUrlOptions, Utils, Sculpt, Subdivision, Import, Gui, Camera, Picking, Background, Selection, Mesh, Multimesh, Primitive, States, Contour, Render, Rtt, ShaderMatcap, WebGLCaps) {
 
   'use strict';
+
+  var vec3 = glm.vec3;
+  var mat4 = glm.mat4;
 
   var Scene = function () {
     this._gl = null; // webgl context
@@ -30,10 +32,17 @@ define([
 
     // core of the app
     this._states = new States(this); // for undo-redo
-    this._sculpt = new Sculpt(this);
+    this._sculpt = null;
     this._camera = new Camera(this);
     this._picking = new Picking(this); // the ray picking
     this._pickingSym = new Picking(this, true); // the symmetrical picking
+
+    this._meshPreview = null;
+    this._torusLength = 0.5;
+    this._torusWidth = 0.1;
+    this._torusRadius = Math.PI * 2;
+    this._torusRadial = 32;
+    this._torusTubular = 128;
 
     // renderable stuffs
     var opts = getUrlOptions();
@@ -58,16 +67,17 @@ define([
   };
 
   Scene.prototype = {
-    /** Initialization */
     start: function () {
       this.initWebGL();
       if (!this._gl)
         return;
+      this._sculpt = new Sculpt(this);
       this._background = new Background(this._gl, this);
       this._selection = new Selection(this._gl);
-      this._grid = new Grid(this._gl);
       this._rtt = new Rtt(this._gl);
       this._contour = new Contour(this._gl);
+      this._grid = Primitive.createGrid(this._gl);
+      this.initGrid();
 
       this.loadTextures();
       this._gui.initGui();
@@ -109,6 +119,16 @@ define([
     },
     setMesh: function (mesh) {
       return this.setOrUnsetMesh(mesh);
+    },
+    initGrid: function () {
+      var grid = this._grid;
+      grid.normalizeSize();
+      var gridm = grid.getMatrix();
+      mat4.translate(gridm, gridm, [0.0, -0.45, 0.0]);
+      var scale = 2.5;
+      mat4.scale(gridm, gridm, [scale, scale, scale]);
+      this._grid.setShader('FLAT');
+      grid.setFlatColor([0.2140, 0.2140, 0.2140]);
     },
     setOrUnsetMesh: function (mesh, multiSelect) {
       if (!mesh) {
@@ -152,31 +172,60 @@ define([
     /** Render the scene */
     applyRender: function () {
       this._preventRender = false;
-      this.computeMatricesAndSort();
+      this.updateMatricesAndSort();
       var gl = this._gl;
+      if (!gl) return;
 
       if (this._drawFullScene) {
         gl.disable(gl.DEPTH_TEST);
-        // gl.enable(gl.CULL_FACE);
 
         var showContour = this._selectMeshes.length > 0 && this._showContour && this._contour.isEffective();
         if (showContour) {
+          // flat color RTT for contours
           gl.bindFramebuffer(gl.FRAMEBUFFER, this._contour.getFramebuffer());
           gl.clear(gl.COLOR_BUFFER_BIT);
           for (var s = 0, sel = this._selectMeshes, nbSel = sel.length; s < nbSel; ++s)
             sel[s].renderFlatColor(this);
         }
 
+        // main scene RTT
         gl.bindFramebuffer(gl.FRAMEBUFFER, this._rtt.getFramebuffer());
         gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+
+        // BACKGROUND
         this._background.render();
 
         gl.enable(gl.DEPTH_TEST);
+        // GRID
         if (this._showGrid)
-          this._grid.render();
-        for (var i = 0, meshes = this._meshes, nb = meshes.length; i < nb; ++i)
-          meshes[i].render(this);
+          this._grid.render(this);
 
+        // MESHES
+        var i = 0;
+        var meshes = this._meshes;
+        var nbMeshes = meshes.length;
+        // OPAQUE
+        gl.disable(gl.CULL_FACE);
+        for (i = 0; i < nbMeshes; ++i) {
+          if (meshes[i].isTransparent())
+            break;
+          meshes[i].render(this);
+        }
+        if (this._meshPreview)
+          this._meshPreview.render(this);
+        gl.enable(gl.CULL_FACE);
+
+        // TRANSPARENCY
+        for (; i < nbMeshes; ++i) {
+          gl.cullFace(gl.FRONT); // draw back first
+          meshes[i].render(this);
+          gl.cullFace(gl.BACK); // ... and then front
+          meshes[i].render(this);
+        }
+        // We can also draw all the transparent meshes backfaces first and then the front faces
+        // it would be better for intersected transparent meshes but worse for separated meshes
+
+        // draw sobel contour
         if (showContour)
           this._contour.render();
       }
@@ -186,18 +235,25 @@ define([
       gl.disable(gl.DEPTH_TEST);
       this._rtt.render();
       this._selection.render(this);
+
+      gl.enable(gl.DEPTH_TEST);
+      // draw sculpt gizmos
+      this._sculpt.postRender();
     },
     /** Pre compute matrices and sort meshes */
-    computeMatricesAndSort: function () {
+    updateMatricesAndSort: function () {
       var meshes = this._meshes;
       var cam = this._camera;
       if (meshes.length > 0)
         cam.optimizeNearFar(this.computeBoundingBoxScene());
-      this._grid.computeMatrices(cam);
       for (var i = 0, nb = meshes.length; i < nb; ++i)
-        meshes[i].computeMatrices(cam);
-      this._selection.computeMatrices(this);
+        meshes[i].updateMatrices(cam);
       meshes.sort(Mesh.sortFunction);
+
+      if (this._meshPreview)
+        this._meshPreview.updateMatrices(cam);
+      if (this._grid)
+        this._grid.updateMatrices(cam);
     },
     /** Load webgl context */
     initWebGL: function () {
@@ -223,6 +279,7 @@ define([
       gl.frontFace(gl.CCW);
       gl.depthFunc(gl.LEQUAL);
       gl.cullFace(gl.BACK);
+      gl.enable(gl.CULL_FACE);
       gl.clearColor(0.033, 0.033, 0.033, 1);
       gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
     },
@@ -253,67 +310,46 @@ define([
       this.initAlphaTextures();
     },
     initAlphaTextures: function () {
-      var self = this;
-      var alphas = Picking.ALPHAS_PATHS;
-      var loadAlpha = function (alphas, id) {
+      var alphas = Picking.INIT_ALPHAS_PATHS;
+      var names = Picking.INIT_ALPHAS_NAMES;
+      for (var i = 0, nbA = alphas.length; i < nbA; ++i) {
         var am = new Image();
-        am.src = 'resources/alpha/' + alphas[id];
-        am.onload = function () {
-          self.onLoadAlphaImage(am);
-          if (id < alphas.length - 1)
-            loadAlpha(alphas, id + 1);
-        };
-      };
-      loadAlpha(alphas, 0);
+        am.src = 'resources/alpha/' + alphas[i];
+        am.onload = this.onLoadAlphaImage.bind(this, am, names[i]);
+      }
     },
     /** Called when the window is resized */
     onCanvasResize: function () {
-      var newWidth = this._gl.viewportWidth = this._camera._width = this._canvas.width;
-      var newHeight = this._gl.viewportHeight = this._camera._height = this._canvas.height;
+      var newWidth = this._gl.viewportWidth = this._canvas.width;
+      var newHeight = this._gl.viewportHeight = this._canvas.height;
 
       this._background.onResize(newWidth, newHeight);
       this._rtt.onResize(newWidth, newHeight);
       this._contour.onResize(newWidth, newHeight);
       this._gl.viewport(0, 0, newWidth, newHeight);
-      this._camera.updateProjection();
+      this._camera.onResize(newWidth, newHeight);
       this.render();
     },
     computeBoundingBoxMeshes: function (meshes) {
-      var bigBound = [Infinity, Infinity, Infinity, -Infinity, -Infinity, -Infinity];
-      var vec3 = glm.vec3;
-      var min = [0.0, 0.0, 0.0];
-      var max = [0.0, 0.0, 0.0];
+      var bound = [Infinity, Infinity, Infinity, -Infinity, -Infinity, -Infinity];
       for (var i = 0, l = meshes.length; i < l; ++i) {
-        var bound = meshes[i].getBound();
-        var mat = meshes[i].getMatrix();
-        vec3.transformMat4(min, bound, mat);
-        max[0] = bound[3];
-        max[1] = bound[4];
-        max[2] = bound[5];
-        vec3.transformMat4(max, max, mat);
-        if (min[0] < bigBound[0]) bigBound[0] = min[0];
-        if (min[1] < bigBound[1]) bigBound[1] = min[1];
-        if (min[2] < bigBound[2]) bigBound[2] = min[2];
-        if (max[0] > bigBound[3]) bigBound[3] = max[0];
-        if (max[1] > bigBound[4]) bigBound[4] = max[1];
-        if (max[2] > bigBound[5]) bigBound[5] = max[2];
+        var bi = meshes[i].getWorldBound();
+        if (bi[0] < bound[0]) bound[0] = bi[0];
+        if (bi[1] < bound[1]) bound[1] = bi[1];
+        if (bi[2] < bound[2]) bound[2] = bi[2];
+        if (bi[3] > bound[3]) bound[3] = bi[3];
+        if (bi[4] > bound[4]) bound[4] = bi[4];
+        if (bi[5] > bound[5]) bound[5] = bi[5];
       }
-      return bigBound;
+      return bound;
     },
     computeBoundingBoxScene: function () {
-      var bb = this.computeBoundingBoxMeshes(this._meshes);
-      var gb = this._grid.getBound();
-      if (gb[0] < bb[0]) bb[0] = gb[0];
-      if (gb[1] < bb[1]) bb[1] = gb[1];
-      if (gb[2] < bb[2]) bb[2] = gb[2];
-      if (gb[3] > bb[3]) bb[3] = gb[3];
-      if (gb[4] > bb[4]) bb[4] = gb[4];
-      if (gb[5] > bb[5]) bb[5] = gb[5];
-      return bb;
+      var scene = this._meshes.slice();
+      scene.push(this._grid);
+      this._sculpt.addSculptToScene(scene);
+      return this.computeBoundingBoxMeshes(scene);
     },
-    scaleAndCenterMeshes: function (meshes) {
-      var vec3 = glm.vec3;
-      var mat4 = glm.mat4;
+    normalizeAndCenterMeshes: function (meshes) {
       var box = this.computeBoundingBoxMeshes(meshes);
       var scale = Utils.SCALE / vec3.dist([box[0], box[1], box[2]], [box[3], box[4], box[5]]);
 
@@ -322,8 +358,7 @@ define([
       mat4.translate(mCen, mCen, [-(box[0] + box[3]) * 0.5, -(box[1] + box[4]) * 0.5, -(box[2] + box[5]) * 0.5]);
 
       for (var i = 0, l = meshes.length; i < l; ++i) {
-        var mesh = meshes[i];
-        var mat = mesh.getMatrix();
+        var mat = meshes[i].getMatrix();
         mat4.mul(mat, mCen, mat);
       }
     },
@@ -331,26 +366,45 @@ define([
     addSphere: function () {
       // make a cube and subdivide it
       var mesh = new Multimesh(Primitive.createCube(this._gl));
-      while (mesh.getNbFaces() < 50000)
-        mesh.addLevel();
-      // discard the very low res
-      mesh._meshes.splice(0, 4);
-      mesh._sel -= 4;
-
+      mesh.normalizeSize();
+      this.subdivideClamp(mesh);
       return this.addNewMesh(mesh);
     },
     addCube: function () {
       var mesh = new Multimesh(Primitive.createCube(this._gl));
-      glm.mat4.scale(mesh.getMatrix(), mesh.getMatrix(), [0.7, 0.7, 0.7]);
-      Subdivision.LINEAR = true;
+      mesh.normalizeSize();
+      mat4.scale(mesh.getMatrix(), mesh.getMatrix(), [0.7, 0.7, 0.7]);
+      this.subdivideClamp(mesh, true);
+      return this.addNewMesh(mesh);
+    },
+    addCylinder: function () {
+      var mesh = new Multimesh(Primitive.createCylinder(this._gl));
+      mesh.normalizeSize();
+      mat4.scale(mesh.getMatrix(), mesh.getMatrix(), [0.7, 0.7, 0.7]);
+      this.subdivideClamp(mesh);
+      return this.addNewMesh(mesh);
+    },
+    addTorus: function (preview) {
+      var mesh = new Multimesh(Primitive.createTorus(this._gl, this._torusLength, this._torusWidth, this._torusRadius, this._torusRadial, this._torusTubular));
+      if (preview) {
+        mesh.setShowWireframe(true);
+        var scale = 0.3 * Utils.SCALE;
+        mat4.scale(mesh.getMatrix(), mesh.getMatrix(), [scale, scale, scale]);
+        this._meshPreview = mesh;
+        return;
+      }
+      mesh.normalizeSize();
+      this.subdivideClamp(mesh);
+      this.addNewMesh(mesh);
+    },
+    subdivideClamp: function (mesh, linear) {
+      Subdivision.LINEAR = !!linear;
       while (mesh.getNbFaces() < 50000)
         mesh.addLevel();
-      // discard the very low res
-      mesh._meshes.splice(0, 4);
-      mesh._sel -= 4;
+      // keep at max 4 multires
+      mesh._meshes.splice(0, Math.min(mesh._meshes.length - 4, 4));
+      mesh._sel = mesh._meshes.length - 1;
       Subdivision.LINEAR = false;
-
-      return this.addNewMesh(mesh);
     },
     addNewMesh: function (mesh) {
       this._meshes.push(mesh);
@@ -377,7 +431,7 @@ define([
       }
 
       if (autoMatrix)
-        this.scaleAndCenterMeshes(newMeshes);
+        this.normalizeAndCenterMeshes(newMeshes);
       this._states.pushStateAdd(newMeshes);
       this.setMesh(meshes[meshes.length - 1]);
       this._camera.resetView();
@@ -392,7 +446,7 @@ define([
       this._showContour = opts.outline;
       this._autoMatrix = opts.scalecenter;
       this.setMesh(null);
-      this._mouseButton = 0;
+      this._action = 'NOTHING';
     },
     deleteCurrentSelection: function () {
       if (!this._mesh)
@@ -439,19 +493,13 @@ define([
       for (var i = 0, j = 0, n = u8lum.length; i < n; ++i, j += 4)
         u8lum[i] = Math.round((u8rgba[j] + u8rgba[j + 1] + u8rgba[j + 2]) / 3);
 
-      this.loadAlphaTexture(u8lum, img.width, img.height, name);
+      name = Picking.addAlpha(u8lum, img.width, img.height, name)._name;
 
-      if (!name) return;
-      var id = Picking.ALPHAS.length - 1;
       var entry = {};
-      entry[id] = name;
+      entry[name] = name;
       this.getGui().addAlphaOptions(entry);
-      if (tool && tool._ctrlAlpha) tool._ctrlAlpha.setValue(id);
-    },
-    loadAlphaTexture: function (u8, w, h, name) {
-      var ans = Picking.ALPHAS_NAMES;
-      ans.push(name || 'alpha_' + ans.length);
-      return Picking.addAlpha(u8, w, h);
+      if (tool && tool._ctrlAlpha)
+        tool._ctrlAlpha.setValue(name);
     }
   };
 

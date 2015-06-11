@@ -156,7 +156,7 @@ define([
     var gl = render.getGL();
     var uniforms = this.uniforms;
 
-    mat3.fromMat4(uIBLTmp, main.getCamera()._view);
+    mat3.fromMat4(uIBLTmp, main.getCamera().getView());
     gl.uniformMatrix3fv(uniforms.uIblTransform, false, mat3.transpose(uIBLTmp, uIBLTmp));
 
     gl.uniform3fv(uniforms.uAlbedo, render.getAlbedo());

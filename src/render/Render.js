@@ -35,16 +35,33 @@ define([
     this._roughness = -0.18;
     this._metallic = -0.78;
     this._alpha = 1.0;
+
+    this._flatColor = new Float32Array([1.0, 0.0, 0.0]);
+    this._mode = gl.TRIANGLES;
   };
 
   Render.ONLY_DRAW_ARRAYS = false;
 
   Render.prototype = {
+    getCount: function () {
+      var gl = this._gl;
+      if (this._mode === gl.TRIANGLES)
+        return this._mesh.getNbTriangles() * 3;
+      if (this._mode === gl.LINES)
+        return this._mesh.getNbVertices();
+      return 0;
+    },
+    getFlatColor: function () {
+      return this._flatColor;
+    },
     getGL: function () {
       return this._gl;
     },
     getMesh: function () {
       return this._mesh;
+    },
+    getMode: function () {
+      return this._mode;
     },
     getAlbedo: function () {
       return this._albedo;
@@ -55,10 +72,14 @@ define([
     getMetallic: function () {
       return this._metallic;
     },
+    setMode: function (mode) {
+      this._mode = mode;
+    },
+    setFlatColor: function (val) {
+      this._flatColor.set(val);
+    },
     setAlbedo: function (val) {
-      this._albedo[0] = val[0];
-      this._albedo[1] = val[1];
-      this._albedo[2] = val[2];
+      this._albedo.set(val);
     },
     setRoughness: function (val) {
       this._roughness = val;
@@ -146,7 +167,7 @@ define([
     },
     setShader: function (shaderType) {
       var hasUV = this._mesh.hasUV();
-      if (shaderType === Shader.mode.UV && !hasUV)
+      if (shaderType === 'UV' && !hasUV)
         return;
       this._shader.setType(shaderType);
       if (hasUV) {
@@ -162,8 +183,8 @@ define([
         this._mesh.updateDrawArrays(this.getFlatShading(), iFaces);
     },
     initRender: function () {
-      this._shaderWireframe.setType(Shader.mode.WIREFRAME);
-      if (this.getShaderType() === Shader.mode.MATCAP && !this._texture0)
+      this._shaderWireframe.setType('WIREFRAME');
+      if (this.getShaderType() === 'MATCAP' && !this._texture0)
         this.setMatcap(this._matcap);
       this.setShader(this.getShaderType());
       this.setShowWireframe(this.getShowWireframe());
@@ -174,7 +195,7 @@ define([
         this._shaderWireframe.draw(this, main);
     },
     renderFlatColor: function (main) {
-      Shader[Shader.mode.FLAT].getOrCreate(this.getGL()).draw(this, main);
+      Shader.FLAT.getOrCreate(this.getGL()).draw(this, main);
     },
     updateVertexBuffer: function () {
       this.getVertexBuffer().update(this._mesh.getRenderVertices());

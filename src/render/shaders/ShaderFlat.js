@@ -14,7 +14,7 @@ define([
     material: true
   };
 
-  ShaderFlat.uniformNames = [];
+  ShaderFlat.uniformNames = ['uColor'];
   Array.prototype.push.apply(ShaderFlat.uniformNames, ShaderBase.uniformNames.commonUniforms);
 
   ShaderFlat.vertex = [
@@ -33,10 +33,16 @@ define([
 
   ShaderFlat.fragment = [
     'precision mediump float;',
+    'uniform vec3 uColor;',
     'void main() {',
-    '  gl_FragColor = vec4(1.0, 0.0, 0.0, 1.0);',
+    '  gl_FragColor = vec4(uColor, 1.0);',
     '}'
   ].join('\n');
+
+  ShaderFlat.updateUniforms = function (render, main) {
+    render.getGL().uniform3fv(this.uniforms.uColor, render.getFlatColor());
+    ShaderBase.updateUniforms.call(this, render, main);
+  };
 
   return ShaderFlat;
 });

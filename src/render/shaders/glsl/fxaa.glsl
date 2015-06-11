@@ -4,7 +4,7 @@
 #define FXAA_SPAN_MAX 8.0
 
 vec3 fxaa(const in sampler2D tex, const in vec2 uvNW, const in vec2 uvNE, const in vec2 uvSW, const in vec2 uvSE, const in vec2 uvM, const in vec2 invRes) {
-    vec3 luma = vec3(0.299, 0.587, 0.114);
+    const vec3 luma = vec3(0.299, 0.587, 0.114);
     float lumaNW = dot(texture2D(tex, uvNW).xyz, luma);
     float lumaNE = dot(texture2D(tex, uvNE).xyz, luma);
     float lumaSW = dot(texture2D(tex, uvSW).xyz, luma);

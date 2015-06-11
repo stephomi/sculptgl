@@ -33,17 +33,29 @@ define([
   };
 
   // TODO update i18n strings in a dynamic way
-  Picking.ALPHAS_NAMES = [TR('alphaNone'), TR('alphaSquare'), TR('alphaSkin')];
-  Picking.ALPHAS_PATHS = ['square.jpg', 'skin.jpg'];
-  Picking.ALPHAS = [null];
-  Picking.addAlpha = function (u8, width, height) {
+  Picking.INIT_ALPHAS_NAMES = [TR('alphaSquare'), TR('alphaSkin')];
+  Picking.INIT_ALPHAS_PATHS = ['square.jpg', 'skin.jpg'];
+
+  var none = TR('alphaNone');
+  Picking.ALPHAS_NAMES = {};
+  Picking.ALPHAS_NAMES[none] = none;
+
+  Picking.ALPHAS = {};
+  Picking.ALPHAS[Picking.ALPHAS_NAMES] = null;
+
+  Picking.addAlpha = function (u8, width, height, name) {
     var newAlpha = {};
+    newAlpha._name = name;
     newAlpha._texture = u8;
     newAlpha._ratioX = Math.min(1.0, width / height);
     newAlpha._ratioY = Math.min(1.0, height / width);
     newAlpha._width = width;
     newAlpha._height = height;
-    Picking.ALPHAS.push(newAlpha);
+    var i = 1;
+    while (Picking.ALPHAS[newAlpha._name])
+      newAlpha._name = name + (i++);
+    Picking.ALPHAS[newAlpha._name] = newAlpha;
+    Picking.ALPHAS_NAMES[newAlpha._name] = newAlpha._name;
     return newAlpha;
   };
 

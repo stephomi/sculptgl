@@ -38,15 +38,16 @@ define([
       picking.setIdAlpha(this._idAlpha);
       this.flatten(iVertsInRadius, aNormal, aCenter, picking.getIntersectionPoint(), picking.getLocalRadius2(), intensity, picking);
 
-      this._mesh.updateGeometry(this._mesh.getFacesFromVertices(iVertsInRadius), iVertsInRadius);
+      var mesh = this.getMesh();
+      mesh.updateGeometry(mesh.getFacesFromVertices(iVertsInRadius), iVertsInRadius);
     },
     /** Flatten, projection of the sculpting vertex onto a plane defined by the barycenter and normals of all the sculpting vertices */
     flatten: function (iVertsInRadius, aNormal, aCenter, center, radiusSquared, intensity, picking) {
-      var mesh = this._mesh;
+      var mesh = this.getMesh();
       var vAr = mesh.getVertices();
       var mAr = mesh.getMaterials();
       var radius = Math.sqrt(radiusSquared);
-      var vProxy = this._accumulate === false && this._lockPosition === false ? this._mesh.getVerticesProxy() : vAr;
+      var vProxy = this._accumulate === false && this._lockPosition === false ? mesh.getVerticesProxy() : vAr;
       var cx = center[0];
       var cy = center[1];
       var cz = center[2];

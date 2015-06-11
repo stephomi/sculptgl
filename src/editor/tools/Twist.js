@@ -36,7 +36,7 @@ define([
       this.initTwistData(picking, mouseX, mouseY, this._twistData);
       if (main.getSculpt().getSymmetry()) {
         var pickingSym = main.getPickingSymmetry();
-        pickingSym.intersectionMouseMesh(this._mesh, mouseX, mouseY);
+        pickingSym.intersectionMouseMesh(this.getMesh(), mouseX, mouseY);
         pickingSym.setLocalRadius2(picking.getLocalRadius2());
         if (pickingSym.getMesh())
           this.initTwistData(pickingSym, mouseX, mouseY, this._twistDataSym);
@@ -85,11 +85,12 @@ define([
       picking.setIdAlpha(this._idAlpha);
       this.twist(iVertsInRadius, picking.getIntersectionPoint(), picking.getLocalRadius2(), mx, my, lx, ly, twistData, picking);
 
-      this._mesh.updateGeometry(this._mesh.getFacesFromVertices(iVertsInRadius), iVertsInRadius);
+      var mesh = this.getMesh();
+      mesh.updateGeometry(mesh.getFacesFromVertices(iVertsInRadius), iVertsInRadius);
     },
     /** Twist the vertices around the mouse point intersection */
     twist: function (iVerts, center, radiusSquared, mouseX, mouseY, lastMouseX, lastMouseY, twistData, picking) {
-      var mesh = this._mesh;
+      var mesh = this.getMesh();
       var mouseCenter = twistData.center;
       var vecMouse = [mouseX - mouseCenter[0], mouseY - mouseCenter[1]];
       if (vec2.len(vecMouse) < 30)

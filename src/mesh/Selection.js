@@ -51,20 +51,21 @@ define([
     init: function () {
       this.getCircleBuffer().update(this.getCircleVertices(1.0));
       this.getDotBuffer().update(this.getDotVertices(0.05, 10));
-      this._shader = Shader[Shader.mode.SELECTION].getOrCreate(this._gl);
+      this._shader = Shader.SELECTION.getOrCreate(this._gl);
     },
-    computeMatrices: (function () {
+    updateMatrices: (function () {
       var tmp = mat4.create();
       var nMat = mat3.create();
       var base = [0.0, 0.0, 1.0];
       var axis = [0.0, 0.0, 0.0];
       var tra = [0.0, 0.0, 0.0];
-      return function (main) {
+      return function (camera, main) {
         var picking = main.getPicking();
         var mesh = picking.getMesh();
         if (!mesh)
           return;
-        var camera = main.getCamera();
+        var camProj = camera.getProjection();
+        var camView = camera.getView();
         var pickingSym = main.getPickingSymmetry();
 
         var worldRadius = picking.getWorldRadius();
@@ -84,11 +85,11 @@ define([
 
         // circle mvp
         mat4.scale(this._cacheCircleMVP, tmp, [worldRadius, worldRadius, worldRadius]);
-        mat4.mul(this._cacheCircleMVP, camera._proj, mat4.mul(this._cacheCircleMVP, camera._view, this._cacheCircleMVP));
+        mat4.mul(this._cacheCircleMVP, camProj, mat4.mul(this._cacheCircleMVP, camView, this._cacheCircleMVP));
 
         // dot mvp
         mat4.scale(this._cacheDotMVP, tmp, [constRadius, constRadius, constRadius]);
-        mat4.mul(this._cacheDotMVP, camera._proj, mat4.mul(this._cacheDotMVP, camera._view, this._cacheDotMVP));
+        mat4.mul(this._cacheDotMVP, camProj, mat4.mul(this._cacheDotMVP, camView, this._cacheDotMVP));
 
         // symmetry mvp
         vec3.transformMat4(tra, pickingSym.getIntersectionPoint(), mesh.getMatrix());
@@ -97,7 +98,7 @@ define([
         mat4.rotate(tmp, tmp, rad, axis);
 
         mat4.scale(tmp, tmp, [constRadius, constRadius, constRadius]);
-        mat4.mul(this._cacheDotSymMVP, camera._proj, mat4.mul(tmp, camera._view, tmp));
+        mat4.mul(this._cacheDotSymMVP, camProj, mat4.mul(tmp, camView, tmp));
       };
     })(),
     release: function () {
@@ -107,12 +108,10 @@ define([
     render: function (main) {
       if (!main.getPicking().getMesh())
         return;
-      var isSculpting = main._mouseButton === 0;
-      if (isSculpting)
-        vec3.set(this._color, 0.8, 0.0, 0.0);
-      else
-        vec3.set(this._color, 0.8, 0.2, 0.0);
-      this._shader.draw(this, isSculpting, main.getSculpt().getSymmetry());
+      this.updateMatrices(main.getCamera(), main);
+      var drawCircle = main._action === 'NOTHING';
+      vec3.set(this._color, 0.8, drawCircle ? 0.0 : 0.2, 0.0);
+      this._shader.draw(this, drawCircle, main.getSculpt().getSymmetry());
     },
     getCircleVertices: function (r, nb, full) {
       var nbVertices = nb || 50;

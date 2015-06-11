@@ -31,7 +31,6 @@ define([
     '}'
   ].join('\n');
 
-  ShaderSelection.getOrCreate = ShaderBase.getOrCreate;
   ShaderSelection.draw = function (geom, drawCircle, drawSym) {
     var gl = geom.getGL();
     gl.useProgram(this.program);

@@ -8,17 +8,18 @@ define([
 
   var Contour = function (gl) {
     Rtt.call(this, gl);
+    this._depth = null; // no need for a z-buffer
   };
 
   Contour.prototype = {
     getShaderType: function () {
-      return Shader.mode.CONTOUR;
+      return 'CONTOUR';
     },
     getType: function (gl) {
       return gl.UNSIGNED_BYTE;
     },
     isEffective: function () {
-      return Shader[Shader.mode.CONTOUR].color[3] > 0.0;
+      return Shader.CONTOUR.color[3] > 0.0;
     }
   };
 

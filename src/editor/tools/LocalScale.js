@@ -19,7 +19,7 @@ define([
       var main = this._main;
       if (main.getSculpt().getSymmetry()) {
         var pickingSym = main.getPickingSymmetry();
-        pickingSym.intersectionMouseMesh(this._mesh, main._mouseX, main._mouseY);
+        pickingSym.intersectionMouseMesh(this.getMesh(), main._mouseX, main._mouseY);
         pickingSym.setLocalRadius2(main.getPicking().getLocalRadius2());
       }
     },
@@ -56,12 +56,14 @@ define([
       picking.setIdAlpha(this._idAlpha);
       this.scale(iVertsInRadius, picking.getIntersectionPoint(), picking.getLocalRadius2(), delta, picking);
 
-      this._mesh.updateGeometry(this._mesh.getFacesFromVertices(iVertsInRadius), iVertsInRadius);
+      var mesh = this.getMesh();
+      mesh.updateGeometry(mesh.getFacesFromVertices(iVertsInRadius), iVertsInRadius);
     },
     /** Scale the vertices around the mouse point intersection */
     scale: function (iVerts, center, radiusSquared, intensity, picking) {
-      var vAr = this._mesh.getVertices();
-      var mAr = this._mesh.getMaterials();
+      var mesh = this.getMesh();
+      var vAr = mesh.getVertices();
+      var mAr = mesh.getMaterials();
       var deltaScale = intensity * 0.01;
       var radius = Math.sqrt(radiusSquared);
       var cx = center[0];

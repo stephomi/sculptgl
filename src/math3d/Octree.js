@@ -24,7 +24,7 @@ define([
     getLeavesUpdate: function () {
       return this._leavesUpdate;
     },
-    getBound: function () {
+    getLocalBound: function () {
       return this._root._aabbSplit;
     },
     allocateArrays: function () {
@@ -65,9 +65,8 @@ define([
       if (iFaces)
         this.updateOctreeAdd(this.updateOctreeRemove(iFaces));
       else
-        this.computeOctree(undefined, 0.3);
+        this.computeOctree(0.3);
     },
-    /** Compute Aabb */
     computeAabb: function () {
       var mesh = this._mesh;
       var nbVertices = mesh.getNbVertices();
@@ -93,10 +92,9 @@ define([
       return [xmin, ymin, zmin, xmax, ymax, zmax];
     },
     /** Compute the mesh octree */
-    computeOctree: function (abRoot, factor) {
+    computeOctree: function (factor) {
       var mesh = this._mesh;
-      if (abRoot === undefined)
-        abRoot = this.computeAabb();
+      var abRoot = this.computeAabb();
       var xmin = abRoot[0];
       var ymin = abRoot[1];
       var zmin = abRoot[2];
@@ -107,7 +105,7 @@ define([
       var dy = ymax - ymin;
       var dz = zmax - zmin;
       // root octree bigger than minimum aabb...
-      if (factor !== undefined && factor !== 0.0) {
+      if (factor) {
         var dfx = dx * factor;
         var dfy = dy * factor;
         var dfz = dz * factor;
@@ -208,7 +206,7 @@ define([
         if (ibux > xmax || iblx < xmin || ibuy > ymax || ibly < ymin || ibuz > zmax || iblz < zmin) {
           // a face is outside the root node
           // we reconstruct the whole octree, slow... but rare
-          this.computeOctree(undefined, 0.3);
+          this.computeOctree(0.3);
           this._leavesUpdate.length = 0;
           break;
         } else {

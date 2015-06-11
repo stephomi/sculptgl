@@ -4,17 +4,33 @@ define([
 
   'use strict';
 
+  // Overview sculpt :
+  // start (check if we hit the mesh, start state stack) -> startSculpt
+  // startSculpt (init stuffs specific to the tool) -> sculptStroke
+
+  // sculptStroke (handle sculpt stroke by throttling/smoothing stroke) -> makeStroke
+  // makeStroke (handle symmetry and picking before sculping) -> stroke
+  // stroke (tool specific, move vertices, etc)
+
+  // update -> sculptStroke
+
   var SculptBase = function (main) {
     this._main = main;
     this._states = main ? main.getStates() : null; // for undo-redo
-    this._mesh = null; // the current edited mesh
     this._cbContinuous = this.updateContinuous.bind(this); // callback continuous
     this._lastMouseX = 0.0;
     this._lastMouseY = 0.0;
   };
 
   SculptBase.prototype = {
-    /** Start sculpting */
+    setToolMesh: function (mesh) {
+      // to be called when we create a new instance of a tool operator
+      // that is no part of the main application Sculpt container (e.g smooth)
+      this._forceToolMesh = mesh;
+    },
+    getMesh: function () {
+      return this._forceToolMesh || this._main.getMesh();
+    },
     start: function (ctrl) {
       var main = this._main;
       var picking = main.getPicking();
@@ -31,45 +47,45 @@ define([
         pickingSym.intersectionMouseMesh(mesh, main._mouseX, main._mouseY);
         pickingSym.initAlpha();
       }
-      this._mesh = mesh;
       this.pushState();
       this._lastMouseX = main._mouseX;
       this._lastMouseY = main._mouseY;
       this.startSculpt();
     },
-    /** End sculpting */
     end: function () {
-      if (this._mesh) {
+      if (this.getMesh()) {
         this.updateMeshBuffers();
-        this._mesh.checkLeavesUpdate();
+        this.getMesh().checkLeavesUpdate();
       }
     },
-    endTransform: function () {
-      var mesh = this._mesh;
-      if (!mesh)
-        return;
-      var em = mesh.getEditMatrix();
-      // check identity
-      if ((em[0] * em[5] * em[10]) === 1.0 && em[12] === 0.0 && em[13] === 0.0 && em[14] === 0.0)
-        return;
-      var iVerts = this.getUnmaskedVertices();
-      this._states.pushVertices(iVerts);
-
-      this.applyEditMatrix(iVerts);
-      if (iVerts.length === 0) return;
-      this.updateMeshBuffers();
-    },
-    /** Push undo operation */
     pushState: function () {
-      this._states.pushStateGeometry(this._mesh);
+      this._states.pushStateGeometry(this.getMesh());
     },
-    /** Start sculpting operation */
     startSculpt: function () {
       if (this._lockPosition === true)
         return;
       this.sculptStroke();
     },
-    /** Update sculpting operation */
+    preUpdate: function (canBeContinuous) {
+      var main = this._main;
+      var picking = main.getPicking();
+      var mouseX = main._mouseX;
+      var mouseY = main._mouseY;
+      var mesh = main.getMesh();
+      var isSculpting = main._action === 'SCULPT_EDIT';
+
+      if (isSculpting && !canBeContinuous)
+        return;
+
+      if (isSculpting)
+        picking.intersectionMouseMesh(mesh, mouseX, mouseY);
+      else
+        picking.intersectionMouseMeshes(main.getMeshes(), mouseX, mouseY);
+
+      mesh = picking.getMesh();
+      if (mesh && main.getSculpt().getSymmetry())
+        main.getPickingSymmetry().intersectionMouseMesh(mesh, mouseX, mouseY);
+    },
     update: function (continuous) {
       if (this._lockPosition === true)
         return this.updateSculptLock(continuous);
@@ -98,7 +114,6 @@ define([
       this.updateRender();
       main.getCanvas().style.cursor = 'default';
     },
-    /** Make a brush stroke */
     sculptStroke: function () {
       var main = this._main;
       var picking = main.getPicking();
@@ -135,7 +150,7 @@ define([
       this._main.render();
     },
     makeStroke: function (mouseX, mouseY, picking, pickingSym) {
-      var mesh = this._mesh;
+      var mesh = this.getMesh();
       picking.intersectionMouseMesh(mesh, mouseX, mouseY);
       var pick1 = picking.getMesh();
       if (pick1) {
@@ -163,10 +178,11 @@ define([
       return pick1 || pick2;
     },
     updateMeshBuffers: function () {
-      if (this._mesh.getDynamicTopology)
-        this._mesh.updateBuffers();
+      var mesh = this.getMesh();
+      if (mesh.getDynamicTopology)
+        mesh.updateBuffers();
       else
-        this._mesh.updateGeometryBuffers();
+        mesh.updateGeometryBuffers();
     },
     updateContinuous: function () {
       if (this._lockPosition) return this.update(true);
@@ -181,7 +197,7 @@ define([
       var nbVertsSelected = iVertsInRadius.length;
       var iVertsFront = new Uint32Array(Utils.getMemory(4 * nbVertsSelected), 0, nbVertsSelected);
       var acc = 0;
-      var nAr = this._mesh.getNormals();
+      var nAr = this.getMesh().getNormals();
       var eyeX = eyeDir[0];
       var eyeY = eyeDir[1];
       var eyeZ = eyeDir[2];
@@ -195,8 +211,9 @@ define([
     },
     /** Compute average normal of a group of vertices with culling */
     areaNormal: function (iVerts) {
-      var nAr = this._mesh.getNormals();
-      var mAr = this._mesh.getMaterials();
+      var mesh = this.getMesh();
+      var nAr = mesh.getNormals();
+      var mAr = mesh.getMaterials();
       var anx = 0.0;
       var any = 0.0;
       var anz = 0.0;
@@ -215,8 +232,9 @@ define([
     },
     /** Compute average center of a group of vertices (with culling) */
     areaCenter: function (iVerts) {
-      var vAr = this._mesh.getVertices();
-      var mAr = this._mesh.getMaterials();
+      var mesh = this.getMesh();
+      var vAr = mesh.getVertices();
+      var mAr = mesh.getMaterials();
       var nbVerts = iVerts.length;
       var ax = 0.0;
       var ay = 0.0;
@@ -234,7 +252,7 @@ define([
     },
     /** Updates the vertices original coords that are sculpted for the first time in this stroke */
     updateProxy: function (iVerts) {
-      var mesh = this._mesh;
+      var mesh = this.getMesh();
       var vAr = mesh.getVertices();
       var vProxy = mesh.getVerticesProxy();
       if (vAr === vProxy)
@@ -253,7 +271,7 @@ define([
     },
     /** Laplacian smooth. Special rule for vertex on the edge of the mesh. */
     laplacianSmooth: function (iVerts, smoothVerts, vField) {
-      var mesh = this._mesh;
+      var mesh = this.getMesh();
       var vrvStartCount = mesh.getVerticesRingVertStartCount();
       var vertRingVert = mesh.getVerticesRingVert();
       var ringVerts = vertRingVert instanceof Array ? vertRingVert : null;
@@ -311,7 +329,7 @@ define([
       }
     },
     dynamicTopology: function (picking) {
-      var mesh = this._mesh;
+      var mesh = this.getMesh();
       var iVerts = picking.getPickedVertices();
       if (!mesh.getDynamicTopology)
         return iVerts;
@@ -366,9 +384,10 @@ define([
     filterMaskedVertices: function (lowerBound, upperBound) {
       var lb = lowerBound === undefined ? -Infinity : lowerBound;
       var ub = upperBound === undefined ? Infinity : upperBound;
-      var nbVertices = this._mesh.getNbVertices();
+      var mesh = this.getMesh();
+      var mAr = mesh.getMaterials();
+      var nbVertices = mesh.getNbVertices();
       var cleaned = new Uint32Array(Utils.getMemory(4 * nbVertices), 0, nbVertices);
-      var mAr = this._mesh.getMaterials();
       var acc = 0;
       for (var i = 0; i < nbVertices; ++i) {
         var mask = mAr[i * 3 + 2];
@@ -377,6 +396,8 @@ define([
       }
       return new Uint32Array(cleaned.subarray(0, acc));
     },
+    postRender: function () {},
+    addSculptToScene: function () {}
   };
 
   return SculptBase;

@@ -35,11 +35,12 @@ define([
       picking.setIdAlpha(this._idAlpha);
       this.crease(iVertsInRadius, picking.getPickedNormal(), picking.getIntersectionPoint(), picking.getLocalRadius2(), intensity, picking);
 
-      this._mesh.updateGeometry(this._mesh.getFacesFromVertices(iVertsInRadius), iVertsInRadius);
+      var mesh = this.getMesh();
+      mesh.updateGeometry(mesh.getFacesFromVertices(iVertsInRadius), iVertsInRadius);
     },
     /** Pinch+brush-like sculpt */
     crease: function (iVertsInRadius, aNormal, center, radiusSquared, intensity, picking) {
-      var mesh = this._mesh;
+      var mesh = this.getMesh();
       var vAr = mesh.getVertices();
       var mAr = mesh.getMaterials();
       var vProxy = mesh.getVerticesProxy();

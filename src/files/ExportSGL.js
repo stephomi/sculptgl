@@ -4,7 +4,40 @@ define([
 
   'use strict';
 
+  var invert = function (obj) {
+    var keys = Object.keys(obj);
+    var inv = {};
+    for (var i = 0, nbkeys = keys.length; i < nbkeys; ++i)
+      inv[obj[keys[i]]] = keys[i];
+    return inv;
+  };
+
+  var stringToInt = {};
+  var intToString = {};
+  stringToInt.MODE_TO_INT = {
+    ORBIT: 0,
+    SPHERICAL: 1,
+    PLANE: 2
+  };
+  intToString.INT_TO_MODE = invert(stringToInt.MODE_TO_INT);
+
+  stringToInt.PROJECTION_TO_INT = {
+    PERSPECTIVE: 0,
+    ORTHOGRAPHIC: 1
+  };
+  intToString.INT_TO_PROJECTION = invert(stringToInt.PROJECTION_TO_INT);
+
+  stringToInt.SHADER_TO_INT = {
+    PBR: 0,
+    NORMAL: 2,
+    UV: 4,
+    MATCAP: 5
+  };
+  intToString.INT_TO_SHADER = invert(stringToInt.SHADER_TO_INT);
+
   var Export = {};
+  Export.intToString = intToString;
+  Export.stringToInt = stringToInt;
 
   // current version 2
   //
@@ -50,6 +83,7 @@ define([
   // faces (i32 * 4 * nbFaces)
   //
   /** Export SGL (sculptgl) file */
+
   Export.exportSGLAsArrayBuffer = function (meshes, main) {
     return Export.exportSGL(meshes, main, true);
   };
@@ -88,8 +122,8 @@ define([
 
     // camera stuffs
     var cam = main.getCamera();
-    u32a[off++] = cam.getProjType();
-    u32a[off++] = cam.getMode();
+    u32a[off++] = stringToInt.PROJECTION_TO_INT[cam.getProjectionType()];
+    u32a[off++] = stringToInt.MODE_TO_INT[cam.getMode()];
     f32a[off++] = cam.getFov();
     u32a[off++] = cam.getUsePivot();
 
@@ -99,7 +133,7 @@ define([
       mesh = meshes[i];
 
       // shader + matcap + wire + alpha + flat 
-      u32a[off++] = mesh.getShaderType();
+      u32a[off++] = stringToInt.SHADER_TO_INT[mesh.getShaderType()];
       u32a[off++] = mesh.getMatcap();
       u32a[off++] = mesh.getShowWireframe();
       u32a[off++] = mesh.getFlatShading();

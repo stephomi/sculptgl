@@ -15,6 +15,7 @@ define([
       return str;
     if (typeof str === 'function')
       return str.apply(this, Array.prototype.slice.call(arguments, 1));
+    console.error('No TR found for : ' + key);
     return key;
   };
 

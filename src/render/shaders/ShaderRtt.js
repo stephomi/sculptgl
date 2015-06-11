@@ -17,19 +17,18 @@ define([
   ShaderRtt.vertex = [
     'precision mediump float;',
     'attribute vec2 aVertex;',
-    'uniform vec2 uSize;',
+    'uniform vec2 uInvSize;',
     'varying vec2 vUVNW;',
     'varying vec2 vUVNE;',
     'varying vec2 vUVSW;',
     'varying vec2 vUVSE;',
     'varying vec2 vUVM;',
-    'vec2 invVP = 1.0 / uSize;',
     'void main() {',
     '  vUVM = aVertex * 0.5 + 0.5;',
-    '  vUVNW = vUVM + vec2(-1.0, -1.0) * invVP;',
-    '  vUVNE = vUVM + vec2(1.0, -1.0) * invVP;',
-    '  vUVSW = vUVM + vec2(-1.0, 1.0) * invVP;',
-    '  vUVSE = vUVM + vec2(1.0, 1.0) * invVP;',
+    '  vUVNW = vUVM + vec2(-1.0, -1.0) * uInvSize;',
+    '  vUVNE = vUVM + vec2(1.0, -1.0) * uInvSize;',
+    '  vUVSW = vUVM + vec2(-1.0, 1.0) * uInvSize;',
+    '  vUVSE = vUVM + vec2(1.0, 1.0) * uInvSize;',
     '  gl_Position = vec4(aVertex, 0.5, 1.0);',
     '}'
   ].join('\n');
@@ -37,13 +36,12 @@ define([
   ShaderRtt.fragment = [
     'precision mediump float;',
     'uniform sampler2D uTexture0;',
-    'uniform vec2 uSize;',
+    'uniform vec2 uInvSize;',
     'varying vec2 vUVNW;',
     'varying vec2 vUVNE;',
     'varying vec2 vUVSW;',
     'varying vec2 vUVSE;',
     'varying vec2 vUVM;',
-    'vec2 invVP = 1.0 / uSize;',
     fxaaGLSL,
     ShaderBase.strings.colorSpaceGLSL,
     'void main() {',
@@ -51,7 +49,7 @@ define([
     // - convert each tex fetch into srgb
     // - OR do the filmic in the forward shading pass (alpha blending in srgb though)
     // - OR move the filmic op + (other cool linear post process) in a first separate pass
-    '  vec3 color = fxaa(uTexture0, vUVNW, vUVNE, vUVSW, vUVSE, vUVM, invVP);',
+    '  vec3 color = fxaa(uTexture0, vUVNW, vUVNE, vUVSW, vUVSE, vUVM, uInvSize);',
     // http://filmicgames.com/archives/75
     '  vec3 x = max(vec3(0.0), color - vec3(0.004));',
     '  gl_FragColor = vec4((x*(6.2*x+0.5))/(x*(6.2*x+1.7)+0.06), 1.0);',
@@ -67,7 +65,7 @@ define([
     gl.activeTexture(gl.TEXTURE0);
     gl.bindTexture(gl.TEXTURE_2D, rtt.getTexture());
     gl.uniform1i(this.uniforms.uTexture0, 0);
-    gl.uniform2fv(this.uniforms.uSize, rtt._size);
+    gl.uniform2fv(this.uniforms.uInvSize, [1.0 / rtt._size[0], 1.0 / rtt._size[1]]);
 
     gl.drawArrays(gl.TRIANGLES, 0, 3);
   };

@@ -50,7 +50,7 @@ define([
       this._shader = Shader[this.getShaderType()].getOrCreate(gl);
     },
     getShaderType: function () {
-      return Shader.mode.RTT;
+      return 'RTT';
     },
     getType: function (gl) {
       if (WebGLCaps.hasRTTHalfFloat())
@@ -69,8 +69,10 @@ define([
       gl.bindTexture(gl.TEXTURE_2D, this._rtt);
       gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, width, height, 0, gl.RGBA, type, null);
 
-      gl.bindRenderbuffer(gl.RENDERBUFFER, this._depth);
-      gl.renderbufferStorage(gl.RENDERBUFFER, gl.DEPTH_COMPONENT16, width, height);
+      if (this._depth) {
+        gl.bindRenderbuffer(gl.RENDERBUFFER, this._depth);
+        gl.renderbufferStorage(gl.RENDERBUFFER, gl.DEPTH_COMPONENT16, width, height);
+      }
 
       gl.bindFramebuffer(gl.FRAMEBUFFER, this._framebuffer);
       gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, this._rtt, 0);

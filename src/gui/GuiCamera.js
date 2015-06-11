@@ -1,7 +1,6 @@
 define([
-  'gui/GuiTR',
-  'math3d/Camera',
-], function (TR, Camera) {
+  'gui/GuiTR'
+], function (TR) {
 
   'use strict';
 
@@ -30,34 +29,32 @@ define([
       // camera type
       var optionsType = {};
       menu.addTitle(TR('cameraProjection'));
-      optionsType[Camera.projType.PERSPECTIVE] = TR('cameraPerspective');
-      optionsType[Camera.projType.ORTHOGRAPHIC] = TR('cameraOrthographic');
-      menu.addCombobox('', camera.getProjType(), this.onCameraTypeChange.bind(this), optionsType);
+      optionsType.PERSPECTIVE = TR('cameraPerspective');
+      optionsType.ORTHOGRAPHIC = TR('cameraOrthographic');
+      menu.addCombobox('', camera.getProjectionType(), this.onCameraTypeChange.bind(this), optionsType);
 
       // camera fov
       this._ctrlFov = menu.addSlider(TR('cameraFov'), camera.getFov(), this.onFovChange.bind(this), 10, 90, 1);
-      this._ctrlFov.setVisibility(camera.getProjType() === Camera.projType.PERSPECTIVE);
+      this._ctrlFov.setVisibility(camera.getProjectionType() === 'PERSPECTIVE');
 
       // camera mode
       var optionsMode = {};
       menu.addTitle(TR('cameraMode'));
-      optionsMode[Camera.mode.ORBIT] = TR('cameraOrbit');
-      optionsMode[Camera.mode.SPHERICAL] = TR('cameraSpherical');
-      optionsMode[Camera.mode.PLANE] = TR('cameraPlane');
+      optionsMode.ORBIT = TR('cameraOrbit');
+      optionsMode.SPHERICAL = TR('cameraSpherical');
+      optionsMode.PLANE = TR('cameraPlane');
       menu.addCombobox('', camera.getMode(), this.onCameraModeChange.bind(this), optionsMode);
       menu.addCheckbox(TR('cameraPivot'), camera.getUsePivot(), this.onPivotChange.bind(this));
 
       this.addEvents();
     },
     onCameraModeChange: function (value) {
-      var mode = parseInt(value, 10);
-      this._camera.setMode(mode);
+      this._camera.setMode(value);
       this._main.render();
     },
     onCameraTypeChange: function (value) {
-      var type = parseInt(value, 10);
-      this._camera.setProjType(type);
-      this._ctrlFov.setVisibility(type === Camera.projType.PERSPECTIVE);
+      this._camera.setProjectionType(value);
+      this._ctrlFov.setVisibility(value === 'PERSPECTIVE');
       this._main.render();
     },
     onFovChange: function (value) {
@@ -90,7 +87,7 @@ define([
       var main = this._main;
       var camera = main.getCamera();
       event.handled = true;
-      if (event.shiftKey && main._mouseButton === 3) {
+      if (event.shiftKey && main._action === 'CAMERA_ROTATE') {
         camera.snapClosestRotation();
         main.render();
       }

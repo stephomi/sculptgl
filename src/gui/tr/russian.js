@@ -46,6 +46,8 @@ define([], function () {
     sceneReset: 'Очистить сцену',
     sceneAddSphere: 'Добавить сферу',
     sceneAddCube: 'Добавить куб',
+    sceneAddCylinder: null,
+    sceneAddTorus: null,
     sceneSelection: 'Выбрать',
     sceneMerge: 'Объединить',
 
@@ -102,9 +104,9 @@ define([], function () {
     sculptLocalScale: '3D масштабирование',
     sculptPaint: '2D Кисть (9)',
     sculptMasking: '2D Маска (-Ctrl)',
-    sculptScale: 'Масштабирование xyz (G)',
-    sculptTranslate: 'Перемещение xyz (E)',
-    sculptRotate: 'Вращение xyz (R)',
+    sculptTransform: null,
+
+    sculptCommon: null,
     sculptTool: 'Инструмент',
     sculptSymmetry: 'Симетрия',
     sculptContinuous: 'Спрей',
@@ -131,11 +133,8 @@ define([], function () {
     sculptMaskingInvert: 'Инверсия (-Ctrl + Click)',
     sculptMaskingBlur: 'Сгладить',
     sculptMaskingSharpen: 'Резко',
-    sculptDeleteSelection: 'Удалить выбранное ?',
     sculptPBRTitle: 'PBR материал',
     sculptPaintAll: 'Краска',
-    sculptTranslateDepth: 'Перемещение в глубину (N or -Alt)',
-    sculptRotateRoll: 'Фронтальное вращение (N или -Alt)',
     sculptExtractTitle: 'Извлечь',
     sculptExtractThickness: 'Толщина',
     sculptExtractAction: 'Извлечь !',
@@ -214,13 +213,14 @@ define([], function () {
     envBryantPark: 'Бра́йант-парк'
   };
 
-  // ui extra stuffs (yagui lib)
-  // Extra: 'Настройка интерфейса',
-  // Overall: 'Общие'
-  // Advanced: 'Дополнительно';
-  // Widget: 'Виджет',
-  // Back: 'Фон',
-  // Text: 'Текст',
-  // Border: 'Бордюр',
   return TR;
 });
+
+// ui extra stuffs (yagui lib)
+// Extra: 'Настройка интерфейса',
+// Overall: 'Общие'
+// Advanced: 'Дополнительно';
+// Widget: 'Виджет',
+// Back: 'Фон',
+// Text: 'Текст',
+// Border: 'Бордюр',

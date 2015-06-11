@@ -56,7 +56,7 @@ define([
       return this._facesToTriangles;
     },
     getNbFaces: function () {
-      return this._facesABCD.length / 4;
+      return this._facesABCD ? this._facesABCD.length / 4 : 0;
     },
     getTrianglesTexCoord: function () {
       return this._UVtrianglesABC;

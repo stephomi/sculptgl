@@ -25,18 +25,19 @@ define([
   };
 
   Paint.prototype = {
-    /** Push undo operation */
+    end: function () {
+      this._pickColor = false;
+      SculptBase.prototype.end.call(this);
+    },
     pushState: function (force) {
       if (!this._pickColor || force)
-        this._states.pushStateColorAndMaterial(this._mesh);
+        this._states.pushStateColorAndMaterial(this.getMesh());
     },
-    /** Start sculpting operation */
     startSculpt: function () {
       if (this._pickColor)
         return this.pickColor(this._main.getPicking());
       SculptBase.prototype.startSculpt.call(this);
     },
-    /** Update sculpting operation */
     update: function () {
       if (this._pickColor === true)
         return this.updatePickColor();
@@ -45,36 +46,35 @@ define([
     updateContinuous: function () {
       if (this._pickColor === true)
         return this.updatePickColor();
-      SculptBase.prototype.updateContinuous.apply(this, arguments);
+      SculptBase.prototype.updateContinuous.call(this);
     },
     updateMeshBuffers: function () {
-      if (this._mesh.getDynamicTopology) {
-        this._mesh.updateBuffers();
+      var mesh = this.getMesh();
+      if (mesh.getDynamicTopology) {
+        mesh.updateBuffers();
       } else {
-        this._mesh.updateColorBuffer();
-        this._mesh.updateMaterialBuffer();
+        mesh.updateColorBuffer();
+        mesh.updateMaterialBuffer();
       }
     },
     updatePickColor: function () {
       var main = this._main;
       var picking = main.getPicking();
-      if (picking.intersectionMouseMesh(this._mesh, main._mouseX, main._mouseY))
+      if (picking.intersectionMouseMesh(this.getMesh(), main._mouseX, main._mouseY))
         this.pickColor(picking);
     },
-    /** Pick the color under the mouse */
     setPickCallback: function (cb) {
       this._pickCallback = cb;
     },
-    /** Pick the color under the mouse */
     pickColor: function (picking) {
+      var mesh = this.getMesh();
       var color = this._color;
-      picking.polyLerp(this._mesh.getMaterials(), color);
+      picking.polyLerp(mesh.getMaterials(), color);
       var roughness = color[0];
       var metallic = color[1];
-      picking.polyLerp(this._mesh.getColors(), color);
+      picking.polyLerp(mesh.getColors(), color);
       this._pickCallback(color, roughness, metallic);
     },
-    /** On stroke */
     stroke: function (picking) {
       var iVertsInRadius = picking.getPickedVertices();
       var intensity = this._intensity * Tablet.getPressureIntensity();
@@ -90,13 +90,13 @@ define([
       picking.setIdAlpha(this._idAlpha);
       this.paint(iVertsInRadius, picking.getIntersectionPoint(), picking.getLocalRadius2(), intensity, this._hardness, picking);
 
-      this._mesh.updateDuplicateColorsAndMaterials(iVertsInRadius);
-      var idFaces = this._mesh.getFacesFromVertices(iVertsInRadius);
-      this._mesh.updateFlatShading(idFaces);
+      var mesh = this.getMesh();
+      mesh.updateDuplicateColorsAndMaterials(iVertsInRadius);
+      var idFaces = mesh.getFacesFromVertices(iVertsInRadius);
+      mesh.updateFlatShading(idFaces);
     },
-    /** Paint color vertices */
     paint: function (iVerts, center, radiusSquared, intensity, hardness, picking) {
-      var mesh = this._mesh;
+      var mesh = this.getMesh();
       var vAr = mesh.getVertices();
       var cAr = mesh.getColors();
       var mAr = mesh.getMaterials();
@@ -131,7 +131,7 @@ define([
       }
     },
     paintAll: function () {
-      var mesh = this._mesh = this._main.getMesh();
+      var mesh = this.getMesh();
       var iVerts = this.getUnmaskedVertices();
       if (iVerts.length === 0)
         return;

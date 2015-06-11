@@ -9,32 +9,31 @@ define([
 
   var vec2 = glm.vec2;
   var vec3 = glm.vec3;
-  var vec4 = glm.vec4;
   var mat3 = glm.mat3;
   var mat4 = glm.mat4;
   var quat = glm.quat;
 
   var easeOutQuart = function (r) {
-    r = Math.min(1.0, r);
-    r = r - 1;
-    return -(r * r * r * r - 1);
+    r = Math.min(1.0, r) - 1.0;
+    return -(r * r * r * r - 1.0);
   };
 
   var DELAY_SNAP = 200;
   var DELAY_ROTATE = 200;
   var DELAY_TRANSLATE = 200;
-  var DELAY_MOVE_TO = 500;
+  var DELAY_MOVE_TO = 300;
 
   var Camera = function (main) {
     this._main = main;
 
     var opts = getUrlOptions();
-    this._mode = Camera.mode[opts.cameramode] || Camera.mode.ORBIT;
-    this._projType = Camera.projType[opts.projection] || Camera.projType.PERSPECTIVE;
+    this._mode = opts.cameramode || 'ORBIT'; // SPHERICAL / PLANE
+    this._projectionType = opts.projection || 'PERSPECTIVE'; // ORTHOGRAPHIC
 
     this._quatRot = [0.0, 0.0, 0.0, 1.0]; // quaternion rotation
     this._view = mat4.create(); // view matrix
     this._proj = mat4.create(); // projection matrix
+    this._viewport = mat4.create(); // viewport matrix
 
     this._lastNormalizedMouseXY = [0.0, 0.0]; // last mouse position ( 0..1 )
     this._width = 0.0; // viewport width
@@ -66,28 +65,15 @@ define([
     this.resetView();
   };
 
-  // the camera modes
-  Camera.mode = {
-    ORBIT: 0,
-    SPHERICAL: 1,
-    PLANE: 2
-  };
-
-  // the projection type
-  Camera.projType = {
-    PERSPECTIVE: 0,
-    ORTHOGRAPHIC: 1
-  };
-
   Camera.prototype = {
-    setProjType: function (type) {
-      this._projType = type;
+    setProjectionType: function (type) {
+      this._projectionType = type;
       this.updateProjection();
       this.updateView();
     },
     setMode: function (mode) {
       this._mode = mode;
-      if (mode === Camera.mode.ORBIT)
+      if (mode === 'ORBIT')
         this.resetViewFront();
     },
     setFov: function (fov) {
@@ -101,11 +87,17 @@ define([
     toggleUsePivot: function () {
       this._usePivot = !this._usePivot;
     },
-    getProjType: function () {
-      return this._projType;
+    getView: function () {
+      return this._view;
+    },
+    getProjection: function () {
+      return this._proj;
+    },
+    getProjectionType: function () {
+      return this._projectionType;
     },
     isOrthographic: function () {
-      return this._projType === Camera.projType.ORTHOGRAPHIC;
+      return this._projectionType === 'ORTHOGRAPHIC';
     },
     getMode: function () {
       return this._mode;
@@ -115,6 +107,11 @@ define([
     },
     getUsePivot: function () {
       return this._usePivot;
+    },
+    getConstantScreen: function () {
+      if (this._projectionType === 'ORTHOGRAPHIC')
+        return 1.0 / this.getOrthoZoom();
+      return Math.min(this._proj[0], this._proj[5] * 0.5);
     },
     start: (function () {
       var pivot = [0.0, 0.0, 0.0];
@@ -143,7 +140,7 @@ define([
         vec3.transformQuat(this._offset, this._offset, this._quatRot);
 
         // adjust zoom
-        if (this._projType === Camera.projType.PERSPECTIVE) {
+        if (this._projectionType === 'PERSPECTIVE') {
           var oldZoom = this.getTransZ();
           this._trans[2] = vec3.dist(this.computePosition(), this._center) * this._fov / 45;
           this._offset[2] += this.getTransZ() - oldZoom;
@@ -156,23 +153,22 @@ define([
       var axisRot = [0.0, 0.0, 0.0];
       var quatTmp = [0.0, 0.0, 0.0, 0.0];
 
-      return function (mouseX, mouseY, snap) {
-        if (snap)
-          return this.snapClosestRotation();
+      return function (mouseX, mouseY) {
+
         var normalizedMouseXY = Geometry.normalizedMouse(mouseX, mouseY, this._width, this._height);
-        if (this._mode === Camera.mode.ORBIT) {
+        if (this._mode === 'ORBIT') {
           vec2.sub(diff, normalizedMouseXY, this._lastNormalizedMouseXY);
           this.setOrbit(this._rotX - diff[1] * 2, this._rotY + diff[0] * 2);
 
           this.rotateDelay([-diff[1] * 6, diff[0] * 6], DELAY_ROTATE);
-        } else if (this._mode === Camera.mode.PLANE) {
+        } else if (this._mode === 'PLANE') {
           var length = vec2.dist(this._lastNormalizedMouseXY, normalizedMouseXY);
           vec2.sub(diff, normalizedMouseXY, this._lastNormalizedMouseXY);
           vec3.normalize(axisRot, vec3.set(axisRot, -diff[1], diff[0], 0.0));
           quat.mul(this._quatRot, quat.setAxisAngle(quatTmp, axisRot, length * 2.0), this._quatRot);
 
           this.rotateDelay([axisRot[0], axisRot[1], axisRot[2], length * 6], DELAY_ROTATE);
-        } else if (this._mode === Camera.mode.SPHERICAL) {
+        } else if (this._mode === 'SPHERICAL') {
           var mouseOnSphereBefore = Geometry.mouseOnUnitSphere(this._lastNormalizedMouseXY);
           var mouseOnSphereAfter = Geometry.mouseOnUnitSphere(normalizedMouseXY);
           var angle = Math.acos(Math.min(1.0, vec3.dot(mouseOnSphereBefore, mouseOnSphereAfter)));
@@ -186,7 +182,8 @@ define([
       };
     })(),
     setOrbit: function (rx, ry) {
-      this._rotX = Math.max(Math.min(rx, Math.PI * 0.5), -Math.PI * 0.5);
+      var radLimit = Math.PI * 0.45;
+      this._rotX = Math.max(Math.min(rx, radLimit), -radLimit);
       this._rotY = ry;
       var qrt = this._quatRot;
       quat.identity(qrt);
@@ -194,7 +191,7 @@ define([
       quat.rotateY(qrt, qrt, this._rotY);
     },
     getTransZ: function () {
-      return this._projType === Camera.projType.PERSPECTIVE ? this._trans[2] * 45 / this._fov : 1000.0;
+      return this._projectionType === 'PERSPECTIVE' ? this._trans[2] * 45 / this._fov : 1000.0;
     },
     updateView: (function () {
       var up = [0.0, 1.0, 0.0];
@@ -233,7 +230,7 @@ define([
       };
     })(),
     updateProjection: function () {
-      if (this._projType === Camera.projType.PERSPECTIVE) {
+      if (this._projectionType === 'PERSPECTIVE') {
         mat4.perspective(this._proj, this._fov * Math.PI / 180.0, this._width / this._height, this._near, this._far);
         this._proj[10] = -1.0;
         this._proj[14] = -2 * this._near;
@@ -245,7 +242,7 @@ define([
       var trans = this._trans;
       trans[0] += this._moveX * this._speed * trans[2] / 50 / 400.0;
       trans[2] = Math.max(0.00001, trans[2] + this._moveZ * this._speed / 400.0);
-      if (this._projType === Camera.projType.ORTHOGRAPHIC)
+      if (this._projectionType === 'ORTHOGRAPHIC')
         this.updateOrtho();
       this.updateView();
     },
@@ -268,19 +265,25 @@ define([
       vec3.scale(delta, delta, 5);
       this.translateDelay(delta, DELAY_TRANSLATE);
     },
+    setAndFocusOnPivot: function (pivot, zoom) {
+      this.setPivot(pivot);
+      this.moveToDelay(this._offset[0], this._offset[1], this._offset[2] + zoom);
+    },
     moveToDelay: function (x, y, z) {
       var delta = [x, y, z];
-      vec3.sub(delta, delta, this._trans);
-      this.translateDelay(delta, DELAY_MOVE_TO);
+      this.translateDelay(vec3.sub(delta, delta, this._trans), DELAY_MOVE_TO);
     },
     setTrans: function (trans) {
       vec3.copy(this._trans, trans);
-      if (this._projType === Camera.projType.ORTHOGRAPHIC)
+      if (this._projectionType === 'ORTHOGRAPHIC')
         this.updateOrtho();
       this.updateView();
     },
+    getOrthoZoom: function () {
+      return Math.abs(this._trans[2]) * 0.00055;
+    },
     updateOrtho: function () {
-      var delta = Math.abs(this._trans[2]) * 0.00055;
+      var delta = this.getOrthoZoom();
       var w = this._width * delta;
       var h = this._height * delta;
       mat4.ortho(this._proj, -w, w, -h, h, -this._near, this._far);
@@ -333,34 +336,41 @@ define([
       if (dot * dot > 0.99) this.resetViewRight();
       else this.resetViewLeft();
     },
+    computeWorldToScreenMatrix: function (mat) {
+      mat = mat || mat4.create();
+      return mat4.mul(mat, mat4.mul(mat, this._viewport, this._proj), this._view);
+    },
     /** Project the mouse coordinate into the world coordinate at a given z */
     unproject: (function () {
       var mat = mat4.create();
-      var n = [0.0, 0.0, 0.0, 1.0];
       return function (mouseX, mouseY, z) {
-        var height = this._height;
-        n[0] = (2.0 * mouseX / this._width) - 1.0;
-        n[1] = (height - 2.0 * mouseY) / height;
-        n[2] = 2.0 * z - 1.0;
-        n[3] = 1.0;
-        vec4.transformMat4(n, n, mat4.invert(mat, mat4.mul(mat, this._proj, this._view)));
-        var w = n[3];
-        return [n[0] / w, n[1] / w, n[2] / w];
+        var out = [0.0, 0.0, 0.0];
+        mat4.invert(mat, this.computeWorldToScreenMatrix(mat));
+        return vec3.transformMat4(out, vec3.set(out, mouseX, this._height - mouseY, z), mat);
       };
     })(),
     /** Project a vertex onto the screen */
     project: (function () {
-      var vec = [0.0, 0.0, 0.0, 1.0];
+      var mat = mat4.create();
       return function (vector) {
-        vec[0] = vector[0];
-        vec[1] = vector[1];
-        vec[2] = vector[2];
-        vec[3] = 1.0;
-        vec4.transformMat4(vec, vec, this._view);
-        vec4.transformMat4(vec, vec, this._proj);
-        var w = vec[3];
-        var height = this._height;
-        return [(vec[0] / w + 1) * this._width * 0.5, height - (vec[1] / w + 1.0) * height * 0.5, (vec[2] / w + 1.0) * 0.5];
+        var out = [0.0, 0.0, 0.0];
+        vec3.transformMat4(out, vector, this.computeWorldToScreenMatrix(mat));
+        out[1] = this._height - out[1];
+        return out;
+      };
+    })(),
+    onResize: (function () {
+      var tmp = [0.0, 0.0, 0.0];
+      return function (width, height) {
+        this._width = width;
+        this._height = height;
+
+        var vp = this._viewport;
+        mat4.identity(vp);
+        mat4.scale(vp, vp, vec3.set(tmp, 0.5 * width, 0.5 * height, 0.5));
+        mat4.translate(vp, vp, vec3.set(tmp, 1.0, 1.0, 1.0));
+
+        this.updateProjection();
       };
     })(),
     snapClosestRotation: (function () {
@@ -408,10 +418,14 @@ define([
         this.quatDelay(qComp[id], DELAY_SNAP);
       };
     })(),
+    clearTimerN: function (n) {
+      window.clearInterval(this._timers[n]);
+      this._timers[n] = 0;
+    },
     delay: function (cb, duration, name) {
       var nTimer = name || 'default';
       if (this._timers[nTimer])
-        window.clearInterval(this._timers[nTimer]);
+        this.clearTimerN(nTimer);
 
       var lastR = 0;
       var tStart = (new Date()).getTime();
@@ -420,10 +434,8 @@ define([
         r = easeOutQuart(r);
         cb(r - lastR, r);
         lastR = r;
-        if (r >= 1.0) {
-          window.clearInterval(this._timers[nTimer]);
-          this._timers[nTimer] = 0;
-        }
+        if (r >= 1.0)
+          this.clearTimerN(nTimer);
       }.bind(this), 16.6);
     },
     _translateDelta: function (delta, dr) {
@@ -439,7 +451,7 @@ define([
     _rotDelta: (function () {
       var qTmp = [0.0, 0.0, 0.0, 0.0];
       return function (delta, dr) {
-        if (this._mode === Camera.mode.ORBIT) {
+        if (this._mode === 'ORBIT') {
           var rx = this._rotX + delta[0] * dr;
           var ry = this._rotY + delta[1] * dr;
           this.setOrbit(rx, ry);
@@ -462,7 +474,7 @@ define([
         var qrt = this._quatRot;
         quat.mul(this._quatRot, this._quatRot, qr);
 
-        if (this._mode === Camera.mode.ORBIT) {
+        if (this._mode === 'ORBIT') {
           var qx = qrt[0];
           var qy = qrt[1];
           var qz = qrt[2];

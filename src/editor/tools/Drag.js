@@ -23,7 +23,7 @@ define([
     /** Make a brush stroke */
     sculptStroke: function () {
       var main = this._main;
-      var mesh = this._mesh;
+      var mesh = this.getMesh();
       var picking = main.getPicking();
       var pickingSym = main.getSculpt().getSymmetry() ? main.getPickingSymmetry() : null;
 
@@ -60,7 +60,7 @@ define([
       this._lastMouseY = main._mouseY;
     },
     makeStroke: function (mouseX, mouseY, picking, pickingSym) {
-      var mesh = this._mesh;
+      var mesh = this.getMesh();
       this.updateDragDir(picking, mouseX, mouseY);
       picking.pickVerticesInSphere(picking.getLocalRadius2());
       picking.computePickedNormal();
@@ -91,12 +91,14 @@ define([
       this.drag(iVertsInRadius, picking.getIntersectionPoint(), picking.getLocalRadius2(), sym, picking);
       Smooth.prototype.smoothTangent.call(this, iVertsInRadius, 1.0, picking);
 
-      this._mesh.updateGeometry(this._mesh.getFacesFromVertices(iVertsInRadius), iVertsInRadius);
+      var mesh = this.getMesh();
+      mesh.updateGeometry(mesh.getFacesFromVertices(iVertsInRadius), iVertsInRadius);
     },
     /** Drag deformation */
     drag: function (iVerts, center, radiusSquared, sym, picking) {
-      var vAr = this._mesh.getVertices();
-      var mAr = this._mesh.getMaterials();
+      var mesh = this.getMesh();
+      var vAr = mesh.getVertices();
+      var mAr = mesh.getMaterials();
       var radius = Math.sqrt(radiusSquared);
       var cx = center[0];
       var cy = center[1];
@@ -124,7 +126,7 @@ define([
     },
     /** Set a few infos that will be needed for the drag function afterwards */
     updateDragDir: function (picking, mouseX, mouseY, useSymmetry) {
-      var mesh = this._mesh;
+      var mesh = this.getMesh();
       var vNear = picking.unproject(mouseX, mouseY, 0.0);
       var vFar = picking.unproject(mouseX, mouseY, 0.1);
       var matInverse = mat4.create();

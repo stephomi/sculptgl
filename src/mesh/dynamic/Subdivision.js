@@ -119,9 +119,9 @@ define([
 
       vNew = mesh.expandsVertices(vNew, 1);
       if (!this._linear) {
-        var smo = new Smooth();
-        smo._mesh = mesh;
         var expV = vNew.subarray(nbVNew);
+        var smo = new Smooth();
+        smo.setToolMesh(mesh);
         smo.smoothTangent(expV, 1.0);
         mesh.updateTopology(mesh.getFacesFromVertices(expV));
       }

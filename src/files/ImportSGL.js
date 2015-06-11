@@ -1,9 +1,12 @@
 define([
   'mesh/Mesh',
+  'files/ExportSGL',
   'render/shaders/ShaderBase'
-], function (Mesh, ShaderBase) {
+], function (Mesh, ExportSGL, ShaderBase) {
 
   'use strict';
+
+  var intToString = ExportSGL.intToString;
 
   var Import = {};
 
@@ -27,8 +30,8 @@ define([
       main._showContour = u32a[off++];
 
       var cam = main.getCamera();
-      cam.setProjType(u32a[off++]);
-      cam.setMode(u32a[off++]);
+      cam.setProjectionType(intToString.INT_TO_PROJECTION[u32a[off++]]);
+      cam.setMode(intToString.INT_TO_MODE[u32a[off++]]);
       cam.setFov(f32a[off++]);
       cam.setUsePivot(u32a[off++]);
     }
@@ -43,7 +46,7 @@ define([
         var render = mesh.getRender();
         // we don't have the geometry buffer and data yet so
         // we don't want to call updateBuffers
-        render.getShader().setType(u32a[off++]);
+        render.getShader().setType(intToString.INT_TO_SHADER[u32a[off++]]);
         render.setMatcap(u32a[off++]);
         render._showWireframe = u32a[off++];
         render._flatShading = u32a[off++];

@@ -36,11 +36,12 @@ define([
       this.inflate(iVertsInRadius, picking.getIntersectionPoint(), picking.getLocalRadius2(), intensity, picking);
       Smooth.prototype.smoothTangent.call(this, iVertsInRadius, 1.0, picking);
 
-      this._mesh.updateGeometry(this._mesh.getFacesFromVertices(iVertsInRadius), iVertsInRadius);
+      var mesh = this.getMesh();
+      mesh.updateGeometry(mesh.getFacesFromVertices(iVertsInRadius), iVertsInRadius);
     },
     /** Inflate a group of vertices */
     inflate: function (iVerts, center, radiusSquared, intensity, picking) {
-      var mesh = this._mesh;
+      var mesh = this.getMesh();
       var vAr = mesh.getVertices();
       var mAr = mesh.getMaterials();
       var vProxy = mesh.getVerticesProxy();

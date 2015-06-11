@@ -33,12 +33,14 @@ define([
       picking.setIdAlpha(this._idAlpha);
       this.pinch(iVertsInRadius, picking.getIntersectionPoint(), picking.getLocalRadius2(), intensity, picking);
 
-      this._mesh.updateGeometry(this._mesh.getFacesFromVertices(iVertsInRadius), iVertsInRadius);
+      var mesh = this.getMesh();
+      mesh.updateGeometry(mesh.getFacesFromVertices(iVertsInRadius), iVertsInRadius);
     },
     /** Pinch, vertices gather around intersection point */
     pinch: function (iVertsInRadius, center, radiusSquared, intensity, picking) {
-      var vAr = this._mesh.getVertices();
-      var mAr = this._mesh.getMaterials();
+      var mesh = this.getMesh();
+      var vAr = mesh.getVertices();
+      var mAr = mesh.getMaterials();
       var radius = Math.sqrt(radiusSquared);
       var cx = center[0];
       var cy = center[1];

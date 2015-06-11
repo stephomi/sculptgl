@@ -24,7 +24,7 @@ define([
 
   ShaderBase.showSymmetryLine = getUrlOptions().mirrorline;
   ShaderBase.uniformNames = {};
-  ShaderBase.uniformNames.commonUniforms = ['uMV', 'uMVP', 'uN', 'uEM', 'uEN', 'uPlaneO', 'uPlaneN', 'uScale', 'uCurvature', 'uAlpha', 'uZOrtho'];
+  ShaderBase.uniformNames.commonUniforms = ['uMV', 'uMVP', 'uN', 'uEM', 'uEN', 'uPlaneO', 'uPlaneN', 'uScale', 'uCurvature', 'uAlpha', 'uFov'];
 
   ShaderBase.strings = {};
   ShaderBase.strings.colorSpaceGLSL = colorSpaceGLSL;
@@ -41,14 +41,13 @@ define([
     'uniform vec3 uPlaneO;',
     'uniform float uScale;',
     'uniform float uCurvature;',
-    'uniform float uZOrtho;',
-    'varying float vMasking;'
+    'uniform float uFov;',
+    'varying float vMasking;',
   ].join('\n');
   ShaderBase.strings.fragColorFunction = [
-    '#extension GL_OES_standard_derivatives : enable',
     curvatureGLSL,
     'vec3 applyMaskAndSym(const in vec3 frag) {',
-    '  vec3 col = computeCurvature(vVertex, vNormal, frag, uCurvature, uZOrtho);',
+    '  vec3 col = computeCurvature(vVertex, vNormal, frag, uCurvature, uFov);',
     '  col *= (0.3 + 0.7 * vMasking);',
     '  if(uScale > 0.0 && abs(dot(uPlaneN, vVertex - uPlaneO)) < 0.15 / uScale)',
     '      return min(col * 1.5, 1.0);',
@@ -56,18 +55,34 @@ define([
     '}'
   ].join('\n');
 
+  var moveExtension = function (str) {
+    // move extension enable/require to the top of file (kind of a hack)
+    var matches = str.match(/^.*(\/\/( *)#extension).*/gm);
+    if (!matches) return str;
+    var extMap = {};
+    for (var i = 0, nb = matches.length; i < nb; ++i) {
+      var ext = matches[i].substr(matches[i].indexOf('#extension'));
+      if (extMap[ext])
+        continue;
+      extMap[ext] = true;
+      str = ext + '\n' + str;
+    }
+    return str;
+  };
+
   ShaderBase.getOrCreate = function (gl) {
     if (this.program)
       return this;
-    var vname = '#define SHADER_NAME ' + this.vertexName + '\n';
-    var fname = '#define SHADER_NAME ' + this.fragmentName + '\n';
+
+    var vname = '\n#define SHADER_NAME ' + this.vertexName + '\n';
+    var fname = '\n#define SHADER_NAME ' + this.fragmentName + '\n';
 
     var vShader = gl.createShader(gl.VERTEX_SHADER);
-    gl.shaderSource(vShader, vname + this.vertex);
+    gl.shaderSource(vShader, moveExtension(this.vertex + vname));
     gl.compileShader(vShader);
 
     var fShader = gl.createShader(gl.FRAGMENT_SHADER);
-    gl.shaderSource(fShader, fname + this.fragment);
+    gl.shaderSource(fShader, moveExtension(this.fragment + fname));
     gl.compileShader(fShader);
 
     var program = this.program = gl.createProgram();
@@ -80,9 +95,9 @@ define([
     var logV = gl.getShaderInfoLog(vShader);
     var logF = gl.getShaderInfoLog(fShader);
     var logP = gl.getProgramInfoLog(program);
-    if (logV) console.error('vertex shader error: ' + logV);
-    if (logF) console.error('fragment shader error: ' + logF);
-    if (logP) console.error('program error: ' + logP);
+    if (logV) console.warn(this.vertexName + ' (vertex)\n' + logV);
+    if (logF) console.warn(this.fragmentName + ' (fragment)\n' + logF);
+    if (logP) console.warn(this.fragmentName + ' (program)\n' + logP);
 
     this.initAttributes(gl);
     this.initUniforms(gl);
@@ -125,7 +140,7 @@ define([
 
       gl.uniform1f(uniforms.uCurvature, mesh.getCurvature());
       var cam = main.getCamera();
-      gl.uniform1f(uniforms.uZOrtho, cam.isOrthographic() ? cam._trans[2] : 0);
+      gl.uniform1f(uniforms.uFov, cam.isOrthographic() ? -Math.abs(cam._trans[2]) * 25.0 : cam.getFov());
     };
   })();
   ShaderBase.draw = function (render, main) {
@@ -146,13 +161,12 @@ define([
     }
   };
   ShaderBase.drawBuffer = function (render) {
-    var lengthIndexArray = render.getMesh().getRenderNbTriangles() * 3;
     var gl = render.getGL();
-    if (render.isUsingDrawArrays())
-      gl.drawArrays(gl.TRIANGLES, 0, lengthIndexArray);
-    else {
+    if (render.isUsingDrawArrays()) {
+      gl.drawArrays(render.getMode(), 0, render.getCount());
+    } else {
       render.getIndexBuffer().bind();
-      gl.drawElements(gl.TRIANGLES, lengthIndexArray, gl.UNSIGNED_INT, 0);
+      gl.drawElements(render.getMode(), render.getCount(), gl.UNSIGNED_INT, 0);
     }
     gl.bindBuffer(gl.ARRAY_BUFFER, null);
     gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, null);

@@ -25,6 +25,8 @@ define([
     this._cacheN = mat3.create(); // N matrix
     this._cacheEN = mat3.create(); // Editmatrix N matrix
     this._cacheDepth = 0.0; // depth of center
+
+    this._worldBound = [Infinity, Infinity, Infinity, -Infinity, -Infinity, -Infinity];
   };
 
   TransformData.prototype = {
@@ -63,21 +65,21 @@ define([
       return this._symmetryNormal;
     },
     updateCenter: function () {
-      var box = this._mesh.getBound();
+      var box = this._mesh.getLocalBound();
       vec3.set(this._center, (box[0] + box[3]) * 0.5, (box[1] + box[4]) * 0.5, (box[2] + box[5]) * 0.5);
     },
     /** Pre compute mv and mvp matrices as well as the depth center */
-    computeMatrices: function (camera) {
+    updateMatrices: function (camera) {
       mat3.normalFromMat4(this._cacheEN, this._editMatrix);
-      mat4.mul(this._cacheMV, camera._view, this._matrix);
+      mat4.mul(this._cacheMV, camera.getView(), this._matrix);
       mat3.normalFromMat4(this._cacheN, this._cacheMV);
-      mat4.mul(this._cacheMVP, camera._proj, this._cacheMV);
+      mat4.mul(this._cacheMVP, camera.getProjection(), this._cacheMV);
       var cen = this._center;
       var m = this._cacheMVP;
       this._cacheDepth = m[2] * cen[0] + m[6] * cen[1] + m[10] * cen[2] + m[14];
     },
-    scaleAndCenter: function () {
-      var box = this._mesh.getBound();
+    normalizeSize: function () {
+      var box = this._mesh.getLocalBound();
       var diag = vec3.dist([box[0], box[1], box[2]], [box[3], box[4], box[5]]);
       var scale = Utils.SCALE / diag;
       mat4.scale(this._matrix, this._matrix, [scale, scale, scale]);
@@ -90,7 +92,38 @@ define([
       return function (destination) {
         mat4.translate(this._matrix, this._matrix, vec3.sub(dummy, destination, this._center));
       };
-    })()
+    })(),
+    getWorldBound: function () {
+      var worldb = this._worldBound;
+      var localb = this._mesh.getLocalBound();
+      var mat = this._mesh.getMatrix();
+
+      // trans
+      worldb[0] = worldb[3] = mat[12];
+      worldb[1] = worldb[4] = mat[13];
+      worldb[2] = worldb[5] = mat[14];
+
+      // rotate per component
+      for (var i = 0; i < 3; ++i) {
+        var i4 = i * 4;
+        var mini = localb[i];
+        var maxi = localb[i + 3];
+        for (var j = 0; j < 3; ++j) {
+          var cm = mat[i4 + j];
+          var a = cm * maxi;
+          var b = cm * mini;
+          if (a < b) {
+            worldb[j] += a;
+            worldb[j + 3] += b;
+          } else {
+            worldb[j] += b;
+            worldb[j + 3] += a;
+          }
+        }
+      }
+
+      return worldb;
+    }
   };
 
   return TransformData;

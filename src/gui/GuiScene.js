@@ -22,6 +22,20 @@ define([
       menu.addButton(TR('sceneReset'), this._main, 'clearScene' /*, 'CTRL+ALT+N'*/ );
       menu.addButton(TR('sceneAddSphere'), this._main, 'addSphere');
       menu.addButton(TR('sceneAddCube'), this._main, 'addCube');
+      menu.addButton(TR('sceneAddCylinder'), this._main, 'addCylinder');
+      menu.addButton(TR('sceneAddTorus'), this._main, 'addTorus');
+
+      // menu.addTitle(TR('Torus'));
+      // menu.addSlider(TR('Arc'), this._main._torusRadius, this.updateTorusRadius.bind(this), 0.01, Math.PI * 2, 0.001);
+      // this.ctrlWI = menu.addSlider(TR('Width'), this._main._torusWidth, this.updateTorusWidth.bind(this), 0.01, 0.5, 0.01);
+      // this.ctrlLE = menu.addSlider(TR('Length'), this._main._torusLength, this.updateTorusLength.bind(this), 0.2, 2.0, 0.01);
+      // menu.addSlider(TR('Radial'), this._main._torusRadial, this.updateTorusRadial.bind(this), 3, 64, 1);
+      // menu.addSlider(TR('Tubular'), this._main._torusTubular, this.updateTorusTubular.bind(this), 3, 256, 1);
+
+      // this.ctrlValidate = menu.addButton(TR('Validate !'), this, 'validatePreview');
+      // this.ctrlValidate.setVisibility(false);
+      // this.ctrlDiscard = menu.addButton(TR('Discard !'), this, 'discardPreview');
+      // this.ctrlDiscard.setVisibility(false);
 
       // selection stuffs
       menu.addTitle(TR('sceneSelection'));
@@ -37,6 +51,58 @@ define([
       menu.addCheckbox(TR('renderingSymmetryLine'), ShaderBase.showSymmetryLine, this.onShowSymmetryLine.bind(this));
 
       this.addEvents();
+    },
+    validatePreview: function () {
+      if (!this._main._meshPreview)
+        this._main.addTorus(true);
+
+      this._main._meshPreview.setShowWireframe(false);
+      this._main.addNewMesh(this._main._meshPreview);
+      this._main._meshPreview = null;
+
+      this.ctrlDiscard.setVisibility(false);
+      this.ctrlValidate.setVisibility(false);
+      this._main.render();
+    },
+    discardPreview: function () {
+      this._main._meshPreview = null;
+      this.ctrlDiscard.setVisibility(false);
+      this.ctrlValidate.setVisibility(false);
+      this._main.render();
+    },
+    updateTorusRadius: function (val) {
+      this._main._torusRadius = val;
+      this.updateTorus();
+    },
+    updateTorusRadial: function (val) {
+      this._main._torusRadial = val;
+      this.updateTorus();
+    },
+    updateTorusTubular: function (val) {
+      this._main._torusTubular = val;
+      this.updateTorus();
+    },
+    updateTorusWidth: function (val) {
+      this._main._torusWidth = val;
+      if (this._main._torusLength < this._main._torusWidth) {
+        this.ctrlLE.setValue(val);
+        return;
+      }
+      this.updateTorus();
+    },
+    updateTorusLength: function (val) {
+      this._main._torusLength = val;
+      if (this._main._torusLength < this._main._torusWidth) {
+        this.ctrlWI.setValue(val);
+        return;
+      }
+      this.updateTorus();
+    },
+    updateTorus: function () {
+      this._main.addTorus(true);
+      this.ctrlDiscard.setVisibility(true);
+      this.ctrlValidate.setVisibility(true);
+      this._main.render();
     },
     updateMesh: function () {
       var nbMeshes = this._main.getMeshes().length;

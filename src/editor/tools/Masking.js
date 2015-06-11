@@ -29,20 +29,21 @@ define([
   Masking.prototype = {
     pushState: function () {
       // too lazy to add a pushStateMaterial
-      this._states.pushStateColorAndMaterial(this._mesh);
+      this._states.pushStateColorAndMaterial(this.getMesh());
     },
     updateMeshBuffers: function () {
-      if (this._mesh.getDynamicTopology)
-        this._mesh.updateBuffers();
+      var mesh = this.getMesh();
+      if (mesh.getDynamicTopology)
+        mesh.updateBuffers();
       else
-        this._mesh.updateMaterialBuffer();
+        mesh.updateMaterialBuffer();
     },
     stroke: function (picking) {
       Paint.prototype.stroke.call(this, picking);
     },
     /** Paint color vertices */
     paint: function (iVerts, center, radiusSquared, intensity, hardness, picking) {
-      var mesh = this._mesh;
+      var mesh = this.getMesh();
       var vAr = mesh.getVertices();
       var mAr = mesh.getMaterials();
       var radius = Math.sqrt(radiusSquared);
@@ -66,12 +67,13 @@ define([
       }
     },
     updateAndRenderMask: function () {
-      this._mesh.updateDuplicateColorsAndMaterials();
-      this._mesh.updateFlatShading();
+      var mesh = this.getMesh();
+      mesh.updateDuplicateColorsAndMaterials();
+      mesh.updateFlatShading();
       this.updateRender();
     },
     blur: function () {
-      var mesh = this._mesh = this._main.getMesh();
+      var mesh = this.getMesh();
       var iVerts = this.getMaskedVertices();
       if (iVerts.length === 0)
         return;
@@ -89,7 +91,7 @@ define([
       this.updateAndRenderMask();
     },
     sharpen: function () {
-      var mesh = this._mesh = this._main.getMesh();
+      var mesh = this.getMesh();
       var iVerts = this.getMaskedVertices();
       if (iVerts.length === 0)
         return;
@@ -107,7 +109,7 @@ define([
       this.updateAndRenderMask();
     },
     clear: function () {
-      var mesh = this._mesh = this._main.getMesh();
+      var mesh = this.getMesh();
       var iVerts = this.getMaskedVertices();
       if (iVerts.length === 0)
         return;
@@ -123,7 +125,7 @@ define([
     },
     invert: function (isState, meshState) {
       var mesh = meshState;
-      if (!mesh) mesh = this._mesh = this._main.getMesh();
+      if (!mesh) mesh = this.getMesh();
       if (!isState)
         this._states.pushStateCustom(this.invert.bind(this, true, mesh));
 
@@ -134,7 +136,7 @@ define([
       this.updateAndRenderMask();
     },
     remapAndMirrorIndices: function (fAr, nbFaces, iVerts) {
-      var nbVertices = this._mesh.getNbVertices();
+      var nbVertices = this.getMesh().getNbVertices();
       var iTag = new Uint32Array(Utils.getMemory(nbVertices * 4), 0, nbVertices);
       var i = 0;
       var j = 0;
@@ -170,7 +172,7 @@ define([
       }
     },
     extractFaces: function (iFaces, iVerts, maskClamp) {
-      var mesh = this._mesh;
+      var mesh = this.getMesh();
       var fAr = mesh.getFaces();
       var mAr = mesh.getMaterials();
       var eAr = mesh.getVerticesOnEdge();
@@ -252,7 +254,7 @@ define([
       return fArNew;
     },
     extractVertices: function (iVerts) {
-      var mesh = this._mesh;
+      var mesh = this.getMesh();
 
       var vAr = mesh.getVertices();
       var nAr = mesh.getNormals();
@@ -293,19 +295,19 @@ define([
       return vArNew;
     },
     smoothBorder: function (mesh, iFaces) {
-      var smo = new Smooth();
-      smo._mesh = mesh;
       var startBridge = iFaces.length * 2;
       var fBridge = new Uint32Array(mesh.getNbFaces() - startBridge);
       for (var i = 0, nbBridge = fBridge.length; i < nbBridge; ++i)
         fBridge[i] = startBridge + i;
       var vBridge = mesh.expandsVertices(mesh.getVerticesFromFaces(fBridge), 1);
+      var smo = new Smooth();
+      smo.setToolMesh(mesh);
       smo.smooth(vBridge, 1.0);
       smo.smooth(vBridge, 1.0);
       smo.smooth(vBridge, 1.0);
     },
     extract: function () {
-      var mesh = this._mesh;
+      var mesh = this.getMesh();
       var maskClamp = 0.5;
 
       var iVerts = this.filterMaskedVertices(-Infinity, maskClamp);
