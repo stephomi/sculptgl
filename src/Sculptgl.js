@@ -266,9 +266,9 @@ define([
         this._checkMask = false;
         if (this._mesh) {
           if (this._lastMouseX === this._maskX && this._lastMouseY === this._maskY)
-            this.getSculpt().getTool('MASKING').invert(this._mesh, this);
+            this.getSculpt().getTool('MASKING').invert();
           else
-            this.getSculpt().getTool('MASKING').clear(this._mesh, this);
+            this.getSculpt().getTool('MASKING').clear();
         }
       }
       this.render();
