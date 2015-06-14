@@ -71,6 +71,13 @@ define([
     gl.linkProgram(program);
     gl.useProgram(program);
 
+    var logV = gl.getShaderInfoLog(vShader);
+    var logF = gl.getShaderInfoLog(fShader);
+    var logP = gl.getProgramInfoLog(program);
+    if (logV) console.error('vertex shader error: ' + logV);
+    if (logF) console.error('fragment shader error: ' + logF);
+    if (logP) console.error('program error: ' + logP);
+
     this.initAttributes(gl);
     // this.initUniforms(gl);
     ShaderBase.initUniforms.call(this, gl);

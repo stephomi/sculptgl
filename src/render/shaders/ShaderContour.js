@@ -62,7 +62,7 @@ define([
 
     gl.depthMask(false);
     gl.enable(gl.BLEND);
-    gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+    gl.drawArrays(gl.TRIANGLES, 0, 3);
     gl.disable(gl.BLEND);
     gl.depthMask(true);
 

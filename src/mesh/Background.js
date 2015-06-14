@@ -15,9 +15,6 @@ define([
     this._tex = null; // the texture
     this._fill = true; // if the canvas should be fille by the background
 
-    this.vertCoords = new Float32Array([-1.0, -1.0, 1.0, -1.0, -1.0, 1.0, 1.0, 1.0]);
-    this.texCoords = new Float32Array([0.0, 0.0, 1.0, 0.0, 0.0, 1.0, 1.0, 1.0]);
-
     this._shader = null; // the shader
     this.init();
   };
@@ -51,7 +48,7 @@ define([
       return this._texCoordBuffer;
     },
     init: function () {
-      this.initBuffer();
+      this.getTexCoordBuffer().update(new Float32Array([0.0, 0.0, 1.0, 0.0, 0.0, 1.0, 1.0, 1.0]));
       this._shader = Shader[Shader.mode.BACKGROUND].getOrCreate(this._gl);
 
       var cbLoadBackground = this.loadBackground.bind(this);
@@ -69,18 +66,13 @@ define([
       this.getVertexBuffer().release();
       this.getTexCoordBuffer().release();
     },
-    initBuffer: function () {
-      this.getVertexBuffer().update(this.vertCoords);
-      this.getTexCoordBuffer().update(this.texCoords);
-    },
     onResize: function (width, height) {
       if (!this._tex) return;
       var ratio = (width / height) / (this._tex.width / this._tex.height);
       var comp = this._fill ? 1.0 / ratio : ratio;
       var x = comp < 1.0 ? 1.0 : 1.0 / ratio;
       var y = comp < 1.0 ? ratio : 1.0;
-      this.vertCoords.set([-x, -y, x, -y, -x, y, x, y]);
-      this.getVertexBuffer().update(this.vertCoords);
+      this.getVertexBuffer().update(new Float32Array([-x, -y, x, -y, -x, y, x, y]));
     },
     loadBackgroundTexture: function (tex) {
       var gl = this._gl;
