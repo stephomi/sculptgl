@@ -84,6 +84,7 @@ define([
       this.initTopology();
       this.updateGeometry();
       this.updateDuplicateColorsAndMaterials();
+      this.updateCenter();
     },
     /** Init topoloy stuffs */
     initTopology: function () {

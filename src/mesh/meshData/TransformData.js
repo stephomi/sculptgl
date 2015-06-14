@@ -62,8 +62,7 @@ define([
     getSymmetryNormal: function () {
       return this._symmetryNormal;
     },
-    /** Compute center of mesh */
-    computeCenter: function () {
+    updateCenter: function () {
       var box = this._mesh.getBound();
       vec3.set(this._center, (box[0] + box[3]) * 0.5, (box[1] + box[4]) * 0.5, (box[2] + box[5]) * 0.5);
     },
@@ -77,9 +76,7 @@ define([
       var m = this._cacheMVP;
       this._cacheDepth = m[2] * cen[0] + m[6] * cen[1] + m[10] * cen[2] + m[14];
     },
-    /** Scale and center the mesh */
     scaleAndCenter: function () {
-      this.computeCenter();
       var box = this._mesh.getBound();
       var diag = vec3.dist([box[0], box[1], box[2]], [box[3], box[4], box[5]]);
       var scale = Utils.SCALE / diag;
