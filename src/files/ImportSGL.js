@@ -81,14 +81,14 @@ define([
 
       // uvs
       nbElts = u32a[off++];
-      var uv;
+      var uv = null;
       if (nbElts)
         uv = f32a.subarray(off, off + nbElts * 2);
       off += nbElts * 2;
 
       // face uvs
       nbElts = u32a[off++];
-      var fuv;
+      var fuv = null;
       if (nbElts)
         fuv = i32a.subarray(off, off + nbElts * 4);
       off += nbElts * 4;
