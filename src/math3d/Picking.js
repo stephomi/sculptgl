@@ -84,8 +84,7 @@ define([
         if (!keepOrigin)
           vec3.copy(this._alphaOrirign, this._interPoint);
 
-        vec3.scale(nor, normal, radius);
-        vec3.scale(dir, dir, radius);
+        vec3.scaleAndAdd(nor, this._alphaOrirign, normal, radius);
         mat4.lookAt(this._alphaLookAt, this._alphaOrirign, nor, dir);
       };
     })(),
