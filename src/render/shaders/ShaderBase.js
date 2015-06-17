@@ -79,8 +79,7 @@ define([
     if (logP) console.error('program error: ' + logP);
 
     this.initAttributes(gl);
-    // this.initUniforms(gl);
-    ShaderBase.initUniforms.call(this, gl);
+    this.initUniforms(gl);
 
     // no clean up for quick webgl inspector debugging
     // gl.detachShader(program, fShader);

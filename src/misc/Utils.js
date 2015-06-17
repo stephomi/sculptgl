@@ -199,28 +199,29 @@ define([], function () {
     return new Date().getTime();
   };
 
-  /** Throttle function */
   Utils.throttle = function (func, wait) {
-    var context, args, result;
+    var result;
+    var args = [];
     var timeout = null;
     var previous = 0;
     var later = function () {
       previous = Utils.now();
       timeout = null;
-      result = func.apply(context, args);
-      context = args = null;
+      result = func.apply(func, args);
     };
     return function () {
       var now = Utils.now();
       var remaining = wait - (now - previous);
-      context = this;
-      args = arguments;
+
+      var nbArgs = args.length = arguments.length;
+      for (var i = 0; i < nbArgs; ++i)
+        args[i] = arguments[i];
+
       if (remaining <= 0 || remaining > wait) {
         window.clearTimeout(timeout);
         timeout = null;
         previous = now;
-        result = func.apply(context, args);
-        context = args = null;
+        result = func.apply(func, args);
       } else if (!timeout) {
         timeout = window.setTimeout(later, remaining);
       }
