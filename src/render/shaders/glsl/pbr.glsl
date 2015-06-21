@@ -55,9 +55,15 @@ vec3 integrateBRDFApprox(const in vec3 specular, float roughness, float NoV) {
   return specular * AB.x + AB.y;
 }
 
+vec3 getSpecularDominantDir( const in vec3 N, const in vec3 R, const in float realRoughness ) {
+    float smoothness = 1.0 - realRoughness;
+    return mix( N, R, smoothness * ( sqrt( smoothness ) + realRoughness ) );
+}
+
 vec3 approximateSpecularIBL( const in vec3 specularColor, float rLinear, const in vec3 N, const in vec3 V ) {
   float NoV = clamp( dot( N, V ), 0.0, 1.0 );
   vec3 R = normalize( (2.0 * NoV ) * N - V);
+  R = getSpecularDominantDir(N, R, rLinear);
   vec3 prefilteredColor = texturePanoramaLod( uTexture0, environmentSize, uIblTransform * R, rLinear * environmentLodRange[1], environmentLodRange[0] );
   return prefilteredColor * integrateBRDFApprox(specularColor, rLinear, NoV);
 }
