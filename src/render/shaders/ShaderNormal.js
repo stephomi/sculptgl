@@ -5,6 +5,8 @@ define([
   'use strict';
 
   var ShaderNormal = ShaderBase.getCopy();
+  ShaderNormal.vertexName = ShaderNormal.fragmentName = 'ShowNormal';
+
   ShaderNormal.uniforms = {};
   ShaderNormal.attributes = {};
   ShaderNormal.activeAttributes = {

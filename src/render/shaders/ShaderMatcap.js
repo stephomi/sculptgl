@@ -6,6 +6,8 @@ define([
   'use strict';
 
   var ShaderMatcap = ShaderBase.getCopy();
+  ShaderMatcap.vertexName = ShaderMatcap.fragmentName = 'Matcap';
+
   ShaderMatcap.textures = {};
 
   var texPath = 'resources/matcaps/';

@@ -11,6 +11,8 @@ define([
   var mat3 = glm.mat3;
 
   var ShaderPBR = ShaderBase.getCopy();
+  ShaderPBR.vertexName = ShaderPBR.fragmentName = 'ShadingPBR';
+
   ShaderPBR.textures = {};
 
   // TODO update i18n strings in a dynamic way

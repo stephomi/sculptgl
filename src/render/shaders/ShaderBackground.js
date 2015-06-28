@@ -6,6 +6,8 @@ define([
   'use strict';
 
   var ShaderBackground = ShaderBase.getCopy();
+  ShaderBackground.vertexName = ShaderBackground.fragmentName = 'Background';
+
   ShaderBackground.uniforms = {};
   ShaderBackground.attributes = {};
 

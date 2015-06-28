@@ -6,6 +6,8 @@ define([
   'use strict';
 
   var ShaderUV = ShaderBase.getCopy();
+  ShaderUV.vertexName = ShaderUV.fragmentName = 'ShowUV';
+
   ShaderUV.texPath = 'resources/uv.jpg';
 
   ShaderUV.uniforms = {};

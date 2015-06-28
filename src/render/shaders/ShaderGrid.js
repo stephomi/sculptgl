@@ -5,6 +5,8 @@ define([
   'use strict';
 
   var ShaderGrid = ShaderBase.getCopy();
+  ShaderGrid.vertexName = ShaderGrid.fragmentName = 'Grid';
+
   ShaderGrid.uniforms = {};
   ShaderGrid.attributes = {};
   ShaderGrid.activeAttributes = {

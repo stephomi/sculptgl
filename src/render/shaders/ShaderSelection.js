@@ -5,6 +5,8 @@ define([
   'use strict';
 
   var ShaderSelection = ShaderBase.getCopy();
+  ShaderSelection.vertexName = ShaderSelection.fragmentName = 'ShowSelection';
+
   ShaderSelection.uniforms = {};
   ShaderSelection.attributes = {};
   ShaderSelection.activeAttributes = {

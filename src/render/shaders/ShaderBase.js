@@ -12,6 +12,9 @@ define([
   var vec3 = glm.vec3;
 
   var ShaderBase = {};
+  ShaderBase.vertexName = 'VertexName';
+  ShaderBase.fragmentName = 'FragmentName';
+
   ShaderBase.activeAttributes = {
     vertex: true,
     normal: true,
@@ -56,12 +59,15 @@ define([
   ShaderBase.getOrCreate = function (gl) {
     if (this.program)
       return this;
+    var vname = '#define SHADER_NAME ' + this.vertexName + '\n';
+    var fname = '#define SHADER_NAME ' + this.fragmentName + '\n';
+
     var vShader = gl.createShader(gl.VERTEX_SHADER);
-    gl.shaderSource(vShader, this.vertex);
+    gl.shaderSource(vShader, vname + this.vertex);
     gl.compileShader(vShader);
 
     var fShader = gl.createShader(gl.FRAGMENT_SHADER);
-    gl.shaderSource(fShader, this.fragment);
+    gl.shaderSource(fShader, fname + this.fragment);
     gl.compileShader(fShader);
 
     var program = this.program = gl.createProgram();

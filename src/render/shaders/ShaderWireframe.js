@@ -5,6 +5,8 @@ define([
   'use strict';
 
   var ShaderWireframe = ShaderBase.getCopy();
+  ShaderWireframe.vertexName = ShaderWireframe.fragmentName = 'Wireframe';
+
   ShaderWireframe.uniforms = {};
   ShaderWireframe.attributes = {};
   ShaderWireframe.activeAttributes = {

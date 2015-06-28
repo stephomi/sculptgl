@@ -7,6 +7,8 @@ define([
   'use strict';
 
   var ShaderRtt = ShaderBase.getCopy();
+  ShaderRtt.vertexName = ShaderRtt.fragmentName = 'FxaaFilmic';
+
   ShaderRtt.uniforms = {};
   ShaderRtt.attributes = {};
 

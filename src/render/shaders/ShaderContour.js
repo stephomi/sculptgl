@@ -7,6 +7,8 @@ define([
   'use strict';
 
   var ShaderContour = ShaderBase.getCopy();
+  ShaderContour.vertexName = ShaderContour.fragmentName = 'SobelContour';
+
   ShaderContour.color = getUrlOptions().outlinecolor;
   ShaderContour.uniforms = {};
   ShaderContour.attributes = {};

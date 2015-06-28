@@ -5,6 +5,8 @@ define([
   'use strict';
 
   var ShaderFlat = ShaderBase.getCopy();
+  ShaderFlat.vertexName = ShaderFlat.fragmentName = 'FlatColor';
+
   ShaderFlat.uniforms = {};
   ShaderFlat.attributes = {};
   ShaderFlat.activeAttributes = {
