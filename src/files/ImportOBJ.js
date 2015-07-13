@@ -62,37 +62,54 @@ define([
         ++nbTexCoords;
       } else if (line.startsWith('f ')) {
         split = line.split(/\s+/);
-        if (split.length !== 4 && split.length !== 5) // triangles and quads only
+        var nbVerts = split.length - 1;
+        if (nbVerts < 3) // at least 3 vertices
           continue;
-        var sp1 = split[1].split('/');
-        var sp2 = split[2].split('/');
-        var sp3 = split[3].split('/');
-        var isQuad = split.length > 4;
 
-        var iv1 = parseInt(sp1[0], 10);
-        var iv2 = parseInt(sp2[0], 10);
-        var iv3 = parseInt(sp3[0], 10);
-        var iv4 = isQuad ? parseInt(split[4].split('/')[0], 10) : undefined;
-        if (isQuad && (iv4 === iv1 || iv4 === iv2 || iv4 === iv3))
-          continue;
-        if (iv1 === iv2 || iv1 === iv3 || iv2 === iv3)
-          continue;
-        iv1 = (iv1 < 0 ? iv1 + nbVertices : iv1 - 1) - offsetVertices;
-        iv2 = (iv2 < 0 ? iv2 + nbVertices : iv2 - 1) - offsetVertices;
-        iv3 = (iv3 < 0 ? iv3 + nbVertices : iv3 - 1) - offsetVertices;
-        if (isQuad) iv4 = (iv4 < 0 ? iv4 + nbVertices : iv4 - 1) - offsetVertices;
-        fAr.push(iv1, iv2, iv3, isQuad ? iv4 : -1);
+        var nbPrim = Math.ceil(nbVerts / 2) - 1;
+        // quandrangulate polygons (+ 1 tri)
+        for (var j = 0; j < nbPrim; ++j) {
+          var id1 = j + 1;
+          var id2 = j + 2;
+          var id3 = nbVerts - id1;
+          var id4 = nbVerts - j;
+          if (id3 === id2) {
+            id3 = id4;
+            id4 = -1;
+          }
 
-        if (sp1[1]) {
-          var uv1 = parseInt(sp1[1], 10);
-          var uv2 = parseInt(sp2[1], 10);
-          var uv3 = parseInt(sp3[1], 10);
-          var uv4 = isQuad ? parseInt(split[4].split('/')[1], 10) : undefined;
-          uv1 = (uv1 < 0 ? uv1 + nbTexCoords : uv1 - 1) - offsetTexCoords;
-          uv2 = (uv2 < 0 ? uv2 + nbTexCoords : uv2 - 1) - offsetTexCoords;
-          uv3 = (uv3 < 0 ? uv3 + nbTexCoords : uv3 - 1) - offsetTexCoords;
-          if (isQuad) uv4 = (uv4 < 0 ? uv4 + nbTexCoords : uv4 - 1) - offsetTexCoords;
-          uvfAr.push(uv1, uv2, uv3, isQuad ? uv4 : -1);
+          var sp1 = split[id1].split('/');
+          var sp2 = split[id2].split('/');
+          var sp3 = split[id3].split('/');
+          var isQuad = id4 >= 0;
+          var sp4;
+          if (isQuad) sp4 = split[id4].split('/');
+
+          var iv1 = parseInt(sp1[0], 10);
+          var iv2 = parseInt(sp2[0], 10);
+          var iv3 = parseInt(sp3[0], 10);
+          var iv4 = isQuad ? parseInt(sp4[0], 10) : undefined;
+          if (isQuad && (iv4 === iv1 || iv4 === iv2 || iv4 === iv3))
+            continue;
+          if (iv1 === iv2 || iv1 === iv3 || iv2 === iv3)
+            continue;
+          iv1 = (iv1 < 0 ? iv1 + nbVertices : iv1 - 1) - offsetVertices;
+          iv2 = (iv2 < 0 ? iv2 + nbVertices : iv2 - 1) - offsetVertices;
+          iv3 = (iv3 < 0 ? iv3 + nbVertices : iv3 - 1) - offsetVertices;
+          if (isQuad) iv4 = (iv4 < 0 ? iv4 + nbVertices : iv4 - 1) - offsetVertices;
+          fAr.push(iv1, iv2, iv3, isQuad ? iv4 : -1);
+
+          if (sp1[1]) {
+            var uv1 = parseInt(sp1[1], 10);
+            var uv2 = parseInt(sp2[1], 10);
+            var uv3 = parseInt(sp3[1], 10);
+            var uv4 = isQuad ? parseInt(sp4[1], 10) : undefined;
+            uv1 = (uv1 < 0 ? uv1 + nbTexCoords : uv1 - 1) - offsetTexCoords;
+            uv2 = (uv2 < 0 ? uv2 + nbTexCoords : uv2 - 1) - offsetTexCoords;
+            uv3 = (uv3 < 0 ? uv3 + nbTexCoords : uv3 - 1) - offsetTexCoords;
+            if (isQuad) uv4 = (uv4 < 0 ? uv4 + nbTexCoords : uv4 - 1) - offsetTexCoords;
+            uvfAr.push(uv1, uv2, uv3, isQuad ? uv4 : -1);
+          }
         }
       }
     }
