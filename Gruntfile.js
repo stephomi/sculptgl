@@ -76,8 +76,6 @@ module.exports = function (grunt) {
         '**/*.js',
         '**/*.jpg',
         '**/*.css',
-        '**/*.vert',
-        '**/*.frag',
         '**/*.obj',
         '**/*.ply',
         '**/*.bin',
@@ -87,10 +85,10 @@ module.exports = function (grunt) {
     }
   };
 
-  var nodewebkit = {
+  var nwjs = {
     options: {
       platforms: ['win', 'osx', 'linux32', 'linux64'],
-      buildDir: './nodewebkit', // Where the build version of my node-webkit app is saved
+      buildDir: './nodewebkit' // Where the build version of my node-webkit app is saved
     },
     src: ['build/**/*'] // Your node-webkit app
   };
@@ -103,7 +101,7 @@ module.exports = function (grunt) {
     copy: copy,
     requirejs: requirejs,
     manifest: manifest,
-    nodewebkit: nodewebkit,
+    nwjs: nwjs,
     uglify: uglify
   });
 
@@ -113,11 +111,12 @@ module.exports = function (grunt) {
   grunt.loadNpmTasks('grunt-contrib-clean');
   grunt.loadNpmTasks('grunt-contrib-copy');
   grunt.loadNpmTasks('grunt-contrib-uglify');
-  grunt.loadNpmTasks('grunt-node-webkit-builder');
+  grunt.loadNpmTasks('grunt-nw-builder');
 
   grunt.registerTask('test', 'jshint');
-  grunt.registerTask('build', ['clean', 'jshint', 'copy:main', 'requirejs', 'uglify' /*, 'manifest'*/ ]);
-  grunt.registerTask('standalone', ['build', 'copy:standalone', 'nodewebkit']);
+  grunt.registerTask('build', ['clean', 'jshint', 'copy:main', 'requirejs', 'uglify']);
+  grunt.registerTask('build:manifest', ['build', 'manifest']);
+  grunt.registerTask('standalone', ['build', 'copy:standalone', 'nwjs']);
 
   grunt.registerTask('default', 'build');
 };

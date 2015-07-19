@@ -10,7 +10,7 @@
     "grunt-contrib-jshint": "*",
     "grunt-contrib-clean": "*",
     "grunt-contrib-copy": "*",
-    "grunt-node-webkit-builder": "*",
+    "grunt-nw-builder": "*",
     "grunt-contrib-uglify": "*"
   },
   "scripts": {

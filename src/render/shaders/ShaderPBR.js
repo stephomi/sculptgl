@@ -105,7 +105,8 @@ define([
   ].join('\n');
 
   ShaderPBR.onLoadEnvironment = function (xhr, gl, main, env) {
-    if (xhr.status !== 200)
+    // nodejs context : status is 0 for some reasons
+    if (xhr.status !== 200 && (!xhr.response || !xhr.response.byteLength))
       return;
     env.texture = gl.createTexture();
     gl.bindTexture(gl.TEXTURE_2D, env.texture);

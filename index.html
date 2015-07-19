@@ -8,8 +8,11 @@
   <link href='http://fonts.googleapis.com/css?family=Open+Sans:400,600' rel='stylesheet' type='text/css'>
   <link rel='stylesheet' href='css/yagui.css' type='text/css'/>
   <script>
-    window.nodeRequire = window.require;
+    window.requireNode = window.require;
     window.require = undefined;
+    // to debug nodewebkit : (somewhere in the js code once everything is loaded)
+    // window.require = window.requireNode;
+    // require('nw.gui').Window.get().showDevTools();
   </script>
   <!-- 3rd party libraries -->
   <script src='lib/FileSaver.js'></script>
