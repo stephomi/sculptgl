@@ -39,9 +39,10 @@ define([
       this.addEvents();
     },
     updateMesh: function () {
-      var showSelect = this._main.getSelectedMeshes().length > 1;
-      this._ctrlIsolate.setVisibility(showSelect);
-      this._ctrlMerge.setVisibility(showSelect);
+      var nbMeshes = this._main.getMeshes().length;
+      var nbSelected = this._main.getSelectedMeshes().length;
+      this._ctrlIsolate.setVisibility(nbMeshes !== nbSelected && nbSelected >= 1);
+      this._ctrlMerge.setVisibility(nbSelected > 1);
     },
     merge: function () {
       var main = this._main;
