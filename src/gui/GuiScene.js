@@ -41,7 +41,7 @@ define([
     updateMesh: function () {
       var nbMeshes = this._main.getMeshes().length;
       var nbSelected = this._main.getSelectedMeshes().length;
-      this._ctrlIsolate.setVisibility(nbMeshes !== nbSelected && nbSelected >= 1);
+      this._ctrlIsolate.setVisibility(this._hideMeshes.length > 0 || (nbMeshes !== nbSelected && nbSelected >= 1));
       this._ctrlMerge.setVisibility(nbSelected > 1);
     },
     merge: function () {
@@ -83,6 +83,7 @@ define([
     showHide: function (bool) {
       if (bool) this.isolate();
       else this.showAll();
+      this.updateMesh();
     },
     isolate: function () {
       var main = this._main;
@@ -105,6 +106,7 @@ define([
 
       main.getStates().pushStateRemove(hMeshes.slice());
       main.getStates().pushStateCustom(this._cbToggleShowHide, this._cbToggleShowHide, true);
+      main.render();
     },
     showAll: function () {
       var main = this._main;
@@ -116,6 +118,7 @@ define([
       main.getStates().pushStateAdd(hMeshes.slice());
       main.getStates().pushStateCustom(this._cbToggleShowHide, this._cbToggleShowHide, true);
       hMeshes.length = 0;
+      main.render();
     },
     onShowSymmetryLine: function (val) {
       ShaderBase.showSymmetryLine = val;
