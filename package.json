@@ -11,7 +11,8 @@
     "grunt-contrib-clean": "*",
     "grunt-contrib-copy": "*",
     "grunt-nw-builder": "*",
-    "grunt-contrib-uglify": "*"
+    "grunt-contrib-uglify": "*",
+    "grunt-preprocess": "*"
   },
   "scripts": {
     "test": "no test"

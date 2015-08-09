@@ -1,7 +1,10 @@
 <!doctype html>
+<!-- @ifndef MANIFEST -->
 <html lang='en'>
-<!-- TODO_MANIFEST auto-build manifest html version -->
-<!-- <html manifest='manifest.appcache' lang='en'> -->
+<!-- @endif -->
+<!-- @ifdef MANIFEST !>
+<html manifest='manifest.appcache' lang='en'>
+<!-- @endif -->
 <head>
   <meta charset='utf-8'/>
   <meta name='description' content='SculptGL is a small sculpting application powered by JavaScript and webGL.'>
@@ -24,14 +27,16 @@
     var SculptGL = require('Sculptgl');
     window.sculptgl = new SculptGL();
     window.sculptgl.start();
-    // TODO_MANIFEST auto-build manifest html version
-    // Check if a new cache is available on page load.
-    // window.applicationCache.addEventListener('updateready', function (e) {
-    //   if (window.applicationCache.status === window.applicationCache.UPDATEREADY) {
-    //     // restart the page (maybe kind of abrupt)
-    //     window.location.reload();
-    //   }
-    // }, false);
+
+    if('<!-- @echo MANIFEST !>' === 'true') { // check if manifest
+      // Check if a new cache is available on page load.
+      window.applicationCache.addEventListener('updateready', function (e) {
+        if (window.applicationCache.status === window.applicationCache.UPDATEREADY) {
+          window.location.reload();
+        }
+      }, false);
+    }
+
   }, false);
   </script>
 </head>

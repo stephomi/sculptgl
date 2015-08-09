@@ -53,11 +53,6 @@ module.exports = function (grunt) {
         src: ['css/*', 'resources/**'],
         dest: 'build/',
         filter: 'isFile'
-      }, {
-        expand: true,
-        flatten: true,
-        src: ['tools/index.html'],
-        dest: 'build/'
       }]
     }
   };
@@ -93,6 +88,22 @@ module.exports = function (grunt) {
     src: ['build/**/*'] // Your node-webkit app
   };
 
+  var preprocess = {
+    manifest: {
+      options: {
+        context: {
+          MANIFEST: true
+        }
+      },
+      src: 'tools/index.html',
+      dest: 'build/index.html'
+    },
+    default: {
+      src: 'tools/index.html',
+      dest: 'build/index.html'
+    }
+  };
+
   // Project configuration.
   grunt.initConfig({
     pkg: grunt.file.readJSON('package.json'),
@@ -102,7 +113,8 @@ module.exports = function (grunt) {
     requirejs: requirejs,
     manifest: manifest,
     nwjs: nwjs,
-    uglify: uglify
+    uglify: uglify,
+    preprocess: preprocess
   });
 
   grunt.loadNpmTasks('grunt-manifest');
@@ -112,11 +124,18 @@ module.exports = function (grunt) {
   grunt.loadNpmTasks('grunt-contrib-copy');
   grunt.loadNpmTasks('grunt-contrib-uglify');
   grunt.loadNpmTasks('grunt-nw-builder');
+  grunt.loadNpmTasks('grunt-preprocess');
 
+  // test
   grunt.registerTask('test', 'jshint');
-  grunt.registerTask('build', ['clean', 'jshint', 'copy:main', 'requirejs', 'uglify']);
-  grunt.registerTask('build:manifest', ['build', 'manifest']);
-  grunt.registerTask('standalone', ['build', 'copy:standalone', 'nwjs']);
 
-  grunt.registerTask('default', 'build');
+  // builds
+  grunt.registerTask('buildall', ['clean', 'jshint', 'copy:main', 'requirejs', 'uglify']);
+  grunt.registerTask('build:nomanifest', ['buildall', 'preprocess']);
+  grunt.registerTask('build:manifest', ['buildall', 'manifest', 'preprocess:manifest']);
+
+  // standalone
+  grunt.registerTask('standalone', ['build:nomanifest', 'copy:standalone', 'nwjs']);
+
+  grunt.registerTask('default', 'build:manifest');
 };
