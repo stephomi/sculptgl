@@ -50,11 +50,23 @@ define([
       // double tap
       hm.add(new Hammer.Tap({
         event: 'doubletap',
+        pointers: 1,
         taps: 2,
         time: 250, // def : 250.  Maximum press time in ms.
         interval: 450, // def : 300. Maximum time in ms between multiple taps.
         threshold: 5, // def : 2. While doing a tap some small movement is allowed.
         posThreshold: 50 // def : 30. The maximum position difference between multiple taps.
+      }));
+
+      // double tap 2 fingers
+      hm.add(new Hammer.Tap({
+        event: 'doubletap2fingers',
+        pointers: 2,
+        taps: 2,
+        time: 250,
+        interval: 450,
+        threshold: 5,
+        posThreshold: 50
       }));
 
       // pan
@@ -79,6 +91,7 @@ define([
       hm.on('panend pancancel', this.onPanEnd.bind(this));
 
       hm.on('doubletap', this.onDoubleTap.bind(this));
+      hm.on('doubletap2fingers', this.onDoubleTap2Fingers.bind(this));
       hm.on('pinchstart', this.onPinchStart.bind(this));
       hm.on('pinchin pinchout', this.onPinchInOut.bind(this));
     },
@@ -124,19 +137,29 @@ define([
       var res = picking.intersectionMouseMeshes(this._meshes, this._mouseX, this._mouseY);
       var cam = this._camera;
       var pivot = [0.0, 0.0, 0.0];
-      var zoom = 0;
-      if (!res) {
-        zoom = 70.0;
-        if (this._meshes.length > 0) {
-          var box = this.computeBoundingBoxMeshes(this._meshes);
-          zoom = 0.8 * vec3.dist([box[0], box[1], box[2]], [box[3], box[4], box[5]]);
-          vec3.set(pivot, (box[0] + box[3]) * 0.5, (box[1] + box[4]) * 0.5, (box[2] + box[5]) * 0.5);
-        }
-      } else {
-        vec3.transformMat4(pivot, picking.getIntersectionPoint(), picking.getMesh().getMatrix());
-        zoom = Math.min(cam.getTransZ(), vec3.dist(pivot, cam.computePosition()));
-      }
+      if (!res)
+        return this.resetCameraScene();
+
+      vec3.transformMat4(pivot, picking.getIntersectionPoint(), picking.getMesh().getMatrix());
+      var zoom = Math.min(cam.getTransZ(), vec3.dist(pivot, cam.computePosition()));
+
       cam.setAndFocusOnPivot(pivot, zoom);
+      this.render();
+    },
+    onDoubleTap2Fingers: function () {
+      if (this._focusGui)
+        return;
+      this.resetCameraScene();
+    },
+    resetCameraScene: function () {
+      var pivot = [0.0, 0.0, 0.0];
+      var zoom = 70.0;
+      if (this._meshes.length > 0) {
+        var box = this.computeBoundingBoxMeshes(this._meshes);
+        zoom = 0.8 * vec3.dist([box[0], box[1], box[2]], [box[3], box[4], box[5]]);
+        vec3.set(pivot, (box[0] + box[3]) * 0.5, (box[1] + box[4]) * 0.5, (box[2] + box[5]) * 0.5);
+      }
+      this._camera.setAndFocusOnPivot(pivot, zoom);
       this.render();
     },
     onPinchStart: function (e) {
