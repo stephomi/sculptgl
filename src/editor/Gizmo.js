@@ -100,6 +100,7 @@ define([
 
     this.initTranslate();
     this.initRotate();
+    this.initScale();
     this.initPickables();
   };
 
@@ -110,9 +111,11 @@ define([
   var COLOR_XYZ = vec3.fromValues(0.4, 0.4, 0.4);
   var GIZMO_SIZE = 0.08;
   var THICK = 0.02;
-  var PICK_THICK = THICK * 5.0;
+  var THICK_PICK = THICK * 5.0;
   var ARROW_LENGTH = 2.5;
   var TORUS_RADIUS = 1.5;
+  var CUBE_SIDE = THICK * 17.0;
+  var CUBE_SIDE_PICK = CUBE_SIDE * 1.2;
 
   Gizmo.prototype = {
     initPickables: function () {
@@ -123,6 +126,9 @@ define([
       pickables.push(this._rotX._pickGeo);
       pickables.push(this._rotY._pickGeo);
       pickables.push(this._rotZ._pickGeo);
+      pickables.push(this._scaleX._pickGeo);
+      pickables.push(this._scaleY._pickGeo);
+      pickables.push(this._scaleZ._pickGeo);
     },
     _createArrow: function (tra, axis, color) {
       var mat = tra._baseMatrix;
@@ -130,7 +136,7 @@ define([
       mat4.translate(mat, mat, [0.0, ARROW_LENGTH * 0.5, 0.0]);
       vec3.copy(tra._color, color);
 
-      tra._pickGeo = Primitive.createArrow(this._gl, PICK_THICK, ARROW_LENGTH, 2.0, 0.2);
+      tra._pickGeo = Primitive.createArrow(this._gl, THICK_PICK, ARROW_LENGTH, 2.0, 0.2);
       tra._pickGeo._gizmo = tra;
       tra._drawGeo = Primitive.createArrow(this._gl, THICK, ARROW_LENGTH);
       tra._drawGeo.setShader('FLAT');
@@ -143,7 +149,7 @@ define([
     },
     _createCircle: function (rot, rad, color) {
       vec3.copy(rot._color, color);
-      rot._pickGeo = Primitive.createTorus(this._gl, TORUS_RADIUS, PICK_THICK, rad, 6, 64);
+      rot._pickGeo = Primitive.createTorus(this._gl, TORUS_RADIUS, THICK_PICK, rad, 6, 64);
       rot._pickGeo._gizmo = rot;
       rot._drawGeo = Primitive.createTorus(this._gl, TORUS_RADIUS, THICK, rad, 6, 64);
       rot._drawGeo.setShader('FLAT');
@@ -153,6 +159,25 @@ define([
       this._createCircle(this._rotY, Math.PI, COLOR_Y);
       this._createCircle(this._rotZ, Math.PI, COLOR_Z);
       this._createCircle(this._rotXYZ, Math.PI * 2, COLOR_XYZ);
+    },
+    _createCube: function (sca, axis, color) {
+      var mat = sca._baseMatrix;
+      mat4.rotate(mat, mat, Math.PI * 0.5, axis);
+      // mat4.translate(mat, mat, [0.0, ARROW_LENGTH + CUBE_SIDE, 0.0]);
+      mat4.translate(mat, mat, [0.0, TORUS_RADIUS, 0.0]);
+      vec3.copy(sca._color, color);
+
+      vec3.copy(sca._color, color);
+      sca._pickGeo = Primitive.createCube(this._gl, CUBE_SIDE_PICK);
+      sca._pickGeo._gizmo = sca;
+      sca._drawGeo = Primitive.createCube(this._gl, CUBE_SIDE);
+      sca._drawGeo.setShader('FLAT');
+    },
+    initScale: function () {
+      var axis = [0.0, 0.0, 0.0];
+      this._createCube(this._scaleX, vec3.set(axis, 0.0, 0.0, -1.0), COLOR_X);
+      this._createCube(this._scaleY, vec3.set(axis, 0.0, 1.0, 0.0), COLOR_Y);
+      this._createCube(this._scaleZ, vec3.set(axis, 1.0, 0.0, 0.0), COLOR_Z);
     },
     updateArcRotation: (function () {
       var qTmp = quat.create();
@@ -207,11 +232,15 @@ define([
       mat4.mul(this._transX._finalMatrix, traScale, this._transX._baseMatrix);
       mat4.mul(this._transY._finalMatrix, traScale, this._transY._baseMatrix);
       mat4.mul(this._transZ._finalMatrix, traScale, this._transZ._baseMatrix);
-      mat4.mul(this._rotX._finalMatrix, traScale, this._rotX._baseMatrix);
 
+      mat4.mul(this._rotX._finalMatrix, traScale, this._rotX._baseMatrix);
       mat4.mul(this._rotY._finalMatrix, traScale, this._rotY._baseMatrix);
       mat4.mul(this._rotZ._finalMatrix, traScale, this._rotZ._baseMatrix);
       mat4.mul(this._rotXYZ._finalMatrix, traScale, this._rotXYZ._baseMatrix);
+
+      mat4.mul(this._scaleX._finalMatrix, traScale, this._scaleX._baseMatrix);
+      mat4.mul(this._scaleY._finalMatrix, traScale, this._scaleY._baseMatrix);
+      mat4.mul(this._scaleZ._finalMatrix, traScale, this._scaleZ._baseMatrix);
     },
     drawGizmo: function (elt, camera) {
       elt.updateMatrix();
@@ -228,6 +257,9 @@ define([
       scene.push(this._rotY._drawGeo);
       scene.push(this._rotZ._drawGeo);
       scene.push(this._rotXYZ._drawGeo);
+      scene.push(this._scaleX._drawGeo);
+      scene.push(this._scaleY._drawGeo);
+      scene.push(this._scaleZ._drawGeo);
       return scene;
     },
     updateLineHelper: function (x1, y1, x2, y2) {
@@ -257,6 +289,10 @@ define([
       if (type & ROT_X) this.drawGizmo(this._rotX, camera, main);
       if (type & ROT_Y) this.drawGizmo(this._rotY, camera, main);
       if (type & ROT_Z) this.drawGizmo(this._rotZ, camera, main);
+
+      if (type & SCALE_X) this.drawGizmo(this._scaleX, camera, main);
+      if (type & SCALE_Y) this.drawGizmo(this._scaleY, camera, main);
+      if (type & SCALE_Z) this.drawGizmo(this._scaleZ, camera, main);
 
       if (this._isEditing) this._lineHelper.render(main);
     },
@@ -373,7 +409,9 @@ define([
       offset[1] = main._mouseY - origin[1];
     },
     startPlaneEdit: function () {},
-    startScaleEdit: function () {},
+    startScaleEdit: function () {
+      this.startTranslateEdit();
+    },
     updateRotateEdit: function () {
       var main = this._main;
       var mesh = main.getMesh();
@@ -449,40 +487,30 @@ define([
       main.render();
     },
     updatePlaneEdit: function () {},
-    updateScaleEdit: function () {},
-    //     startSculpt: (function () {
-    //       var tmp = [0.0, 0.0, 0.0];
-    //       return function () {
-    //         var matrix = this._mesh.getMatrix();
-    //         mat4.invert(this._matrixInv, matrix);
-    //         vec3.transformMat4(tmp, this._mesh.getCenter(), matrix);
-    //         mat4.translate(this._preTranslate, mat4.identity(this._preTranslate), tmp);
-    //         mat4.translate(this._postTranslate, mat4.identity(this._postTranslate), vec3.negate(tmp, tmp));
+    updateScaleEdit: function () {
+      var main = this._main;
+      var mesh = main.getMesh();
 
-    //         var main = this._main;
-    //         this._refMX = main._mouseX;
-    //         this._refMY = main._mouseY;
-    //       };
-    //     })(),
-    //     update: (function () {
-    //       var tmp = [0.0, 0.0, 0.0];
-    //       return function () {
-    //         var main = this._main;
-    //         tmp[0] = tmp[1] = tmp[2] = 1.0 + (main._mouseX - this._refMX + main._mouseY - this._refMY) / 400;
-    //         var mEdit = this._mesh.getEditMatrix();
-    //         mat4.identity(mEdit);
-    //         mat4.scale(mEdit, mEdit, tmp);
+      var origin = this._editLineOrigin;
+      var dir = this._editLineDirection;
 
-    //         mat4.mul(mEdit, this._preTranslate, mEdit);
-    //         mat4.mul(mEdit, mEdit, this._postTranslate);
+      var vec = [main._mouseX, main._mouseY, 0.0];
+      vec2.sub(vec, vec, origin);
+      vec2.scaleAndAdd(vec, origin, dir, vec2.dot(vec, dir));
 
-    //         mat4.mul(mEdit, this._matrixInv, mEdit);
-    //         mat4.mul(mEdit, mEdit, this._mesh.getMatrix());
+      // helper line
+      this.updateLineHelper(origin[0], origin[1], vec[0], vec[1]);
 
-    //         main.render();
-    //         main.getCanvas().style.cursor = 'default';
-    //       };
-    //     })()
+      var distOffset = vec3.len(this._editOffset);
+      var inter = [1.0, 1.0, 1.0];
+      inter[this._selected._nbAxis] += Math.max(-0.99, (vec3.dist(origin, vec) - distOffset) / distOffset);
+
+      var edim = mesh.getEditMatrix();
+      mat4.identity(edim);
+      mat4.scale(edim, edim, inter);
+
+      main.render();
+    }
   };
 
   return Gizmo;
