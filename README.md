@@ -23,7 +23,7 @@ Then use grunt :
     npm install -g grunt-cli # if not already done
     npm install
 
-    grunt build # web version
+    grunt # web version
     grunt standalone # desktop webkit version
 
 Credits

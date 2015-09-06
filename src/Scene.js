@@ -441,10 +441,6 @@ define([
       this.getStates().reset();
       this.getMeshes().length = 0;
       this.getCamera().resetView();
-      var opts = getUrlOptions();
-      this._showGrid = opts.grid;
-      this._showContour = opts.outline;
-      this._autoMatrix = opts.scalecenter;
       this.setMesh(null);
       this._action = 'NOTHING';
     },
