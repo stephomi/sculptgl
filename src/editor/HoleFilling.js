@@ -66,8 +66,10 @@ define([
     return holes;
   };
 
-  var advancingFrontMesh = function (mesh, firstEdge, newTris, newVerts) {
+  var advancingFrontMesh = function (mesh, firstEdge, newTris, newVerts, newColors, newMaterials) {
     var vAr = mesh.getVertices();
+    var cAr = mesh.getColors();
+    var mAr = mesh.getMaterials();
     // var current = firstEdge;
     // var count = 1;
     // while (current.next !== firstEdge) {
@@ -82,6 +84,14 @@ define([
     var avx = 0.0;
     var avy = 0.0;
     var avz = 0.0;
+
+    var colr = 0.0;
+    var colg = 0.0;
+    var colb = 0.0;
+
+    var mat1 = 0.0;
+    var mat2 = 0.0;
+    var mat3 = 0.0;
     var count = 0;
     do {
       var next = current.next;
@@ -98,28 +108,33 @@ define([
       avy += vAr[iv1 + 1];
       avz += vAr[iv1 + 2];
 
-      var v1x = vAr[iv1];
-      var v1y = vAr[iv1 + 1];
-      var v1z = vAr[iv1 + 2];
+      colr += cAr[iv1];
+      colg += cAr[iv1 + 1];
+      colb += cAr[iv1 + 2];
+
+      mat1 += mAr[iv1];
+      mat2 += mAr[iv1 + 1];
+      mat3 += mAr[iv1 + 2];
+
       var v2x = vAr[iv2];
       var v2y = vAr[iv2 + 1];
       var v2z = vAr[iv2 + 2];
-      var v3x = vAr[iv3];
-      var v3y = vAr[iv3 + 1];
-      var v3z = vAr[iv3 + 2];
       // compute normals
-      var ax = v1x - v2x;
-      var ay = v1y - v2y;
-      var az = v1z - v2z;
-      var bx = v3x - v2x;
-      var by = v3y - v2y;
-      var bz = v3z - v2z;
+      var ax = vAr[iv1] - v2x;
+      var ay = vAr[iv1 + 1] - v2y;
+      var az = vAr[iv1 + 2] - v2z;
+      var bx = vAr[iv3] - v2x;
+      var by = vAr[iv3 + 1] - v2y;
+      var bz = vAr[iv3 + 2] - v2z;
       var alen = ax * ax + ay * ay + az * az;
       var blen = bx * bx + by * by + bz * bz;
       current.angle = Math.acos((ax * bx + ay * by + az * bz) / Math.sqrt(alen * blen));
       current = next;
     } while (current !== firstEdge);
+
     newVerts.push(avx / count, avy / count, avz / count);
+    newColors.push(colr / count, colg / count, colb / count);
+    newMaterials.push(mat1 / count, mat2 / count, mat3 / count);
   };
 
   var HoleFilling = {};
@@ -144,25 +159,34 @@ define([
     var holes = detectHoles(mesh);
     if (holes.length === 0)
       return mesh;
+
     var newFaces = [];
     var newVerts = [];
+    var newColors = [];
+    var newMaterials = [];
     // console.time('closeHoles');
     for (var i = 0, nbHoles = holes.length; i < nbHoles; ++i)
-      advancingFrontMesh(mesh, holes[i], newFaces, newVerts);
+      advancingFrontMesh(mesh, holes[i], newFaces, newVerts, newColors, newMaterials);
     // console.timeEnd('closeHoles');
 
-    // set vertices
-    var vertices = new Float32Array(mesh.getNbVertices() * 3 + newVerts.length);
-    vertices.set(mesh.getVertices());
-    if (newVerts.length > 0)
-      vertices.set(newVerts, mesh.getNbVertices() * 3);
+    var oldVertsLen = mesh.getNbVertices() * 3;
+    var newVertsLen = oldVertsLen + newVerts.length;
 
+    // set vertices
+    var vertices = new Float32Array(newVertsLen);
+    vertices.set(mesh.getVertices());
     // set colors
-    var colors = new Float32Array(mesh.getNbVertices() * 3 + newVerts.length);
+    var colors = new Float32Array(newVertsLen);
     colors.set(mesh.getColors());
     // set materials
-    var materials = new Float32Array(mesh.getNbVertices() * 3 + newVerts.length);
+    var materials = new Float32Array(newVertsLen);
     materials.set(mesh.getMaterials());
+
+    if (newVertsLen > oldVertsLen) {
+      vertices.set(newVerts, oldVertsLen);
+      colors.set(newColors, oldVertsLen);
+      materials.set(newMaterials, oldVertsLen);
+    }
 
     // set faces
     var faces = new Int32Array(mesh.getNbFaces() * 4 + newFaces.length);
@@ -171,6 +195,13 @@ define([
       faces.set(newFaces, mesh.getNbFaces() * 4);
 
     return HoleFilling.createMesh(mesh, vertices, faces, colors, materials);
+  };
+
+  HoleFilling.createClosedMesh = function (mesh) {
+    var closed = HoleFilling.closeHoles(mesh);
+    if (closed === mesh)
+      closed = HoleFilling.createMesh(mesh, mesh.getVertices().slice(), mesh.getFaces().slice(), mesh.getColors().slice(), mesh.getMaterials().slice());
+    return closed;
   };
 
   return HoleFilling;

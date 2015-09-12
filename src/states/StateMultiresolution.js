@@ -21,9 +21,9 @@ define([], function () {
     case StateMultiresolution.SUBDIVISION:
     case StateMultiresolution.REVERSION:
       if (!isRedo) {
-        this._vArState = new Float32Array(this._mesh.getVertices()); // copies of vertices coordinates
-        this._cArState = new Float32Array(this._mesh.getColors()); // copies of colors
-        this._mArState = new Float32Array(this._mesh.getMaterials()); // copies of materials
+        this._vArState = this._mesh.getVertices().slice(); // copies of vertices coordinates
+        this._cArState = this._mesh.getColors().slice(); // copies of colors
+        this._mArState = this._mesh.getMaterials().slice(); // copies of materials
       }
       break;
     }
@@ -52,15 +52,15 @@ define([], function () {
         this._mesh.setVerticesMapping(this._vMappingState);
         break;
       case StateMultiresolution.SUBDIVISION:
-        this._mesh.setVertices(new Float32Array(this._vArState));
-        this._mesh.setColors(new Float32Array(this._cArState));
-        this._mesh.setMaterials(new Float32Array(this._mArState));
+        this._mesh.setVertices(this._vArState.slice());
+        this._mesh.setColors(this._cArState.slice());
+        this._mesh.setMaterials(this._mArState.slice());
         mul.popMesh();
         break;
       case StateMultiresolution.REVERSION:
-        this._mesh.setVertices(new Float32Array(this._vArState));
-        this._mesh.setColors(new Float32Array(this._cArState));
-        this._mesh.setMaterials(new Float32Array(this._mArState));
+        this._mesh.setVertices(this._vArState.slice());
+        this._mesh.setColors(this._cArState.slice());
+        this._mesh.setMaterials(this._mArState.slice());
         mul.shiftMesh();
         break;
       }

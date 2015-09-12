@@ -1,10 +1,11 @@
 define([
+  'misc/Polyfill', // required first
   'lib/glMatrix',
   'lib/Hammer',
   'misc/Utils',
   'Scene',
   'mesh/multiresolution/Multimesh'
-], function (glm, Hammer, Utils, Scene, Multimesh) {
+], function (polyfill, glm, Hammer, Utils, Scene, Multimesh) {
 
   'use strict';
 

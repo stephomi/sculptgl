@@ -90,9 +90,9 @@ define([
       return this.getTriangles().subarray(0, this.getNbTriangles() * 3);
     },
     init: function (mesh) {
-      this.setVertices(new Float32Array(mesh.getVertices()));
-      this.setColors(new Float32Array(mesh.getColors()));
-      this.setMaterials(new Float32Array(mesh.getMaterials()));
+      this.setVertices(mesh.getVertices().slice());
+      this.setColors(mesh.getColors().slice());
+      this.setMaterials(mesh.getMaterials().slice());
       this.setFaces(new Int32Array(mesh.getNbTriangles() * 4));
       this.setNbFaces(mesh.getNbTriangles());
       this.setNbVertices(mesh.getNbVertices());

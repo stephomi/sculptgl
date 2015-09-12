@@ -2,45 +2,6 @@ define([], function () {
 
   'use strict';
 
-  // Not sure I should put theses functions here...
-  // polyfills
-  if (!window.Map) {
-    window.Map = function () {
-      this.map = {};
-    };
-    window.Map.prototype = {
-      set: function (key, value) {
-        this.map[key] = value;
-      },
-      get: function (key) {
-        return this.map[key];
-      }
-    };
-  }
-
-  /** endsWith function */
-  if (!String.prototype.endsWith) {
-    String.prototype.endsWith = function (str) {
-      return this.slice(-str.length) === str;
-    };
-  }
-
-  /** startsWith function */
-  if (!String.prototype.startsWith) {
-    String.prototype.startsWith = function (str) {
-      return this.slice(0, str.length) === str;
-    };
-  }
-
-  (function () {
-    var vendors = ['moz', 'webkit'];
-    for (var x = 0; x < vendors.length && !window.requestAnimationFrame; ++x) {
-      window.requestAnimationFrame = window[vendors[x] + 'RequestAnimationFrame'];
-    }
-    if (!window.requestAnimationFrame)
-      window.alert('browser is too old. Probably no webgl there anyway');
-  }());
-
   var Utils = {};
 
   Utils.SCALE = 100.0; // scale factor

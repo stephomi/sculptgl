@@ -248,10 +248,8 @@ define([
       if (mesh.isUsingTexCoords())
         mesh.setShader('PBR');
       var matrix = mesh.getMatrix();
-      mesh = HoleFilling.closeHoles(mesh);
-      if (mesh === meshes[i])
-        mesh = HoleFilling.createMesh(mesh, new Float32Array(mesh.getVertices()), new Int32Array(mesh.getFaces()), new Float32Array(mesh.getColors()), new Float32Array(mesh.getMaterials()));
-      meshes[i] = mesh;
+
+      mesh = meshes[i] = HoleFilling.createClosedMesh(mesh);
       var vAr = mesh.getVertices();
       for (var j = 0, nbv = mesh.getNbVertices(); j < nbv; ++j) {
         var id = j * 3;
