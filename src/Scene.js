@@ -196,7 +196,7 @@ define([
         this._background.render();
 
         gl.enable(gl.DEPTH_TEST);
-        // GRID
+        // GRIDc
         if (this._showGrid)
           this._grid.render(this);
 
@@ -205,7 +205,6 @@ define([
         var meshes = this._meshes;
         var nbMeshes = meshes.length;
         // OPAQUE
-        gl.disable(gl.CULL_FACE);
         for (i = 0; i < nbMeshes; ++i) {
           if (meshes[i].isTransparent())
             break;
@@ -213,8 +212,8 @@ define([
         }
         if (this._meshPreview)
           this._meshPreview.render(this);
-        gl.enable(gl.CULL_FACE);
 
+        gl.enable(gl.CULL_FACE);
         // TRANSPARENCY
         for (; i < nbMeshes; ++i) {
           gl.cullFace(gl.FRONT); // draw back first
@@ -222,6 +221,7 @@ define([
           gl.cullFace(gl.BACK); // ... and then front
           meshes[i].render(this);
         }
+        gl.disable(gl.CULL_FACE);
         // We can also draw all the transparent meshes backfaces first and then the front faces
         // it would be better for intersected transparent meshes but worse for separated meshes
 
@@ -279,7 +279,8 @@ define([
       gl.frontFace(gl.CCW);
       gl.depthFunc(gl.LEQUAL);
       gl.cullFace(gl.BACK);
-      gl.enable(gl.CULL_FACE);
+      gl.disable(gl.CULL_FACE);
+      gl.disable(gl.DEPTH_TEST);
       gl.clearColor(0.033, 0.033, 0.033, 1);
       gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
     },
