@@ -99,7 +99,7 @@ define([
       }
     },
     allocateArrays: function () {
-      this.getIndexData().allocateArrays();
+      this.getFaceData().allocateArrays();
       this.getVertexData().allocateArrays();
       this.getTexCoordsData().allocateArrays();
       this.getOctree().allocateArrays();

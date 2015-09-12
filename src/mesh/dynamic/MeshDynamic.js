@@ -10,6 +10,8 @@ define([
   // Obviously less performant than the static topology mesh
   // It "inherits" Mesh but in practice it almost overrides everything related to topology
   //
+  // The edges are not computed though (kind of bothersome to update...)
+  //
   // The wireframe is directly computed from the triangles (it's as stupid as 1 tri => 3 lines)
   // Basically... "quick and dirty" (the edges will be drawn twice)
 
@@ -101,12 +103,7 @@ define([
 
       this.initTriangles(mesh);
       this.initRenderTriangles();
-      this.initVertices();
-
-      var i = 0;
-      var nbVertices = this.getNbVertices();
-      for (i = 0; i < nbVertices; ++i)
-        this.computeRingVertices(i);
+      this.initVerticesTopology();
 
       this.updateFacesAabbAndNormal();
       this.updateVerticesNormal();
@@ -183,7 +180,7 @@ define([
       this.reAllocate(nbAddElements);
       if (this.isUsingDrawArrays())
         this.getDrawArraysData().reAllocateArrays(nbAddElements);
-      this.getIndexData().reAllocateArrays(nbAddElements);
+      this.getFaceData().reAllocateArrays(nbAddElements);
       this.getVertexData().reAllocateArrays(nbAddElements);
       this.getOctree().reAllocateArrays(nbAddElements);
     },
@@ -211,7 +208,7 @@ define([
         fAr[id4 + 3] = -1;
       }
     },
-    initVertices: function () {
+    initVerticesTopology: function () {
       var vrings = this._vrings;
       var frings = this._frings;
       var i = 0;
@@ -230,6 +227,9 @@ define([
         frings[iAr[j + 1]].push(i);
         frings[iAr[j + 2]].push(i);
       }
+
+      for (i = 0; i < nbVertices; ++i)
+        this.computeRingVertices(i);
     },
     /** Compute the vertices around a vertex */
     computeRingVertices: function (iVert) {
