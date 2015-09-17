@@ -64,7 +64,6 @@ define([
         redos.shift();
       }
     },
-    /** Start push state */
     pushState: function (state) {
       ++Utils.STATE_FLAG;
       var undos = this._undos;
@@ -82,17 +81,14 @@ define([
     getCurrentState: function () {
       return this._undos[this._curUndoIndex];
     },
-    /** Push verts */
     pushVertices: function (iVerts) {
       if (iVerts && iVerts.length > 0)
         this.getCurrentState().pushVertices(iVerts);
     },
-    /** Push tris */
     pushFaces: function (iFaces) {
       if (iFaces && iFaces.length > 0)
         this.getCurrentState().pushFaces(iFaces);
     },
-    /** Undo (also push the redo) */
     undo: function () {
       if (!this._undos.length || this._curUndoIndex < 0)
         return;
@@ -107,7 +103,6 @@ define([
       if (state.squash === true)
         this.undo();
     },
-    /** Redo */
     redo: function () {
       if (!this._redos.length)
         return;
@@ -119,12 +114,18 @@ define([
       if (state.squash === true)
         this.redo();
     },
-    /** Reset */
     reset: function () {
       this._undos.length = 0;
       this._redos.length = 0;
       this._curUndoIndex = -1;
-    }
+    },
+    cleanNoop: function () {
+      while (this._curUndoIndex >= 0 && this.getCurrentState().isNoop()) {
+        this._undos.length--;
+        this._curUndoIndex--;
+        this._redos.length = 0;
+      }
+    },
   };
 
   return States;

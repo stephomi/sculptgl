@@ -10,7 +10,9 @@ define([], function () {
   };
 
   StateAddRemove.prototype = {
-    /** On undo */
+    isNoop: function () {
+      return this._addedMeshes.length === 0 && this._removedMeshes.length === 0;
+    },
     undo: function () {
       var main = this._main;
       var meshesMain = main.getMeshes();
@@ -35,11 +37,9 @@ define([], function () {
       for (i = 0, l = sel.length; i < l; ++i)
         sMeshes.push(sel[i]);
     },
-    /** On redo */
     redo: function () {
       this.undo();
     },
-    /** Push the redo state */
     createRedo: function () {
       return new StateAddRemove(this._main, this._removedMeshes, this._addedMeshes);
     }

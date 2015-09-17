@@ -27,7 +27,9 @@ define([
   };
 
   StateDynamic.prototype = {
-    /** On undo */
+    isNoop: function () {
+      return this._idVertState.length === 0 && this._idFaceState.length === 0;
+    },
     undo: function (skipUpdate) {
       this.pullVertices();
       this.pullFaces();
@@ -49,18 +51,15 @@ define([
       vec3.copy(mesh.getCenter(), this._center);
       this._main.setMesh(mesh);
     },
-    /** On redo */
     redo: function () {
       this.undo();
     },
-    /** Push the redo state */
     createRedo: function () {
       var redo = new StateDynamic(this._main, this._mesh);
       this.pushRedoVertices(redo);
       this.pushRedoFaces(redo);
       return redo;
     },
-    /** Push vertices */
     pushVertices: function (iVerts) {
       var idVertState = this._idVertState;
       var fRingState = this._fRingState;
@@ -93,7 +92,6 @@ define([
         mArState.push(mAr[id], mAr[id + 1], mAr[id + 2]);
       }
     },
-    /** Push faces */
     pushFaces: function (iFaces) {
       var idFaceState = this._idFaceState;
       var fArState = this._fArState;
@@ -114,7 +112,6 @@ define([
         fArState.push(fAr[id], fAr[id + 1], fAr[id + 2], fAr[id + 3]);
       }
     },
-    /** Push redo vertices */
     pushRedoVertices: function (redoState) {
       var mesh = redoState._mesh;
       var nbMeshVertices = mesh.getNbVertices();
@@ -165,7 +162,6 @@ define([
         mArRedoState[j + 2] = mAr[id + 2];
       }
     },
-    /** Push redo faces */
     pushRedoFaces: function (redoState) {
       var mesh = redoState._mesh;
       var nbMeshFaces = mesh.getNbFaces();
@@ -201,7 +197,6 @@ define([
         fArRedoState[j + 3] = fAr[id + 3];
       }
     },
-    /** Pull vertices */
     pullVertices: function () {
       var nbMeshVertices = this._nbVerticesState;
       var fRingState = this._fRingState;
@@ -237,7 +232,6 @@ define([
         mAr[id + 2] = mArState[j + 2];
       }
     },
-    /** Pull faces */
     pullFaces: function () {
       var nbMeshFaces = this._nbFacesState;
       var fArState = this._fArState;

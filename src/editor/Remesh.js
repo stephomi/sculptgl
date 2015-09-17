@@ -272,13 +272,15 @@ define([
   };
 
   Remesh.remesh = function (meshes, baseMesh) {
-    console.time('remesh');
+    console.time('remesh total');
+
+    console.time('1. initMeshes');
 
     meshes = meshes.slice();
-    console.time('initMeshes');
     var box = prepareMeshes(meshes);
-    console.timeEnd('initMeshes');
+    console.timeEnd('1. initMeshes');
 
+    console.time('2. voxelization');
     var step = Math.max((box[3] - box[0]), (box[4] - box[1]), (box[5] - box[2])) / Remesh.RESOLUTION;
     var stepMin = step * 2.5;
     var stepMax = step * 1.5;
@@ -287,25 +289,27 @@ define([
       [box[1] - stepMin, box[4] + stepMax],
       [box[2] - stepMin, box[5] + stepMax]
     ];
-    console.time('voxelization');
     var voxels = createVoxelData(dims, step);
     for (var i = 0, l = meshes.length; i < l; ++i)
       voxelize(meshes[i], voxels, dims, step);
-    console.timeEnd('voxelization');
+    console.timeEnd('2. voxelization');
 
-    console.time('flood');
+    console.time('3. flood');
     floodFill(voxels, step);
-    console.timeEnd('flood');
+    console.timeEnd('3. flood');
 
+    console.time('4. surfaceNet');
     var min = [dims[0][0], dims[1][0], dims[2][0]];
     var max = [dims[0][1] + stepMax, dims[1][1] + stepMax, dims[2][1] + stepMax];
-    console.time('surfaceNet');
     SurfaceNets.BLOCK = Remesh.BLOCK;
     var res = SurfaceNets.computeSurface(voxels, [min, max]);
-    console.timeEnd('surfaceNet');
+    console.timeEnd('4. surfaceNet');
 
+    console.time('5. createMesh');
     var nmesh = createMesh(baseMesh, res.vertices, res.faces, res.colors, res.materials);
-    console.timeEnd('remesh');
+    console.time('5. createMesh');
+
+    console.timeEnd('remesh total');
     console.log('\n');
     return nmesh;
   };

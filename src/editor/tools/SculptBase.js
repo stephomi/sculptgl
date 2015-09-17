@@ -53,10 +53,8 @@ define([
       this.startSculpt();
     },
     end: function () {
-      if (this.getMesh()) {
-        this.updateMeshBuffers();
+      if (this.getMesh())
         this.getMesh().checkLeavesUpdate();
-      }
     },
     pushState: function () {
       this._states.pushStateGeometry(this.getMesh());

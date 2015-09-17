@@ -17,7 +17,9 @@ define([
   };
 
   StateGeometry.prototype = {
-    /** On undo */
+    isNoop: function () {
+      return this._idVertState.length === 0;
+    },
     undo: function (skipUpdate) {
       this.pullVertices();
       if (skipUpdate) return;
@@ -27,17 +29,14 @@ define([
       vec3.copy(mesh.getCenter(), this._center);
       this._main.setMesh(mesh);
     },
-    /** On redo */
     redo: function () {
       this.undo();
     },
-    /** Push the redo state */
     createRedo: function () {
       var redo = new StateGeometry(this._main, this._mesh);
       this.pushRedoVertices(redo);
       return redo;
     },
-    /** Push vertices */
     pushVertices: function (iVerts) {
       var idVertState = this._idVertState;
       var vArState = this._vArState;
@@ -58,7 +57,6 @@ define([
         vArState.push(vAr[id], vAr[id + 1], vAr[id + 2]);
       }
     },
-    /** Push redo vertices */
     pushRedoVertices: function (redoState) {
       var mesh = redoState._mesh;
       var vAr = mesh.getVertices();
@@ -77,7 +75,6 @@ define([
         vArRedoState[j + 2] = vAr[id + 2];
       }
     },
-    /** Pull vertices */
     pullVertices: function () {
       var vArState = this._vArState;
       var idVertState = this._idVertState;

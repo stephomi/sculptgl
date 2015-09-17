@@ -8,6 +8,9 @@ define([], function () {
   };
 
   StateCustom.prototype = {
+    isNoop: function () {
+      return !this._undocb;
+    },
     undo: function () {
       this._undocb();
     },

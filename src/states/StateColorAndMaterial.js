@@ -13,7 +13,9 @@ define([
   };
 
   StateColorAndMaterial.prototype = {
-    /** On undo */
+    isNoop: function () {
+      return this._idVertState.length === 0;
+    },
     undo: function (skipUpdate) {
       this.pullVertices();
       if (skipUpdate) return;
@@ -24,17 +26,14 @@ define([
       mesh.updateMaterialBuffer();
       this._main.setMesh(mesh);
     },
-    /** On redo */
     redo: function () {
       this.undo();
     },
-    /** Push the redo state */
     createRedo: function () {
       var redo = new StateColorAndMaterial(this._main, this._mesh);
       this.pushRedoVertices(redo);
       return redo;
     },
-    /** Push vertices */
     pushVertices: function (iVerts) {
       var idVertState = this._idVertState;
       var cArState = this._cArState;
@@ -58,7 +57,6 @@ define([
         mArState.push(mAr[id], mAr[id + 1], mAr[id + 2]);
       }
     },
-    /** Push redo vertices */
     pushRedoVertices: function (redoState) {
       var mesh = redoState._mesh;
       var cAr = mesh.getColors();
@@ -82,7 +80,6 @@ define([
         mArRedoState[j + 2] = mAr[id + 2];
       }
     },
-    /** Pull vertices */
     pullVertices: function () {
       var cArState = this._cArState;
       var mArState = this._mArState;

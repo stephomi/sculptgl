@@ -291,16 +291,15 @@ define([
       this._canvas.style.cursor = 'default';
       Multimesh.RENDER_HINT = Multimesh.NONE;
       this._sculpt.end();
-      if (this._action === 'MASK_EDIT') {
-        if (this._mesh) {
-          if (this._lastMouseX === this._maskX && this._lastMouseY === this._maskY)
-            this.getSculpt().getTool('MASKING').invert();
-          else
-            this.getSculpt().getTool('MASKING').clear();
-        }
+      if (this._action === 'MASK_EDIT' && this._mesh) {
+        if (this._lastMouseX === this._maskX && this._lastMouseY === this._maskY)
+          this.getSculpt().getTool('MASKING').invert();
+        else
+          this.getSculpt().getTool('MASKING').clear();
       }
       this._action = 'NOTHING';
       this.render();
+      this._states.cleanNoop();
     },
     onMouseWheel: function (event) {
       event.stopPropagation();

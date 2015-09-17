@@ -9,7 +9,7 @@ define([], function () {
     this._type = type; // the type of action
     this._sel = multimesh._sel; // the selected mesh
 
-    switch (this._type) {
+    switch (type) {
     case StateMultiresolution.DELETE_LOWER:
       this._deletedMeshes = multimesh._meshes.slice(0, multimesh._sel); // deleted meshes
       break;
@@ -36,7 +36,9 @@ define([], function () {
   StateMultiresolution.DELETE_HIGHER = 4; // deletes higher resolution
 
   StateMultiresolution.prototype = {
-    /** On undo */
+    isNoop: function () {
+      return false;
+    },
     undo: function () {
       var mul = this._multimesh;
       switch (this._type) {
@@ -66,7 +68,6 @@ define([], function () {
       }
       this._main.setMesh(mul);
     },
-    /** On redo */
     redo: function () {
       var mul = this._multimesh;
       switch (this._type) {
@@ -88,7 +89,6 @@ define([], function () {
       }
       this._main.setMesh(mul);
     },
-    /** Push the redo state */
     createRedo: function () {
       return new StateMultiresolution(this._main, this._multimesh, this._type, true);
     }
