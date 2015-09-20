@@ -144,6 +144,8 @@ define([
           var oldZoom = this.getTransZ();
           this._trans[2] = vec3.dist(this.computePosition(), this._center) * this._fov / 45;
           this._offset[2] += this.getTransZ() - oldZoom;
+        } else {
+          this._offset[2] = 0.0;
         }
       };
     })(),

@@ -142,7 +142,9 @@ define([
         return this.resetCameraScene();
 
       vec3.transformMat4(pivot, picking.getIntersectionPoint(), picking.getMesh().getMatrix());
-      var zoom = Math.min(cam.getTransZ(), vec3.dist(pivot, cam.computePosition()));
+      var zoom = cam._trans[2];
+      if (!cam.isOrthographic())
+        zoom = Math.min(zoom, vec3.dist(pivot, cam.computePosition()));
 
       cam.setAndFocusOnPivot(pivot, zoom);
       this.render();
