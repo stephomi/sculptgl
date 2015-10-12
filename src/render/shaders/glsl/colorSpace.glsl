@@ -1,56 +1,33 @@
-#define GAMMA 2.4
-#define INV_GAMMA 1.0/2.4
+// reference
+// https://www.khronos.org/registry/gles/extensions/EXT/EXT_sRGB.txt
 
-// LINEAR TO SRGB
+// approximation
+// http://chilliant.blogspot.fr/2012/08/srgb-approximations-for-hlsl.html
 float linearTosRGB(const in float c) {
-  float v = 0.0;
-  if(c < 0.0031308) {
-    if ( c > 0.0)
-      v = c * 12.92;
-  } else {
-    v = 1.055 * pow(c, INV_GAMMA) - 0.055;
-  }
-  return v;
+    float S1 = sqrt(c);
+    float S2 = sqrt(S1);
+    float S3 = sqrt(S2);
+    return 0.662002687 * S1 + 0.684122060 * S2 - 0.323583601 * S3 - 0.0225411470 * c;
 }
-vec4 linearTosRGB(const in vec4 col_from) {
-  vec4 col_to;
-  col_to.r = linearTosRGB(col_from.r);
-  col_to.g = linearTosRGB(col_from.g);
-  col_to.b = linearTosRGB(col_from.b);
-  col_to.a = col_from.a;
-  return col_to;
+vec3 linearTosRGB(const in vec3 c) {
+    vec3 S1 = sqrt(c);
+    vec3 S2 = sqrt(S1);
+    vec3 S3 = sqrt(S2);
+    return 0.662002687 * S1 + 0.684122060 * S2 - 0.323583601 * S3 - 0.0225411470 * c;
 }
-vec3 linearTosRGB(const in vec3 col_from) {
-  vec3 col_to;
-  col_to.r = linearTosRGB(col_from.r);
-  col_to.g = linearTosRGB(col_from.g);
-  col_to.b = linearTosRGB(col_from.b);
-  return col_to;
+vec4 linearTosRGB(const in vec4 c) {
+    vec3 S1 = sqrt(c.rgb);
+    vec3 S2 = sqrt(S1);
+    vec3 S3 = sqrt(S2);
+    return vec4(0.662002687 * S1 + 0.684122060 * S2 - 0.323583601 * S3 - 0.0225411470 * c.rgb, c.a);
 }
 
-// SRGB TO LINEAR
 float sRGBToLinear(const in float c) {
-  float v = 0.0;
-  if ( c < 0.04045 ) {
-    if ( c >= 0.0 )
-      v = c * ( 1.0 / 12.92 );
-  } else {
-    v = pow( ( c + 0.055 ) * ( 1.0 / 1.055 ), GAMMA );
-  }
-  return v;
+    return c * (c * (c * 0.305306011 + 0.682171111) + 0.012522878);
 }
-vec4 sRGBToLinear(const in vec4 col_from) {
-  vec4 col_to;
-  col_to.r = sRGBToLinear(col_from.r);
-  col_to.g = sRGBToLinear(col_from.g);
-  col_to.b = sRGBToLinear(col_from.b);
-  col_to.a = col_from.a;
-  return col_to;
+vec3 sRGBToLinear(const in vec3 c) {
+    return c * (c * (c * 0.305306011 + 0.682171111) + 0.012522878);
 }
-vec3 sRGBToLinear(const in vec3 col_from) {
-  vec3 col_to;
-  col_to.r = sRGBToLinear(col_from.r);
-  col_to.g = sRGBToLinear(col_from.g);
-  col_to.b = sRGBToLinear(col_from.b);
-  return col_to;
+vec4 sRGBToLinear(const in vec4 c) {
+    return vec4(c.rgb * (c.rgb * (c.rgb * 0.305306011 + 0.682171111) + 0.012522878), c.a);
 }
