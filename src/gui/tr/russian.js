@@ -163,12 +163,14 @@ define([], function () {
     renderingShader: 'Шейдеры',
     renderingMaterial: 'Материал',
     renderingImportUV: 'Импорт (jpg, png...)',
+    renderingImportMatcap: 'Импорт (jpg, png...)',
     renderingExtra: 'Дополнительно',
     renderingFlat: 'Плоское-рельефное',
     renderingWireframe: 'Каркас',
     renderingExposure: 'Экспозиция',
     renderingEnvironment: 'Отражение',
     renderingIsolate: 'Изолировать / Показать (I)',
+    renderingFilmic: null,
 
     // contour
     contour: 'Контур',
@@ -181,11 +183,6 @@ define([], function () {
     matcapSkin: 'Кожа',
     matcapGreen: 'Зеленый',
     matcapWhite: 'Белый',
-    matcapBronze: 'Бронза',
-    matcapChavant: 'Пластелин',
-    matcapDrink: 'Жидкость',
-    matcapRedVelvet: 'Красный бархат',
-    matcapOrange: 'Оранжевый',
 
     // sketchfab
     sketchfabTitle: 'В Sketchfab.com ',

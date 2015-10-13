@@ -163,12 +163,14 @@ define([], function () {
     renderingShader: '著色器',
     renderingMaterial: '材質',
     renderingImportUV: '匯入 (jpg, png...)',
+    renderingImportMatcap: '匯入 (jpg, png...)',
     renderingExtra: '額外項目',
     renderingFlat: '平整面 (較慢)',
     renderingWireframe: '線框 (較慢)',
     renderingExposure: null,
     renderingEnvironment: null,
     renderingIsolate: null,
+    renderingFilmic: null,
 
     // contour
     contour: null,
@@ -181,11 +183,6 @@ define([], function () {
     matcapSkin: '膚色',
     matcapGreen: '綠色',
     matcapWhite: '白色',
-    matcapBronze: '銅',
-    matcapChavant: '精雕油土',
-    matcapDrink: '飲料',
-    matcapRedVelvet: '紅絲絨',
-    matcapOrange: '橙色',
 
     // sketchfab
     sketchfabTitle: '前往 Sketchfab !',

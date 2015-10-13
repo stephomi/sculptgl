@@ -1,18 +1,21 @@
 define([
   'render/shaders/ShaderBase',
   'render/Attribute',
+  'misc/getUrlOptions',
   'text!render/shaders/glsl/fxaa.glsl'
-], function (ShaderBase, Attribute, fxaaGLSL) {
+], function (ShaderBase, Attribute, getUrlOptions, fxaaGLSL) {
 
   'use strict';
 
   var ShaderRtt = ShaderBase.getCopy();
   ShaderRtt.vertexName = ShaderRtt.fragmentName = 'FxaaFilmic';
 
+  ShaderRtt.FILMIC = getUrlOptions().filmic; // edited by the gui
+
   ShaderRtt.uniforms = {};
   ShaderRtt.attributes = {};
 
-  ShaderRtt.uniformNames = ['uTexture0', 'uSize'];
+  ShaderRtt.uniformNames = ['uTexture0', 'uSize', 'uFilmic'];
 
   ShaderRtt.vertex = [
     'precision mediump float;',
@@ -36,6 +39,7 @@ define([
   ShaderRtt.fragment = [
     'precision mediump float;',
     'uniform sampler2D uTexture0;',
+    'uniform int uFilmic;',
     'uniform vec2 uInvSize;',
     'varying vec2 vUVNW;',
     'varying vec2 vUVNE;',
@@ -51,8 +55,12 @@ define([
     // - OR move the filmic op + (other cool linear post process) in a first separate pass
     '  vec3 color = fxaa(uTexture0, vUVNW, vUVNE, vUVSW, vUVSE, vUVM, uInvSize);',
     // http://filmicgames.com/archives/75
-    '  vec3 x = max(vec3(0.0), color - vec3(0.004));',
-    '  gl_FragColor = vec4((x*(6.2*x+0.5))/(x*(6.2*x+1.7)+0.06), 1.0);',
+    '  if(uFilmic == 1){',
+    '    vec3 x = max(vec3(0.0), color - vec3(0.004));',
+    '    gl_FragColor = vec4((x*(6.2*x+0.5))/(x*(6.2*x+1.7)+0.06), 1.0);',
+    '  }else{',
+    '    gl_FragColor = vec4(linearTosRGB(color), 1.0);',
+    '  }',
     '}'
   ].join('\n');
 
@@ -65,7 +73,10 @@ define([
     gl.activeTexture(gl.TEXTURE0);
     gl.bindTexture(gl.TEXTURE_2D, rtt.getTexture());
     gl.uniform1i(this.uniforms.uTexture0, 0);
+
     gl.uniform2fv(this.uniforms.uInvSize, [1.0 / rtt._size[0], 1.0 / rtt._size[1]]);
+
+    gl.uniform1i(this.uniforms.uFilmic, ShaderRtt.FILMIC);
 
     gl.drawArrays(gl.TRIANGLES, 0, 3);
   };

@@ -163,12 +163,14 @@ define([], function () {
     renderingShader: '쉐이더',
     renderingMaterial: '질',
     renderingImportUV: '가져오기 (jpg, png...)',
+    renderingImportMatcap: '가져오기 (jpg, png...)',
     renderingExtra: '추가',
     renderingFlat: '편평한 (느리게)',
     renderingWireframe: '와이어프레임 (느리게)',
     renderingExposure: null,
     renderingEnvironment: null,
     renderingIsolate: null,
+    renderingFilmic: null,
 
     // contour
     contour: null,
@@ -181,11 +183,6 @@ define([], function () {
     matcapSkin: null,
     matcapGreen: null,
     matcapWhite: null,
-    matcapBronze: null,
-    matcapChavant: null,
-    matcapDrink: null,
-    matcapRedVelvet: null,
-    matcapOrange: null,
 
     // sketchfab
     sketchfabTitle: 'Sketchfab으로 가기 !',

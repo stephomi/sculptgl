@@ -171,10 +171,7 @@ define([
     gl.bindBuffer(gl.ARRAY_BUFFER, null);
     gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, null);
   };
-  ShaderBase.onLoadTexture0 = function (gl, tex, main) {
-    this.texture0 = gl.createTexture();
-    gl.bindTexture(gl.TEXTURE_2D, this.texture0);
-    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, tex);
+  ShaderBase.setTextureParameters = function (gl, tex) {
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
     if (Utils.isPowerOfTwo(tex.width) && Utils.isPowerOfTwo(tex.height)) {
       gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_LINEAR);
@@ -186,6 +183,12 @@ define([
       gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
       gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
     }
+  };
+  ShaderBase.onLoadTexture0 = function (gl, tex, main) {
+    this.texture0 = gl.createTexture();
+    gl.bindTexture(gl.TEXTURE_2D, this.texture0);
+    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, tex);
+    ShaderBase.setTextureParameters(gl, tex);
     gl.bindTexture(gl.TEXTURE_2D, null);
     if (main)
       main.render();

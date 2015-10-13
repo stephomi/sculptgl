@@ -50,29 +50,32 @@ define([], function () {
 
     var params = readUrlParameters();
 
+    // misc
     options.language = params.language; // english/chinese/korean/japanese/russian
-
     options.scalecenter = queryBool(params.scalecenter, true);
+    options.wacom = queryBool(params.wacom, false); // try using deprecated npapi plugin
 
+    // display
     options.grid = queryBool(params.grid, true);
     options.outline = queryBool(params.outline, false);
     options.outlinecolor = queryColor(params.outlinecolor, [0.3, 0.0, 0.0, 1.0]);
     options.mirrorline = queryBool(params.mirrorline, false);
 
+    // camera
     options.projection = (params.projection || 'PERSPECTIVE').toUpperCase(); // perspective/orthographic
     options.cameramode = (params.cameramode || 'ORBIT').toUpperCase(); // orbit/spherical/plane
     options.pivot = queryBool(params.pivot, true);
     options.fov = queryNumber(params.fov, 10, 90, 45); // [10-90]
 
+    // rendering
     options.flatshading = queryBool(params.flatshading, false);
     options.wireframe = queryBool(params.wireframe, false);
     options.curvature = queryNumber(params.curvature, 0, 5, 1); // [0-5]
     options.exposure = queryNumber(params.exposure, 0, 5, 1); // [0-5]
     options.environment = queryInteger(params.environment, 0, Infinity, 0); // [0-inf]
     options.matcap = queryInteger(params.matcap, 0, Infinity, 3); // [0-inf]
-    options.shader = (params.shader || 'PBR').toUpperCase(); // pbr/matcap/normal/uv
-
-    options.wacom = queryBool(params.wacom, false); // try using deprecated npapi plugin
+    options.shader = (params.shader || 'MATCAP').toUpperCase(); // pbr/matcap/normal/uv
+    options.filmic = queryBool(params.filmic, false);
 
     return options;
   };

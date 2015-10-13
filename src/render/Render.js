@@ -155,7 +155,6 @@ define([
     setMatcap: function (idMat) {
       this._matcap = idMat;
     },
-    // this.setTexture0(ShaderMatcap.textures[idMat]);
     setShowWireframe: function (showWireframe) {
       this._showWireframe = Render.ONLY_DRAW_ARRAYS ? false : showWireframe;
       this.updateWireframeBuffer();

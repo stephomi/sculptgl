@@ -6,6 +6,8 @@ define([
 
   'use strict';
 
+  var ShaderRTT = Shader.RTT;
+  var ShaderUV = Shader.UV;
   var ShaderPBR = Shader.PBR;
   var ShaderMatcap = Shader.MATCAP;
 
@@ -24,7 +26,6 @@ define([
   };
 
   GuiRendering.prototype = {
-    /** Initialize */
     init: function (guiParent) {
       var menu = this._menu = guiParent.addMenu(TR('renderingTitle'));
       menu.close();
@@ -41,6 +42,9 @@ define([
       // flat shading
       this._ctrlCurvature = menu.addSlider(TR('renderingCurvature'), 20, this.onCurvatureChanged.bind(this), 0, 100, 1);
 
+      // filmic tonemapping
+      this._ctrlFilmic = menu.addCheckbox(TR('renderingFilmic'), ShaderRTT.FILMIC, this.onFilmic.bind(this));
+
       // environments
       var optionEnvs = {};
       for (var i = 0, envs = ShaderPBR.environments, l = envs.length; i < l; ++i)
@@ -53,14 +57,15 @@ define([
       for (var j = 0, mats = ShaderMatcap.matcaps, k = mats.length; j < k; ++j)
         optionMatcaps[j] = mats[j].name;
       this._ctrlMatcapTitle = menu.addTitle(TR('renderingMaterial'));
-      this._ctrlMatcap = menu.addCombobox('', 0, this.onMatcapChanged.bind(this), optionMatcaps);
+      this._ctrlMatcap = menu.addCombobox(TR('renderingMatcap'), 0, this.onMatcapChanged.bind(this), optionMatcaps);
+
+      // matcap load
+      this._ctrlImportMatcap = menu.addButton(TR('renderingImportMatcap'), this, 'importMatcap');
 
       // uv texture
       this._ctrlUV = menu.addButton(TR('renderingImportUV'), this, 'importTexture');
-      this._ctrlUV.setVisibility(false);
 
       this._ctrlExposure = menu.addSlider(TR('renderingExposure'), 20, this.onExposureChanged.bind(this), 0, 100, 1);
-      this._ctrlExposure.setVisibility(false);
 
       menu.addTitle(TR('renderingExtra'));
       this._ctrlTransparency = menu.addSlider(TR('renderingTransparency'), 0.0, this.onTransparencyChanged.bind(this), 0, 100, 1);
@@ -74,6 +79,10 @@ define([
         this._ctrlShowWireframe.setVisibility(false);
 
       this.addEvents();
+    },
+    onFilmic: function (val) {
+      ShaderRTT.FILMIC = val;
+      this._main.render();
     },
     onCurvatureChanged: function (val) {
       var main = this._main;
@@ -99,7 +108,6 @@ define([
       mesh.getRender().setOpacity(1.0 - val / 100.0);
       main.render();
     },
-    /** On shader change */
     onShaderChanged: function (val) {
       var main = this._main;
       var mesh = main.getMesh();
@@ -114,7 +122,6 @@ define([
       }
       this.updateVisibility();
     },
-    /** On matcap change */
     onMatcapChanged: function (value) {
       var main = this._main;
       var mesh = main.getMesh();
@@ -123,7 +130,6 @@ define([
       mesh.setMatcap(value);
       main.render();
     },
-    /** On flat shading change */
     onFlatShading: function (bool) {
       var main = this._main;
       var mesh = main.getMesh();
@@ -132,7 +138,6 @@ define([
       mesh.setFlatShading(bool);
       main.render();
     },
-    /** On wireframe change */
     onShowWireframe: function (bool) {
       var main = this._main;
       var mesh = main.getMesh();
@@ -141,19 +146,19 @@ define([
       mesh.setShowWireframe(bool);
       main.render();
     },
-    /** Add events */
     addEvents: function () {
-      var cbLoadTex = this.loadTexture.bind(this);
+      var cbLoadTex = this.loadTextureUV.bind(this);
+      var cbLoadMatcap = this.loadMatcap.bind(this);
       document.getElementById('textureopen').addEventListener('change', cbLoadTex, false);
+      document.getElementById('matcapopen').addEventListener('change', cbLoadMatcap, false);
       this.removeCallback = function () {
         document.getElementById('textureopen').removeEventListener('change', cbLoadTex, false);
+        document.getElementById('matcapopen').removeEventListener('change', cbLoadMatcap, false);
       };
     },
-    /** Remove events */
     removeEvents: function () {
       if (this.removeCallback) this.removeCallback();
     },
-    /** Update information on mesh */
     updateMesh: function () {
       var mesh = this._main.getMesh();
       if (!mesh) {
@@ -175,29 +180,27 @@ define([
       var val = mesh.getRender()._shader._type;
       this._ctrlMatcapTitle.setVisibility(val === 'MATCAP');
       this._ctrlMatcap.setVisibility(val === 'MATCAP');
-      this._ctrlUV.setVisibility(val === 'UV');
+      this._ctrlImportMatcap.setVisibility(val === 'MATCAP');
+
       this._ctrlExposure.setVisibility(val === 'PBR');
       this._ctrlEnvTitle.setVisibility(val === 'PBR');
       this._ctrlEnv.setVisibility(val === 'PBR');
+
+      this._ctrlUV.setVisibility(val === 'UV');
     },
-    /** Return true if flat shading is enabled */
     getFlatShading: function () {
       return this._ctrlFlatShading.getValue();
     },
-    /** Return true if wireframe is displayed */
     getWireframe: function () {
       return this._ctrlShowWireframe.getValue();
     },
-    /** Return the value of the shader */
     getShader: function () {
       return this._ctrlShaders.getValue();
     },
-    /** Immort texture */
     importTexture: function () {
       document.getElementById('textureopen').click();
     },
-    /** Load texture */
-    loadTexture: function (event) {
+    loadTextureUV: function (event) {
       if (event.target.files.length === 0)
         return;
       var file = event.target.files[0];
@@ -207,13 +210,45 @@ define([
       var main = this._main;
       reader.onload = function (evt) {
         // urk...
-        var shaderUV = Shader.UV;
-        shaderUV.texture0 = undefined;
-        shaderUV.texPath = evt.target.result;
+        ShaderUV.texture0 = undefined;
+        ShaderUV.texPath = evt.target.result;
         main.render();
         document.getElementById('textureopen').value = '';
       };
       reader.readAsDataURL(file);
+    },
+    loadMatcap: function () {
+      if (event.target.files.length === 0)
+        return;
+      var file = event.target.files[0];
+      if (!file.type.match('image.*'))
+        return;
+      var reader = new FileReader();
+      var main = this._main;
+      var ctrl = this._ctrlMatcap;
+
+      reader.onload = function (evt) {
+
+        var idMatcap = ShaderMatcap.matcaps.length;
+        ShaderMatcap.matcaps.push({
+          name: file.name
+        });
+        var img = new Image();
+        img.src = evt.target.result;
+        ShaderMatcap.loadTexture(main._gl, img, idMatcap);
+
+        var entry = {};
+        entry[idMatcap] = file.name;
+        ctrl.addOptions(entry);
+        ctrl.setValue(idMatcap);
+
+        main.render();
+        document.getElementById('matcapopen').value = '';
+      };
+      reader.readAsDataURL(file);
+    },
+    importMatcap: function () {
+      document.getElementById('matcapopen').click();
     },
   };
 

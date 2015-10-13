@@ -163,12 +163,14 @@ define([], function () {
     renderingShader: 'Shader',
     renderingMaterial: 'Material',
     renderingImportUV: 'Import (jpg, png...)',
+    renderingImportMatcap: 'Import (jpg, png...)',
     renderingExtra: 'Extra',
     renderingFlat: 'flat (slower)',
     renderingWireframe: 'wireframe (slower)',
     renderingExposure: 'Exposure',
     renderingEnvironment: 'Environment',
     renderingIsolate: 'Isolate/Show (I)',
+    renderingFilmic: 'Filmic tonemapping',
 
     // contour
     contour: 'Contour',
@@ -181,11 +183,6 @@ define([], function () {
     matcapSkin: 'Skin',
     matcapGreen: 'Green',
     matcapWhite: 'White',
-    matcapBronze: 'Bronze',
-    matcapChavant: 'Chavant',
-    matcapDrink: 'Drink',
-    matcapRedVelvet: 'Red Velvet',
-    matcapOrange: 'Orange',
 
     // sketchfab
     sketchfabTitle: 'Go to Sketchfab !',

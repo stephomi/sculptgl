@@ -73,7 +73,7 @@ define([], function () {
     multiresWarnBigMesh: null,
     // 
     // 
-
+    //
     multiresNotReversible: null,
     // 
 
@@ -163,12 +163,14 @@ define([], function () {
     renderingShader: 'シェーダー',
     renderingMaterial: null,
     renderingImportUV: null,
+    renderingImportMatcap: null,
     renderingExtra: null,
     renderingFlat: 'フラットシェーディング (slower)',
     renderingWireframe: 'ワイヤーフレーム (slower)',
     renderingExposure: null,
     renderingEnvironment: null,
     renderingIsolate: null,
+    renderingFilmic: null,
 
     // contour
     contour: null,
@@ -181,11 +183,6 @@ define([], function () {
     matcapSkin: 'スキン',
     matcapGreen: null,
     matcapWhite: null,
-    matcapBronze: 'ブロンス',
-    matcapChavant: 'クレイ',
-    matcapDrink: 'ドリンク',
-    matcapRedVelvet: 'レッドベレット',
-    matcapOrange: 'オレンジ',
 
     // sketchfab
     sketchfabTitle: 'Sketchfabへ移動',

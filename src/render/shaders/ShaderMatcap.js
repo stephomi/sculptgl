@@ -10,8 +10,29 @@ define([
 
   ShaderMatcap.textures = {};
 
+  ShaderMatcap.loadTexture = function (gl, img, idMaterial) {
+    var idTex = gl.createTexture();
+    gl.bindTexture(gl.TEXTURE_2D, idTex);
+    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, img);
+    ShaderMatcap.setTextureParameters(gl, img);
+    gl.bindTexture(gl.TEXTURE_2D, null);
+    ShaderMatcap.textures[idMaterial] = idTex;
+  };
+
   var texPath = 'resources/matcaps/';
   ShaderMatcap.matcaps = [{
+    path: texPath + 'matcapFV.jpg',
+    name: 'matcap FV' // too lazy to tr
+  }, {
+    path: texPath + 'redClay.jpg',
+    name: 'Red clay' // too lazy to tr
+  }, {
+    path: texPath + 'skinHazardousarts.jpg',
+    name: 'Skin hazardousarts' // too lazy to tr
+  }, {
+    path: texPath + 'skinHazardousarts2.jpg',
+    name: 'Skin Hazardousarts2' // too lazy to tr
+  }, {
     path: texPath + 'pearl.jpg',
     name: TR('matcapPearl')
   }, {
@@ -26,21 +47,6 @@ define([
   }, {
     path: texPath + 'white.jpg',
     name: TR('matcapWhite')
-  }, {
-    path: texPath + 'bronze.jpg',
-    name: TR('matcapBronze')
-  }, {
-    path: texPath + 'chavant.jpg',
-    name: TR('matcapChavant')
-  }, {
-    path: texPath + 'drink.jpg',
-    name: TR('matcapDrink')
-  }, {
-    path: texPath + 'redvelvet.jpg',
-    name: TR('matcapRedVelvet')
-  }, {
-    path: texPath + 'orange.jpg',
-    name: TR('matcapOrange')
   }];
 
   ShaderMatcap.uniforms = {};
