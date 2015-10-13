@@ -44,9 +44,11 @@ define([], function () {
   };
 
   var options;
-  var initConfig = function (params) {
+  var getUrlOptions = function () {
     if (!options)
       options = {};
+
+    var params = readUrlParameters();
 
     options.language = params.language; // english/chinese/korean/japanese/russian
 
@@ -69,13 +71,10 @@ define([], function () {
     options.environment = queryInteger(params.environment, 0, Infinity, 0); // [0-inf]
     options.matcap = queryInteger(params.matcap, 0, Infinity, 3); // [0-inf]
     options.shader = (params.shader || 'PBR').toUpperCase(); // pbr/matcap/normal/uv
-    return options;
-  };
 
-  var getUrlOptions = function (overURL) {
-    if (typeof overURL === 'string')
-      return initConfig(readUrlParameters(overURL));
-    return options ? options : initConfig(readUrlParameters());
+    options.wacom = queryBool(params.wacom, false); // try using deprecated npapi plugin
+
+    return options;
   };
 
   getUrlOptions();

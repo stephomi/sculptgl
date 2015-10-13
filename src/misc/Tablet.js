@@ -1,4 +1,6 @@
-define([], function () {
+define([
+  'misc/getUrlOptions'
+], function (getUrlOptions) {
 
   'use strict';
 
@@ -6,6 +8,15 @@ define([], function () {
   // It was based NPAPI, a deprecated API !
   // need a workaround now...
   // maybe I should take a look at pointer events, or extended touch events
+  // only if requested through url
+  var plugin;
+  if (getUrlOptions().wacom) {
+    plugin = document.createElement('object');
+    plugin.setAttribute('id', 'tablet-plugin');
+    plugin.setAttribute('type', 'application/x-wacomtabletplugin');
+    document.body.appendChild(plugin);
+  }
+
   var Tablet = {
     useOnRadius: true, // the pen pressure acts on the tool's radius
     useOnIntensity: false // the pen pressure acts on the tool's intensity
@@ -13,8 +24,10 @@ define([], function () {
 
   /** Returns the pressure of pen: [0, 1] **/
   Tablet.pressure = function () {
-    if (!Tablet.plugin)
+    if (!plugin)
       return 1.0;
+    var pen = plugin.penAPI;
+    return pen && pen.pointerType ? pen.pressure : 1.0;
   };
 
   Tablet.getPressureIntensity = function () {

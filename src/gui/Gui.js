@@ -12,8 +12,9 @@ define([
   'gui/GuiSculpting',
   'gui/GuiStates',
   'gui/GuiTablet',
-  'render/shaders/ShaderContour'
-], function (yagui, TR, GuiBackground, GuiCamera, GuiConfig, GuiFiles, GuiMesh, GuiTopology, GuiRendering, GuiScene, GuiSculpting, GuiStates, GuiTablet, ShaderContour) {
+  'render/shaders/ShaderContour',
+  'misc/getUrlOptions'
+], function (yagui, TR, GuiBackground, GuiCamera, GuiConfig, GuiFiles, GuiMesh, GuiTopology, GuiRendering, GuiScene, GuiSculpting, GuiStates, GuiTablet, ShaderContour, getUrlOptions) {
 
   'use strict';
 
@@ -59,7 +60,8 @@ define([
       ctrls[idc++] = this._ctrlBackground = new GuiBackground(this._topbar, this);
       ctrls[idc++] = this._ctrlCamera = new GuiCamera(this._topbar, this);
       // TODO find a way to get pressure event
-      // ctrls[idc++] = this._ctrlTablet = new GuiTablet(this._topbar, this);
+      if (getUrlOptions().wacom)
+        ctrls[idc++] = this._ctrlTablet = new GuiTablet(this._topbar, this);
       ctrls[idc++] = this._ctrlConfig = new GuiConfig(this._topbar, this);
       ctrls[idc++] = this._ctrlMesh = new GuiMesh(this._topbar, this);
 
