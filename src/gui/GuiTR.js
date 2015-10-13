@@ -1,11 +1,11 @@
 define([
-  'misc/getUrlOptions',
+  'misc/getOptionsURL',
   'gui/tr/english',
   'gui/tr/chinese',
   'gui/tr/japanese',
   'gui/tr/korean',
   'gui/tr/russian'
-], function (getUrlOptions, english, chinese, japanese, korean, russian) {
+], function (getOptionsURL, english, chinese, japanese, korean, russian) {
 
   'use strict';
 
@@ -35,7 +35,7 @@ define([
   else if (language === 'ko') GuiTR.select = '한국어';
   else if (language === 'ru') GuiTR.select = 'русский';
 
-  switch (getUrlOptions().language) {
+  switch (getOptionsURL().language) {
   case 'english':
     GuiTR.select = 'english';
     break;

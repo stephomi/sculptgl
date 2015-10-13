@@ -1,6 +1,6 @@
 define([
   'lib/glMatrix',
-  'misc/getUrlOptions',
+  'misc/getOptionsURL',
   'misc/Utils',
   'editor/Sculpt',
   'editor/Subdivision',
@@ -19,7 +19,7 @@ define([
   'render/Rtt',
   'render/shaders/ShaderMatcap',
   'render/WebGLCaps'
-], function (glm, getUrlOptions, Utils, Sculpt, Subdivision, Import, Gui, Camera, Picking, Background, Selection, Mesh, Multimesh, Primitive, States, Contour, Render, Rtt, ShaderMatcap, WebGLCaps) {
+], function (glm, getOptionsURL, Utils, Sculpt, Subdivision, Import, Gui, Camera, Picking, Background, Selection, Mesh, Multimesh, Primitive, States, Contour, Render, Rtt, ShaderMatcap, WebGLCaps) {
 
   'use strict';
 
@@ -45,7 +45,7 @@ define([
     this._torusTubular = 128;
 
     // renderable stuffs
-    var opts = getUrlOptions();
+    var opts = getOptionsURL();
     this._showContour = opts.outline;
     this._showGrid = opts.grid;
     this._grid = null;

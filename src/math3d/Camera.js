@@ -1,9 +1,9 @@
 define([
   'lib/glMatrix',
-  'misc/getUrlOptions',
+  'misc/getOptionsURL',
   'misc/Utils',
   'math3d/Geometry'
-], function (glm, getUrlOptions, Utils, Geometry) {
+], function (glm, getOptionsURL, Utils, Geometry) {
 
   'use strict';
 
@@ -26,7 +26,7 @@ define([
   var Camera = function (main) {
     this._main = main;
 
-    var opts = getUrlOptions();
+    var opts = getOptionsURL();
     this._mode = opts.cameramode || 'ORBIT'; // SPHERICAL / PLANE
     this._projectionType = opts.projection || 'PERSPECTIVE'; // ORTHOGRAPHIC
 

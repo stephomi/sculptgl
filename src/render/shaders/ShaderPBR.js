@@ -1,10 +1,10 @@
 define([
   'lib/glMatrix',
-  'misc/getUrlOptions',
+  'misc/getOptionsURL',
   'render/shaders/ShaderBase',
   'text!render/shaders/glsl/pbr.glsl',
   'gui/GuiTR'
-], function (glm, getUrlOptions, ShaderBase, pbrGLSL, TR) {
+], function (glm, getOptionsURL, ShaderBase, pbrGLSL, TR) {
 
   'use strict';
 
@@ -38,7 +38,7 @@ define([
     sph: [0.583073, 0.794556, 0.966801, -0.218899, -0.334516, -0.690954, -0.0581536, -0.0912214, -0.13112, 0.0180201, 0.0683966, 0.157536, -0.0427475, -0.073612, -0.112892, 0.0490024, 0.06527, 0.0841072, -0.0243839, -0.0429701, -0.0792229, -0.0441213, -0.0562622, -0.0728875, -0.0267015, -0.0586719, -0.11978],
     name: TR('envBryantPark')
   }];
-  var opts = getUrlOptions();
+  var opts = getOptionsURL();
   ShaderPBR.idEnv = Math.min(opts.environment, ShaderPBR.environments.length - 1);
   ShaderPBR.exposure = Math.min(opts.exposure, 5);
 

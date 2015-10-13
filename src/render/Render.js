@@ -1,9 +1,9 @@
 define([
-  'misc/getUrlOptions',
+  'misc/getOptionsURL',
   'render/Shader',
   'render/Buffer',
   'render/shaders/ShaderMatcap'
-], function (getUrlOptions, Shader, Buffer, ShaderMatcap) {
+], function (getOptionsURL, Shader, Buffer, ShaderMatcap) {
 
   'use strict';
 
@@ -14,7 +14,7 @@ define([
     this._shader = new Shader(gl);
     this._shaderWireframe = new Shader(gl);
 
-    var opts = getUrlOptions();
+    var opts = getOptionsURL();
     this._flatShading = opts.flatshading;
     this._showWireframe = opts.wireframe;
     this._matcap = Math.min(opts.matcap, ShaderMatcap.matcaps.length - 1); // matcap id

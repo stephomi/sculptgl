@@ -31,22 +31,50 @@ define([], function () {
     return out;
   };
 
-  var readUrlParameters = function (overURL) {
-    var url = typeof overURL === 'string' ? overURL : window.location.search;
-    var vars = url.substr(1).split('&');
+  var readShortcuts = function (str) {
+    var shortcuts = {};
+    shortcuts['0'.charCodeAt(0)] = 'MOVE';
+    shortcuts['1'.charCodeAt(0)] = 'BRUSH';
+    shortcuts['2'.charCodeAt(0)] = 'INFLATE';
+    shortcuts['3'.charCodeAt(0)] = 'TWIST';
+    shortcuts['4'.charCodeAt(0)] = 'SMOOTH';
+    shortcuts['5'.charCodeAt(0)] = 'FLATTEN';
+    shortcuts['6'.charCodeAt(0)] = 'PINCH';
+    shortcuts['7'.charCodeAt(0)] = 'CREASE';
+    shortcuts['8'.charCodeAt(0)] = 'DRAG';
+    shortcuts['9'.charCodeAt(0)] = 'PAINT';
+    shortcuts['E'.charCodeAt(0)] = 'TRANSFORM';
+
+    if (!str)
+      return shortcuts;
+
+    var vars = str.split(',');
+    for (var i = 0, nbVars = vars.length; i < nbVars; i++) {
+      var pair = vars[i].split(':', 2);
+      if (pair.length !== 2) continue;
+      shortcuts[pair[1].toUpperCase().charCodeAt(0)] = pair[0].toUpperCase();
+    }
+
+    return shortcuts;
+  };
+
+  var readUrlParameters = function () {
+    var vars = window.location.search.substr(1).split('&');
     var params = {};
     for (var i = 0, nbVars = vars.length; i < nbVars; i++) {
       var pair = vars[i].split('=', 2);
-      if (pair.length === 0) continue;
+      if (pair.length !== 2) continue;
       params[pair[0].toLowerCase()] = pair[1];
     }
     return params;
   };
 
   var options;
-  var getUrlOptions = function () {
-    if (!options)
-      options = {};
+  var getOptionsURL = function () {
+    if (options)
+      return options;
+
+    options = {};
 
     var params = readUrlParameters();
 
@@ -77,10 +105,12 @@ define([], function () {
     options.shader = (params.shader || 'MATCAP').toUpperCase(); // pbr/matcap/normal/uv
     options.filmic = queryBool(params.filmic, false);
 
+    options.shortcuts = readShortcuts(params.shortcuts);
+
     return options;
   };
 
-  getUrlOptions();
+  getOptionsURL();
 
-  return getUrlOptions;
+  return getOptionsURL;
 });

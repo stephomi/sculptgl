@@ -1,5 +1,5 @@
 define([
-  'misc/getUrlOptions',
+  'misc/getOptionsURL',
   'render/shaders/ShaderBackground',
   'render/shaders/ShaderContour',
   'render/shaders/ShaderSelection',
@@ -10,13 +10,13 @@ define([
   'render/shaders/ShaderRtt',
   'render/shaders/ShaderUV',
   'render/shaders/ShaderWireframe'
-], function (getUrlOptions, Sbackground, Scontour, Sselection, Sflat, Smatcap, Snormal, SPBR, Srtt, Suv, Swireframe) {
+], function (getOptionsURL, Sbackground, Scontour, Sselection, Sflat, Smatcap, Snormal, SPBR, Srtt, Suv, Swireframe) {
 
   'use strict';
 
   var Shader = function (gl) {
     this._gl = gl;
-    this._type = getUrlOptions().shader || 'PBR';
+    this._type = getOptionsURL().shader || 'PBR';
     this._shaderObject = null;
   };
 

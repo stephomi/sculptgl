@@ -1,15 +1,15 @@
 define([
-  'misc/getUrlOptions',
+  'misc/getOptionsURL',
   'render/shaders/ShaderBase',
   'render/Attribute'
-], function (getUrlOptions, ShaderBase, Attribute) {
+], function (getOptionsURL, ShaderBase, Attribute) {
 
   'use strict';
 
   var ShaderContour = ShaderBase.getCopy();
   ShaderContour.vertexName = ShaderContour.fragmentName = 'SobelContour';
 
-  ShaderContour.color = getUrlOptions().outlinecolor;
+  ShaderContour.color = getOptionsURL().outlinecolor;
   ShaderContour.uniforms = {};
   ShaderContour.attributes = {};
 

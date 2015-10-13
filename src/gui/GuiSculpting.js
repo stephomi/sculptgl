@@ -2,9 +2,10 @@ define([
   'gui/GuiTR',
   'editor/Sculpt',
   'editor/tools/Tools',
+  'misc/getOptionsURL',
   'render/Shader',
   'gui/GuiSculptingTools'
-], function (TR, Sculpt, Tools, Shader, GuiSculptingTools) {
+], function (TR, Sculpt, Tools, getOptionsURL, Shader, GuiSculptingTools) {
 
   'use strict';
 
@@ -138,7 +139,13 @@ define([
       if (this._main._action !== 'NOTHING')
         return;
 
-      var ctrlSculpt = this._ctrlSculpt;
+      // handles numpad
+      if (key >= 96 && key <= 105) key -= 48;
+      var opts = getOptionsURL();
+      var strTool = opts.shortcuts[key];
+      if (strTool && Tools[strTool])
+        return this._ctrlSculpt.setValue(strTool);
+
       switch (key) {
       case 88: // X
         this._modalBrushRadius = this._main._focusGui = true;
@@ -148,49 +155,6 @@ define([
         break;
       case 46: // DEL
         this._main.deleteCurrentSelection();
-        break;
-      case 48: // 0
-      case 96: // NUMPAD 0
-        ctrlSculpt.setValue('MOVE');
-        break;
-      case 49: // 1
-      case 97: // NUMPAD 1
-        ctrlSculpt.setValue('BRUSH');
-        break;
-      case 50: // 2
-      case 98: // NUMPAD 2
-        ctrlSculpt.setValue('INFLATE');
-        break;
-      case 51: // 3
-      case 99: // NUMPAD 3
-        ctrlSculpt.setValue('TWIST');
-        break;
-      case 52: // 4
-      case 100: // NUMPAD 4
-        ctrlSculpt.setValue('SMOOTH');
-        break;
-      case 53: // 5
-      case 101: // NUMPAD 5
-        ctrlSculpt.setValue('FLATTEN');
-        break;
-      case 54: // 6
-      case 102: // NUMPAD 6
-        ctrlSculpt.setValue('PINCH');
-        break;
-      case 55: // 7
-      case 103: // NUMPAD 7
-        ctrlSculpt.setValue('CREASE');
-        break;
-      case 56: // 8
-      case 104: // NUMPAD 8
-        ctrlSculpt.setValue('DRAG');
-        break;
-      case 57: // 9
-      case 105: // NUMPAD 9
-        ctrlSculpt.setValue('PAINT');
-        break;
-      case 69: // E
-        ctrlSculpt.setValue('TRANSFORM');
         break;
       case 78: // N
         var cur = GuiSculptingTools[this.getSelectedTool()];

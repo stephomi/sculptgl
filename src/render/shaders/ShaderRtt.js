@@ -1,16 +1,16 @@
 define([
   'render/shaders/ShaderBase',
   'render/Attribute',
-  'misc/getUrlOptions',
+  'misc/getOptionsURL',
   'text!render/shaders/glsl/fxaa.glsl'
-], function (ShaderBase, Attribute, getUrlOptions, fxaaGLSL) {
+], function (ShaderBase, Attribute, getOptionsURL, fxaaGLSL) {
 
   'use strict';
 
   var ShaderRtt = ShaderBase.getCopy();
   ShaderRtt.vertexName = ShaderRtt.fragmentName = 'FxaaFilmic';
 
-  ShaderRtt.FILMIC = getUrlOptions().filmic; // edited by the gui
+  ShaderRtt.FILMIC = getOptionsURL().filmic; // edited by the gui
 
   ShaderRtt.uniforms = {};
   ShaderRtt.attributes = {};

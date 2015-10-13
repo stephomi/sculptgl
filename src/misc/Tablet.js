@@ -1,6 +1,6 @@
 define([
-  'misc/getUrlOptions'
-], function (getUrlOptions) {
+  'misc/getOptionsURL'
+], function (getOptionsURL) {
 
   'use strict';
 
@@ -10,7 +10,7 @@ define([
   // maybe I should take a look at pointer events, or extended touch events
   // only if requested through url
   var plugin;
-  if (getUrlOptions().wacom) {
+  if (getOptionsURL().wacom) {
     plugin = document.createElement('object');
     plugin.setAttribute('id', 'tablet-plugin');
     plugin.setAttribute('type', 'application/x-wacomtabletplugin');

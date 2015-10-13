@@ -92,7 +92,7 @@ define([], function () {
 
     // sculpt
     sculptTitle: null,
-    sculptBrush: '브러쉬 (1)',
+    sculptBrush: '브러쉬',
     sculptInflate: null,
     sculptTwist: null,
     sculptSmooth: null,
