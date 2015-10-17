@@ -18,7 +18,13 @@ define([
 
     this._modalBrushRadius = false; // modal brush radius change
     this._modalBrushIntensity = false; // modal brush intensity change
-    this._lastMouseX = 0;
+
+    // modal stuffs (not canvas based, because no 3D picking involved)
+    this._lastPageX = 0;
+    this._lastPageY = 0;
+    // for modal radius
+    this._refX = 0;
+    this._refY = 0;
 
     this._menu = null;
     this._ctrlSculpt = null;
@@ -128,15 +134,19 @@ define([
     onKeyDown: function (event) {
       if (event.handled === true)
         return;
+
+      var main = this._main;
       var key = event.which;
       event.stopPropagation();
-      if (!this._main._focusGui || key === 88 || key === 67)
+
+      if (!main._focusGui || key === 88 || key === 67)
         event.preventDefault();
+
       event.handled = true;
       if (this.checkModifierKey(event))
         return;
 
-      if (this._main._action !== 'NOTHING')
+      if (main._action !== 'NOTHING')
         return;
 
       // handles numpad
@@ -148,13 +158,17 @@ define([
 
       switch (key) {
       case 88: // X
-        this._modalBrushRadius = this._main._focusGui = true;
+        if (!this._modalBrushRadius) {
+          this._refX = this._lastPageX;
+          this._refY = this._lastPageY;
+        }
+        this._modalBrushRadius = main._focusGui = true;
         break;
       case 67: // C
-        this._modalBrushIntensity = this._main._focusGui = true;
+        this._modalBrushIntensity = main._focusGui = true;
         break;
       case 46: // DEL
-        this._main.deleteCurrentSelection();
+        main.deleteCurrentSelection();
         break;
       case 78: // N
         var cur = GuiSculptingTools[this.getSelectedTool()];
@@ -196,14 +210,17 @@ define([
     onMouseMove: function (e) {
       var wid = GuiSculptingTools[this.getSelectedTool()];
       if (this._modalBrushRadius && wid._ctrlRadius) {
-        wid._ctrlRadius.setValue(wid._ctrlRadius.getValue() + e.pageX - this._lastMouseX);
+        var dx = e.pageX - this._refX;
+        var dy = e.pageY - this._refY;
+        wid._ctrlRadius.setValue(Math.sqrt(dx * dx + dy * dy));
         this.updateRadiusPicking();
         this._main.render();
       }
       if (this._modalBrushIntensity && wid._ctrlIntensity) {
-        wid._ctrlIntensity.setValue(wid._ctrlIntensity.getValue() + e.pageX - this._lastMouseX);
+        wid._ctrlIntensity.setValue(wid._ctrlIntensity.getValue() + e.pageX - this._lastPageX);
       }
-      this._lastMouseX = e.pageX;
+      this._lastPageX = e.pageX;
+      this._lastPageY = e.pageY;
     },
     updateRadiusPicking: function () {
       this._main.getPicking().computeLocalAndWorldRadius2(this._main._mouseX, this._main._mouseY);

@@ -15,6 +15,8 @@ define([
   var SculptGL = function () {
     Scene.call(this);
 
+    // all x and y position are canvas based
+
     // controllers stuffs
     this._mouseX = 0;
     this._mouseY = 0;
