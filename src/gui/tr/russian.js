@@ -1,4 +1,4 @@
-define([], function () {
+define(function (require, exports, module) {
 
   'use strict';
 
@@ -210,14 +210,5 @@ define([], function () {
     envBryantPark: 'Бра́йант-парк'
   };
 
-  return TR;
+  module.exports = TR;
 });
-
-// ui extra stuffs (yagui lib)
-// Extra: 'Настройка интерфейса',
-// Overall: 'Общие'
-// Advanced: 'Дополнительно';
-// Widget: 'Виджет',
-// Back: 'Фон',
-// Text: 'Текст',
-// Border: 'Бордюр',

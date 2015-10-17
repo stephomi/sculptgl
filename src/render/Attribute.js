@@ -1,4 +1,4 @@
-define([], function () {
+define(function (require, exports, module) {
 
   'use strict';
 
@@ -19,5 +19,5 @@ define([], function () {
     }
   };
 
-  return Attribute;
+  module.exports = Attribute;
 });

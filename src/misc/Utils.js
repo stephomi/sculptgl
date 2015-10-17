@@ -1,4 +1,4 @@
-define([], function () {
+define(function (require, exports, module) {
 
   'use strict';
 
@@ -352,5 +352,5 @@ define([], function () {
   //   // newMesh.setFacesTexCoord(fArUVNew);
   // };
 
-  return Utils;
+  module.exports = Utils;
 });

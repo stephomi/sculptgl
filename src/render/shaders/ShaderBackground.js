@@ -1,9 +1,9 @@
-define([
-  'render/shaders/ShaderBase',
-  'render/Attribute'
-], function (ShaderBase, Attribute) {
+define(function (require, exports, module) {
 
   'use strict';
+
+  var ShaderBase = require('render/shaders/ShaderBase');
+  var Attribute = require('render/Attribute');
 
   var ShaderBackground = ShaderBase.getCopy();
   ShaderBackground.vertexName = ShaderBackground.fragmentName = 'Background';
@@ -58,5 +58,5 @@ define([
     gl.uniform1i(this.uniforms.uTexture0, 0);
   };
 
-  return ShaderBackground;
+  module.exports = ShaderBackground;
 });

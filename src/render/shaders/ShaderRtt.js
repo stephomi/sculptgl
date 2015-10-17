@@ -1,11 +1,11 @@
-define([
-  'render/shaders/ShaderBase',
-  'render/Attribute',
-  'misc/getOptionsURL',
-  'text!render/shaders/glsl/fxaa.glsl'
-], function (ShaderBase, Attribute, getOptionsURL, fxaaGLSL) {
+define(function (require, exports, module) {
 
   'use strict';
+
+  var ShaderBase = require('render/shaders/ShaderBase');
+  var Attribute = require('render/Attribute');
+  var getOptionsURL = require('misc/getOptionsURL');
+  var fxaaGLSL = require('text!render/shaders/glsl/fxaa.glsl');
 
   var ShaderRtt = ShaderBase.getCopy();
   ShaderRtt.vertexName = ShaderRtt.fragmentName = 'FxaaFilmic';
@@ -84,5 +84,5 @@ define([
     ShaderRtt.attributes.aVertex = new Attribute(gl, ShaderRtt.program, 'aVertex', 2, gl.FLOAT);
   };
 
-  return ShaderRtt;
+  module.exports = ShaderRtt;
 });

@@ -1,12 +1,12 @@
-define([
-  'lib/glMatrix',
-  'misc/Utils',
-  'misc/Tablet',
-  'editor/tools/SculptBase',
-  'editor/tools/Flatten'
-], function (glm, Utils, Tablet, SculptBase, Flatten) {
+define(function (require, exports, module) {
 
   'use strict';
+
+  var glm = require('lib/glMatrix');
+  var Utils = require('misc/Utils');
+  var Tablet = require('misc/Tablet');
+  var SculptBase = require('editor/tools/SculptBase');
+  var Flatten = require('editor/tools/Flatten');
 
   var vec3 = glm.vec3;
 
@@ -95,5 +95,5 @@ define([
 
   Utils.makeProxy(SculptBase, Brush);
 
-  return Brush;
+  module.exports = Brush;
 });

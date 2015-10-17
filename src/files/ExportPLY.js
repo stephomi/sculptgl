@@ -1,9 +1,9 @@
-define([
-  'misc/Utils',
-  'editor/Remesh'
-], function (Utils, Remesh) {
+define(function (require, exports, module) {
 
   'use strict';
+
+  var Utils = require('misc/Utils');
+  var Remesh = require('editor/Remesh');
 
   var Export = {};
 
@@ -130,5 +130,5 @@ define([
     return new Blob([data]);
   };
 
-  return Export;
+  module.exports = Export;
 });

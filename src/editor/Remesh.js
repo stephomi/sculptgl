@@ -1,13 +1,13 @@
-define([
-  'lib/glMatrix',
-  'editor/HoleFilling',
-  'editor/SurfaceNets',
-  'math3d/Geometry',
-  'mesh/Mesh',
-  'misc/Utils'
-], function (glm, HoleFilling, SurfaceNets, Geometry, Mesh, Utils) {
+define(function (require, exports, module) {
 
   'use strict';
+
+  var glm = require('lib/glMatrix');
+  var HoleFilling = require('editor/HoleFilling');
+  var SurfaceNets = require('editor/SurfaceNets');
+  var Geometry = require('math3d/Geometry');
+  var Mesh = require('mesh/Mesh');
+  var Utils = require('misc/Utils');
 
   var vec3 = glm.vec3;
 
@@ -392,5 +392,5 @@ define([
     return createMesh(baseMesh, arr.vertices, arr.faces, arr.colors, arr.materials);
   };
 
-  return Remesh;
+  module.exports = Remesh;
 });

@@ -1,13 +1,13 @@
-define([
-  'lib/glMatrix',
-  'misc/getOptionsURL',
-  'misc/Utils',
-  'render/Attribute',
-  'text!render/shaders/glsl/colorSpace.glsl',
-  'text!render/shaders/glsl/curvature.glsl'
-], function (glm, getOptionsURL, Utils, Attribute, colorSpaceGLSL, curvatureGLSL) {
+define(function (require, exports, module) {
 
   'use strict';
+
+  var glm = require('lib/glMatrix');
+  var getOptionsURL = require('misc/getOptionsURL');
+  var Utils = require('misc/Utils');
+  var Attribute = require('render/Attribute');
+  var colorSpaceGLSL = require('text!render/shaders/glsl/colorSpace.glsl');
+  var curvatureGLSL = require('text!render/shaders/glsl/curvature.glsl');
 
   var vec3 = glm.vec3;
 
@@ -228,5 +228,5 @@ define([
     return obj;
   };
 
-  return ShaderBase;
+  module.exports = ShaderBase;
 });

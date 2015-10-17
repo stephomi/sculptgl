@@ -1,10 +1,10 @@
-define([
-  'gui/GuiTR',
-  'lib/FileSaver',
-  'files/Export'
-], function (TR, saveAs, Export) {
+define(function (require, exports, module) {
 
   'use strict';
+
+  var TR = require('gui/GuiTR');
+  var saveAs = require('lib/FileSaver');
+  var Export = require('files/Export');
 
   var GuiFiles = function (guiParent, ctrlGui) {
     this._main = ctrlGui._main; // main application
@@ -114,5 +114,5 @@ define([
     }
   };
 
-  return GuiFiles;
+  module.exports = GuiFiles;
 });

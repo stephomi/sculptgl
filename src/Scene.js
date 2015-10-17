@@ -1,27 +1,27 @@
-define([
-  'lib/glMatrix',
-  'misc/getOptionsURL',
-  'misc/Utils',
-  'editor/Sculpt',
-  'editor/Subdivision',
-  'files/Import',
-  'gui/Gui',
-  'math3d/Camera',
-  'math3d/Picking',
-  'mesh/Background',
-  'mesh/Selection',
-  'mesh/Mesh',
-  'mesh/multiresolution/Multimesh',
-  'mesh/Primitive',
-  'states/States',
-  'render/Contour',
-  'render/Render',
-  'render/Rtt',
-  'render/shaders/ShaderMatcap',
-  'render/WebGLCaps'
-], function (glm, getOptionsURL, Utils, Sculpt, Subdivision, Import, Gui, Camera, Picking, Background, Selection, Mesh, Multimesh, Primitive, States, Contour, Render, Rtt, ShaderMatcap, WebGLCaps) {
+define(function (require, exports, module) {
 
   'use strict';
+
+  var glm = require('lib/glMatrix');
+  var getOptionsURL = require('misc/getOptionsURL');
+  var Utils = require('misc/Utils');
+  var Sculpt = require('editor/Sculpt');
+  var Subdivision = require('editor/Subdivision');
+  var Import = require('files/Import');
+  var Gui = require('gui/Gui');
+  var Camera = require('math3d/Camera');
+  var Picking = require('math3d/Picking');
+  var Background = require('mesh/Background');
+  var Selection = require('mesh/Selection');
+  var Mesh = require('mesh/Mesh');
+  var Multimesh = require('mesh/multiresolution/Multimesh');
+  var Primitive = require('mesh/Primitive');
+  var States = require('states/States');
+  var Contour = require('render/Contour');
+  var Render = require('render/Render');
+  var Rtt = require('render/Rtt');
+  var ShaderMatcap = require('render/shaders/ShaderMatcap');
+  var WebGLCaps = require('render/WebGLCaps');
 
   var vec3 = glm.vec3;
   var mat4 = glm.mat4;
@@ -491,5 +491,5 @@ define([
     }
   };
 
-  return Scene;
+  module.exports = Scene;
 });

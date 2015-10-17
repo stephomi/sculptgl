@@ -1,8 +1,8 @@
-define([
-  'misc/getOptionsURL'
-], function (getOptionsURL) {
+define(function (require, exports, module) {
 
   'use strict';
+
+  var getOptionsURL = require('misc/getOptionsURL');
 
   // TODO
   // It was based NPAPI, a deprecated API !
@@ -38,5 +38,5 @@ define([
     return Tablet.useOnRadius === true ? 0.25 + Tablet.pressure() * 0.75 : 1.0;
   };
 
-  return Tablet;
+  module.exports = Tablet;
 });

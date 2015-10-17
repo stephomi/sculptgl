@@ -1,9 +1,9 @@
-define([
-  'mesh/Mesh',
-  'misc/Utils'
-], function (Mesh, Utils) {
+define(function (require, exports, module) {
 
   'use strict';
+
+  var Mesh = require('mesh/Mesh');
+  var Utils = require('misc/Utils');
 
   var Import = {};
 
@@ -118,5 +118,5 @@ define([
     return [new Float32Array(vb.buffer), vbc];
   };
 
-  return Import;
+  module.exports = Import;
 });

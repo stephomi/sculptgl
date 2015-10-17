@@ -1,4 +1,4 @@
-define([], function () {
+define(function (require, exports, module) {
 
   'use strict';
 
@@ -349,5 +349,5 @@ define([], function () {
     }
   };
 
-  return OctreeCell;
+  module.exports = OctreeCell;
 });

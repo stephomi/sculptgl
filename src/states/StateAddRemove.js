@@ -1,4 +1,4 @@
-define([], function () {
+define(function (require, exports, module) {
 
   'use strict';
 
@@ -45,5 +45,5 @@ define([], function () {
     }
   };
 
-  return StateAddRemove;
+  module.exports = StateAddRemove;
 });

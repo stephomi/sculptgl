@@ -1,10 +1,10 @@
-define([
-  'misc/Utils',
-  'misc/Tablet',
-  'editor/tools/SculptBase'
-], function (Utils, Tablet, SculptBase) {
+define(function (require, exports, module) {
 
   'use strict';
+
+  var Utils = require('misc/Utils');
+  var Tablet = require('misc/Tablet');
+  var SculptBase = require('editor/tools/SculptBase');
 
   var Smooth = function (main) {
     SculptBase.call(this, main);
@@ -128,5 +128,5 @@ define([
 
   Utils.makeProxy(SculptBase, Smooth);
 
-  return Smooth;
+  module.exports = Smooth;
 });

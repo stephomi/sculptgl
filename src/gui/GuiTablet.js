@@ -1,9 +1,9 @@
-define([
-  'gui/GuiTR',
-  'misc/Tablet'
-], function (TR, Tablet) {
+define(function (require, exports, module) {
 
   'use strict';
+
+  var TR = require('gui/GuiTR');
+  var Tablet = require('misc/Tablet');
 
   var GuiTablet = function (guiParent) {
     this._menu = null; // ui menu
@@ -20,5 +20,5 @@ define([
     }
   };
 
-  return GuiTablet;
+  module.exports = GuiTablet;
 });

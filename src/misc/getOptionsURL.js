@@ -1,4 +1,4 @@
-define([], function () {
+define(function (require, exports, module) {
 
   'use strict';
 
@@ -112,5 +112,5 @@ define([], function () {
 
   getOptionsURL();
 
-  return getOptionsURL;
+  module.exports = getOptionsURL;
 });

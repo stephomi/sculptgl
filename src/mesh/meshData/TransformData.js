@@ -1,9 +1,9 @@
-define([
-  'lib/glMatrix',
-  'misc/Utils'
-], function (glm, Utils) {
+define(function (require, exports, module) {
 
   'use strict';
+
+  var glm = require('lib/glMatrix');
+  var Utils = require('misc/Utils');
 
   var vec3 = glm.vec3;
   var mat3 = glm.mat3;
@@ -126,5 +126,5 @@ define([
     }
   };
 
-  return TransformData;
+  module.exports = TransformData;
 });

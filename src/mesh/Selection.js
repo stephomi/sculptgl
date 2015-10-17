@@ -1,11 +1,10 @@
-define([
-  'lib/glMatrix',
-  'render/Buffer',
-  'render/Attribute',
-  'render/Shader'
-], function (glm, Buffer, Attribute, Shader) {
+define(function (require, exports, module) {
 
   'use strict';
+
+  var glm = require('lib/glMatrix');
+  var Buffer = require('render/Buffer');
+  var Shader = require('render/Shader');
 
   var mat3 = glm.mat3;
   var mat4 = glm.mat4;
@@ -166,5 +165,5 @@ define([
     }
   };
 
-  return Selection;
+  module.exports = Selection;
 });

@@ -1,12 +1,12 @@
-define([
-  'misc/Utils',
-  'mesh/multiresolution/MeshResolution',
-  'mesh/multiresolution/LowRender',
-  'editor/Subdivision',
-  'editor/Reversion'
-], function (Utils, MeshResolution, LowRender, Subdivision, Reversion) {
+define(function (require, exports, module) {
 
   'use strict';
+
+  var Utils = require('misc/Utils');
+  var MeshResolution = require('mesh/multiresolution/MeshResolution');
+  var LowRender = require('mesh/multiresolution/LowRender');
+  var Subdivision = require('editor/Subdivision');
+  var Reversion = require('editor/Reversion');
 
   var Multimesh = function (mesh) {
     // every submeshes will share the same render/transformData
@@ -188,5 +188,5 @@ define([
     };
   });
 
-  return Multimesh;
+  module.exports = Multimesh;
 });

@@ -1,10 +1,10 @@
-define([
-  'gui/GuiTR',
-  'lib/zip',
-  'files/ExportPLY'
-], function (TR, zip, ExportPLY) {
+define(function (require, exports, module) {
 
   'use strict';
+
+  var TR = require('gui/GuiTR');
+  var zip = require('lib/zip');
+  var ExportPLY = require('files/ExportPLY');
 
   var Export = {};
 
@@ -73,5 +73,5 @@ define([
     xhr.send(fd);
   };
 
-  return Export;
+  module.exports = Export;
 });

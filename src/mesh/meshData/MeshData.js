@@ -1,15 +1,15 @@
-define([
-  'misc/Utils',
-  'mesh/meshData/DrawArraysData',
-  'mesh/meshData/EdgeData',
-  'mesh/meshData/FaceData',
-  'mesh/meshData/TexCoordsData',
-  'mesh/meshData/TransformData',
-  'mesh/meshData/VertexData',
-  'mesh/meshData/WireframeData'
-], function (Utils, DrawArraysData, EdgeData, FaceData, TexCoordsData, TransformData, VertexData, WireframeData) {
+define(function (require, exports, module) {
 
   'use strict';
+
+  var Utils = require('misc/Utils');
+  var DrawArraysData = require('mesh/meshData/DrawArraysData');
+  var EdgeData = require('mesh/meshData/EdgeData');
+  var FaceData = require('mesh/meshData/FaceData');
+  var TexCoordsData = require('mesh/meshData/TexCoordsData');
+  var TransformData = require('mesh/meshData/TransformData');
+  var VertexData = require('mesh/meshData/VertexData');
+  var WireframeData = require('mesh/meshData/WireframeData');
 
   var MeshData = function (mesh) {
     this._mesh = mesh; // the mesh
@@ -112,5 +112,5 @@ define([
     };
   });
 
-  return MeshData;
+  module.exports = MeshData;
 });

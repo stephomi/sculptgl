@@ -1,10 +1,10 @@
-define([
-  'misc/Utils',
-  'mesh/dynamic/Topology',
-  'mesh/Mesh'
-], function (Utils, Topology, Mesh) {
+define(function (require, exports, module) {
 
   'use strict';
+
+  var Utils = require('misc/Utils');
+  var Topology = require('mesh/dynamic/Topology');
+  var Mesh = require('mesh/Mesh');
 
   // Dynamic topology mesh (triangles only)
   // Obviously less performant than the static topology mesh
@@ -265,5 +265,5 @@ define([
 
   Utils.makeProxy(Mesh, MeshDynamic);
 
-  return MeshDynamic;
+  module.exports = MeshDynamic;
 });

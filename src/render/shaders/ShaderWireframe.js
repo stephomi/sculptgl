@@ -1,8 +1,8 @@
-define([
-  'render/shaders/ShaderBase'
-], function (ShaderBase) {
+define(function (require, exports, module) {
 
   'use strict';
+
+  var ShaderBase = require('render/shaders/ShaderBase');
 
   var ShaderWireframe = ShaderBase.getCopy();
   ShaderWireframe.vertexName = ShaderWireframe.fragmentName = 'Wireframe';
@@ -52,5 +52,5 @@ define([
     render.getGL().uniformMatrix4fv(this.uniforms.uEM, false, render.getMesh().getEditMatrix());
   };
 
-  return ShaderWireframe;
+  module.exports = ShaderWireframe;
 });

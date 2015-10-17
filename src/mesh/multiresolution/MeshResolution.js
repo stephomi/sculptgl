@@ -1,10 +1,10 @@
-define([
-  'misc/Utils',
-  'editor/Subdivision',
-  'mesh/Mesh'
-], function (Utils, Subdivision, Mesh) {
+define(function (require, exports, module) {
 
   'use strict';
+
+  var Utils = require('misc/Utils');
+  var Subdivision = require('editor/Subdivision');
+  var Mesh = require('mesh/Mesh');
 
   var MeshResolution = function (transformData, render, mesh) {
     this._meshOrigin = mesh || new Mesh();
@@ -301,5 +301,5 @@ define([
     };
   });
 
-  return MeshResolution;
+  module.exports = MeshResolution;
 });

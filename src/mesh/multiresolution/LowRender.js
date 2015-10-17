@@ -1,10 +1,10 @@
-define([
-  'misc/Utils',
-  'render/Render',
-  'render/Buffer'
-], function (Utils, Render, Buffer) {
+define(function (require, exports, module) {
 
   'use strict';
+
+  var Utils = require('misc/Utils');
+  var Render = require('render/Render');
+  var Buffer = require('render/Buffer');
 
   var LowRender = function (render) {
     this._renderOrigin = render; // the base render
@@ -56,5 +56,5 @@ define([
     };
   });
 
-  return LowRender;
+  module.exports = LowRender;
 });

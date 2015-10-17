@@ -1,20 +1,20 @@
-define([
-  'editor/tools/Brush',
-  'editor/tools/Inflate',
-  'editor/tools/Twist',
-  'editor/tools/Smooth',
-  'editor/tools/Flatten',
-  'editor/tools/Pinch',
-  'editor/tools/Crease',
-  'editor/tools/Drag',
-  'editor/tools/Paint',
-  'editor/tools/Move',
-  'editor/tools/Masking',
-  'editor/tools/LocalScale',
-  'editor/tools/Transform'
-], function (Brush, Inflate, Twist, Smooth, Flatten, Pinch, Crease, Drag, Paint, Move, Masking, LocalScale, Transform) {
+define(function (require, exports, module) {
 
   'use strict';
+
+  var Brush = require('editor/tools/Brush');
+  var Inflate = require('editor/tools/Inflate');
+  var Twist = require('editor/tools/Twist');
+  var Smooth = require('editor/tools/Smooth');
+  var Flatten = require('editor/tools/Flatten');
+  var Pinch = require('editor/tools/Pinch');
+  var Crease = require('editor/tools/Crease');
+  var Drag = require('editor/tools/Drag');
+  var Paint = require('editor/tools/Paint');
+  var Move = require('editor/tools/Move');
+  var Masking = require('editor/tools/Masking');
+  var LocalScale = require('editor/tools/LocalScale');
+  var Transform = require('editor/tools/Transform');
 
   var Tools = {};
 
@@ -48,5 +48,5 @@ define([
 
   Tools.keys = Object.keys(Tools);
 
-  return Tools;
+  module.exports = Tools;
 });

@@ -1,4 +1,4 @@
-define([], function () {
+define(function (require, exports, module) {
 
   'use strict';
 
@@ -246,5 +246,5 @@ define([], function () {
     }
   };
 
-  return DrawArraysData;
+  module.exports = DrawArraysData;
 });

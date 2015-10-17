@@ -1,8 +1,8 @@
-define([
-  'editor/tools/Tools'
-], function (Tools) {
+define(function (require, exports, module) {
 
   'use strict';
+
+  var Tools = require('editor/tools/Tools');
 
   var Sculpt = function (main) {
     this._main = main;
@@ -87,5 +87,5 @@ define([
     }
   };
 
-  return Sculpt;
+  module.exports = Sculpt;
 });

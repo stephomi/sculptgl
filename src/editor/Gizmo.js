@@ -1,9 +1,9 @@
-define([
-  'lib/glMatrix',
-  'mesh/Primitive'
-], function (glm, Primitive) {
+define(function (require, exports, module) {
 
   'use strict';
+
+  var glm = require('lib/glMatrix');
+  var Primitive = require('mesh/Primitive');
 
   var vec2 = glm.vec2;
   var vec3 = glm.vec3;
@@ -551,5 +551,5 @@ define([
     }
   };
 
-  return Gizmo;
+  module.exports = Gizmo;
 });

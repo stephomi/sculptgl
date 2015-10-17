@@ -1,9 +1,9 @@
-define([
-  'render/shaders/ShaderBase',
-  'render/Attribute'
-], function (ShaderBase, Attribute) {
+define(function (require, exports, module) {
 
   'use strict';
+
+  var ShaderBase = require('render/shaders/ShaderBase');
+  var Attribute = require('render/Attribute');
 
   var ShaderUV = ShaderBase.getCopy();
   ShaderUV.vertexName = ShaderUV.fragmentName = 'ShowUV';
@@ -84,5 +84,5 @@ define([
     ShaderBase.updateUniforms.call(this, render, main);
   };
 
-  return ShaderUV;
+  module.exports = ShaderUV;
 });

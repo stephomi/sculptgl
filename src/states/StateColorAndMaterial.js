@@ -1,8 +1,8 @@
-define([
-  'misc/Utils'
-], function (Utils) {
+define(function (require, exports, module) {
 
   'use strict';
+
+  var Utils = require('misc/Utils');
 
   var StateColorAndMaterial = function (main, mesh) {
     this._main = main; // main application
@@ -102,5 +102,5 @@ define([
     }
   };
 
-  return StateColorAndMaterial;
+  module.exports = StateColorAndMaterial;
 });

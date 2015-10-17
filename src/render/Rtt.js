@@ -1,10 +1,10 @@
-define([
-  'render/Buffer',
-  'render/Shader',
-  'render/WebGLCaps'
-], function (Buffer, Shader, WebGLCaps) {
+define(function (require, exports, module) {
 
   'use strict';
+
+  var Buffer = require('render/Buffer');
+  var Shader = require('render/Shader');
+  var WebGLCaps = require('render/WebGLCaps');
 
   var Rtt = function (gl) {
     this._gl = gl; // webgl context
@@ -88,5 +88,5 @@ define([
     }
   };
 
-  return Rtt;
+  module.exports = Rtt;
 });

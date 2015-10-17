@@ -1,8 +1,8 @@
-define([
-  'render/shaders/ShaderBase'
-], function (ShaderBase) {
+define(function (require, exports, module) {
 
   'use strict';
+
+  var ShaderBase = require('render/shaders/ShaderBase');
 
   var ShaderFlat = ShaderBase.getCopy();
   ShaderFlat.vertexName = ShaderFlat.fragmentName = 'FlatColor';
@@ -44,5 +44,5 @@ define([
     ShaderBase.updateUniforms.call(this, render, main);
   };
 
-  return ShaderFlat;
+  module.exports = ShaderFlat;
 });

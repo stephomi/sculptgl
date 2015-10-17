@@ -1,10 +1,10 @@
-define([
-  'gui/GuiTR',
-  'render/Render',
-  'render/Shader'
-], function (TR, Render, Shader) {
+define(function (require, exports, module) {
 
   'use strict';
+
+  var TR = require('gui/GuiTR');
+  var Render = require('render/Render');
+  var Shader = require('render/Shader');
 
   var ShaderRTT = Shader.RTT;
   var ShaderUV = Shader.UV;
@@ -260,5 +260,5 @@ define([
     },
   };
 
-  return GuiRendering;
+  module.exports = GuiRendering;
 });

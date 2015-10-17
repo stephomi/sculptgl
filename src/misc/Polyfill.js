@@ -1,4 +1,4 @@
-define([], function () {
+define(function (require, exports, module) {
 
   'use strict';
 
@@ -53,4 +53,5 @@ define([], function () {
   if (!window.requestAnimationFrame)
     window.alert('browser is too old. Probably no webgl there anyway');
 
+  module.exports = {};
 });

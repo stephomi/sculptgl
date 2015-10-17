@@ -1,8 +1,8 @@
-define([
-  'render/shaders/ShaderBase'
-], function (ShaderBase) {
+define(function (require, exports, module) {
 
   'use strict';
+
+  var ShaderBase = require('render/shaders/ShaderBase');
 
   var ShaderNormal = ShaderBase.getCopy();
   ShaderNormal.vertexName = ShaderNormal.fragmentName = 'ShowNormal';
@@ -51,5 +51,5 @@ define([
     '}'
   ].join('\n');
 
-  return ShaderNormal;
+  module.exports = ShaderNormal;
 });

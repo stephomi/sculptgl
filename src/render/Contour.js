@@ -1,10 +1,10 @@
-define([
-  'misc/Utils',
-  'render/Shader',
-  'render/Rtt'
-], function (Utils, Shader, Rtt) {
+define(function (require, exports, module) {
 
   'use strict';
+
+  var Utils = require('misc/Utils');
+  var Shader = require('render/Shader');
+  var Rtt = require('render/Rtt');
 
   var Contour = function (gl) {
     Rtt.call(this, gl);
@@ -25,5 +25,5 @@ define([
 
   Utils.makeProxy(Rtt, Contour);
 
-  return Contour;
+  module.exports = Contour;
 });

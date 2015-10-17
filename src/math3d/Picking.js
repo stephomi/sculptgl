@@ -1,13 +1,12 @@
-define([
-  'lib/glMatrix',
-  'math3d/Geometry',
-  'mesh/Mesh',
-  'misc/Tablet',
-  'misc/Utils',
-  'gui/GuiTR'
-], function (glm, Geometry, Mesh, Tablet, Utils, TR) {
+define(function (require, exports, module) {
 
   'use strict';
+
+  var glm = require('lib/glMatrix');
+  var Geometry = require('math3d/Geometry');
+  var Tablet = require('misc/Tablet');
+  var Utils = require('misc/Utils');
+  var TR = require('gui/GuiTR');
 
   var vec3 = glm.vec3;
   var mat4 = glm.mat4;
@@ -391,5 +390,5 @@ define([
     }
   };
 
-  return Picking;
+  module.exports = Picking;
 });

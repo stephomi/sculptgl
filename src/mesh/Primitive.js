@@ -1,10 +1,10 @@
-define([
-  'lib/glMatrix',
-  'mesh/Mesh',
-  'editor/Remesh'
-], function (glm, Mesh, Remesh) {
+define(function (require, exports, module) {
 
   'use strict';
+
+  var glm = require('lib/glMatrix');
+  var Mesh = require('mesh/Mesh');
+  var Remesh = require('editor/Remesh');
 
   var mat4 = glm.mat4;
 
@@ -341,5 +341,5 @@ define([
     return mesh;
   };
 
-  return Primitive;
+  module.exports = Primitive;
 });

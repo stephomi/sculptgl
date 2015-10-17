@@ -1,9 +1,9 @@
-define([
-  'mesh/dynamic/Subdivision',
-  'mesh/dynamic/Decimation'
-], function (Subdivision, Decimation) {
+define(function (require, exports, module) {
 
   'use strict';
+
+  var Subdivision = require('mesh/dynamic/Subdivision');
+  var Decimation = require('mesh/dynamic/Decimation');
 
   var Topology = function (mesh) {
     this._mesh = mesh;
@@ -31,5 +31,5 @@ define([
     }
   };
 
-  return Topology;
+  module.exports = Topology;
 });

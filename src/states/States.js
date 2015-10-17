@@ -1,14 +1,14 @@
-define([
-  'misc/Utils',
-  'states/StateAddRemove',
-  'states/StateColorAndMaterial',
-  'states/StateGeometry',
-  'states/StateDynamic',
-  'states/StateMultiresolution',
-  'states/StateCustom'
-], function (Utils, StAddRemove, StColorAndMaterial, StGeometry, StDynamic, StMultiresolution, StCustom) {
+define(function (require, exports, module) {
 
   'use strict';
+
+  var Utils = require('misc/Utils');
+  var StAddRemove = require('states/StateAddRemove');
+  var StColorAndMaterial = require('states/StateColorAndMaterial');
+  var StGeometry = require('states/StateGeometry');
+  var StDynamic = require('states/StateDynamic');
+  var StMultiresolution = require('states/StateMultiresolution');
+  var StCustom = require('states/StateCustom');
 
   var States = function (main) {
     this._main = main; // main
@@ -128,5 +128,5 @@ define([
     },
   };
 
-  return States;
+  module.exports = States;
 });

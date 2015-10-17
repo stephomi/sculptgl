@@ -1,8 +1,8 @@
-define([
-  'misc/Utils'
-], function (Utils) {
+define(function (require, exports, module) {
 
   'use strict';
+
+  var Utils = require('misc/Utils');
 
   var Decimation = function (mesh) {
     this._mesh = mesh;
@@ -488,5 +488,5 @@ define([
     }
   };
 
-  return Decimation;
+  module.exports = Decimation;
 });

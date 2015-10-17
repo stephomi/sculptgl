@@ -1,10 +1,9 @@
-define([
-  'misc/Utils',
-  'math3d/Geometry',
-  'editor/tools/SculptBase'
-], function (Utils, Geometry, SculptBase) {
+define(function (require, exports, module) {
 
   'use strict';
+
+  var Utils = require('misc/Utils');
+  var SculptBase = require('editor/tools/SculptBase');
 
   var LocalScale = function (main) {
     SculptBase.call(this, main);
@@ -90,5 +89,5 @@ define([
 
   Utils.makeProxy(SculptBase, LocalScale);
 
-  return LocalScale;
+  module.exports = LocalScale;
 });

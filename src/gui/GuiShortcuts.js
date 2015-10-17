@@ -1,10 +1,9 @@
-define([
-  'gui/GuiTR',
-  'editor/tools/Tools',
-  'misc/getOptionsURL'
-], function (TR, Tools, getOptionsURL) {
+define(function (require, exports, module) {
 
   'use strict';
+
+  var TR = require('gui/GuiTR');
+  var Tools = require('editor/tools/Tools');
 
   var GuiShortcuts = function (guiParent, ctrlGui) {
     this._main = ctrlGui._main; // main application
@@ -42,5 +41,5 @@ define([
     },
   };
 
-  return GuiShortcuts;
+  module.exports = GuiShortcuts;
 });

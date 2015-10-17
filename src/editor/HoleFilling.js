@@ -1,8 +1,8 @@
-define([
-  'mesh/Mesh'
-], function (Mesh) {
+define(function (require, exports, module) {
 
   'use strict';
+
+  var Mesh = require('mesh/Mesh');
 
   var Edge = function (v1, v2) {
     this.previous = null;
@@ -204,5 +204,5 @@ define([
     return closed;
   };
 
-  return HoleFilling;
+  module.exports = HoleFilling;
 });

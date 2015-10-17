@@ -1,4 +1,4 @@
-define([], function () {
+define(function (require, exports, module) {
 
   'use strict';
 
@@ -114,9 +114,9 @@ define([], function () {
       }
       var eAr = this._edges = new Uint8Array(nbEdges);
       for (var k = 0, nbFaceEdges = feAr.length; k < nbFaceEdges; ++k)
-        eAr[feAr[k]] ++;
+        eAr[feAr[k]]++;
     }
   };
 
-  return EdgeData;
+  module.exports = EdgeData;
 });

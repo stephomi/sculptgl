@@ -1,8 +1,8 @@
-define([
-  'misc/Utils'
-], function (Utils) {
+define(function (require, exports, module) {
 
   'use strict';
+
+  var Utils = require('misc/Utils');
 
   // Overview sculpt :
   // start (check if we hit the mesh, start state stack) -> startSculpt
@@ -398,5 +398,5 @@ define([
     addSculptToScene: function () {}
   };
 
-  return SculptBase;
+  module.exports = SculptBase;
 });

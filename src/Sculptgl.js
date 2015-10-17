@@ -1,13 +1,13 @@
-define([
-  'misc/Polyfill', // required first
-  'lib/glMatrix',
-  'lib/Hammer',
-  'misc/Utils',
-  'Scene',
-  'mesh/multiresolution/Multimesh'
-], function (polyfill, glm, Hammer, Utils, Scene, Multimesh) {
+define(function (require, exports, module) {
 
   'use strict';
+
+  require('misc/Polyfill');
+  var glm = require('lib/glMatrix');
+  var Hammer = require('lib/Hammer');
+  var Utils = require('misc/Utils');
+  var Scene = require('Scene');
+  var Multimesh = require('mesh/multiresolution/Multimesh');
 
   var vec3 = glm.vec3;
 
@@ -429,5 +429,5 @@ define([
 
   Utils.makeProxy(Scene, SculptGL);
 
-  return SculptGL;
+  module.exports = SculptGL;
 });

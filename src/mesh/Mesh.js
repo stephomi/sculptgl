@@ -1,11 +1,11 @@
-define([
-  'misc/Utils',
-  'mesh/meshData/MeshData',
-  'math3d/Octree',
-  'render/Render'
-], function (Utils, MeshData, Octree, Render) {
+define(function (require, exports, module) {
 
   'use strict';
+
+  var Utils = require('misc/Utils');
+  var MeshData = require('mesh/meshData/MeshData');
+  var Octree = require('math3d/Octree');
+  var Render = require('render/Render');
 
   var Mesh = function (gl) {
     this._meshData = new MeshData(this); // the mesh data
@@ -126,5 +126,5 @@ define([
     };
   });
 
-  return Mesh;
+  module.exports = Mesh;
 });

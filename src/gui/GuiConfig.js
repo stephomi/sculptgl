@@ -1,8 +1,8 @@
-define([
-  'gui/GuiTR'
-], function (TR) {
+define(function (require, exports, module) {
 
   'use strict';
+
+  var TR = require('gui/GuiTR');
 
   var GuiConfig = function (guiParent, ctrlGui) {
     this._ctrlGui = ctrlGui;
@@ -24,5 +24,5 @@ define([
     }
   };
 
-  return GuiConfig;
+  module.exports = GuiConfig;
 });

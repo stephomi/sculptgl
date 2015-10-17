@@ -1,9 +1,9 @@
-define([
-  'gui/GuiTR',
-  'render/shaders/ShaderBase'
-], function (TR, ShaderBase) {
+define(function (require, exports, module) {
 
   'use strict';
+
+  var TR = require('gui/GuiTR');
+  var ShaderBase = require('render/shaders/ShaderBase');
 
   var ShaderMatcap = ShaderBase.getCopy();
   ShaderMatcap.vertexName = ShaderMatcap.fragmentName = 'Matcap';
@@ -112,5 +112,5 @@ define([
     ShaderBase.updateUniforms.call(this, render, main);
   };
 
-  return ShaderMatcap;
+  module.exports = ShaderMatcap;
 });

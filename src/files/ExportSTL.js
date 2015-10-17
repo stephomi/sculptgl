@@ -1,8 +1,8 @@
-define([
-  'misc/Utils'
-], function (Utils) {
+define(function (require, exports, module) {
 
   'use strict';
+
+  var Utils = require('misc/Utils');
 
   var Export = {};
 
@@ -86,5 +86,5 @@ define([
     return new Blob([data]);
   };
 
-  return Export;
+  module.exports = Export;
 });

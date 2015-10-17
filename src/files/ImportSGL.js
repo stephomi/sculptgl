@@ -1,10 +1,10 @@
-define([
-  'mesh/Mesh',
-  'files/ExportSGL',
-  'render/shaders/ShaderBase'
-], function (Mesh, ExportSGL, ShaderBase) {
+define(function (require, exports, module) {
 
   'use strict';
+
+  var Mesh = require('mesh/Mesh');
+  var ExportSGL = require('files/ExportSGL');
+  var ShaderBase = require('render/shaders/ShaderBase');
 
   var intToString = ExportSGL.intToString;
 
@@ -103,5 +103,5 @@ define([
     return meshes;
   };
 
-  return Import;
+  module.exports = Import;
 });

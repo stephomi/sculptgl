@@ -1,14 +1,14 @@
-define([
-  'gui/GuiTR',
-  'editor/Remesh',
-  'mesh/Mesh',
-  'mesh/multiresolution/Multimesh',
-  'mesh/dynamic/MeshDynamic',
-  'mesh/dynamic/Topology',
-  'states/StateMultiresolution'
-], function (TR, Remesh, Mesh, Multimesh, MeshDynamic, Topology, StateMultiresolution) {
+define(function (require, exports, module) {
 
   'use strict';
+
+  var TR = require('gui/GuiTR');
+  var Remesh = require('editor/Remesh');
+  var Mesh = require('mesh/Mesh');
+  var Multimesh = require('mesh/multiresolution/Multimesh');
+  var MeshDynamic = require('mesh/dynamic/MeshDynamic');
+  var Topology = require('mesh/dynamic/Topology');
+  var StateMultiresolution = require('states/StateMultiresolution');
 
   var GuiMultiresolution = function (guiParent, ctrlGui) {
     this._ctrlGui = ctrlGui;
@@ -244,5 +244,5 @@ define([
     }
   };
 
-  return GuiMultiresolution;
+  module.exports = GuiMultiresolution;
 });

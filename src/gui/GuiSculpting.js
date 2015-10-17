@@ -1,13 +1,11 @@
-define([
-  'gui/GuiTR',
-  'editor/Sculpt',
-  'editor/tools/Tools',
-  'misc/getOptionsURL',
-  'render/Shader',
-  'gui/GuiSculptingTools'
-], function (TR, Sculpt, Tools, getOptionsURL, Shader, GuiSculptingTools) {
+define(function (require, exports, module) {
 
   'use strict';
+
+  var TR = require('gui/GuiTR');
+  var Tools = require('editor/tools/Tools');
+  var getOptionsURL = require('misc/getOptionsURL');
+  var GuiSculptingTools = require('gui/GuiSculptingTools');
 
   var GuiSculpting = function (guiParent, ctrlGui) {
     this._main = ctrlGui._main; // main application
@@ -269,5 +267,5 @@ define([
     }
   };
 
-  return GuiSculpting;
+  module.exports = GuiSculpting;
 });

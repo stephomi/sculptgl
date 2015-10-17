@@ -1,12 +1,12 @@
-define([
-  'lib/glMatrix',
-  'misc/getOptionsURL',
-  'render/shaders/ShaderBase',
-  'text!render/shaders/glsl/pbr.glsl',
-  'gui/GuiTR'
-], function (glm, getOptionsURL, ShaderBase, pbrGLSL, TR) {
+define(function (require, exports, module) {
 
   'use strict';
+
+  var glm = require('lib/glMatrix');
+  var getOptionsURL = require('misc/getOptionsURL');
+  var ShaderBase = require('render/shaders/ShaderBase');
+  var pbrGLSL = require('text!render/shaders/glsl/pbr.glsl');
+  var TR = require('gui/GuiTR');
 
   var mat3 = glm.mat3;
 
@@ -174,5 +174,5 @@ define([
     ShaderBase.updateUniforms.call(this, render, main);
   };
 
-  return ShaderPBR;
+  module.exports = ShaderPBR;
 });

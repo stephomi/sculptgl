@@ -1,8 +1,8 @@
-define([
-  'gui/GuiTR'
-], function (TR) {
+define(function (require, exports, module) {
 
   'use strict';
+
+  var TR = require('gui/GuiTR');
 
   var GuiCamera = function (guiParent, ctrlGui) {
     this._main = ctrlGui._main; // main application
@@ -176,5 +176,5 @@ define([
     }
   };
 
-  return GuiCamera;
+  module.exports = GuiCamera;
 });

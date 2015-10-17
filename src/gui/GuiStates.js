@@ -1,9 +1,9 @@
-define([
-  'gui/GuiTR',
-  'states/States'
-], function (TR, States) {
+define(function (require, exports, module) {
 
   'use strict';
+
+  var TR = require('gui/GuiTR');
+  var States = require('states/States');
 
   var GuiTablet = function (guiParent, ctrlGui) {
     this._ctrlGui = ctrlGui; // main gui controller
@@ -66,5 +66,5 @@ define([
     }
   };
 
-  return GuiTablet;
+  module.exports = GuiTablet;
 });

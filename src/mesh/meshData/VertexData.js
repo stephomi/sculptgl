@@ -1,8 +1,8 @@
-define([
-  'misc/Utils'
-], function (Utils) {
+define(function (require, exports, module) {
 
   'use strict';
+
+  var Utils = require('misc/Utils');
 
   var VertexData = function (mesh) {
     this._mesh = mesh; // the mesh
@@ -157,12 +157,12 @@ define([
       var countRing = new Uint32Array(mesh.getNbVertices());
       for (i = 0; i < nbFaces; ++i) {
         id = i * 4;
-        countRing[fAr[id]] ++;
-        countRing[fAr[id + 1]] ++;
-        countRing[fAr[id + 2]] ++;
+        countRing[fAr[id]]++;
+        countRing[fAr[id + 1]]++;
+        countRing[fAr[id + 2]]++;
         var i4 = fAr[id + 3];
         if (i4 >= 0)
-          countRing[i4] ++;
+          countRing[i4]++;
       }
       var ringFace = this.getVerticesRingFaceStartCount();
       var acc = 0;
@@ -350,5 +350,5 @@ define([
     }
   };
 
-  return VertexData;
+  module.exports = VertexData;
 });

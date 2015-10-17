@@ -1,11 +1,11 @@
-define([
-  'lib/glMatrix',
-  'misc/getOptionsURL',
-  'misc/Utils',
-  'math3d/Geometry'
-], function (glm, getOptionsURL, Utils, Geometry) {
+define(function (require, exports, module) {
 
   'use strict';
+
+  var glm = require('lib/glMatrix');
+  var getOptionsURL = require('misc/getOptionsURL');
+  var Utils = require('misc/Utils');
+  var Geometry = require('math3d/Geometry');
 
   var vec2 = glm.vec2;
   var vec3 = glm.vec3;
@@ -523,5 +523,5 @@ define([
     }
   };
 
-  return Camera;
+  module.exports = Camera;
 });

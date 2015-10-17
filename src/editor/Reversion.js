@@ -1,8 +1,8 @@
-define([
-  'misc/Utils'
-], function (Utils) {
+define(function (require, exports, module) {
 
   'use strict';
+
+  var Utils = require('misc/Utils');
 
   var Reversion = {};
 
@@ -559,5 +559,5 @@ define([
     return true;
   };
 
-  return Reversion;
+  module.exports = Reversion;
 });

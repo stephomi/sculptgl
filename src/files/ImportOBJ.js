@@ -1,8 +1,8 @@
-define([
-  'mesh/Mesh'
-], function (Mesh) {
+define(function (require, exports, module) {
 
   'use strict';
+
+  var Mesh = require('mesh/Mesh');
 
   var Import = {};
 
@@ -137,5 +137,5 @@ define([
     texAr.length = uvfAr.length = 0;
   };
 
-  return Import;
+  module.exports = Import;
 });

@@ -1,8 +1,8 @@
-define([
-  'misc/Utils'
-], function (Utils) {
+define(function (require, exports, module) {
 
   'use strict';
+
+  var Utils = require('misc/Utils');
 
   var FaceData = function (mesh) {
     this._mesh = mesh; // the mesh
@@ -297,5 +297,5 @@ define([
     }
   };
 
-  return FaceData;
+  module.exports = FaceData;
 });

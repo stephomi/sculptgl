@@ -1,11 +1,11 @@
-define([
-  'misc/getOptionsURL',
-  'render/Shader',
-  'render/Buffer',
-  'render/shaders/ShaderMatcap'
-], function (getOptionsURL, Shader, Buffer, ShaderMatcap) {
+define(function (require, exports, module) {
 
   'use strict';
+
+  var getOptionsURL = require('misc/getOptionsURL');
+  var Shader = require('render/Shader');
+  var Buffer = require('render/Buffer');
+  var ShaderMatcap = require('render/shaders/ShaderMatcap');
 
   var Render = function (gl, mesh) {
     this._mesh = mesh;
@@ -253,5 +253,5 @@ define([
     }
   };
 
-  return Render;
+  module.exports = Render;
 });

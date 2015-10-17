@@ -1,12 +1,12 @@
-define([
-  'files/ExportOBJ',
-  'files/ExportSGL',
-  'files/ExportPLY',
-  'files/ExportSTL',
-  'files/ExportSketchfab'
-], function (ExportOBJ, ExportSGL, ExportPLY, ExportSTL, ExportSketchfab) {
+define(function (require, exports, module) {
 
   'use strict';
+
+  var ExportOBJ = require('files/ExportOBJ');
+  var ExportSGL = require('files/ExportSGL');
+  var ExportPLY = require('files/ExportPLY');
+  var ExportSTL = require('files/ExportSTL');
+  var ExportSketchfab = require('files/ExportSketchfab');
 
   var Export = {};
   Export.exportOBJ = ExportOBJ.exportOBJ;
@@ -17,5 +17,5 @@ define([
   Export.exportBinarySTL = ExportSTL.exportBinarySTL;
   Export.exportSketchfab = ExportSketchfab.exportSketchfab;
 
-  return Export;
+  module.exports = Export;
 });

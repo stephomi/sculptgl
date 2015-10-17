@@ -1,9 +1,9 @@
-define([
-  'render/Buffer',
-  'render/Shader'
-], function (Buffer, Shader) {
+define(function (require, exports, module) {
 
   'use strict';
+
+  var Buffer = require('render/Buffer');
+  var Shader = require('render/Shader');
 
   var Background = function (gl, main) {
     this._main = main;
@@ -93,5 +93,5 @@ define([
     }
   };
 
-  return Background;
+  module.exports = Background;
 });

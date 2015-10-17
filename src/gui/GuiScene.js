@@ -1,10 +1,10 @@
-define([
-  'gui/GuiTR',
-  'editor/Remesh',
-  'render/shaders/ShaderBase'
-], function (TR, Remesh, ShaderBase) {
+define(function (require, exports, module) {
 
   'use strict';
+
+  var TR = require('gui/GuiTR');
+  var Remesh = require('editor/Remesh');
+  var ShaderBase = require('render/shaders/ShaderBase');
 
   var GuiScene = function (guiParent, ctrlGui) {
     this._main = ctrlGui._main; // main application
@@ -202,5 +202,5 @@ define([
     }
   };
 
-  return GuiScene;
+  module.exports = GuiScene;
 });

@@ -1,4 +1,4 @@
-define(function () {
+define(function (require, exports, module) {
 
   'use strict';
 
@@ -12,5 +12,5 @@ define(function () {
   glm.mat4 = window.mat4;
   glm.quat = window.quat;
 
-  return glm;
+  module.exports = glm;
 });

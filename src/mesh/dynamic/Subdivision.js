@@ -1,11 +1,11 @@
-define([
-  'lib/glMatrix',
-  'misc/Utils',
-  'math3d/Geometry',
-  'editor/tools/Smooth'
-], function (glm, Utils, Geometry, Smooth) {
+define(function (require, exports, module) {
 
   'use strict';
+
+  var glm = require('lib/glMatrix');
+  var Utils = require('misc/Utils');
+  var Geometry = require('math3d/Geometry');
+  var Smooth = require('editor/tools/Smooth');
 
   var vec3 = glm.vec3;
 
@@ -458,5 +458,5 @@ define([
     }
   };
 
-  return Subdivision;
+  module.exports = Subdivision;
 });

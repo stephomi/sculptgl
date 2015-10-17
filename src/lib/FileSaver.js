@@ -1,6 +1,6 @@
-define(function () {
+define(function (require, exports, module) {
 
   'use strict';
 
-  return window.saveAs;
+  module.exports = window.saveAs;
 });

@@ -1,8 +1,8 @@
-define([
-  'misc/Utils'
-], function (Utils) {
+define(function (require, exports, module) {
 
   'use strict';
+
+  var Utils = require('misc/Utils');
 
   var TexCoordsData = function (mesh) {
     this._mesh = mesh; // the mesh
@@ -264,5 +264,5 @@ define([
     }
   };
 
-  return TexCoordsData;
+  module.exports = TexCoordsData;
 });

@@ -1,10 +1,10 @@
-define([
-  'misc/getOptionsURL',
-  'render/shaders/ShaderBase',
-  'render/Attribute'
-], function (getOptionsURL, ShaderBase, Attribute) {
+define(function (require, exports, module) {
 
   'use strict';
+
+  var getOptionsURL = require('misc/getOptionsURL');
+  var ShaderBase = require('render/shaders/ShaderBase');
+  var Attribute = require('render/Attribute');
 
   var ShaderContour = ShaderBase.getCopy();
   ShaderContour.vertexName = ShaderContour.fragmentName = 'SobelContour';
@@ -73,5 +73,5 @@ define([
     ShaderContour.attributes.aVertex = new Attribute(gl, ShaderContour.program, 'aVertex', 2, gl.FLOAT);
   };
 
-  return ShaderContour;
+  module.exports = ShaderContour;
 });

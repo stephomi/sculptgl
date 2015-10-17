@@ -1,8 +1,8 @@
-define([
-  'misc/Utils'
-], function (Utils) {
+define(function (require, exports, module) {
 
   'use strict';
+
+  var Utils = require('misc/Utils');
 
   var Subdivision = {};
   Subdivision.LINEAR = false;
@@ -574,5 +574,5 @@ define([
     applyOddSmooth(baseMesh, vertOut, colorOut, materialOut);
   };
 
-  return Subdivision;
+  module.exports = Subdivision;
 });

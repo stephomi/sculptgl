@@ -1,18 +1,18 @@
-define([
-  'misc/getOptionsURL',
-  'render/shaders/ShaderBackground',
-  'render/shaders/ShaderContour',
-  'render/shaders/ShaderSelection',
-  'render/shaders/ShaderFlat',
-  'render/shaders/ShaderMatcap',
-  'render/shaders/ShaderNormal',
-  'render/shaders/ShaderPBR',
-  'render/shaders/ShaderRtt',
-  'render/shaders/ShaderUV',
-  'render/shaders/ShaderWireframe'
-], function (getOptionsURL, Sbackground, Scontour, Sselection, Sflat, Smatcap, Snormal, SPBR, Srtt, Suv, Swireframe) {
+define(function (require, exports, module) {
 
   'use strict';
+
+  var getOptionsURL = require('misc/getOptionsURL');
+  var Sbackground = require('render/shaders/ShaderBackground');
+  var Scontour = require('render/shaders/ShaderContour');
+  var Sselection = require('render/shaders/ShaderSelection');
+  var Sflat = require('render/shaders/ShaderFlat');
+  var Smatcap = require('render/shaders/ShaderMatcap');
+  var Snormal = require('render/shaders/ShaderNormal');
+  var SPBR = require('render/shaders/ShaderPBR');
+  var Srtt = require('render/shaders/ShaderRtt');
+  var Suv = require('render/shaders/ShaderUV');
+  var Swireframe = require('render/shaders/ShaderWireframe');
 
   var Shader = function (gl) {
     this._gl = gl;
@@ -56,5 +56,5 @@ define([
     }
   };
 
-  return Shader;
+  module.exports = Shader;
 });

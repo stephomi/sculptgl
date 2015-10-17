@@ -1,9 +1,9 @@
-define([
-  'misc/Utils',
-  'math3d/OctreeCell'
-], function (Utils, OctreeCell) {
+define(function (require, exports, module) {
 
   'use strict';
+
+  var Utils = require('misc/Utils');
+  var OctreeCell = require('math3d/OctreeCell');
 
   var Octree = function (mesh) {
     this._mesh = mesh; // the mesh
@@ -245,5 +245,5 @@ define([
     }
   };
 
-  return Octree;
+  module.exports = Octree;
 });

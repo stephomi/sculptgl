@@ -1,4 +1,4 @@
-define([], function () {
+define(function (require, exports, module) {
 
   'use strict';
 
@@ -210,5 +210,5 @@ define([], function () {
     envBryantPark: 'BryantPark'
   };
 
-  return TR;
+  module.exports = TR;
 });

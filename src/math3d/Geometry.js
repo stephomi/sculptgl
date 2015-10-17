@@ -1,8 +1,8 @@
-define([
-  'lib/glMatrix'
-], function (glm) {
+define(function (require, exports, module) {
 
   'use strict';
+
+  var glm = require('lib/glMatrix');
 
   var vec3 = glm.vec3;
 
@@ -385,5 +385,5 @@ define([
     return perp;
   };
 
-  return Geometry;
+  module.exports = Geometry;
 });

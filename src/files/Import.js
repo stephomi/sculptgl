@@ -1,11 +1,11 @@
-define([
-  'files/ImportOBJ',
-  'files/ImportSGL',
-  'files/ImportPLY',
-  'files/ImportSTL'
-], function (ImportOBJ, ImportSGL, ImportPLY, ImportSTL) {
+define(function (require, exports, module) {
 
   'use strict';
+
+  var ImportOBJ = require('files/ImportOBJ');
+  var ImportSGL = require('files/ImportSGL');
+  var ImportPLY = require('files/ImportPLY');
+  var ImportSTL = require('files/ImportSTL');
 
   var Import = {
     importOBJ: ImportOBJ.importOBJ,
@@ -14,5 +14,5 @@ define([
     importSTL: ImportSTL.importSTL
   };
 
-  return Import;
+  module.exports = Import;
 });

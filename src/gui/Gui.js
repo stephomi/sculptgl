@@ -1,22 +1,22 @@
-define([
-  'lib/yagui',
-  'gui/GuiTR',
-  'gui/GuiBackground',
-  'gui/GuiCamera',
-  'gui/GuiConfig',
-  'gui/GuiFiles',
-  'gui/GuiMesh',
-  'gui/GuiTopology',
-  'gui/GuiRendering',
-  'gui/GuiScene',
-  'gui/GuiSculpting',
-  'gui/GuiStates',
-  'gui/GuiTablet',
-  'render/shaders/ShaderContour',
-  'misc/getOptionsURL'
-], function (yagui, TR, GuiBackground, GuiCamera, GuiConfig, GuiFiles, GuiMesh, GuiTopology, GuiRendering, GuiScene, GuiSculpting, GuiStates, GuiTablet, ShaderContour, getOptionsURL) {
+define(function (require, exports, module) {
 
   'use strict';
+
+  var yagui = require('lib/yagui');
+  var TR = require('gui/GuiTR');
+  var GuiBackground = require('gui/GuiBackground');
+  var GuiCamera = require('gui/GuiCamera');
+  var GuiConfig = require('gui/GuiConfig');
+  var GuiFiles = require('gui/GuiFiles');
+  var GuiMesh = require('gui/GuiMesh');
+  var GuiTopology = require('gui/GuiTopology');
+  var GuiRendering = require('gui/GuiRendering');
+  var GuiScene = require('gui/GuiScene');
+  var GuiSculpting = require('gui/GuiSculpting');
+  var GuiStates = require('gui/GuiStates');
+  var GuiTablet = require('gui/GuiTablet');
+  var ShaderContour = require('render/shaders/ShaderContour');
+  var getOptionsURL = require('misc/getOptionsURL');
 
   var Gui = function (main) {
     this._main = main;
@@ -157,5 +157,5 @@ define([
     }
   };
 
-  return Gui;
+  module.exports = Gui;
 });

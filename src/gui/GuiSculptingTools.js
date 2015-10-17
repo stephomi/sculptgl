@@ -1,11 +1,11 @@
-define([
-  'lib/glMatrix',
-  'editor/tools/Tools',
-  'gui/GuiTR',
-  'math3d/Picking'
-], function (glm, Tools, TR, Picking) {
+define(function (require, exports, module) {
 
   'use strict';
+
+  var glm = require('lib/glMatrix');
+  var Tools = require('editor/tools/Tools');
+  var TR = require('gui/GuiTR');
+  var Picking = require('math3d/Picking');
 
   var vec3 = glm.vec3;
 
@@ -272,5 +272,5 @@ define([
     init: function () {}
   };
 
-  return GuiSculptingTools;
+  module.exports = GuiSculptingTools;
 });

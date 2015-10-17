@@ -1,11 +1,11 @@
-define([
-  'lib/glMatrix',
-  'misc/Utils',
-  'editor/Gizmo',
-  'editor/tools/SculptBase'
-], function (glm, Utils, Gizmo, SculptBase) {
+define(function (require, exports, module) {
 
   'use strict';
+
+  var glm = require('lib/glMatrix');
+  var Utils = require('misc/Utils');
+  var Gizmo = require('editor/Gizmo');
+  var SculptBase = require('editor/tools/SculptBase');
 
   var vec3 = glm.vec3;
   var mat4 = glm.mat4;
@@ -106,5 +106,5 @@ define([
 
   Utils.makeProxy(SculptBase, Transform);
 
-  return Transform;
+  module.exports = Transform;
 });

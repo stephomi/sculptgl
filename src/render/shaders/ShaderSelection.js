@@ -1,8 +1,8 @@
-define([
-  'render/shaders/ShaderBase'
-], function (ShaderBase) {
+define(function (require, exports, module) {
 
   'use strict';
+
+  var ShaderBase = require('render/shaders/ShaderBase');
 
   var ShaderSelection = ShaderBase.getCopy();
   ShaderSelection.vertexName = ShaderSelection.fragmentName = 'ShowSelection';
@@ -53,5 +53,5 @@ define([
     }
   };
 
-  return ShaderSelection;
+  module.exports = ShaderSelection;
 });
