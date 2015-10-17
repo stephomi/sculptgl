@@ -134,7 +134,7 @@ define([
       gl.uniformMatrix3fv(uniforms.uN, false, mesh.getN());
 
       gl.uniform3fv(uniforms.uPlaneO, vec3.transformMat4(tmp, mesh.getSymmetryOrigin(), mesh.getMV()));
-      gl.uniform3fv(uniforms.uPlaneN, vec3.transformMat3(tmp, mesh.getSymmetryNormal(), mesh.getN()));
+      gl.uniform3fv(uniforms.uPlaneN, vec3.normalize(tmp, vec3.transformMat3(tmp, mesh.getSymmetryNormal(), mesh.getN())));
       gl.uniform1f(uniforms.uScale, useSym ? mesh.getScale() : -1.0);
       gl.uniform1f(uniforms.uAlpha, mesh.getOpacity());
 

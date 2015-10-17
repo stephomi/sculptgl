@@ -376,17 +376,17 @@ define([
       var iv3 = fAr[id + 2] * 3;
       var iv4 = fAr[id + 3] * 3;
 
-      var len1 = 1 / vec3.dist(this._interPoint, vAr.subarray(iv1, iv1 + 3));
-      var len2 = 1 / vec3.dist(this._interPoint, vAr.subarray(iv2, iv2 + 3));
-      var len3 = 1 / vec3.dist(this._interPoint, vAr.subarray(iv3, iv3 + 3));
-      var len4 = iv4 >= 0 ? 1 / vec3.dist(this._interPoint, vAr.subarray(iv4, iv4 + 3)) : 0;
+      var len1 = 1.0 / vec3.dist(this._interPoint, vAr.subarray(iv1, iv1 + 3));
+      var len2 = 1.0 / vec3.dist(this._interPoint, vAr.subarray(iv2, iv2 + 3));
+      var len3 = 1.0 / vec3.dist(this._interPoint, vAr.subarray(iv3, iv3 + 3));
+      var len4 = iv4 >= 0 ? 1.0 / vec3.dist(this._interPoint, vAr.subarray(iv4, iv4 + 3)) : 0.0;
 
-      var sum = len1 + len2 + len3 + len4;
+      var invSum = 1.0 / (len1 + len2 + len3 + len4);
       vec3.set(out, 0.0, 0.0, 0.0);
-      vec3.scaleAndAdd(out, out, vField.subarray(iv1, iv1 + 3), len1 / sum);
-      vec3.scaleAndAdd(out, out, vField.subarray(iv2, iv2 + 3), len2 / sum);
-      vec3.scaleAndAdd(out, out, vField.subarray(iv3, iv3 + 3), len3 / sum);
-      if (iv4 >= 0) vec3.scaleAndAdd(out, out, vField.subarray(iv4, iv4 + 3), len4 / sum);
+      vec3.scaleAndAdd(out, out, vField.subarray(iv1, iv1 + 3), len1 * invSum);
+      vec3.scaleAndAdd(out, out, vField.subarray(iv2, iv2 + 3), len2 * invSum);
+      vec3.scaleAndAdd(out, out, vField.subarray(iv3, iv3 + 3), len3 * invSum);
+      if (iv4 >= 0) vec3.scaleAndAdd(out, out, vField.subarray(iv4, iv4 + 3), len4 * invSum);
       return out;
     }
   };

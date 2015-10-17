@@ -26,6 +26,8 @@ define([
     this.init();
   };
 
+  var DOT_RADIUS = 50.0; // in pixels
+
   Selection.prototype = {
     getGL: function () {
       return this._gl;
@@ -54,24 +56,43 @@ define([
       this._shader = Shader.SELECTION.getOrCreate(this._gl);
     },
     updateMatrices: (function () {
-      var tmp = mat4.create();
+
+      var matPV = mat4.create();
+      var tmpMat = mat4.create();
       var nMat = mat3.create();
       var base = [0.0, 0.0, 1.0];
       var axis = [0.0, 0.0, 0.0];
       var tra = [0.0, 0.0, 0.0];
-      return function (camera, main) {
-        var picking = main.getPicking();
-        var mesh = picking.getMesh();
-        if (!mesh)
-          return;
-        var camProj = camera.getProjection();
-        var camView = camera.getView();
-        var pickingSym = main.getPickingSymmetry();
 
+      return function (camera, main) {
+
+        mat4.identity(tmpMat);
+
+        var picking = main.getPicking();
+        var pickingSym = main.getPickingSymmetry();
         var worldRadius = picking.getWorldRadius();
         var screenRadius = main.getSculpt().getCurrentTool()._radius || 1;
-        var constRadius = 50.0 * (worldRadius / screenRadius);
-        vec3.transformMat4(tra, picking.getIntersectionPoint(), mesh.getMatrix());
+
+        var mesh = picking.getMesh();
+        if (!mesh) {
+          var w = camera._width * 0.5;
+          var h = camera._height * 0.5;
+          // no need to recompute the ortho proj each time though
+          mat4.ortho(matPV, -w, w, -h, h, -10.0, 10.0);
+
+          mat4.translate(tmpMat, tmpMat, vec3.set(tra, -w + main._mouseX, h - main._mouseY, 0.0));
+          // circle mvp
+          mat4.scale(this._cacheCircleMVP, tmpMat, vec3.set(tra, screenRadius, screenRadius, screenRadius));
+          mat4.mul(this._cacheCircleMVP, matPV, this._cacheCircleMVP);
+          // dot mvp
+          mat4.scale(this._cacheDotMVP, tmpMat, vec3.set(tra, DOT_RADIUS, DOT_RADIUS, DOT_RADIUS));
+          mat4.mul(this._cacheDotMVP, matPV, this._cacheDotMVP);
+          // symmetry mvp
+          mat4.scale(this._cacheDotSymMVP, this._cacheDotSymMVP, [0.0, 0.0, 0.0]);
+          return;
+        }
+
+        var constRadius = DOT_RADIUS * (worldRadius / screenRadius);
 
         picking.polyLerp(mesh.getNormals(), axis);
         vec3.transformMat3(axis, axis, mat3.normalFromMat4(nMat, mesh.getMatrix()));
@@ -79,26 +100,25 @@ define([
         var rad = Math.acos(vec3.dot(base, axis));
         vec3.cross(axis, base, axis);
 
-        mat4.identity(tmp);
-        mat4.translate(tmp, tmp, tra);
-        mat4.rotate(tmp, tmp, rad, axis);
+        mat4.translate(tmpMat, tmpMat, vec3.transformMat4(tra, picking.getIntersectionPoint(), mesh.getMatrix()));
+        mat4.rotate(tmpMat, tmpMat, rad, axis);
+
+        mat4.mul(matPV, camera.getProjection(), camera.getView());
 
         // circle mvp
-        mat4.scale(this._cacheCircleMVP, tmp, [worldRadius, worldRadius, worldRadius]);
-        mat4.mul(this._cacheCircleMVP, camProj, mat4.mul(this._cacheCircleMVP, camView, this._cacheCircleMVP));
-
+        mat4.scale(this._cacheCircleMVP, tmpMat, vec3.set(tra, worldRadius, worldRadius, worldRadius));
+        mat4.mul(this._cacheCircleMVP, matPV, this._cacheCircleMVP);
         // dot mvp
-        mat4.scale(this._cacheDotMVP, tmp, [constRadius, constRadius, constRadius]);
-        mat4.mul(this._cacheDotMVP, camProj, mat4.mul(this._cacheDotMVP, camView, this._cacheDotMVP));
-
+        mat4.scale(this._cacheDotMVP, tmpMat, vec3.set(tra, constRadius, constRadius, constRadius));
+        mat4.mul(this._cacheDotMVP, matPV, this._cacheDotMVP);
         // symmetry mvp
         vec3.transformMat4(tra, pickingSym.getIntersectionPoint(), mesh.getMatrix());
-        mat4.identity(tmp);
-        mat4.translate(tmp, tmp, tra);
-        mat4.rotate(tmp, tmp, rad, axis);
+        mat4.identity(tmpMat);
+        mat4.translate(tmpMat, tmpMat, tra);
+        mat4.rotate(tmpMat, tmpMat, rad, axis);
 
-        mat4.scale(tmp, tmp, [constRadius, constRadius, constRadius]);
-        mat4.mul(this._cacheDotSymMVP, camProj, mat4.mul(tmp, camView, tmp));
+        mat4.scale(tmpMat, tmpMat, vec3.set(tra, constRadius, constRadius, constRadius));
+        mat4.mul(this._cacheDotSymMVP, matPV, tmpMat);
       };
     })(),
     release: function () {
@@ -106,8 +126,6 @@ define([
       this.getDotBuffer().release();
     },
     render: function (main) {
-      if (!main.getPicking().getMesh())
-        return;
       this.updateMatrices(main.getCamera(), main);
       var drawCircle = main._action === 'NOTHING';
       vec3.set(this._color, 0.8, drawCircle ? 0.0 : 0.2, 0.0);

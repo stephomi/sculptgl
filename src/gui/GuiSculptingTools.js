@@ -44,8 +44,11 @@ define([
   };
 
   // some helper functions
-  var addCtrlRadius = function (tool, fold, widget) {
-    var ctrl = fold.addSlider(TR('sculptRadius'), tool._radius, setOnChange.bind(tool, '_radius', 1), 5, 500, 1);
+  var addCtrlRadius = function (tool, fold, widget, main) {
+    var ctrl = fold.addSlider(TR('sculptRadius'), tool._radius, function (val) {
+      setOnChange.call(tool, '_radius', 1, val);
+      main.render();
+    }, 5, 500, 1);
     widget._ctrlRadius = ctrl;
     return ctrl;
   };
@@ -82,8 +85,8 @@ define([
 
   GuiSculptingTools.BRUSH = {
     _ctrls: [],
-    init: function (tool, fold) {
-      this._ctrls.push(addCtrlRadius(tool, fold, this));
+    init: function (tool, fold, main) {
+      this._ctrls.push(addCtrlRadius(tool, fold, this, main));
       this._ctrls.push(addCtrlIntensity(tool, fold, this));
       this._ctrls.push(addCtrlNegative(tool, fold, this));
       this._ctrls.push(fold.addCheckbox(TR('sculptClay'), tool, '_clay'));
@@ -95,8 +98,8 @@ define([
 
   GuiSculptingTools.CREASE = {
     _ctrls: [],
-    init: function (tool, fold) {
-      this._ctrls.push(addCtrlRadius(tool, fold, this));
+    init: function (tool, fold, main) {
+      this._ctrls.push(addCtrlRadius(tool, fold, this, main));
       this._ctrls.push(addCtrlIntensity(tool, fold, this));
       this._ctrls.push(addCtrlNegative(tool, fold, this));
       this._ctrls.push(addCtrlCulling(tool, fold));
@@ -106,16 +109,16 @@ define([
 
   GuiSculptingTools.DRAG = {
     _ctrls: [],
-    init: function (tool, fold) {
-      this._ctrls.push(addCtrlRadius(tool, fold, this));
+    init: function (tool, fold, main) {
+      this._ctrls.push(addCtrlRadius(tool, fold, this, main));
       addCtrlAlpha(this._ctrls, fold, tool, this);
     }
   };
 
   GuiSculptingTools.FLATTEN = {
     _ctrls: [],
-    init: function (tool, fold) {
-      this._ctrls.push(addCtrlRadius(tool, fold, this));
+    init: function (tool, fold, main) {
+      this._ctrls.push(addCtrlRadius(tool, fold, this, main));
       this._ctrls.push(addCtrlIntensity(tool, fold, this));
       this._ctrls.push(addCtrlNegative(tool, fold, this));
       this._ctrls.push(addCtrlCulling(tool, fold));
@@ -125,8 +128,8 @@ define([
 
   GuiSculptingTools.INFLATE = {
     _ctrls: [],
-    init: function (tool, fold) {
-      this._ctrls.push(addCtrlRadius(tool, fold, this));
+    init: function (tool, fold, main) {
+      this._ctrls.push(addCtrlRadius(tool, fold, this, main));
       this._ctrls.push(addCtrlIntensity(tool, fold, this));
       this._ctrls.push(addCtrlNegative(tool, fold, this));
       this._ctrls.push(addCtrlCulling(tool, fold));
@@ -166,7 +169,7 @@ define([
       tool._material[1] = metallic;
     },
     init: function (tool, fold, main) {
-      this._ctrls.push(addCtrlRadius(tool, fold, this));
+      this._ctrls.push(addCtrlRadius(tool, fold, this, main));
       this._ctrls.push(addCtrlIntensity(tool, fold, this));
       this._ctrls.push(addCtrlHardness(tool, fold, this));
       this._ctrls.push(addCtrlCulling(tool, fold));
@@ -194,8 +197,8 @@ define([
 
   GuiSculptingTools.PINCH = {
     _ctrls: [],
-    init: function (tool, fold) {
-      this._ctrls.push(addCtrlRadius(tool, fold, this));
+    init: function (tool, fold, main) {
+      this._ctrls.push(addCtrlRadius(tool, fold, this, main));
       this._ctrls.push(addCtrlIntensity(tool, fold, this));
       this._ctrls.push(addCtrlNegative(tool, fold, this));
       this._ctrls.push(addCtrlCulling(tool, fold));
@@ -205,8 +208,8 @@ define([
 
   GuiSculptingTools.TWIST = {
     _ctrls: [],
-    init: function (tool, fold) {
-      this._ctrls.push(addCtrlRadius(tool, fold, this));
+    init: function (tool, fold, main) {
+      this._ctrls.push(addCtrlRadius(tool, fold, this, main));
       this._ctrls.push(addCtrlCulling(tool, fold));
       addCtrlAlpha(this._ctrls, fold, tool, this);
     }
@@ -214,8 +217,8 @@ define([
 
   GuiSculptingTools.LOCALSCALE = {
     _ctrls: [],
-    init: function (tool, fold) {
-      this._ctrls.push(addCtrlRadius(tool, fold, this));
+    init: function (tool, fold, main) {
+      this._ctrls.push(addCtrlRadius(tool, fold, this, main));
       this._ctrls.push(addCtrlCulling(tool, fold));
       addCtrlAlpha(this._ctrls, fold, tool, this);
     }
@@ -223,8 +226,8 @@ define([
 
   GuiSculptingTools.MOVE = {
     _ctrls: [],
-    init: function (tool, fold) {
-      this._ctrls.push(addCtrlRadius(tool, fold, this));
+    init: function (tool, fold, main) {
+      this._ctrls.push(addCtrlRadius(tool, fold, this, main));
       this._ctrls.push(addCtrlIntensity(tool, fold, this));
       this._ctrls.push(fold.addCheckbox(TR('sculptTopologicalCheck'), tool, '_topoCheck'));
       this._ctrls.push(addCtrlNegative(tool, fold, this, TR('sculptMoveAlongNormal')));
@@ -234,8 +237,8 @@ define([
 
   GuiSculptingTools.SMOOTH = {
     _ctrls: [],
-    init: function (tool, fold) {
-      this._ctrls.push(addCtrlRadius(tool, fold, this));
+    init: function (tool, fold, main) {
+      this._ctrls.push(addCtrlRadius(tool, fold, this, main));
       this._ctrls.push(addCtrlIntensity(tool, fold, this));
       this._ctrls.push(fold.addCheckbox(TR('sculptTangentialSmoothing'), tool, '_tangent'));
       this._ctrls.push(addCtrlCulling(tool, fold));
@@ -246,7 +249,7 @@ define([
   GuiSculptingTools.MASKING = {
     _ctrls: [],
     init: function (tool, fold, main) {
-      this._ctrls.push(addCtrlRadius(tool, fold, this));
+      this._ctrls.push(addCtrlRadius(tool, fold, this, main));
       this._ctrls.push(addCtrlIntensity(tool, fold, this));
       this._ctrls.push(addCtrlHardness(tool, fold, this));
       this._ctrls.push(addCtrlNegative(tool, fold, this));
