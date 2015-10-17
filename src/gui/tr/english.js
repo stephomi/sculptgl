@@ -166,7 +166,7 @@ define([], function () {
     renderingImportMatcap: 'Import (jpg, png...)',
     renderingExtra: 'Extra',
     renderingFlat: 'flat (slower)',
-    renderingWireframe: 'wireframe (slower)',
+    renderingWireframe: 'wireframe (slower) (W)',
     renderingExposure: 'Exposure',
     renderingEnvironment: 'Environment',
     renderingIsolate: 'Isolate/Show (I)',

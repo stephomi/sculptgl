@@ -166,7 +166,7 @@ define([], function () {
     renderingImportMatcap: '匯入 (jpg, png...)',
     renderingExtra: '額外項目',
     renderingFlat: '平整面 (較慢)',
-    renderingWireframe: '線框 (較慢)',
+    renderingWireframe: '線框 (較慢) (W)',
     renderingExposure: null,
     renderingEnvironment: null,
     renderingIsolate: null,

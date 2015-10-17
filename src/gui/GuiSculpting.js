@@ -67,7 +67,6 @@ define([
       this._sculpt._symmetry = value;
       this._main.render();
     },
-    /** Add events */
     addEvents: function () {
       var canvas = document.getElementById('canvas');
 

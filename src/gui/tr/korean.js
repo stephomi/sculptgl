@@ -166,7 +166,7 @@ define([], function () {
     renderingImportMatcap: '가져오기 (jpg, png...)',
     renderingExtra: '추가',
     renderingFlat: '편평한 (느리게)',
-    renderingWireframe: '와이어프레임 (느리게)',
+    renderingWireframe: '와이어프레임 (느리게) (W)',
     renderingExposure: null,
     renderingEnvironment: null,
     renderingIsolate: null,

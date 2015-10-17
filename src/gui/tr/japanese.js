@@ -166,7 +166,7 @@ define([], function () {
     renderingImportMatcap: null,
     renderingExtra: null,
     renderingFlat: 'フラットシェーディング (slower)',
-    renderingWireframe: 'ワイヤーフレーム (slower)',
+    renderingWireframe: 'ワイヤーフレーム (slower) (W)',
     renderingExposure: null,
     renderingEnvironment: null,
     renderingIsolate: null,

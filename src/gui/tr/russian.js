@@ -166,7 +166,7 @@ define([], function () {
     renderingImportMatcap: 'Импорт (jpg, png...)',
     renderingExtra: 'Дополнительно',
     renderingFlat: 'Плоское-рельефное',
-    renderingWireframe: 'Каркас',
+    renderingWireframe: 'Каркас (W)',
     renderingExposure: 'Экспозиция',
     renderingEnvironment: 'Отражение',
     renderingIsolate: 'Изолировать / Показать (I)',
