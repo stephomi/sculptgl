@@ -21,6 +21,9 @@ define([
   };
 
   Sculpt.prototype = {
+    getToolName: function () {
+      return this._tool;
+    },
     getCurrentTool: function () {
       return this._tools[this._tool];
     },

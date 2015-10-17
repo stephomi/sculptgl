@@ -10,6 +10,14 @@ define([
   var vec3 = glm.vec3;
   var mat4 = glm.mat4;
 
+  var isIdentity = function (m) {
+    if (m[0] !== 1.0 || m[5] !== 1.0 || m[10] !== 1.0 || m[15] !== 1.0) return false;
+    if (m[1] !== 0.0 || m[2] !== 0.0 || m[3] !== 0.0 || m[4] !== 0.0) return false;
+    if (m[6] !== 0.0 || m[7] !== 0.0 || m[8] !== 0.0 || m[9] !== 0.0) return false;
+    if (m[11] !== 0.0 || m[12] !== 0.0 || m[13] !== 0.0 || m[14] !== 0.0) return false;
+    return true;
+  };
+
   var Transform = function (main) {
     SculptBase.call(this, main);
     this._gizmo = new Gizmo(main);
@@ -52,10 +60,9 @@ define([
       if (!mesh)
         return;
 
-      var em = mesh.getEditMatrix();
-      // check identity
-      if ((em[0] * em[5] * em[10]) === 1.0 && em[12] === 0.0 && em[13] === 0.0 && em[14] === 0.0)
+      if (isIdentity(mesh.getEditMatrix()))
         return;
+
       var iVerts = this.getUnmaskedVertices();
       this._states.pushVertices(iVerts);
 

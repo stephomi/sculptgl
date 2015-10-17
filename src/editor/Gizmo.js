@@ -10,24 +10,28 @@ define([
   var mat4 = glm.mat4;
   var quat = glm.quat;
 
-  var createGizmo = function (type, nbAxis) {
-    return {
-      _finalMatrix: mat4.create(),
-      _baseMatrix: mat4.create(),
-      _color: vec3.create(),
-      _colorSelect: vec3.fromValues(1.0, 1.0, 0.0),
-      _drawGeo: null,
-      _pickGeo: null,
-      _isSelected: false,
-      _type: type !== undefined ? type : -1,
-      _nbAxis: nbAxis !== undefined ? nbAxis : -1,
-      _lastInter: [0.0, 0.0, 0.0],
-      updateMatrix: function () {
-        mat4.copy(this._drawGeo.getMatrix(), this._finalMatrix);
-        mat4.copy(this._pickGeo.getMatrix(), this._finalMatrix);
-      }
-    };
-  };
+  // configs colors
+  var COLOR_X = vec3.fromValues(0.7, 0.2, 0.2);
+  var COLOR_Y = vec3.fromValues(0.2, 0.7, 0.2);
+  var COLOR_Z = vec3.fromValues(0.2, 0.2, 0.7);
+  var COLOR_GREY = vec3.fromValues(0.4, 0.4, 0.4);
+  var COLOR_SW = vec3.fromValues(0.8, 0.4, 0.2);
+
+  // overall scale of the gizmo
+  var GIZMO_SIZE = 0.08;
+  // arrow
+  var ARROW_LENGTH = 2.5;
+  var ARROW_CONE_THICK = 6.0;
+  var ARROW_CONE_LENGTH = 0.25;
+  // thickness of tori and arrows
+  var THICKNESS = 0.024;
+  var THICKNESS_PICK = THICKNESS * 5.0;
+  // radius of tori
+  var ROT_RADIUS = 1.5;
+  var SCALE_RADIUS = ROT_RADIUS * 1.3;
+  // size of cubes
+  var CUBE_SIDE = 0.35;
+  var CUBE_SIDE_PICK = CUBE_SIDE * 1.2;
 
   // edit masks
   var TRANS_X = 1 << 0;
@@ -43,11 +47,34 @@ define([
   var SCALE_X = 1 << 10;
   var SCALE_Y = 1 << 11;
   var SCALE_Z = 1 << 12;
+  var SCALE_W = 1 << 13;
 
   var TRANS_XYZ = TRANS_X | TRANS_Y | TRANS_Z;
   var ROT_XYZ = ROT_X | ROT_Y | ROT_Z;
   var PLANE_XYZ = PLANE_XY | PLANE_XZ | PLANE_YZ;
-  var SCALE_XYZ = SCALE_X | SCALE_Y | SCALE_Z;
+  var SCALE_XYZW = SCALE_X | SCALE_Y | SCALE_Z | SCALE_W;
+
+  var createGizmo = function (type, nbAxis) {
+    return {
+      _finalMatrix: mat4.create(),
+      _baseMatrix: mat4.create(),
+      _color: vec3.create(),
+      _colorSelect: vec3.fromValues(1.0, 1.0, 0.0),
+      _drawGeo: null,
+      _pickGeo: null,
+      _isSelected: false,
+      _type: type !== undefined ? type : -1,
+      _nbAxis: nbAxis !== undefined ? nbAxis : -1,
+      _lastInter: [0.0, 0.0, 0.0],
+      updateMatrix: function () {
+        mat4.copy(this._drawGeo.getMatrix(), this._finalMatrix);
+        mat4.copy(this._pickGeo.getMatrix(), this._finalMatrix);
+      },
+      updateFinalMatrix: function (mat) {
+        mat4.mul(this._finalMatrix, mat, this._baseMatrix);
+      }
+    };
+  };
 
   var Gizmo = function (main) {
     this._main = main;
@@ -63,16 +90,19 @@ define([
     this._planeXZ = createGizmo(PLANE_XZ);
     this._planeYZ = createGizmo(PLANE_YZ);
 
-    // scale square 1 dim
+    // scale cube 1 dim
     this._scaleX = createGizmo(SCALE_X, 0);
     this._scaleY = createGizmo(SCALE_Y, 1);
     this._scaleZ = createGizmo(SCALE_Z, 2);
+    // scale cube 3 dim
+    this._scaleW = createGizmo(SCALE_W);
 
     // rot arc 1 dim
     this._rotX = createGizmo(ROT_X, 0);
     this._rotY = createGizmo(ROT_Y, 1);
     this._rotZ = createGizmo(ROT_Z, 2);
-    this._rotXYZ = createGizmo(ROT_W);
+    // full arc display
+    this._rotW = createGizmo(ROT_W);
 
     // line helper
     this._lineHelper = Primitive.createLine2D(this._gl);
@@ -104,19 +134,6 @@ define([
     this._initPickables();
   };
 
-  // configs
-  var COLOR_X = vec3.fromValues(0.7, 0.2, 0.2);
-  var COLOR_Y = vec3.fromValues(0.2, 0.7, 0.2);
-  var COLOR_Z = vec3.fromValues(0.2, 0.2, 0.7);
-  var COLOR_XYZ = vec3.fromValues(0.4, 0.4, 0.4);
-  var GIZMO_SIZE = 0.08;
-  var THICK = 0.02;
-  var THICK_PICK = THICK * 5.0;
-  var ARROW_LENGTH = 2.5;
-  var TORUS_RADIUS = 1.5;
-  var CUBE_SIDE = THICK * 17.0;
-  var CUBE_SIDE_PICK = CUBE_SIDE * 1.2;
-
   Gizmo.prototype = {
     _initPickables: function () {
       var pickables = this._pickables;
@@ -129,6 +146,7 @@ define([
       pickables.push(this._scaleX._pickGeo);
       pickables.push(this._scaleY._pickGeo);
       pickables.push(this._scaleZ._pickGeo);
+      pickables.push(this._scaleW._pickGeo);
     },
     _createArrow: function (tra, axis, color) {
       var mat = tra._baseMatrix;
@@ -136,9 +154,9 @@ define([
       mat4.translate(mat, mat, [0.0, ARROW_LENGTH * 0.5, 0.0]);
       vec3.copy(tra._color, color);
 
-      tra._pickGeo = Primitive.createArrow(this._gl, THICK_PICK, ARROW_LENGTH, 2.0, 0.2);
+      tra._pickGeo = Primitive.createArrow(this._gl, THICKNESS_PICK, ARROW_LENGTH, ARROW_CONE_THICK * 0.4);
       tra._pickGeo._gizmo = tra;
-      tra._drawGeo = Primitive.createArrow(this._gl, THICK, ARROW_LENGTH);
+      tra._drawGeo = Primitive.createArrow(this._gl, THICKNESS, ARROW_LENGTH, ARROW_CONE_THICK, ARROW_CONE_LENGTH);
       tra._drawGeo.setShader('FLAT');
     },
     _initTranslate: function () {
@@ -147,26 +165,25 @@ define([
       this._createArrow(this._transY, vec3.set(axis, 0.0, 1.0, 0.0), COLOR_Y);
       this._createArrow(this._transZ, vec3.set(axis, 1.0, 0.0, 0.0), COLOR_Z);
     },
-    _createCircle: function (rot, rad, color) {
+    _createCircle: function (rot, rad, color, radius, mthick) {
+      radius = radius || ROT_RADIUS;
+      mthick = mthick || 1.0;
       vec3.copy(rot._color, color);
-      rot._pickGeo = Primitive.createTorus(this._gl, TORUS_RADIUS, THICK_PICK, rad, 6, 64);
+      rot._pickGeo = Primitive.createTorus(this._gl, radius, THICKNESS_PICK * mthick, rad, 6, 64);
       rot._pickGeo._gizmo = rot;
-      rot._drawGeo = Primitive.createTorus(this._gl, TORUS_RADIUS, THICK, rad, 6, 64);
+      rot._drawGeo = Primitive.createTorus(this._gl, radius, THICKNESS * mthick, rad, 6, 64);
       rot._drawGeo.setShader('FLAT');
     },
     _initRotate: function () {
       this._createCircle(this._rotX, Math.PI, COLOR_X);
       this._createCircle(this._rotY, Math.PI, COLOR_Y);
       this._createCircle(this._rotZ, Math.PI, COLOR_Z);
-      this._createCircle(this._rotXYZ, Math.PI * 2, COLOR_XYZ);
+      this._createCircle(this._rotW, Math.PI * 2, COLOR_GREY);
     },
     _createCube: function (sca, axis, color) {
       var mat = sca._baseMatrix;
       mat4.rotate(mat, mat, Math.PI * 0.5, axis);
-      // mat4.translate(mat, mat, [0.0, ARROW_LENGTH + CUBE_SIDE, 0.0]);
-      mat4.translate(mat, mat, [0.0, TORUS_RADIUS, 0.0]);
-      vec3.copy(sca._color, color);
-
+      mat4.translate(mat, mat, [0.0, ROT_RADIUS, 0.0]);
       vec3.copy(sca._color, color);
       sca._pickGeo = Primitive.createCube(this._gl, CUBE_SIDE_PICK);
       sca._pickGeo._gizmo = sca;
@@ -178,6 +195,7 @@ define([
       this._createCube(this._scaleX, vec3.set(axis, 0.0, 0.0, -1.0), COLOR_X);
       this._createCube(this._scaleY, vec3.set(axis, 0.0, 1.0, 0.0), COLOR_Y);
       this._createCube(this._scaleZ, vec3.set(axis, 1.0, 0.0, 0.0), COLOR_Z);
+      this._createCircle(this._scaleW, Math.PI * 2, COLOR_SW, SCALE_RADIUS, 2.0);
     },
     _updateArcRotation: (function () {
       var qTmp = quat.create();
@@ -188,7 +206,8 @@ define([
         qTmp[2] = -eye[0];
         qTmp[3] = 1.0 + eye[1];
         quat.normalize(qTmp, qTmp);
-        mat4.fromQuat(this._rotXYZ._baseMatrix, qTmp);
+        mat4.fromQuat(this._rotW._baseMatrix, qTmp);
+        mat4.fromQuat(this._scaleW._baseMatrix, qTmp);
 
         // x arc
         quat.rotateZ(qTmp, quat.identity(qTmp), Math.PI * 0.5);
@@ -215,7 +234,8 @@ define([
       }
       return center;
     },
-    _updateMatrices: function (camera) {
+    _updateMatrices: function () {
+      var camera = this._main.getCamera();
       var trMesh = this._computeCenterGizmo();
       var eye = camera.computePosition();
 
@@ -229,24 +249,25 @@ define([
       // manage arc stuffs
       this._updateArcRotation(vec3.normalize(eye, vec3.sub(eye, trMesh, eye)));
 
-      mat4.mul(this._transX._finalMatrix, traScale, this._transX._baseMatrix);
-      mat4.mul(this._transY._finalMatrix, traScale, this._transY._baseMatrix);
-      mat4.mul(this._transZ._finalMatrix, traScale, this._transZ._baseMatrix);
+      this._transX.updateFinalMatrix(traScale);
+      this._transY.updateFinalMatrix(traScale);
+      this._transZ.updateFinalMatrix(traScale);
 
-      mat4.mul(this._rotX._finalMatrix, traScale, this._rotX._baseMatrix);
-      mat4.mul(this._rotY._finalMatrix, traScale, this._rotY._baseMatrix);
-      mat4.mul(this._rotZ._finalMatrix, traScale, this._rotZ._baseMatrix);
-      mat4.mul(this._rotXYZ._finalMatrix, traScale, this._rotXYZ._baseMatrix);
+      this._rotX.updateFinalMatrix(traScale);
+      this._rotY.updateFinalMatrix(traScale);
+      this._rotZ.updateFinalMatrix(traScale);
+      this._rotW.updateFinalMatrix(traScale);
 
-      mat4.mul(this._scaleX._finalMatrix, traScale, this._scaleX._baseMatrix);
-      mat4.mul(this._scaleY._finalMatrix, traScale, this._scaleY._baseMatrix);
-      mat4.mul(this._scaleZ._finalMatrix, traScale, this._scaleZ._baseMatrix);
+      this._scaleX.updateFinalMatrix(traScale);
+      this._scaleY.updateFinalMatrix(traScale);
+      this._scaleZ.updateFinalMatrix(traScale);
+      this._scaleW.updateFinalMatrix(traScale);
     },
-    _drawGizmo: function (elt, camera) {
+    _drawGizmo: function (elt) {
       elt.updateMatrix();
       var drawGeo = elt._drawGeo;
       drawGeo.setFlatColor(elt._isSelected ? elt._colorSelect : elt._color);
-      drawGeo.updateMatrices(camera);
+      drawGeo.updateMatrices(this._main.getCamera());
       drawGeo.render(this._main);
     },
     _updateLineHelper: function (x1, y1, x2, y2) {
@@ -309,7 +330,9 @@ define([
       this._computeCenterGizmo(origin);
 
       // 3d direction
-      vec3.set(dir, 0.0, 0.0, 0.0)[this._selected._nbAxis] = 1.0;
+      var nbAxis = this._selected._nbAxis;
+      if (nbAxis !== -1) // if -1, we don't care about dir vector
+        vec3.set(dir, 0.0, 0.0, 0.0)[nbAxis] = 1.0;
       vec3.add(dir, origin, dir);
 
       // project on canvas and get a 2D line
@@ -403,17 +426,27 @@ define([
 
       var origin = this._editLineOrigin;
       var dir = this._editLineDirection;
+      var nbAxis = this._selected._nbAxis;
 
       var vec = [main._mouseX, main._mouseY, 0.0];
-      vec2.sub(vec, vec, origin);
-      vec2.scaleAndAdd(vec, origin, dir, vec2.dot(vec, dir));
+      if (nbAxis !== -1) {
+        vec2.sub(vec, vec, origin);
+        vec2.scaleAndAdd(vec, origin, dir, vec2.dot(vec, dir));
+      }
 
       // helper line
       this._updateLineHelper(origin[0], origin[1], vec[0], vec[1]);
 
       var distOffset = vec3.len(this._editOffset);
       var inter = [1.0, 1.0, 1.0];
-      inter[this._selected._nbAxis] += Math.max(-0.99, (vec3.dist(origin, vec) - distOffset) / distOffset);
+      var scaleMult = Math.max(-0.99, (vec3.dist(origin, vec) - distOffset) / distOffset);
+      if (nbAxis === -1) {
+        inter[0] += scaleMult;
+        inter[1] += scaleMult;
+        inter[2] += scaleMult;
+      } else {
+        inter[nbAxis] += scaleMult;
+      }
 
       var edim = mesh.getEditMatrix();
       mat4.identity(edim);
@@ -437,34 +470,34 @@ define([
       scene.push(this._rotX._drawGeo);
       scene.push(this._rotY._drawGeo);
       scene.push(this._rotZ._drawGeo);
-      scene.push(this._rotXYZ._drawGeo);
+      scene.push(this._rotW._drawGeo);
       scene.push(this._scaleX._drawGeo);
       scene.push(this._scaleY._drawGeo);
       scene.push(this._scaleZ._drawGeo);
+      scene.push(this._scaleW._drawGeo);
       return scene;
     },
     render: function () {
-      var main = this._main;
-      var camera = main.getCamera();
-      this._updateMatrices(camera, main);
+      this._updateMatrices();
 
       var type = this._isEditing && this._selected ? this._selected._type : -1;
 
-      if (type & ROT_XYZ) this._drawGizmo(this._rotXYZ, camera, main);
+      if (type & ROT_W) this._drawGizmo(this._rotW);
 
-      if (type & TRANS_X) this._drawGizmo(this._transX, camera, main);
-      if (type & TRANS_Y) this._drawGizmo(this._transY, camera, main);
-      if (type & TRANS_Z) this._drawGizmo(this._transZ, camera, main);
+      if (type & TRANS_X) this._drawGizmo(this._transX);
+      if (type & TRANS_Y) this._drawGizmo(this._transY);
+      if (type & TRANS_Z) this._drawGizmo(this._transZ);
 
-      if (type & ROT_X) this._drawGizmo(this._rotX, camera, main);
-      if (type & ROT_Y) this._drawGizmo(this._rotY, camera, main);
-      if (type & ROT_Z) this._drawGizmo(this._rotZ, camera, main);
+      if (type & ROT_X) this._drawGizmo(this._rotX);
+      if (type & ROT_Y) this._drawGizmo(this._rotY);
+      if (type & ROT_Z) this._drawGizmo(this._rotZ);
 
-      if (type & SCALE_X) this._drawGizmo(this._scaleX, camera, main);
-      if (type & SCALE_Y) this._drawGizmo(this._scaleY, camera, main);
-      if (type & SCALE_Z) this._drawGizmo(this._scaleZ, camera, main);
+      if (type & SCALE_X) this._drawGizmo(this._scaleX);
+      if (type & SCALE_Y) this._drawGizmo(this._scaleY);
+      if (type & SCALE_Z) this._drawGizmo(this._scaleZ);
+      if (type & SCALE_W) this._drawGizmo(this._scaleW);
 
-      if (this._isEditing) this._lineHelper.render(main);
+      if (this._isEditing) this._lineHelper.render(this._main);
     },
     onMouseOver: function () {
       if (this._isEditing) {
@@ -472,7 +505,7 @@ define([
         if (type & ROT_XYZ) this._updateRotateEdit();
         else if (type & TRANS_XYZ) this._updateTranslateEdit();
         else if (type & PLANE_XYZ) this._updatePlaneEdit();
-        else if (type & SCALE_XYZ) this._updateScaleEdit();
+        else if (type & SCALE_XYZW) this._updateScaleEdit();
 
         return true;
       }
@@ -509,7 +542,7 @@ define([
       if (type & ROT_XYZ) this._startRotateEdit();
       else if (type & TRANS_XYZ) this._startTranslateEdit();
       else if (type & PLANE_XYZ) this._startPlaneEdit();
-      else if (type & SCALE_XYZ) this._startScaleEdit();
+      else if (type & SCALE_XYZW) this._startScaleEdit();
 
       return true;
     },

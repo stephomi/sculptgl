@@ -126,6 +126,8 @@ define([
       this.getDotBuffer().release();
     },
     render: function (main) {
+      if (main.getSculpt().getToolName() === 'TRANSFORM')
+        return;
       this.updateMatrices(main.getCamera(), main);
       var drawCircle = main._action === 'NOTHING';
       vec3.set(this._color, 0.8, drawCircle ? 0.0 : 0.2, 0.0);
