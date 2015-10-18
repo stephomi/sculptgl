@@ -1,18 +1,19 @@
 ﻿<!doctype html>
 <html lang='en'>
+
 <head>
-  <meta charset='utf-8'/>
+  <meta charset='utf-8' />
   <meta name='description' content='SculptGL is a small sculpting application powered by JavaScript and webGL.'>
   <meta name='author' content='stéphane GINIER'>
   <title> SculptGL - A WebGL sculpting app </title>
   <link href='http://fonts.googleapis.com/css?family=Open+Sans:400,600' rel='stylesheet' type='text/css'>
-  <link rel='stylesheet' href='css/yagui.css' type='text/css'/>
+  <link rel='stylesheet' href='css/yagui.css' type='text/css' />
   <script>
-    window.requireNode = window.require;
-    window.require = undefined;
-    // to debug nodewebkit : (somewhere in the js code once everything is loaded)
-    // window.require = window.requireNode;
-    // require('nw.gui').Window.get().showDevTools();
+  window.requireNode = window.require;
+  window.require = undefined;
+  // to debug nodewebkit : (somewhere in the js code once everything is loaded)
+  // window.require = window.requireNode;
+  // require('nw.gui').Window.get().showDevTools();
   </script>
   <!-- 3rd party libraries -->
   <script src='lib/FileSaver.js'></script>
@@ -34,17 +35,19 @@ A tiny sculpting application.
 
 Stéphane GINIER
 -->
+
 <body oncontextmenu='return false;'>
-  <input type='file' id='fileopen' multiple style='display: none'/>
-  <input type='file' id='backgroundopen' style='display: none'/>
-  <input type='file' id='alphaopen' style='display: none'/>
-  <input type='file' id='textureopen' style='display: none'/>
-  <input type='file' id='matcapopen' style='display: none'/>
+  <input type='file' id='fileopen' multiple style='display: none' />
+  <input type='file' id='backgroundopen' style='display: none' />
+  <input type='file' id='alphaopen' style='display: none' />
+  <input type='file' id='textureopen' style='display: none' />
+  <input type='file' id='matcapopen' style='display: none' />
 
   <form id='donate' action='https://www.paypal.com/cgi-bin/webscr' method='post' target='_blank'>
-  <input type='hidden' name='cmd' value='_s-xclick'>
-  <input type='hidden' name='hosted_button_id' value='5VK9DG927CS3Y'>
+    <input type='hidden' name='cmd' value='_s-xclick'>
+    <input type='hidden' name='hosted_button_id' value='5VK9DG927CS3Y'>
 
-  <canvas id='canvas'></canvas>
+    <canvas id='canvas'></canvas>
 </body>
+
 </html>

@@ -15,8 +15,8 @@
 }
 
 body {
- overflow: hidden;
- margin: 0;
+  overflow: hidden;
+  margin: 0;
 }
 
 #tablet-plugin {
@@ -29,7 +29,9 @@ body {
   display: block;
 }
 
+
 /****** SIDE BAR ******/
+
 .gui-sidebar {
   position: absolute;
   bottom: 0;
@@ -41,17 +43,17 @@ body {
   overflow-y: auto;
   border-right: double;
   border-width: 4px;
-  border-color: rgba(255,255,255,0.3);
+  border-color: rgba(255, 255, 255, 0.3);
 }
 
 .gui-sidebar::-webkit-scrollbar {
   width: 7px;
-  background: rgba(0,0,0,0.3);
+  background: rgba(0, 0, 0, 0.3);
 }
 
 .gui-sidebar::-webkit-scrollbar-thumb {
   border-radius: 2px;
-  background: rgba(255,255,255,0.2);
+  background: rgba(255, 255, 255, 0.2);
 }
 
 .gui-sidebar::-webkit-scrollbar-corner {
@@ -71,8 +73,10 @@ body {
   opacity: 0;
 }
 
+
 /****** folder ******/
-.gui-sidebar > ul > label{
+
+.gui-sidebar > ul > label {
   font-size: 15px;
   font-weight: 600;
   color: #999;
@@ -84,22 +88,22 @@ body {
   cursor: pointer;
   vertical-align: middle;
   text-align: center;
-  background: rgba(0,0,0,0.3);
+  background: rgba(0, 0, 0, 0.3);
 }
 
-.gui-sidebar > ul[opened=true] > label:before{
-  content:'▼';
+.gui-sidebar > ul[opened=true] > label:before {
+  content: '▼';
   text-indent: 1em;
   float: left;
 }
 
-.gui-sidebar > ul[opened=false] > label:before{
-  content:'►';
+.gui-sidebar > ul[opened=false] > label:before {
+  content: '►';
   text-indent: 1em;
   float: left;
 }
 
-.gui-sidebar > ul{
+.gui-sidebar > ul {
   display: block;
   list-style: none;
   overflow: hidden;
@@ -125,25 +129,29 @@ body {
 }
 
 .gui-glowOnHover:hover {
-  background: rgba(0,0,0,0.2);
+  background: rgba(0, 0, 0, 0.2);
 }
 
 .gui-pointerOnHover:hover {
   cursor: pointer;
 }
 
+
 /****** label ******/
+
 .gui-label-side {
   position: relative;
   display: inline-block;
   height: 100%;
   width: 36%;
   overflow: hidden;
-  text-overflow:ellipsis;
+  text-overflow: ellipsis;
   white-space: nowrap;
 }
 
+
 /****** checkbox ******/
+
 .gui-input-checkbox {
   display: none;
 }
@@ -176,7 +184,9 @@ body {
   content: '';
 }
 
+
 /****** input number ******/
+
 .gui-input-number {
   -moz-appearance: textfield;
   float: right;
@@ -188,7 +198,7 @@ body {
   outline: none;
   font-size: 10px;
   border-radius: 4px;
-  background: rgba(0,0,0,0.3);
+  background: rgba(0, 0, 0, 0.3);
 }
 
 .gui-widget-color > input::-webkit-inner-spin-button,
@@ -199,13 +209,17 @@ body {
   margin: 0;
 }
 
+
 /****** input on hover ******/
+
 .gui-slider:hover,
 .gui-input-number:hover {
-  background: rgba(0,0,0,0.4);
+  background: rgba(0, 0, 0, 0.4);
 }
 
+
 /****** slider ******/
+
 .gui-slider {
   -webkit-appearance: none;
   cursor: ew-resize;
@@ -214,7 +228,7 @@ body {
   height: 100%;
   overflow: hidden;
   border-radius: 4px;
-  background: rgba(0,0,0,0.3);
+  background: rgba(0, 0, 0, 0.3);
 }
 
 .gui-slider > div {
@@ -222,7 +236,9 @@ body {
   background: #525f63;
 }
 
+
 /****** button ******/
+
 .gui-button {
   -webkit-appearance: none;
   float: right;
@@ -247,7 +263,7 @@ body {
 }
 
 .gui-button:active {
-  box-shadow: 0 1px 0 hsla(0,0%,100%,.1), inset 0 1px 4px hsla(0,0%,0%,.8);
+  box-shadow: 0 1px 0 hsla(0, 0%, 100%, .1), inset 0 1px 4px hsla(0, 0%, 0%, .8);
 }
 
 .gui-button:disabled {
@@ -255,13 +271,16 @@ body {
   color: #555;
 }
 
+
 /****** widget color ******/
+
 .gui-widget-color {
   float: right;
   display: block;
   width: 64%;
   height: 100%;
 }
+
 .gui-widget-color > input {
   -moz-appearance: textfield;
   position: relative;
@@ -292,7 +311,9 @@ body {
   background: #111;
 }
 
+
 /* saturation */
+
 .gui-color-saturation {
   display: inline-block;
   width: 100px;
@@ -301,16 +322,18 @@ body {
   border: 1px solid #555;
   cursor: pointer;
 }
+
 .gui-color-saturation > div {
   width: 100%;
   height: 100%;
-  pointer-events:none;
+  pointer-events: none;
   border: none;
   background: none;
 }
+
 .gui-knob-saturation {
   position: absolute;
-  pointer-events:none;
+  pointer-events: none;
   width: 10px;
   height: 10px;
   z-index: 4;
@@ -319,7 +342,9 @@ body {
   border: 2px solid white;
 }
 
+
 /* hue*/
+
 .gui-color-hue {
   display: inline-block;
   width: 15px;
@@ -327,15 +352,18 @@ body {
   border: 1px solid #555;
   cursor: ns-resize;
 }
+
 .gui-knob-hue {
-  pointer-events:none;
+  pointer-events: none;
   position: absolute;
   width: 15px;
   height: 2px;
   border-right: 4px solid #fff;
 }
 
+
 /* alpha */
+
 .gui-color-alpha {
   display: inline-block;
   margin-left: 3px;
@@ -344,15 +372,18 @@ body {
   border: 1px solid #555;
   cursor: ns-resize;
 }
+
 .gui-knob-alpha {
-  pointer-events:none;
+  pointer-events: none;
   position: absolute;
   width: 15px;
   height: 2px;
   border-right: 4px solid #fff;
 }
 
+
 /****** select ******/
+
 .gui-select {
   float: right;
   cursor: pointer;
@@ -370,7 +401,9 @@ body {
   color: #fff;
 }
 
+
 /****** TOP BAR ******/
+
 .gui-topbar {
   position: absolute;
   background: #20211d;
@@ -441,7 +474,7 @@ body {
 .group-title {
   font-size: 14px;
   font-weight: 600;
-  color: #999 !important; 
+  color: #999 !important;
   cursor: default !important;
   text-align: center;
   border-bottom: 1px solid #444444;
