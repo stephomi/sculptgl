@@ -60,21 +60,24 @@ module.exports = function (grunt) {
   var manifest = {
     generate: {
       options: {
-        basePath: 'build/',
+        basePath: '.',
         preferOnline: true,
         verbose: true,
         timestamp: true,
-        hash: true
+        hash: true,
+        process: function (path) {
+          return path.substring('build/'.length);
+        }
       },
       src: [
-        '**/*.html',
-        '**/*.js',
-        '**/*.jpg',
-        '**/*.css',
-        '**/*.obj',
-        '**/*.ply',
-        '**/*.bin',
-        '**/*.stl'
+        'build/**/*.html',
+        'build/**/*.js',
+        'build/**/*.jpg',
+        'build/**/*.css',
+        'build/**/*.obj',
+        'build/**/*.ply',
+        'build/**/*.bin',
+        'build/**/*.stl'
       ],
       dest: 'build/manifest.appcache'
     }
