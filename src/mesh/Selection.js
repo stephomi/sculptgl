@@ -21,6 +21,8 @@ define(function (require, exports, module) {
     this._cacheCircleMVP = mat4.create();
     this._color = new Float32Array([0.8, 0.0, 0.0]);
 
+    this._offsetX = 0.0; // horizontal offset (when editing the radius)
+
     this._shader = null;
     this.init();
   };
@@ -48,6 +50,12 @@ define(function (require, exports, module) {
     },
     getColor: function () {
       return this._color;
+    },
+    setOffsetX: function (offset) {
+      this._offsetX = offset;
+    },
+    getOffsetX: function () {
+      return this._offsetX;
     },
     init: function () {
       this.getCircleBuffer().update(this._getCircleVertices(1.0));
@@ -93,7 +101,7 @@ define(function (require, exports, module) {
         mat4.ortho(matPV, -w, w, -h, h, -10.0, 10.0);
 
         mat4.identity(tmpMat);
-        mat4.translate(tmpMat, tmpMat, vec3.set(tra, -w + main._mouseX, h - main._mouseY, 0.0));
+        mat4.translate(tmpMat, tmpMat, vec3.set(tra, -w + main._mouseX + this._offsetX, h - main._mouseY, 0.0));
         // circle mvp
         mat4.scale(this._cacheCircleMVP, tmpMat, vec3.set(tra, screenRadius, screenRadius, screenRadius));
         mat4.mul(this._cacheCircleMVP, matPV, this._cacheCircleMVP);
@@ -155,7 +163,8 @@ define(function (require, exports, module) {
       if (main.getSculpt().getToolName() === 'TRANSFORM')
         return;
 
-      var pickedMesh = main.getPicking().getMesh();
+      // if there's an offset then it means we are editing the tool radius
+      var pickedMesh = main.getPicking().getMesh() && this._offsetX === 0.0;
       if (pickedMesh) this._updateMatricesMesh(main.getCamera(), main);
       else this._updateMatricesBackground(main.getCamera(), main);
 

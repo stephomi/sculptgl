@@ -47,6 +47,8 @@ define(function (require, exports, module) {
   var addCtrlRadius = function (tool, fold, widget, main) {
     var ctrl = fold.addSlider(TR('sculptRadius'), tool._radius, function (val) {
       setOnChange.call(tool, '_radius', 1, val);
+      if (main.getSelectionRadius().getOffsetX() === 0.0)
+        main.getSelectionRadius().setOffsetX(0.01); // it just have to be !== 0
       main.render();
     }, 5, 500, 1);
     widget._ctrlRadius = ctrl;

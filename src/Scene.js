@@ -102,6 +102,9 @@ define(function (require, exports, module) {
     getMesh: function () {
       return this._mesh;
     },
+    getSelectionRadius: function () {
+      return this._selection;
+    },
     getSelectedMeshes: function () {
       return this._selectMeshes;
     },

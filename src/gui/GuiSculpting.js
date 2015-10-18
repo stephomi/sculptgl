@@ -153,11 +153,18 @@ define(function (require, exports, module) {
       if (strTool && Tools[strTool])
         return this._ctrlSculpt.setValue(strTool);
 
+      var cur = GuiSculptingTools[this.getSelectedTool()];
+
       switch (key) {
       case 88: // X
         if (!this._modalBrushRadius) {
           this._refX = this._lastPageX;
           this._refY = this._lastPageY;
+          if (cur._ctrlRadius) {
+            var rad = cur._ctrlRadius.getValue();
+            this._refX -= rad;
+            this._main.getSelectionRadius().setOffsetX(-rad);
+          }
         }
         this._modalBrushRadius = main._focusGui = true;
         break;
@@ -168,7 +175,6 @@ define(function (require, exports, module) {
         main.deleteCurrentSelection();
         break;
       case 78: // N
-        var cur = GuiSculptingTools[this.getSelectedTool()];
         if (cur.toggleNegative)
           cur.toggleNegative();
         break;
@@ -206,13 +212,17 @@ define(function (require, exports, module) {
     },
     onMouseMove: function (e) {
       var wid = GuiSculptingTools[this.getSelectedTool()];
+
       if (this._modalBrushRadius && wid._ctrlRadius) {
         var dx = e.pageX - this._refX;
         var dy = e.pageY - this._refY;
         wid._ctrlRadius.setValue(Math.sqrt(dx * dx + dy * dy));
         this.updateRadiusPicking();
         this._main.render();
+      } else {
+        this._main.getSelectionRadius().setOffsetX(0.0);
       }
+
       if (this._modalBrushIntensity && wid._ctrlIntensity) {
         wid._ctrlIntensity.setValue(wid._ctrlIntensity.getValue() + e.pageX - this._lastPageX);
       }
