@@ -164,7 +164,7 @@ define(function (require, exports, module) {
       if (this.removeCallback) this.removeCallback();
     },
     onKeyUp: function (event) {
-      if (event.which === 87) // W
+      if (event.which === 87 && !event.ctrlKey) // W
         this._ctrlShowWireframe.setValue(!this._ctrlShowWireframe.getValue());
     },
     updateMesh: function () {
