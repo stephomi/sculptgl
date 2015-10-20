@@ -34,7 +34,7 @@ define(function (require, exports, module) {
     start: function (ctrl) {
       var main = this._main;
       var picking = main.getPicking();
-      if (!picking.intersectionMouseMeshes(main.getMeshes(), main._mouseX, main._mouseY))
+      if (!picking.intersectionMouseMeshes())
         return;
 
       var mesh = main.setOrUnsetMesh(picking.getMesh(), ctrl);
@@ -44,7 +44,7 @@ define(function (require, exports, module) {
       picking.initAlpha();
       var pickingSym = main.getSculpt().getSymmetry() ? main.getPickingSymmetry() : null;
       if (pickingSym) {
-        pickingSym.intersectionMouseMesh(mesh, main._mouseX, main._mouseY);
+        pickingSym.intersectionMouseMesh(mesh);
         pickingSym.initAlpha();
       }
       this.pushState();
@@ -67,22 +67,19 @@ define(function (require, exports, module) {
     preUpdate: function (canBeContinuous) {
       var main = this._main;
       var picking = main.getPicking();
-      var mouseX = main._mouseX;
-      var mouseY = main._mouseY;
-      var mesh = main.getMesh();
       var isSculpting = main._action === 'SCULPT_EDIT';
 
       if (isSculpting && !canBeContinuous)
         return;
 
       if (isSculpting)
-        picking.intersectionMouseMesh(mesh, mouseX, mouseY);
+        picking.intersectionMouseMesh();
       else
-        picking.intersectionMouseMeshes(main.getMeshes(), mouseX, mouseY);
+        picking.intersectionMouseMeshes();
 
-      mesh = picking.getMesh();
+      var mesh = picking.getMesh();
       if (mesh && main.getSculpt().getSymmetry())
-        main.getPickingSymmetry().intersectionMouseMesh(mesh, mouseX, mouseY);
+        main.getPickingSymmetry().intersectionMouseMesh(mesh);
     },
     update: function (continuous) {
       if (this._lockPosition === true)

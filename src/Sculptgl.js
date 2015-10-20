@@ -137,7 +137,7 @@ define(function (require, exports, module) {
       this.setMousePosition(evProxy);
 
       var picking = this._picking;
-      var res = picking.intersectionMouseMeshes(this._meshes, this._mouseX, this._mouseY);
+      var res = picking.intersectionMouseMeshes();
       var cam = this._camera;
       var pivot = [0.0, 0.0, 0.0];
       if (!res)

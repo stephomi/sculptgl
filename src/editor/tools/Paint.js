@@ -58,9 +58,8 @@ define(function (require, exports, module) {
       }
     },
     updatePickColor: function () {
-      var main = this._main;
-      var picking = main.getPicking();
-      if (picking.intersectionMouseMesh(this.getMesh(), main._mouseX, main._mouseY))
+      var picking = this._main.getPicking();
+      if (picking.intersectionMouseMesh())
         this.pickColor(picking);
     },
     setPickCallback: function (cb) {

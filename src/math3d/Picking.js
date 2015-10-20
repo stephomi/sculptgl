@@ -146,11 +146,18 @@ define(function (require, exports, module) {
       var matInverse = mat4.create();
       var nearPoint = [0.0, 0.0, 0.0];
       return function (meshes, mouseX, mouseY) {
+
+        var main = this._main;
+        if (!meshes) meshes = main.getMeshes();
+        if (mouseX === undefined) mouseX = main._mouseX;
+        if (mouseY === undefined) mouseY = main._mouseY;
+
         var vNear = this.unproject(mouseX, mouseY, 0.0);
         var vFar = this.unproject(mouseX, mouseY, 0.1);
         var nearDistance = Infinity;
         var nearMesh = null;
         var nearFace = -1;
+
         for (var i = 0, nbMeshes = meshes.length; i < nbMeshes; ++i) {
           var mesh = meshes[i];
           mat4.invert(matInverse, mesh.getMatrix());
@@ -158,6 +165,7 @@ define(function (require, exports, module) {
           vec3.transformMat4(vFarTransform, vFar, matInverse);
           if (!this.intersectionRayMesh(mesh, vNearTransform, vFarTransform, mouseX, mouseY))
             continue;
+
           var interTest = this.getIntersectionPoint();
           var testDistance = vec3.dist(vNearTransform, interTest) * mesh.getScale();
           if (testDistance < nearDistance) {
@@ -167,6 +175,7 @@ define(function (require, exports, module) {
             nearFace = this.getPickedFace();
           }
         }
+
         this._mesh = nearMesh;
         vec3.copy(this._interPoint, nearPoint);
         this._pickedFace = nearFace;
@@ -177,6 +186,11 @@ define(function (require, exports, module) {
     })(),
     /** Intersection between a ray the mouse position */
     intersectionMouseMesh: function (mesh, mouseX, mouseY) {
+      var main = this._main;
+      if (!mesh) mesh = main.getMesh();
+      if (mouseX === undefined) mouseX = main._mouseX;
+      if (mouseY === undefined) mouseY = main._mouseY;
+
       var vNear = this.unproject(mouseX, mouseY, 0.0);
       var vFar = this.unproject(mouseX, mouseY, 0.1);
       var matInverse = mat4.create();

@@ -102,11 +102,10 @@ define(function (require, exports, module) {
       if (this._main._action === 'NOTHING') {
         if (event.shiftKey && !event.altKey && !event.ctrlKey) {
           // smoothing on shift key
-          if (selectedTool === 'SMOOTH')
-            return true;
-          this._toolOnRelease = selectedTool;
-          this._ctrlSculpt.setValue('SMOOTH');
-          return true;
+          if (selectedTool !== 'SMOOTH') {
+            this._toolOnRelease = selectedTool;
+            this._ctrlSculpt.setValue('SMOOTH');
+          }
         }
         if (event.ctrlKey && !event.shiftKey && !event.altKey) {
           // masking on ctrl key
@@ -164,6 +163,7 @@ define(function (require, exports, module) {
             var rad = cur._ctrlRadius.getValue();
             this._refX -= rad;
             this._main.getSelectionRadius().setOffsetX(-rad);
+            this._main.render();
           }
         }
         this._modalBrushRadius = main._focusGui = true;
@@ -194,14 +194,26 @@ define(function (require, exports, module) {
       var releaseTool = this._main._action === 'NOTHING' && this._toolOnRelease !== -1 && !event.ctrlKey && !event.shiftKey;
       if (!event.altKey || releaseTool)
         this.releaseInvertSign();
+
       if (releaseTool) {
         this._ctrlSculpt.setValue(this._toolOnRelease);
         this._toolOnRelease = -1;
       }
-      if (event.which === 88) // X
-        this._modalBrushRadius = this._main._focusGui = false;
-      else if (event.which === 67) // C
-        this._modalBrushIntensity = this._main._focusGui = false;
+
+      var main = this._main;
+      if (event.which === 88) { // X
+        this._modalBrushRadius = main._focusGui = false;
+        main.getSelectionRadius().setOffsetX(0.0);
+        event.pageX = this._lastPageX;
+        event.pageY = this._lastPageY;
+        main.setMousePosition(event);
+        main.getPicking().intersectionMouseMeshes();
+        main.render();
+
+      } else if (event.which === 67) { // C
+
+        this._modalBrushIntensity = main._focusGui = false;
+      }
     },
     onMouseUp: function (event) {
       if (this._toolOnRelease !== -1 && !event.ctrlKey && !event.shiftKey) {
@@ -217,10 +229,7 @@ define(function (require, exports, module) {
         var dx = e.pageX - this._refX;
         var dy = e.pageY - this._refY;
         wid._ctrlRadius.setValue(Math.sqrt(dx * dx + dy * dy));
-        this.updateRadiusPicking();
         this._main.render();
-      } else {
-        this._main.getSelectionRadius().setOffsetX(0.0);
       }
 
       if (this._modalBrushIntensity && wid._ctrlIntensity) {
@@ -228,9 +237,6 @@ define(function (require, exports, module) {
       }
       this._lastPageX = e.pageX;
       this._lastPageY = e.pageY;
-    },
-    updateRadiusPicking: function () {
-      this._main.getPicking().computeLocalAndWorldRadius2(this._main._mouseX, this._main._mouseY);
     },
     onChangeTool: function (newValue) {
       GuiSculptingTools.hide(this._sculpt._tool);
@@ -245,7 +251,8 @@ define(function (require, exports, module) {
 
       this._ctrlTitleCommon.setVisibility(showContinuous || showSym);
 
-      this.updateRadiusPicking();
+      var main = this._main;
+      main.getPicking().computeLocalAndWorldRadius2(main._mouseX, main._mouseY);
     },
     loadAlpha: function (event) {
       if (event.target.files.length === 0)

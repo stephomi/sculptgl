@@ -37,7 +37,7 @@ define(function (require, exports, module) {
 
       if (main.getSculpt().getSymmetry()) {
         var pickingSym = main.getPickingSymmetry();
-        pickingSym.intersectionMouseMesh(this.getMesh(), main._mouseX, main._mouseY);
+        pickingSym.intersectionMouseMesh();
         pickingSym.setLocalRadius2(picking.getLocalRadius2());
 
         if (pickingSym.getMesh())
