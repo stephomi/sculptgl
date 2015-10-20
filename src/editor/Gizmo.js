@@ -24,7 +24,7 @@ define(function (require, exports, module) {
   var ARROW_CONE_THICK = 6.0;
   var ARROW_CONE_LENGTH = 0.25;
   // thickness of tori and arrows
-  var THICKNESS = 0.024;
+  var THICKNESS = 0.020;
   var THICKNESS_PICK = THICKNESS * 5.0;
   // radius of tori
   var ROT_RADIUS = 1.5;
