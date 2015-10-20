@@ -24,7 +24,7 @@ define(function (require, exports, module) {
 
   ShaderBase.showSymmetryLine = getOptionsURL().mirrorline;
   ShaderBase.uniformNames = {};
-  ShaderBase.uniformNames.commonUniforms = ['uMV', 'uMVP', 'uN', 'uEM', 'uEN', 'uPlaneO', 'uPlaneN', 'uScale', 'uCurvature', 'uAlpha', 'uFov'];
+  ShaderBase.uniformNames.commonUniforms = ['uMV', 'uMVP', 'uN', 'uEM', 'uEN', 'uPlaneO', 'uPlaneN', 'uSym', 'uCurvature', 'uAlpha', 'uFov'];
 
   ShaderBase.strings = {};
   ShaderBase.strings.colorSpaceGLSL = colorSpaceGLSL;
@@ -39,7 +39,7 @@ define(function (require, exports, module) {
   ShaderBase.strings.fragColorUniforms = [
     'uniform vec3 uPlaneN;',
     'uniform vec3 uPlaneO;',
-    'uniform float uScale;',
+    'uniform int uSym;',
     'uniform float uCurvature;',
     'uniform float uFov;',
     'varying float vMasking;',
@@ -49,7 +49,7 @@ define(function (require, exports, module) {
     'vec3 applyMaskAndSym(const in vec3 frag) {',
     '  vec3 col = computeCurvature(vVertex, vNormal, frag, uCurvature, uFov);',
     '  col *= (0.3 + 0.7 * vMasking);',
-    '  if(uScale > 0.0 && abs(dot(uPlaneN, vVertex - uPlaneO)) < 0.15 / uScale)',
+    '  if(uSym == 1 && abs(dot(uPlaneN, vVertex - uPlaneO)) < 0.15)',
     '      return min(col * 1.5, 1.0);',
     '  return col;',
     '}'
@@ -135,7 +135,7 @@ define(function (require, exports, module) {
 
       gl.uniform3fv(uniforms.uPlaneO, vec3.transformMat4(tmp, mesh.getSymmetryOrigin(), mesh.getMV()));
       gl.uniform3fv(uniforms.uPlaneN, vec3.normalize(tmp, vec3.transformMat3(tmp, mesh.getSymmetryNormal(), mesh.getN())));
-      gl.uniform1f(uniforms.uScale, useSym ? mesh.getScale() : -1.0);
+      gl.uniform1i(uniforms.uSym, useSym ? 1 : 0);
       gl.uniform1f(uniforms.uAlpha, mesh.getOpacity());
 
       gl.uniform1f(uniforms.uCurvature, mesh.getCurvature());
