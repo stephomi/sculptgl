@@ -54,9 +54,12 @@ define(function (require, exports, module) {
     getEditMatrix: function () {
       return this._editMatrix;
     },
-    getScale: function () {
+    getScale2: function () {
       var m = this._matrix;
-      return Math.sqrt(m[0] * m[0] + m[4] * m[4] + m[8] * m[8]);
+      return m[0] * m[0] + m[4] * m[4] + m[8] * m[8];
+    },
+    getScale: function () {
+      return Math.sqrt(this.getScale2());
     },
     getSymmetryOrigin: function () {
       return this._center;

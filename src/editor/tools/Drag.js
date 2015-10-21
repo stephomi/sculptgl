@@ -145,7 +145,7 @@ define(function (require, exports, module) {
       picking.setIntersectionPoint(Geometry.vertexOnLine(center, vNear, vFar));
       vec3.sub(dir, picking.getIntersectionPoint(), center);
       picking._mesh = mesh;
-      picking.computeLocalAndWorldRadius2(mouseX, mouseY);
+      picking.updateLocalAndWorldRadius2();
       var eyeDir = picking.getEyeDirection();
       vec3.sub(eyeDir, vFar, vNear);
       vec3.normalize(eyeDir, eyeDir);

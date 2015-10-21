@@ -125,7 +125,7 @@ define(function (require, exports, module) {
 
         var picking = main.getPicking();
         var pickingSym = main.getPickingSymmetry();
-        var worldRadius = picking.getWorldRadius();
+        var worldRadius = Math.sqrt(picking.computeWorldRadius2(true));
         var screenRadius = main.getSculpt().getCurrentTool()._radius || 1;
 
         var mesh = picking.getMesh();

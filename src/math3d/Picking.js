@@ -163,7 +163,7 @@ define(function (require, exports, module) {
           mat4.invert(matInverse, mesh.getMatrix());
           vec3.transformMat4(vNearTransform, vNear, matInverse);
           vec3.transformMat4(vFarTransform, vFar, matInverse);
-          if (!this.intersectionRayMesh(mesh, vNearTransform, vFarTransform, mouseX, mouseY))
+          if (!this.intersectionRayMesh(mesh, vNearTransform, vFarTransform))
             continue;
 
           var interTest = this.getIntersectionPoint();
@@ -180,7 +180,7 @@ define(function (require, exports, module) {
         vec3.copy(this._interPoint, nearPoint);
         this._pickedFace = nearFace;
         if (nearFace !== -1)
-          this.computeLocalAndWorldRadius2(mouseX, mouseY);
+          this.updateLocalAndWorldRadius2();
         return !!nearMesh;
       };
     })(),
@@ -197,7 +197,7 @@ define(function (require, exports, module) {
       mat4.invert(matInverse, mesh.getMatrix());
       vec3.transformMat4(vNear, vNear, matInverse);
       vec3.transformMat4(vFar, vFar, matInverse);
-      return this.intersectionRayMesh(mesh, vNear, vFar, mouseX, mouseY);
+      return this.intersectionRayMesh(mesh, vNear, vFar);
     },
     /** Intersection between a ray and a mesh */
     intersectionRayMesh: (function () {
@@ -207,7 +207,7 @@ define(function (require, exports, module) {
       var vertInter = [0.0, 0.0, 0.0];
       var vNear = [0.0, 0.0, 0.0];
       var vFar = [0.0, 0.0, 0.0];
-      return function (mesh, vNearOrig, vFarOrig, mouseX, mouseY) {
+      return function (mesh, vNearOrig, vFarOrig) {
         // resest picking
         this._mesh = null;
         this._pickedFace = -1;
@@ -262,7 +262,7 @@ define(function (require, exports, module) {
         }
         if (this._pickedFace !== -1) {
           this._mesh = mesh;
-          this.computeLocalAndWorldRadius2(mouseX, mouseY);
+          this.updateLocalAndWorldRadius2();
           return true;
         }
         this._rLocal2 = 0.0;
@@ -352,22 +352,24 @@ define(function (require, exports, module) {
       this._pickedVertices = new Uint32Array(pickedVertices.subarray(0, acc));
       return this._pickedVertices;
     },
-    /** Compute the selection radius in world and local space */
-    computeLocalAndWorldRadius2: function (mouseX, mouseY) {
-      var mesh = this._mesh;
-      if (!mesh) return;
-      var interPointTransformed = [0.0, 0.0, 0.0];
-      vec3.transformMat4(interPointTransformed, this.getIntersectionPoint(), mesh.getMatrix());
+    computeWorldRadius2: (function () {
+      var inter = [0.0, 0.0, 0.0];
 
-      var screenRadius = this._main.getSculpt().getCurrentTool()._radius || 1;
-      var z = this.project(interPointTransformed)[2];
-      var vCircle = this.unproject(mouseX + (screenRadius * Tablet.getPressureRadius()), mouseY, z);
-      this._rWorld2 = vec3.sqrDist(interPointTransformed, vCircle);
+      return function (ignorePressure) {
 
-      var invScale = 1.0 / mesh.getScale();
-      vec3.scale(interPointTransformed, interPointTransformed, invScale);
-      vec3.scale(vCircle, vCircle, invScale);
-      this._rLocal2 = vec3.sqrDist(interPointTransformed, vCircle);
+        vec3.transformMat4(inter, this.getIntersectionPoint(), this._mesh.getMatrix());
+
+        var offsetX = this._main.getSculpt().getCurrentTool()._radius || 1.0;
+        if (!ignorePressure) offsetX *= Tablet.getPressureRadius();
+
+        var screenInter = this.project(inter);
+        return vec3.sqrDist(inter, this.unproject(screenInter[0] + offsetX, screenInter[1], screenInter[2]));
+      };
+    })(),
+    updateLocalAndWorldRadius2: function () {
+      if (!this._mesh) return;
+      this._rWorld2 = this.computeWorldRadius2();
+      this._rLocal2 = this._rWorld2 / this._mesh.getScale2();
     },
     unproject: function (x, y, z) {
       return this._main.getCamera().unproject(x, y, z);

@@ -251,8 +251,7 @@ define(function (require, exports, module) {
 
       this._ctrlTitleCommon.setVisibility(showContinuous || showSym);
 
-      var main = this._main;
-      main.getPicking().computeLocalAndWorldRadius2(main._mouseX, main._mouseY);
+      this._main.getPicking().updateLocalAndWorldRadius2();
     },
     loadAlpha: function (event) {
       if (event.target.files.length === 0)
