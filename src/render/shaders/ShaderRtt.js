@@ -15,7 +15,7 @@ define(function (require, exports, module) {
   ShaderRtt.uniforms = {};
   ShaderRtt.attributes = {};
 
-  ShaderRtt.uniformNames = ['uTexture0', 'uSize', 'uFilmic'];
+  ShaderRtt.uniformNames = ['uTexture0', 'uInvSize', 'uFilmic'];
 
   ShaderRtt.vertex = [
     'precision mediump float;',
