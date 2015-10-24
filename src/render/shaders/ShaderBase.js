@@ -56,17 +56,21 @@ define(function (require, exports, module) {
   ].join('\n');
 
   var moveExtension = function (str) {
-    // move extension enable/require to the top of file (kind of a hack)
-    var matches = str.match(/^.*(\/\/( *)#extension).*/gm);
+    // move extension enable/require to the top of file
+    var matches = str.match(/^\s*(#extension).*/gm);
     if (!matches) return str;
     var extMap = {};
+    var exts = '';
+
     for (var i = 0, nb = matches.length; i < nb; ++i) {
       var ext = matches[i].substr(matches[i].indexOf('#extension'));
+      str = str.replace(matches[i], '');
       if (extMap[ext])
         continue;
       extMap[ext] = true;
-      str = ext + '\n' + str;
+      exts += ext + '\n';
     }
+    str = exts + str;
     return str;
   };
 

@@ -23,11 +23,9 @@ define(function (require, exports, module) {
     'attribute vec3 aMaterial;',
     ShaderBase.strings.vertUniforms,
     'varying vec3 vVertex;',
-    'varying float vMasking;',
     'void main() {',
-    '  vMasking = aMaterial.z;',
     '  vec4 vertex4 = vec4(aVertex, 1.0);',
-    '  gl_Position = uMVP * mix(vertex4, uEM * vertex4, vMasking);',
+    '  gl_Position = uMVP * mix(vertex4, uEM * vertex4, aMaterial.z);',
     '}'
   ].join('\n');
 

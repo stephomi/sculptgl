@@ -1,5 +1,5 @@
 // http://madebyevan.com/shaders/curvature/
-// #extension GL_OES_standard_derivatives : enable
+#extension GL_OES_standard_derivatives : enable
 vec3 computeCurvature( const in vec3 vertex, const in vec3 normal, const in vec3 color, const in float str, const in float fov) {
   if(str < 1e-3)
     return color;
