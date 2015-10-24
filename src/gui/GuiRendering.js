@@ -149,23 +149,16 @@ define(function (require, exports, module) {
     addEvents: function () {
       var cbLoadTex = this.loadTextureUV.bind(this);
       var cbLoadMatcap = this.loadMatcap.bind(this);
-      var cbKeyUp = this.onKeyUp.bind(this);
       document.getElementById('textureopen').addEventListener('change', cbLoadTex, false);
       document.getElementById('matcapopen').addEventListener('change', cbLoadMatcap, false);
-      window.addEventListener('keyup', cbKeyUp, false);
 
       this.removeCallback = function () {
         document.getElementById('textureopen').removeEventListener('change', cbLoadTex, false);
         document.getElementById('matcapopen').removeEventListener('change', cbLoadMatcap, false);
-        window.removeEventListener('keyup', cbKeyUp, false);
       };
     },
     removeEvents: function () {
       if (this.removeCallback) this.removeCallback();
-    },
-    onKeyUp: function (event) {
-      if (event.which === 87 && !event.ctrlKey) // W
-        this._ctrlShowWireframe.setValue(!this._ctrlShowWireframe.getValue());
     },
     updateMesh: function () {
       var mesh = this._main.getMesh();
@@ -258,6 +251,13 @@ define(function (require, exports, module) {
     importMatcap: function () {
       document.getElementById('matcapopen').click();
     },
+    ////////////////
+    // KEY EVENTS
+    ////////////////
+    onKeyUp: function (event) {
+      if (event.which === 87 && !event.ctrlKey) // W
+        this._ctrlShowWireframe.setValue(!this._ctrlShowWireframe.getValue());
+    }
   };
 
   module.exports = GuiRendering;

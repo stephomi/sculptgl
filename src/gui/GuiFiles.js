@@ -32,35 +32,6 @@ define(function (require, exports, module) {
       menu.addTitle(TR('fileExportMeshTitle'));
       menu.addButton(TR('fileExportPLY'), this, 'saveFileAsPLY');
       menu.addButton(TR('fileExportSTL'), this, 'saveFileAsSTL');
-      this.addEvents();
-    },
-    addEvents: function () {
-      var cbKeyDown = this.onKeyDown.bind(this);
-      window.addEventListener('keydown', cbKeyDown, false);
-      this.removeCallback = function () {
-        window.removeEventListener('keydown', cbKeyDown, false);
-      };
-    },
-    removeEvents: function () {
-      if (this.removeCallback) this.removeCallback();
-    },
-    onKeyDown: function (event) {
-      if (event.handled === true)
-        return;
-      event.stopPropagation();
-      if (!this._main._focusGui)
-        event.preventDefault();
-      var key = event.which;
-      if (event.ctrlKey && event.altKey && key === 78) { // N
-        this._main.clearScene();
-        event.handled = true;
-      } else if (event.ctrlKey && (key === 79 || key === 73)) { // O or I
-        this.addFile();
-        event.handled = true;
-      } else if (event.ctrlKey && key === 69) { // E 
-        this.saveFileAsOBJ(event.altKey);
-        event.handled = true;
-      }
     },
     addFile: function () {
       document.getElementById('fileopen').click();
@@ -111,6 +82,31 @@ define(function (require, exports, module) {
 
       var key = api === 'guest' ? 'babc9a5cd4f343f9be0c7bd9cf93600c' : api;
       this._sketchfabXhr = Export.exportSketchfab(this._main, key, ctrlNotif);
+    },
+    ////////////////
+    // KEY EVENTS
+    //////////////// 
+    onKeyDown: function (event) {
+      if (event.handled === true)
+        return;
+
+      event.stopPropagation();
+      if (!this._main._focusGui)
+        event.preventDefault();
+
+      var key = event.which;
+      if (event.ctrlKey && event.altKey && key === 78) { // N
+        this._main.clearScene();
+        event.handled = true;
+
+      } else if (event.ctrlKey && (key === 79 || key === 73)) { // O or I
+        this.addFile();
+        event.handled = true;
+
+      } else if (event.ctrlKey && key === 69) { // E 
+        this.saveFileAsOBJ(event.altKey);
+        event.handled = true;
+      }
     }
   };
 

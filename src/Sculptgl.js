@@ -44,11 +44,39 @@ define(function (require, exports, module) {
   var MOUSE_RIGHT = 3;
 
   SculptGL.prototype = {
-    initHammer: function () {
-      this.initHammerRecognizers();
-      this.initHammerEvents();
+    addEvents: function () {
+      var canvas = this._canvas;
+
+      var cbMouseWheel = this.onMouseWheel.bind(this);
+      // mouse
+      canvas.addEventListener('mousedown', this.onMouseDown.bind(this), false);
+      canvas.addEventListener('mouseup', this.onMouseUp.bind(this), false);
+      canvas.addEventListener('mouseout', this.onMouseOut.bind(this), false);
+      canvas.addEventListener('mouseover', this.onMouseOver.bind(this), false);
+      canvas.addEventListener('mousemove', Utils.throttle(this.onMouseMove.bind(this), 16.66), false);
+      canvas.addEventListener('mousewheel', cbMouseWheel, false);
+      canvas.addEventListener('DOMMouseScroll', cbMouseWheel, false);
+
+      //key
+      window.addEventListener('keydown', this.onKeyDown.bind(this), false);
+      window.addEventListener('keyup', this.onKeyUp.bind(this), false);
+
+      var cbLoadFiles = this.loadFiles.bind(this);
+      var cbStopAndPrevent = this.stopAndPrevent.bind(this);
+      // misc
+      canvas.addEventListener('webglcontextlost', this.onContextLost.bind(this), false);
+      canvas.addEventListener('webglcontextrestored', this.onContextRestored.bind(this), false);
+      window.addEventListener('dragenter', cbStopAndPrevent, false);
+      window.addEventListener('dragover', cbStopAndPrevent, false);
+      window.addEventListener('drop', this.loadFiles.bind(this), false);
+      document.getElementById('fileopen').addEventListener('change', cbLoadFiles, false);
     },
-    initHammerRecognizers: function () {
+    initHammer: function () {
+      this._hammer.options.enable = true;
+      this._initHammerRecognizers();
+      this._initHammerEvents();
+    },
+    _initHammerRecognizers: function () {
       var hm = this._hammer;
       // double tap
       hm.add(new Hammer.Tap({
@@ -87,7 +115,7 @@ define(function (require, exports, module) {
       }));
       hm.get('pinch').recognizeWith(hm.get('pan'));
     },
-    initHammerEvents: function () {
+    _initHammerEvents: function () {
       var hm = this._hammer;
       hm.on('panstart', this.onPanStart.bind(this));
       hm.on('panmove', this.onPanMove.bind(this));
@@ -98,6 +126,28 @@ define(function (require, exports, module) {
       hm.on('pinchstart', this.onPinchStart.bind(this));
       hm.on('pinchin pinchout', this.onPinchInOut.bind(this));
     },
+    stopAndPrevent: function (event) {
+      event.stopPropagation();
+      event.preventDefault();
+    },
+    onContextLost: function () {
+      window.alert('Oops... WebGL context lost.');
+    },
+    onContextRestored: function () {
+      window.alert('Wow... Context is restored.');
+    },
+    ////////////////
+    // KEY EVENTS
+    ////////////////
+    onKeyDown: function (e) {
+      this._gui.callFunc('onKeyDown', e);
+    },
+    onKeyUp: function (e) {
+      this._gui.callFunc('onKeyUp', e);
+    },
+    ////////////////
+    // MOBILE EVENTS
+    ////////////////
     onPanStart: function (e) {
       if (e.pointerType === 'mouse')
         return;
@@ -156,6 +206,15 @@ define(function (require, exports, module) {
         return;
       this.resetCameraScene();
     },
+    onPinchStart: function (e) {
+      this._focusGui = false;
+      this._lastScale = e.scale;
+    },
+    onPinchInOut: function (e) {
+      var dir = (e.scale - this._lastScale) * 25;
+      this._lastScale = e.scale;
+      this.onDeviceWheel(dir);
+    },
     resetCameraScene: function () {
       var pivot = [0.0, 0.0, 0.0];
       var zoom = 70.0;
@@ -167,77 +226,9 @@ define(function (require, exports, module) {
       this._camera.setAndFocusOnPivot(pivot, zoom);
       this.render();
     },
-    onPinchStart: function (e) {
-      this._focusGui = false;
-      this._lastScale = e.scale;
-    },
-    onPinchInOut: function (e) {
-      var dir = (e.scale - this._lastScale) * 25;
-      this._lastScale = e.scale;
-      this.onDeviceWheel(dir);
-    },
-    addEvents: function () {
-      this._hammer.options.enable = true;
-      var canvas = this._canvas;
-
-      var cbMouseMove = Utils.throttle(this.onMouseMove.bind(this), 16.66);
-      var cbMouseDown = this.onMouseDown.bind(this);
-      var cbMouseUp = this.onMouseUp.bind(this);
-      var cbMouseOut = this.onMouseOut.bind(this);
-      var cbMouseOver = this.onMouseOver.bind(this);
-      var cbMouseWheel = this.onMouseWheel.bind(this);
-
-      // mouse
-      canvas.addEventListener('mousedown', cbMouseDown, false);
-      canvas.addEventListener('mouseup', cbMouseUp, false);
-      canvas.addEventListener('mouseout', cbMouseOut, false);
-      canvas.addEventListener('mouseover', cbMouseOver, false);
-      canvas.addEventListener('mousemove', cbMouseMove, false);
-      canvas.addEventListener('mousewheel', cbMouseWheel, false);
-      canvas.addEventListener('DOMMouseScroll', cbMouseWheel, false);
-
-      var cbContextLost = this.onContextLost.bind(this);
-      var cbContextRestored = this.onContextRestored.bind(this);
-      var cbLoadFiles = this.loadFiles.bind(this);
-      var cbStopAndPrevent = this.stopAndPrevent.bind(this);
-
-      // misc
-      canvas.addEventListener('webglcontextlost', cbContextLost, false);
-      canvas.addEventListener('webglcontextrestored', cbContextRestored, false);
-      window.addEventListener('dragenter', cbStopAndPrevent, false);
-      window.addEventListener('dragover', cbStopAndPrevent, false);
-      window.addEventListener('drop', cbLoadFiles, false);
-      document.getElementById('fileopen').addEventListener('change', cbLoadFiles, false);
-
-      this.removeCallback = function () {
-        this._hammer.options.enable = false;
-
-        // mouse
-        canvas.removeEventListener('mousedown', cbMouseDown, false);
-        canvas.removeEventListener('mouseup', cbMouseUp, false);
-        canvas.removeEventListener('mouseout', cbMouseOut, false);
-        canvas.removeEventListener('mouseover', cbMouseOver, false);
-        canvas.removeEventListener('mousemove', cbMouseMove, false);
-        canvas.removeEventListener('mousewheel', cbMouseWheel, false);
-        canvas.removeEventListener('DOMMouseScroll', cbMouseWheel, false);
-
-        // misc
-        canvas.removeEventListener('webglcontextlost', cbContextLost, false);
-        canvas.removeEventListener('webglcontextrestored', cbContextRestored, false);
-        window.removeEventListener('dragenter', cbStopAndPrevent, false);
-        window.removeEventListener('dragover', cbStopAndPrevent, false);
-        window.removeEventListener('drop', cbLoadFiles, false);
-        document.getElementById('fileopen').removeEventListener('change', cbLoadFiles, false);
-      };
-    },
-    stopAndPrevent: function (event) {
-      event.stopPropagation();
-      event.preventDefault();
-    },
-    removeEvents: function () {
-      if (this.removeCallback) this.removeCallback();
-    },
-    /** Return the file type */
+    ////////////////
+    // LOAD FILES
+    ////////////////
     getFileType: function (name) {
       var lower = name.toLowerCase();
       if (lower.endsWith('.obj')) return 'obj';
@@ -246,7 +237,6 @@ define(function (require, exports, module) {
       if (lower.endsWith('.ply')) return 'ply';
       return;
     },
-    /** Load file */
     loadFiles: function (event) {
       event.stopPropagation();
       event.preventDefault();
@@ -274,23 +264,49 @@ define(function (require, exports, module) {
       else
         reader.readAsArrayBuffer(file);
     },
-    onContextLost: function () {
-      window.alert('Oops... WebGL context lost.');
+    ////////////////
+    // MOUSE EVENTS
+    ////////////////
+    onMouseDown: function (event) {
+      event.stopPropagation();
+      event.preventDefault();
+
+      this._gui.callFunc('onMouseDown', event);
+      this.onDeviceDown(event);
     },
-    onContextRestored: function () {
-      window.alert('Wow... Context is restored.');
+    onMouseMove: function (event) {
+      event.stopPropagation();
+      event.preventDefault();
+
+      this._gui.callFunc('onMouseMove', event);
+      this.onDeviceMove(event);
     },
     onMouseOver: function () {
       this._focusGui = false;
+      this._gui.callFunc('onMouseOver', event);
     },
     onMouseOut: function (event) {
       this._focusGui = true;
+      this._gui.callFunc('onMouseOut', event);
       this.onMouseUp(event);
     },
     onMouseUp: function (event) {
       event.preventDefault();
+
+      this._gui.callFunc('onMouseUp', event);
       this.onDeviceUp();
     },
+    onMouseWheel: function (event) {
+      event.stopPropagation();
+      event.preventDefault();
+
+      this._gui.callFunc('onMouseWheel', event);
+      var dir = event.wheelDelta === undefined ? -event.detail : event.wheelDelta;
+      this.onDeviceWheel(dir > 0 ? 1 : -1);
+    },
+    ////////////////
+    // HANDLES EVENTS
+    ////////////////
     onDeviceUp: function () {
       this._canvas.style.cursor = 'default';
       Multimesh.RENDER_HINT = Multimesh.NONE;
@@ -305,12 +321,6 @@ define(function (require, exports, module) {
       this.render();
       this._states.cleanNoop();
     },
-    onMouseWheel: function (event) {
-      event.stopPropagation();
-      event.preventDefault();
-      var dir = event.wheelDelta === undefined ? -event.detail : event.wheelDelta;
-      this.onDeviceWheel(dir > 0 ? 1 : -1);
-    },
     onDeviceWheel: function (dir) {
       if (dir > 0.0 && !this._isWheelingIn) {
         this._isWheelingIn = true;
@@ -322,9 +332,9 @@ define(function (require, exports, module) {
       // workaround for "end mouse wheel" event
       if (this._timerEndWheel)
         window.clearTimeout(this._timerEndWheel);
-      this._timerEndWheel = window.setTimeout(this.endWheel.bind(this), 300);
+      this._timerEndWheel = window.setTimeout(this._endWheel.bind(this), 300);
     },
-    endWheel: function () {
+    _endWheel: function () {
       Multimesh.RENDER_HINT = Multimesh.NONE;
       this._isWheelingIn = false;
       this.render();
@@ -332,16 +342,6 @@ define(function (require, exports, module) {
     setMousePosition: function (event) {
       this._mouseX = event.pageX - this._canvas.offsetLeft;
       this._mouseY = event.pageY - this._canvas.offsetTop;
-    },
-    onMouseDown: function (event) {
-      event.stopPropagation();
-      event.preventDefault();
-      this.onDeviceDown(event);
-    },
-    onMouseMove: function (event) {
-      event.stopPropagation();
-      event.preventDefault();
-      this.onDeviceMove(event);
     },
     onDeviceDown: function (event) {
       if (this._focusGui)

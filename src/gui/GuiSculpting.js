@@ -66,27 +66,9 @@ define(function (require, exports, module) {
       this._main.render();
     },
     addEvents: function () {
-      var canvas = document.getElementById('canvas');
-
-      var cbKeyDown = this.onKeyDown.bind(this);
-      var cbKeyUp = this.onKeyUp.bind(this);
-      var cbMouseUp = this.onMouseUp.bind(this);
-      var cbMouseMove = this.onMouseMove.bind(this);
       var cbLoadAlpha = this.loadAlpha.bind(this);
-
-      window.addEventListener('keydown', cbKeyDown, false);
-      window.addEventListener('keyup', cbKeyUp, false);
-      canvas.addEventListener('mousemove', cbMouseMove, false);
-      canvas.addEventListener('mouseup', cbMouseUp, false);
-      canvas.addEventListener('mouseout', cbMouseUp, false);
       document.getElementById('alphaopen').addEventListener('change', cbLoadAlpha, false);
-
       this.removeCallback = function () {
-        window.removeEventListener('keydown', cbKeyDown, false);
-        window.removeEventListener('keyup', cbKeyUp, false);
-        canvas.removeEventListener('mousemove', cbMouseMove, false);
-        canvas.removeEventListener('mouseup', cbMouseUp, false);
-        canvas.removeEventListener('mouseout', cbMouseUp, false);
         document.getElementById('alphaopen').removeEventListener('change', cbLoadAlpha, false);
       };
     },
@@ -96,92 +78,6 @@ define(function (require, exports, module) {
     getSelectedTool: function () {
       return this._ctrlSculpt.getValue();
     },
-    checkModifierKey: function (event) {
-      var selectedTool = this.getSelectedTool();
-
-      if (this._main._action === 'NOTHING') {
-        if (event.shiftKey && !event.altKey && !event.ctrlKey) {
-          // smoothing on shift key
-          if (selectedTool !== 'SMOOTH') {
-            this._toolOnRelease = selectedTool;
-            this._ctrlSculpt.setValue('SMOOTH');
-          }
-        }
-        if (event.ctrlKey && !event.shiftKey && !event.altKey) {
-          // masking on ctrl key
-          if (selectedTool !== 'MASKING') {
-            this._toolOnRelease = selectedTool;
-            this._ctrlSculpt.setValue('MASKING');
-          }
-        }
-      }
-      if (event.altKey) {
-        // invert sign on alt key
-        if (this._invertSign || event.shiftKey) return true;
-        this._invertSign = true;
-        var curTool = GuiSculptingTools[selectedTool];
-        if (curTool.toggleNegative)
-          curTool.toggleNegative();
-        return true;
-      }
-      return false;
-    },
-    /** Key pressed event */
-    onKeyDown: function (event) {
-      if (event.handled === true)
-        return;
-
-      var main = this._main;
-      var key = event.which;
-      event.stopPropagation();
-
-      if (!main._focusGui || key === 88 || key === 67)
-        event.preventDefault();
-
-      event.handled = true;
-      if (this.checkModifierKey(event))
-        return;
-
-      if (main._action !== 'NOTHING')
-        return;
-
-      // handles numpad
-      if (key >= 96 && key <= 105) key -= 48;
-      var opts = getOptionsURL();
-      var strTool = opts.shortcuts[key];
-      if (strTool && Tools[strTool])
-        return this._ctrlSculpt.setValue(strTool);
-
-      var cur = GuiSculptingTools[this.getSelectedTool()];
-
-      switch (key) {
-      case 88: // X
-        if (!this._modalBrushRadius) {
-          this._refX = this._lastPageX;
-          this._refY = this._lastPageY;
-          if (cur._ctrlRadius) {
-            var rad = cur._ctrlRadius.getValue();
-            this._refX -= rad;
-            this._main.getSelectionRadius().setOffsetX(-rad);
-            this._main.render();
-          }
-        }
-        this._modalBrushRadius = main._focusGui = true;
-        break;
-      case 67: // C
-        this._modalBrushIntensity = main._focusGui = true;
-        break;
-      case 46: // DEL
-        main.deleteCurrentSelection();
-        break;
-      case 78: // N
-        if (cur.toggleNegative)
-          cur.toggleNegative();
-        break;
-      default:
-        event.handled = false;
-      }
-    },
     releaseInvertSign: function () {
       if (!this._invertSign)
         return;
@@ -189,54 +85,6 @@ define(function (require, exports, module) {
       var tool = GuiSculptingTools[this.getSelectedTool()];
       if (tool.toggleNegative)
         tool.toggleNegative();
-    },
-    onKeyUp: function (event) {
-      var releaseTool = this._main._action === 'NOTHING' && this._toolOnRelease !== -1 && !event.ctrlKey && !event.shiftKey;
-      if (!event.altKey || releaseTool)
-        this.releaseInvertSign();
-
-      if (releaseTool) {
-        this._ctrlSculpt.setValue(this._toolOnRelease);
-        this._toolOnRelease = -1;
-      }
-
-      var main = this._main;
-      if (event.which === 88) { // X
-        this._modalBrushRadius = main._focusGui = false;
-        main.getSelectionRadius().setOffsetX(0.0);
-        event.pageX = this._lastPageX;
-        event.pageY = this._lastPageY;
-        main.setMousePosition(event);
-        main.getPicking().intersectionMouseMeshes();
-        main.render();
-
-      } else if (event.which === 67) { // C
-
-        this._modalBrushIntensity = main._focusGui = false;
-      }
-    },
-    onMouseUp: function (event) {
-      if (this._toolOnRelease !== -1 && !event.ctrlKey && !event.shiftKey) {
-        this.releaseInvertSign();
-        this._ctrlSculpt.setValue(this._toolOnRelease);
-        this._toolOnRelease = -1;
-      }
-    },
-    onMouseMove: function (e) {
-      var wid = GuiSculptingTools[this.getSelectedTool()];
-
-      if (this._modalBrushRadius && wid._ctrlRadius) {
-        var dx = e.pageX - this._refX;
-        var dy = e.pageY - this._refY;
-        wid._ctrlRadius.setValue(Math.sqrt(dx * dx + dy * dy));
-        this._main.render();
-      }
-
-      if (this._modalBrushIntensity && wid._ctrlIntensity) {
-        wid._ctrlIntensity.setValue(wid._ctrlIntensity.getValue() + e.pageX - this._lastPageX);
-      }
-      this._lastPageX = e.pageX;
-      this._lastPageY = e.pageY;
     },
     onChangeTool: function (newValue) {
       GuiSculptingTools.hide(this._sculpt._tool);
@@ -280,6 +128,150 @@ define(function (require, exports, module) {
     },
     updateMesh: function () {
       this._menu.setVisibility(!!this._main.getMesh());
+    },
+    _startModAlBrushRadius: function (x, y) {
+      this._refX = x;
+      this._refY = y;
+      var cur = GuiSculptingTools[this.getSelectedTool()];
+      if (cur._ctrlRadius) {
+        var rad = cur._ctrlRadius.getValue();
+        this._refX -= rad;
+        this._main.getSelectionRadius().setOffsetX(-rad);
+        this._main.render();
+      }
+    },
+    _checkModifierKey: function (event) {
+      var selectedTool = this.getSelectedTool();
+
+      if (this._main._action === 'NOTHING') {
+        if (event.shiftKey && !event.altKey && !event.ctrlKey) {
+          // smoothing on shift key
+          if (selectedTool !== 'SMOOTH') {
+            this._toolOnRelease = selectedTool;
+            this._ctrlSculpt.setValue('SMOOTH');
+          }
+        }
+        if (event.ctrlKey && !event.shiftKey && !event.altKey) {
+          // masking on ctrl key
+          if (selectedTool !== 'MASKING') {
+            this._toolOnRelease = selectedTool;
+            this._ctrlSculpt.setValue('MASKING');
+          }
+        }
+      }
+      if (event.altKey) {
+        // invert sign on alt key
+        if (this._invertSign || event.shiftKey) return true;
+        this._invertSign = true;
+        var curTool = GuiSculptingTools[selectedTool];
+        if (curTool.toggleNegative)
+          curTool.toggleNegative();
+        return true;
+      }
+      return false;
+    },
+    ////////////////
+    // KEY EVENTS
+    //////////////// 
+    onKeyDown: function (event) {
+      if (event.handled === true)
+        return;
+
+      var main = this._main;
+      var key = event.which;
+      event.stopPropagation();
+
+      if (!main._focusGui || key === 88 || key === 67)
+        event.preventDefault();
+
+      event.handled = true;
+      if (this._checkModifierKey(event))
+        return;
+
+      if (main._action !== 'NOTHING')
+        return;
+
+      // handles numpad
+      if (key >= 96 && key <= 105) key -= 48;
+      var opts = getOptionsURL();
+      var strTool = opts.shortcuts[key];
+      if (strTool && Tools[strTool])
+        return this._ctrlSculpt.setValue(strTool);
+
+      switch (key) {
+      case 88: // X
+        if (!this._modalBrushRadius)
+          this._startModAlBrushRadius(this._lastPageX, this._lastPageY);
+        this._modalBrushRadius = main._focusGui = true;
+        break;
+      case 67: // C
+        this._modalBrushIntensity = main._focusGui = true;
+        break;
+      case 46: // DEL
+        main.deleteCurrentSelection();
+        break;
+      case 78: // N
+        var cur = GuiSculptingTools[this.getSelectedTool()];
+        if (cur.toggleNegative)
+          cur.toggleNegative();
+        break;
+      default:
+        event.handled = false;
+      }
+    },
+    onKeyUp: function (event) {
+      var releaseTool = this._main._action === 'NOTHING' && this._toolOnRelease !== -1 && !event.ctrlKey && !event.shiftKey;
+      if (!event.altKey || releaseTool)
+        this.releaseInvertSign();
+
+      if (releaseTool) {
+        this._ctrlSculpt.setValue(this._toolOnRelease);
+        this._toolOnRelease = -1;
+      }
+
+      var main = this._main;
+      if (event.which === 88) { // X
+        this._modalBrushRadius = main._focusGui = false;
+        main.getSelectionRadius().setOffsetX(0.0);
+        event.pageX = this._lastPageX;
+        event.pageY = this._lastPageY;
+        main.setMousePosition(event);
+        main.getPicking().intersectionMouseMeshes();
+        main.render();
+
+      } else if (event.which === 67) { // C
+
+        this._modalBrushIntensity = main._focusGui = false;
+      }
+    },
+    ////////////////
+    // MOUSE EVENTS
+    ////////////////
+    onMouseUp: function (event) {
+      if (this._toolOnRelease !== -1 && !event.ctrlKey && !event.shiftKey) {
+        this.releaseInvertSign();
+        this._ctrlSculpt.setValue(this._toolOnRelease);
+        this._toolOnRelease = -1;
+      }
+    },
+    onMouseMove: function (event) {
+      var wid = GuiSculptingTools[this.getSelectedTool()];
+
+      if (this._modalBrushRadius && wid._ctrlRadius) {
+        var dx = event.pageX - this._refX;
+        var dy = event.pageY - this._refY;
+        wid._ctrlRadius.setValue(Math.sqrt(dx * dx + dy * dy));
+        this._main.render();
+      }
+
+      if (this._modalBrushIntensity && wid._ctrlIntensity) {
+        wid._ctrlIntensity.setValue(wid._ctrlIntensity.getValue() + event.pageX - this._lastPageX);
+      }
+      this._lastPageX = event.pageX;
+      this._lastPageY = event.pageY;
+    },
+    onMouseOver: function (event) {
+      if (this._modalBrushRadius) this._startModAlBrushRadius(event.pageX, event.pageY);
     }
   };
 

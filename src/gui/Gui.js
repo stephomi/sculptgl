@@ -42,7 +42,6 @@ define(function (require, exports, module) {
   };
 
   Gui.prototype = {
-    /** Initialize dat-gui stuffs */
     initGui: function () {
       this.deleteGui();
 
@@ -95,7 +94,6 @@ define(function (require, exports, module) {
         document.getElementById('donate').submit();
       });
     },
-    /** Return simple widget */
     getWidgetNotification: function () {
       if (!this._ctrlNotification) {
         this._ctrlNotification = this._topbar.addMenu();
@@ -103,7 +101,6 @@ define(function (require, exports, module) {
       }
       return this._ctrlNotification;
     },
-    /** Update information on mesh */
     updateMesh: function () {
       this._ctrlRendering.updateMesh();
       this._ctrlTopology.updateMesh();
@@ -111,49 +108,37 @@ define(function (require, exports, module) {
       this._ctrlScene.updateMesh();
       this.updateMeshInfo();
     },
-    /** Update number of vertices and triangles */
     updateMeshInfo: function () {
       this._ctrlMesh.updateMeshInfo();
     },
-    /** Return true if flat shading is enabled */
     getFlatShading: function () {
       return this._ctrlRendering.getFlatShading();
     },
-    /** Return true if wireframe is displayed */
     getWireframe: function () {
       return this._ctrlRendering.getWireframe();
     },
-    /** Return the value of the shader */
     getShader: function () {
       return this._ctrlRendering.getShader();
-    },
-    addEvents: function () {
-      for (var i = 0, ctrls = this._ctrls, nb = ctrls.length; i < nb; ++i) {
-        var ct = ctrls[i];
-        if (ct && ct.addEvents)
-          ct.addEvents();
-      }
-    },
-    removeEvents: function () {
-      for (var i = 0, ctrls = this._ctrls, nb = ctrls.length; i < nb; ++i) {
-        var ct = ctrls[i];
-        if (ct && ct.removeEvents)
-          ct.removeEvents();
-      }
     },
     addAlphaOptions: function (opts) {
       this._ctrlSculpting.addAlphaOptions(opts);
     },
-    /** Delete the old gui */
     deleteGui: function () {
       if (!this._guiMain || !this._guiMain.domMain.parentNode)
         return;
-      this.removeEvents();
+      this.callFunc('removeEvents');
       this.setVisibility(false);
       this._guiMain.domMain.parentNode.removeChild(this._guiMain.domMain);
     },
     setVisibility: function (bool) {
       this._guiMain.setVisibility(bool);
+    },
+    callFunc: function (func, event) {
+      for (var i = 0, ctrls = this._ctrls, nb = ctrls.length; i < nb; ++i) {
+        var ct = ctrls[i];
+        if (ct && ct[func])
+          ct[func](event);
+      }
     }
   };
 

@@ -49,8 +49,6 @@ define(function (require, exports, module) {
       menu.addTitle(TR('renderingExtra'));
       menu.addCheckbox(TR('renderingGrid'), this._main._showGrid, this.onShowGrid.bind(this));
       menu.addCheckbox(TR('renderingSymmetryLine'), ShaderBase.showSymmetryLine, this.onShowSymmetryLine.bind(this));
-
-      this.addEvents();
     },
     validatePreview: function () {
       if (!this._main._meshPreview)
@@ -121,28 +119,6 @@ define(function (require, exports, module) {
       main.getMeshes().push(newMesh);
       main.setMesh(newMesh);
     },
-    addEvents: function () {
-      var cbKeyDown = this.onKeyDown.bind(this);
-      window.addEventListener('keydown', cbKeyDown, false);
-      this.removeCallback = function () {
-        window.removeEventListener('keydown', cbKeyDown, false);
-      };
-    },
-    removeEvents: function () {
-      if (this.removeCallback) this.removeCallback();
-    },
-    onKeyDown: function (event) {
-      if (event.handled === true)
-        return;
-      event.stopPropagation();
-      if (!this._main._focusGui)
-        event.preventDefault();
-      var key = event.which;
-      if (key === 73) { // I
-        this.toggleShowHide();
-        event.handled = true;
-      }
-    },
     toggleShowHide: function (ignoreCB) {
       this._ctrlIsolate.setValue(!this._ctrlIsolate.getValue(), !!ignoreCB);
     },
@@ -199,6 +175,22 @@ define(function (require, exports, module) {
       var main = this._main;
       main._showContour = bool;
       main.render();
+    },
+    ////////////////
+    // KEY EVENTS
+    ////////////////
+    onKeyDown: function (event) {
+      if (event.handled === true)
+        return;
+
+      event.stopPropagation();
+      if (!this._main._focusGui)
+        event.preventDefault();
+
+      if (event.which === 73) { // I
+        this.toggleShowHide();
+        event.handled = true;
+      }
     }
   };
 
