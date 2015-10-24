@@ -178,8 +178,8 @@ define(function (require, exports, module) {
 
       this._ctrls.push(fold.addTitle(TR('sculptPBRTitle')));
       this._ctrls.push(fold.addButton(TR('sculptPaintAll'), tool, 'paintAll'));
-      var ctrlPicker = fold.addCheckbox(TR('sculptPickColor'), tool, '_pickColor');
-      this._ctrls.push(ctrlPicker);
+      this._ctrlPicker = fold.addCheckbox(TR('sculptPickColor'), tool, '_pickColor');
+      this._ctrls.push(this._ctrlPicker);
 
       var materials = [];
       var cbMatChanged = this.onMaterialChanged.bind(this, main, tool, materials);
@@ -187,8 +187,8 @@ define(function (require, exports, module) {
       var ctrlRoughness = fold.addSlider(TR('sculptRoughness'), tool._material[0] * 100, cbMatChanged, 0, 100, 1);
       var ctrlMetallic = fold.addSlider(TR('sculptMetallic'), tool._material[1] * 100, cbMatChanged, 0, 100, 1);
       materials.push(ctrlColor, ctrlRoughness, ctrlMetallic);
-      window.addEventListener('keyup', this.resetMaterialOverride.bind(this, main, ctrlPicker, tool));
-      window.addEventListener('mouseup', this.resetMaterialOverride.bind(this, main, ctrlPicker, tool));
+      window.addEventListener('keyup', this.resetMaterialOverride.bind(this, main, this._ctrlPicker, tool));
+      window.addEventListener('mouseup', this.resetMaterialOverride.bind(this, main, this._ctrlPicker, tool));
 
       tool.setPickCallback(this.onPickedMaterial.bind(this, materials, tool));
 

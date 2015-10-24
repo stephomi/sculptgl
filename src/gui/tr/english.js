@@ -125,7 +125,7 @@ define(function (require, exports, module) {
     sculptClay: 'Clay',
     sculptAccumulate: 'Accumulate (no limit per stroke)',
     sculptColorGlobal: 'Global',
-    sculptPickColor: 'Material / Color picker',
+    sculptPickColor: 'Material / Color picker (S)',
     sculptTangentialSmoothing: 'Relax only',
     sculptTopologicalCheck: 'Topological check',
     sculptMoveAlongNormal: 'Move along normal (N or -Alt)',

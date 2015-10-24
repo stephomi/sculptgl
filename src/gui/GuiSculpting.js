@@ -201,22 +201,29 @@ define(function (require, exports, module) {
       if (strTool && Tools[strTool])
         return this._ctrlSculpt.setValue(strTool);
 
+      var cur = GuiSculptingTools[this.getSelectedTool()];
+
       switch (key) {
-      case 88: // X
-        if (!this._modalBrushRadius)
-          this._startModAlBrushRadius(this._lastPageX, this._lastPageY);
-        this._modalBrushRadius = main._focusGui = true;
+      case 46: // DEL
+        main.deleteCurrentSelection();
         break;
       case 67: // C
         this._modalBrushIntensity = main._focusGui = true;
         break;
-      case 46: // DEL
-        main.deleteCurrentSelection();
-        break;
       case 78: // N
-        var cur = GuiSculptingTools[this.getSelectedTool()];
         if (cur.toggleNegative)
           cur.toggleNegative();
+        break;
+      case 83: // S
+        var ctrlPicker = cur._ctrlPicker;
+        if (ctrlPicker) {
+          ctrlPicker.setValue(!ctrlPicker.getValue());
+        }
+        break;
+      case 88: // X
+        if (!this._modalBrushRadius)
+          this._startModAlBrushRadius(this._lastPageX, this._lastPageY);
+        this._modalBrushRadius = main._focusGui = true;
         break;
       default:
         event.handled = false;

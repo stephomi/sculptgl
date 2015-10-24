@@ -125,7 +125,7 @@ define(function (require, exports, module) {
     sculptClay: 'Без учета содержимого',
     sculptAccumulate: 'Наращивать без ограничений',
     sculptColorGlobal: 'Глобальный',
-    sculptPickColor: 'Пипетка материал',
+    sculptPickColor: 'Пипетка материал (S)',
     sculptTangentialSmoothing: null,
     sculptTopologicalCheck: null,
     sculptMoveAlongNormal: null,
