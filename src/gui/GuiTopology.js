@@ -3,7 +3,7 @@ define(function (require, exports, module) {
   'use strict';
 
   var TR = require('gui/GuiTR');
-  var Remesh = require('editor/Remesh');
+  var Remesh = require('editing/Remesh');
   var Mesh = require('mesh/Mesh');
   var Multimesh = require('mesh/multiresolution/Multimesh');
   var MeshDynamic = require('mesh/dynamic/MeshDynamic');

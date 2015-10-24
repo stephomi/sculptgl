@@ -3,7 +3,7 @@ define(function (require, exports, module) {
   'use strict';
 
   var Utils = require('misc/Utils');
-  var SculptBase = require('editor/tools/SculptBase');
+  var SculptBase = require('editing/tools/SculptBase');
 
   var LocalScale = function (main) {
     SculptBase.call(this, main);

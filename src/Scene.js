@@ -5,21 +5,21 @@ define(function (require, exports, module) {
   var glm = require('lib/glMatrix');
   var getOptionsURL = require('misc/getOptionsURL');
   var Utils = require('misc/Utils');
-  var Sculpt = require('editor/Sculpt');
-  var Subdivision = require('editor/Subdivision');
+  var Sculpt = require('editing/Sculpt');
+  var Subdivision = require('editing/Subdivision');
   var Import = require('files/Import');
   var Gui = require('gui/Gui');
   var Camera = require('math3d/Camera');
   var Picking = require('math3d/Picking');
-  var Background = require('mesh/Background');
-  var Selection = require('mesh/Selection');
+  var Background = require('drawables/Background');
+  var Selection = require('drawables/Selection');
   var Mesh = require('mesh/Mesh');
   var Multimesh = require('mesh/multiresolution/Multimesh');
-  var Primitive = require('mesh/Primitive');
+  var Primitives = require('drawables/Primitives');
   var States = require('states/States');
-  var Contour = require('render/Contour');
-  var Render = require('render/Render');
-  var Rtt = require('render/Rtt');
+  var Contour = require('drawables/Contour');
+  var Render = require('mesh/Render');
+  var Rtt = require('drawables/Rtt');
   var ShaderMatcap = require('render/shaders/ShaderMatcap');
   var WebGLCaps = require('render/WebGLCaps');
 
@@ -71,12 +71,13 @@ define(function (require, exports, module) {
       this.initWebGL();
       if (!this._gl)
         return;
+
       this._sculpt = new Sculpt(this);
       this._background = new Background(this._gl, this);
       this._selection = new Selection(this._gl);
       this._rtt = new Rtt(this._gl);
       this._contour = new Contour(this._gl);
-      this._grid = Primitive.createGrid(this._gl);
+      this._grid = Primitives.createGrid(this._gl);
       this.initGrid();
 
       this.loadTextures();
@@ -363,27 +364,27 @@ define(function (require, exports, module) {
     /** Load the sphere */
     addSphere: function () {
       // make a cube and subdivide it
-      var mesh = new Multimesh(Primitive.createCube(this._gl));
+      var mesh = new Multimesh(Primitives.createCube(this._gl));
       mesh.normalizeSize();
       this.subdivideClamp(mesh);
       return this.addNewMesh(mesh);
     },
     addCube: function () {
-      var mesh = new Multimesh(Primitive.createCube(this._gl));
+      var mesh = new Multimesh(Primitives.createCube(this._gl));
       mesh.normalizeSize();
       mat4.scale(mesh.getMatrix(), mesh.getMatrix(), [0.7, 0.7, 0.7]);
       this.subdivideClamp(mesh, true);
       return this.addNewMesh(mesh);
     },
     addCylinder: function () {
-      var mesh = new Multimesh(Primitive.createCylinder(this._gl));
+      var mesh = new Multimesh(Primitives.createCylinder(this._gl));
       mesh.normalizeSize();
       mat4.scale(mesh.getMatrix(), mesh.getMatrix(), [0.7, 0.7, 0.7]);
       this.subdivideClamp(mesh);
       return this.addNewMesh(mesh);
     },
     addTorus: function (preview) {
-      var mesh = new Multimesh(Primitive.createTorus(this._gl, this._torusLength, this._torusWidth, this._torusRadius, this._torusRadial, this._torusTubular));
+      var mesh = new Multimesh(Primitives.createTorus(this._gl, this._torusLength, this._torusWidth, this._torusRadius, this._torusRadial, this._torusTubular));
       if (preview) {
         mesh.setShowWireframe(true);
         var scale = 0.3 * Utils.SCALE;

@@ -3,7 +3,7 @@ define(function (require, exports, module) {
   'use strict';
 
   var TR = require('gui/GuiTR');
-  var Render = require('render/Render');
+  var Render = require('mesh/Render');
   var Shader = require('render/Shader');
 
   var ShaderRTT = Shader.RTT;

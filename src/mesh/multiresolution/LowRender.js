@@ -3,7 +3,7 @@ define(function (require, exports, module) {
   'use strict';
 
   var Utils = require('misc/Utils');
-  var Render = require('render/Render');
+  var Render = require('mesh/Render');
   var Buffer = require('render/Buffer');
 
   var LowRender = function (render) {

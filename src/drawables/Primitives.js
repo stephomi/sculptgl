@@ -4,11 +4,11 @@ define(function (require, exports, module) {
 
   var glm = require('lib/glMatrix');
   var Mesh = require('mesh/Mesh');
-  var Remesh = require('editor/Remesh');
+  var Remesh = require('editing/Remesh');
 
   var mat4 = glm.mat4;
 
-  var Primitive = {};
+  var Primitives = {};
 
   var createCubeArray = function (side) {
     side = side || 1.0;
@@ -287,7 +287,7 @@ define(function (require, exports, module) {
 
   var slice = Array.prototype.slice;
 
-  Primitive.createGrid = function (gl) {
+  Primitives.createGrid = function (gl) {
     var mesh = createMesh(gl, createGridArray.apply(this, slice.call(arguments, 1)));
     if (gl) {
       mesh.setMode(gl.LINES);
@@ -297,19 +297,19 @@ define(function (require, exports, module) {
     return mesh;
   };
 
-  Primitive.createCube = function (gl) {
+  Primitives.createCube = function (gl) {
     return createMesh(gl, createCubeArray.apply(this, slice.call(arguments, 1)));
   };
 
-  Primitive.createCylinder = function (gl) {
+  Primitives.createCylinder = function (gl) {
     return createMesh(gl, createCylinderArray.apply(this, slice.call(arguments, 1)));
   };
 
-  Primitive.createTorus = function (gl) {
+  Primitives.createTorus = function (gl) {
     return createMesh(gl, createTorusArray.apply(this, slice.call(arguments, 1)));
   };
 
-  Primitive.createArrow = function (gl, thick, height, rConeT, rConeH, radSegments, heightSegments) {
+  Primitives.createArrow = function (gl, thick, height, rConeT, rConeH, radSegments, heightSegments) {
     thick = thick || 0.5;
     height = height || 2.0;
     radSegments = radSegments || 4;
@@ -329,7 +329,7 @@ define(function (require, exports, module) {
     return createMesh(gl, arrow);
   };
 
-  Primitive.createLine2D = function (gl, lx, ly, ux, uy) {
+  Primitives.createLine2D = function (gl, lx, ly, ux, uy) {
     var mesh = createMesh(gl, {
       vertices: new Float32Array([lx || 0.0, ly || 0.0, 0.0, ux || 0.0, uy || 0.0, 0.0])
     });
@@ -341,5 +341,5 @@ define(function (require, exports, module) {
     return mesh;
   };
 
-  module.exports = Primitive;
+  module.exports = Primitives;
 });

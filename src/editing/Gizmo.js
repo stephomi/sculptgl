@@ -3,7 +3,7 @@ define(function (require, exports, module) {
   'use strict';
 
   var glm = require('lib/glMatrix');
-  var Primitive = require('mesh/Primitive');
+  var Primitives = require('drawables/Primitives');
 
   var vec2 = glm.vec2;
   var vec3 = glm.vec3;
@@ -105,7 +105,7 @@ define(function (require, exports, module) {
     this._rotW = createGizmo(ROT_W);
 
     // line helper
-    this._lineHelper = Primitive.createLine2D(this._gl);
+    this._lineHelper = Primitives.createLine2D(this._gl);
     this._lineHelper.setShader('FLAT');
 
     this._lastDistToEye = 0.0;
@@ -154,9 +154,9 @@ define(function (require, exports, module) {
       mat4.translate(mat, mat, [0.0, ARROW_LENGTH * 0.5, 0.0]);
       vec3.copy(tra._color, color);
 
-      tra._pickGeo = Primitive.createArrow(this._gl, THICKNESS_PICK, ARROW_LENGTH, ARROW_CONE_THICK * 0.4);
+      tra._pickGeo = Primitives.createArrow(this._gl, THICKNESS_PICK, ARROW_LENGTH, ARROW_CONE_THICK * 0.4);
       tra._pickGeo._gizmo = tra;
-      tra._drawGeo = Primitive.createArrow(this._gl, THICKNESS, ARROW_LENGTH, ARROW_CONE_THICK, ARROW_CONE_LENGTH);
+      tra._drawGeo = Primitives.createArrow(this._gl, THICKNESS, ARROW_LENGTH, ARROW_CONE_THICK, ARROW_CONE_LENGTH);
       tra._drawGeo.setShader('FLAT');
     },
     _initTranslate: function () {
@@ -169,9 +169,9 @@ define(function (require, exports, module) {
       radius = radius || ROT_RADIUS;
       mthick = mthick || 1.0;
       vec3.copy(rot._color, color);
-      rot._pickGeo = Primitive.createTorus(this._gl, radius, THICKNESS_PICK * mthick, rad, 6, 64);
+      rot._pickGeo = Primitives.createTorus(this._gl, radius, THICKNESS_PICK * mthick, rad, 6, 64);
       rot._pickGeo._gizmo = rot;
-      rot._drawGeo = Primitive.createTorus(this._gl, radius, THICKNESS * mthick, rad, 6, 64);
+      rot._drawGeo = Primitives.createTorus(this._gl, radius, THICKNESS * mthick, rad, 6, 64);
       rot._drawGeo.setShader('FLAT');
     },
     _initRotate: function () {
@@ -185,9 +185,9 @@ define(function (require, exports, module) {
       mat4.rotate(mat, mat, Math.PI * 0.5, axis);
       mat4.translate(mat, mat, [0.0, ROT_RADIUS, 0.0]);
       vec3.copy(sca._color, color);
-      sca._pickGeo = Primitive.createCube(this._gl, CUBE_SIDE_PICK);
+      sca._pickGeo = Primitives.createCube(this._gl, CUBE_SIDE_PICK);
       sca._pickGeo._gizmo = sca;
-      sca._drawGeo = Primitive.createCube(this._gl, CUBE_SIDE);
+      sca._drawGeo = Primitives.createCube(this._gl, CUBE_SIDE);
       sca._drawGeo.setShader('FLAT');
     },
     _initScale: function () {

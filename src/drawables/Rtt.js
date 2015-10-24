@@ -6,18 +6,18 @@ define(function (require, exports, module) {
   var Shader = require('render/Shader');
   var WebGLCaps = require('render/WebGLCaps');
 
-  var Rtt = function (gl) {
+  var singletonBuffer;
+
+  var Rtt = function (gl, depth) {
     this._gl = gl; // webgl context
 
-    this._vertexBuffer = new Buffer(gl, gl.ARRAY_BUFFER, gl.STATIC_DRAW);
-
     this._rtt = gl.createTexture();
-    this._depth = gl.createRenderbuffer();
+    this._depth = depth === undefined ? gl.createRenderbuffer() : depth;
     this._framebuffer = gl.createFramebuffer();
 
-    this._shader = null; // the shader
-
-    this._size = [0, 0];
+    this._shader = null;
+    this._invSize = new Float32Array(2);
+    this._vertexBuffer = null;
 
     this.init();
   };
@@ -35,19 +35,22 @@ define(function (require, exports, module) {
     getTexture: function () {
       return this._rtt;
     },
+    getDepth: function () {
+      return this._depth;
+    },
+    getInverseSize: function () {
+      return this._invSize;
+    },
     init: function () {
       var gl = this._gl;
-
-      // set texture parameter
-      gl.bindTexture(gl.TEXTURE_2D, this._rtt);
-      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
-      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
-      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
-      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
-
-      this._vertexBuffer.update(new Float32Array([-1.0, -1.0, 4.0, -1.0, -1.0, 4.0]));
-
       this._shader = Shader[this.getShaderType()].getOrCreate(gl);
+
+      if (!singletonBuffer) {
+        singletonBuffer = new Buffer(gl, gl.ARRAY_BUFFER, gl.STATIC_DRAW);
+        singletonBuffer.update(new Float32Array([-1.0, -1.0, 4.0, -1.0, -1.0, 4.0]));
+      }
+
+      this._vertexBuffer = singletonBuffer;
     },
     getShaderType: function () {
       return 'RTT';
@@ -63,11 +66,15 @@ define(function (require, exports, module) {
       var gl = this._gl;
       var type = this.getType(gl);
 
-      this._size[0] = width;
-      this._size[1] = height;
+      this._invSize[0] = 1.0 / width;
+      this._invSize[1] = 1.0 / height;
 
       gl.bindTexture(gl.TEXTURE_2D, this._rtt);
       gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, width, height, 0, gl.RGBA, type, null);
+      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
 
       if (this._depth) {
         gl.bindRenderbuffer(gl.RENDERBUFFER, this._depth);
@@ -77,6 +84,8 @@ define(function (require, exports, module) {
       gl.bindFramebuffer(gl.FRAMEBUFFER, this._framebuffer);
       gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, this._rtt, 0);
       gl.framebufferRenderbuffer(gl.FRAMEBUFFER, gl.DEPTH_ATTACHMENT, gl.RENDERBUFFER, this._depth);
+
+      gl.bindTexture(gl.TEXTURE_2D, null);
     },
     release: function () {
       if (this._rtt)

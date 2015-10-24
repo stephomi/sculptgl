@@ -3,7 +3,7 @@ define(function (require, exports, module) {
   'use strict';
 
   var TR = require('gui/GuiTR');
-  var Tools = require('editor/tools/Tools');
+  var Tools = require('editing/tools/Tools');
   var getOptionsURL = require('misc/getOptionsURL');
   var GuiSculptingTools = require('gui/GuiSculptingTools');
 

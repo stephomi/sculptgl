@@ -5,7 +5,7 @@ define(function (require, exports, module) {
   var glm = require('lib/glMatrix');
   var Utils = require('misc/Utils');
   var Geometry = require('math3d/Geometry');
-  var Smooth = require('editor/tools/Smooth');
+  var Smooth = require('editing/tools/Smooth');
 
   var vec3 = glm.vec3;
 

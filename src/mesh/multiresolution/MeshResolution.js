@@ -3,7 +3,7 @@ define(function (require, exports, module) {
   'use strict';
 
   var Utils = require('misc/Utils');
-  var Subdivision = require('editor/Subdivision');
+  var Subdivision = require('editing/Subdivision');
   var Mesh = require('mesh/Mesh');
 
   var MeshResolution = function (transformData, render, mesh) {

@@ -4,7 +4,7 @@ define(function (require, exports, module) {
 
   var Utils = require('misc/Utils');
   var Tablet = require('misc/Tablet');
-  var SculptBase = require('editor/tools/SculptBase');
+  var SculptBase = require('editing/tools/SculptBase');
 
   var Crease = function (main) {
     SculptBase.call(this, main);

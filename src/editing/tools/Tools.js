@@ -2,19 +2,19 @@ define(function (require, exports, module) {
 
   'use strict';
 
-  var Brush = require('editor/tools/Brush');
-  var Inflate = require('editor/tools/Inflate');
-  var Twist = require('editor/tools/Twist');
-  var Smooth = require('editor/tools/Smooth');
-  var Flatten = require('editor/tools/Flatten');
-  var Pinch = require('editor/tools/Pinch');
-  var Crease = require('editor/tools/Crease');
-  var Drag = require('editor/tools/Drag');
-  var Paint = require('editor/tools/Paint');
-  var Move = require('editor/tools/Move');
-  var Masking = require('editor/tools/Masking');
-  var LocalScale = require('editor/tools/LocalScale');
-  var Transform = require('editor/tools/Transform');
+  var Brush = require('editing/tools/Brush');
+  var Inflate = require('editing/tools/Inflate');
+  var Twist = require('editing/tools/Twist');
+  var Smooth = require('editing/tools/Smooth');
+  var Flatten = require('editing/tools/Flatten');
+  var Pinch = require('editing/tools/Pinch');
+  var Crease = require('editing/tools/Crease');
+  var Drag = require('editing/tools/Drag');
+  var Paint = require('editing/tools/Paint');
+  var Move = require('editing/tools/Move');
+  var Masking = require('editing/tools/Masking');
+  var LocalScale = require('editing/tools/LocalScale');
+  var Transform = require('editing/tools/Transform');
 
   var Tools = {};
 

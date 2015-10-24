@@ -3,7 +3,7 @@ define(function (require, exports, module) {
   'use strict';
 
   var glm = require('lib/glMatrix');
-  var Tools = require('editor/tools/Tools');
+  var Tools = require('editing/tools/Tools');
   var TR = require('gui/GuiTR');
   var Picking = require('math3d/Picking');
 

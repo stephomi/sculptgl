@@ -4,8 +4,8 @@ define(function (require, exports, module) {
 
   var glm = require('lib/glMatrix');
   var Utils = require('misc/Utils');
-  var Gizmo = require('editor/Gizmo');
-  var SculptBase = require('editor/tools/SculptBase');
+  var Gizmo = require('editing/Gizmo');
+  var SculptBase = require('editing/tools/SculptBase');
 
   var vec3 = glm.vec3;
   var mat4 = glm.mat4;

@@ -2,7 +2,7 @@ define(function (require, exports, module) {
 
   'use strict';
 
-  var Tools = require('editor/tools/Tools');
+  var Tools = require('editing/tools/Tools');
 
   var Sculpt = function (main) {
     this._main = main;

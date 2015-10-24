@@ -3,7 +3,7 @@ define(function (require, exports, module) {
   'use strict';
 
   var Utils = require('misc/Utils');
-  var Remesh = require('editor/Remesh');
+  var Remesh = require('editing/Remesh');
 
   var Export = {};
 

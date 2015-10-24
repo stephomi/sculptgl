@@ -4,8 +4,8 @@ define(function (require, exports, module) {
 
   var Utils = require('misc/Utils');
   var Tablet = require('misc/Tablet');
-  var SculptBase = require('editor/tools/SculptBase');
-  var Smooth = require('editor/tools/Smooth');
+  var SculptBase = require('editing/tools/SculptBase');
+  var Smooth = require('editing/tools/Smooth');
 
   var Inflate = function (main) {
     SculptBase.call(this, main);

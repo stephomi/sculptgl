@@ -3,8 +3,8 @@ define(function (require, exports, module) {
   'use strict';
 
   var glm = require('lib/glMatrix');
-  var HoleFilling = require('editor/HoleFilling');
-  var SurfaceNets = require('editor/SurfaceNets');
+  var HoleFilling = require('editing/HoleFilling');
+  var SurfaceNets = require('editing/SurfaceNets');
   var Geometry = require('math3d/Geometry');
   var Mesh = require('mesh/Mesh');
   var Utils = require('misc/Utils');

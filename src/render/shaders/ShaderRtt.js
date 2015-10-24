@@ -74,7 +74,7 @@ define(function (require, exports, module) {
     gl.bindTexture(gl.TEXTURE_2D, rtt.getTexture());
     gl.uniform1i(this.uniforms.uTexture0, 0);
 
-    gl.uniform2fv(this.uniforms.uInvSize, [1.0 / rtt._size[0], 1.0 / rtt._size[1]]);
+    gl.uniform2fv(this.uniforms.uInvSize, rtt.getInverseSize());
 
     gl.uniform1i(this.uniforms.uFilmic, ShaderRtt.FILMIC);
 

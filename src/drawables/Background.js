@@ -58,15 +58,7 @@ define(function (require, exports, module) {
     init: function () {
       this.getTexCoordBuffer().update(new Float32Array([0.0, 0.0, 1.0, 0.0, 0.0, 1.0, 1.0, 1.0]));
       this._shader = Shader.BACKGROUND.getOrCreate(this._gl);
-
-      var cbLoadBackground = this.loadBackground.bind(this);
-      document.getElementById('backgroundopen').addEventListener('change', cbLoadBackground, false);
-      this.removeCallback = function () {
-        document.getElementById('backgroundopen').removeEventListener('change', cbLoadBackground, false);
-      };
-    },
-    removeEvents: function () {
-      if (this.removeCallback) this.removeCallback();
+      document.getElementById('backgroundopen').addEventListener('change', this.loadBackground.bind(this), false);
     },
     release: function () {
       if (this._backgroundLoc)

@@ -4,11 +4,10 @@ define(function (require, exports, module) {
 
   var Utils = require('misc/Utils');
   var Shader = require('render/Shader');
-  var Rtt = require('render/Rtt');
+  var Rtt = require('drawables/Rtt');
 
   var Contour = function (gl) {
-    Rtt.call(this, gl);
-    this._depth = null; // no need for a z-buffer
+    Rtt.call(this, gl, null); // no need for a z-buffer
   };
 
   Contour.prototype = {

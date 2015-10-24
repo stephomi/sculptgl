@@ -5,8 +5,8 @@ define(function (require, exports, module) {
   var glm = require('lib/glMatrix');
   var Utils = require('misc/Utils');
   var Tablet = require('misc/Tablet');
-  var SculptBase = require('editor/tools/SculptBase');
-  var Flatten = require('editor/tools/Flatten');
+  var SculptBase = require('editing/tools/SculptBase');
+  var Flatten = require('editing/tools/Flatten');
 
   var vec3 = glm.vec3;
 
