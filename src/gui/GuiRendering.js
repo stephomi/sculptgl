@@ -16,10 +16,10 @@ define(function (require, exports, module) {
 
     // ui rendering
     this._menu = null; // ui menu
-    this._ctrlFlatShading = null; // flat shading controller
+    this._ctrlFlatShadizfng = null; // flat shading controller
     this._ctrlShowWireframe = null; // wireframe controller
     this._ctrlShaders = null; // shaders controller
-    this._ctrlMatcap = null; // matcap texture controller
+    this._ctrlMatcap = null; // matcap texzfture controller
     this._ctrlUV = null; // upload a texture
 
     this.init(guiParent);
@@ -204,9 +204,11 @@ define(function (require, exports, module) {
     loadTextureUV: function (event) {
       if (event.target.files.length === 0)
         return;
+
       var file = event.target.files[0];
       if (!file.type.match('image.*'))
         return;
+
       var reader = new FileReader();
       var main = this._main;
       reader.onload = function (evt) {
@@ -214,38 +216,45 @@ define(function (require, exports, module) {
         ShaderUV.texture0 = undefined;
         ShaderUV.texPath = evt.target.result;
         main.render();
-        document.getElementById('textureopen').value = '';
       };
+
+      document.getElementById('textureopen').value = '';
       reader.readAsDataURL(file);
     },
-    loadMatcap: function () {
+    loadMatcap: function (event) {
       if (event.target.files.length === 0)
         return;
+
       var file = event.target.files[0];
       if (!file.type.match('image.*'))
         return;
+
       var reader = new FileReader();
       var main = this._main;
       var ctrl = this._ctrlMatcap;
 
       reader.onload = function (evt) {
-
-        var idMatcap = ShaderMatcap.matcaps.length;
-        ShaderMatcap.matcaps.push({
-          name: file.name
-        });
         var img = new Image();
         img.src = evt.target.result;
-        ShaderMatcap.loadTexture(main._gl, img, idMatcap);
 
-        var entry = {};
-        entry[idMatcap] = file.name;
-        ctrl.addOptions(entry);
-        ctrl.setValue(idMatcap);
+        img.onload = function () {
+          var idMatcap = ShaderMatcap.matcaps.length;
+          ShaderMatcap.matcaps.push({
+            name: file.name
+          });
 
-        main.render();
-        document.getElementById('matcapopen').value = '';
+          ShaderMatcap.createTexture(main._gl, img, idMatcap);
+
+          var entry = {};
+          entry[idMatcap] = file.name;
+          ctrl.addOptions(entry);
+          ctrl.setValue(idMatcap);
+
+          main.render();
+        };
       };
+
+      document.getElementById('matcapopen').value = '';
       reader.readAsDataURL(file);
     },
     importMatcap: function () {

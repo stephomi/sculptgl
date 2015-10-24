@@ -104,9 +104,11 @@ define(function (require, exports, module) {
     loadAlpha: function (event) {
       if (event.target.files.length === 0)
         return;
+
       var file = event.target.files[0];
       if (!file.type.match('image.*'))
         return;
+
       var reader = new FileReader();
       var main = this._main;
       var tool = GuiSculptingTools[main.getSculpt()._tool];
@@ -115,8 +117,9 @@ define(function (require, exports, module) {
         var img = new Image();
         img.src = evt.target.result;
         img.onload = main.onLoadAlphaImage.bind(main, img, file.name || 'new alpha', tool);
-        document.getElementById('alphaopen').value = '';
       };
+
+      document.getElementById('alphaopen').value = '';
       reader.readAsDataURL(file);
     },
     addAlphaOptions: function (opts) {

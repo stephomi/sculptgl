@@ -290,15 +290,18 @@ define(function (require, exports, module) {
     /** Load textures (preload) */
     loadTextures: function () {
       var self = this;
+      var gl = this._gl;
+
       var loadTex = function (path, idMaterial) {
         var mat = new Image();
         mat.src = path;
-        var gl = self._gl;
+
         mat.onload = function () {
-          ShaderMatcap.loadTexture(gl, mat, idMaterial);
+          ShaderMatcap.createTexture(gl, mat, idMaterial);
           self.render();
         };
       };
+
       for (var i = 0, mats = ShaderMatcap.matcaps, l = mats.length; i < l; ++i)
         loadTex(mats[i].path, i);
 

@@ -281,7 +281,7 @@ define(function (require, exports, module) {
       this._gui.callFunc('onMouseMove', event);
       this.onDeviceMove(event);
     },
-    onMouseOver: function () {
+    onMouseOver: function (event) {
       this._focusGui = false;
       this._gui.callFunc('onMouseOver', event);
     },

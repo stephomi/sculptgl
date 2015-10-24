@@ -23,19 +23,27 @@ define(function (require, exports, module) {
     loadBackground: function (event) {
       if (event.target.files.length === 0)
         return;
+
       var file = event.target.files[0];
       if (!file.type.match('image.*'))
         return;
+
+      var self = this;
       var reader = new FileReader();
-      var canvas = this._main.getCanvas();
       reader.onload = function (evt) {
         var bg = new Image();
         bg.src = evt.target.result;
-        this.loadBackgroundTexture(bg);
-        this.onResize(canvas.width, canvas.height);
-        this._main.render();
-        document.getElementById('backgroundopen').value = '';
-      }.bind(this);
+
+        bg.onload = function () {
+
+          var canvas = self._main.getCanvas();
+          self.loadBackgroundTexture(bg);
+          self.onResize(canvas.width, canvas.height);
+          self._main.render();
+        };
+      };
+
+      document.getElementById('backgroundopen').value = '';
       reader.readAsDataURL(file);
     },
     getGL: function () {

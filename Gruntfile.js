@@ -1,3 +1,4 @@
+/* globals module */
 module.exports = function (grunt) {
   'use strict';
 
@@ -6,6 +7,9 @@ module.exports = function (grunt) {
   };
 
   var jshint = {
+    options: {
+      jshintrc: true,
+    },
     files: ['Gruntfile.js', 'src/**/*.js']
   };
 
