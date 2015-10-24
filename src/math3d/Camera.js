@@ -184,7 +184,7 @@ define(function (require, exports, module) {
       };
     })(),
     setOrbit: function (rx, ry) {
-      var radLimit = Math.PI * 0.45;
+      var radLimit = Math.PI * 0.5;
       this._rotX = Math.max(Math.min(rx, radLimit), -radLimit);
       this._rotY = ry;
       var qrt = this._quatRot;
