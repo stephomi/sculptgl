@@ -44,7 +44,7 @@ define(function (require, exports, module) {
       mesh.updateGeometry( /*this._idFaceState, this._idVertState*/ ); // TODO local update ?
       mesh.updateTopology( /*this._idFaceState*/ ); // TODO local update ?
       mesh.updateDuplicateColorsAndMaterials();
-      mesh.updateFlatShading();
+      mesh.updateDrawArrays();
       mesh.updateColorBuffer();
       mesh.updateMaterialBuffer();
       mesh.updateBuffers();

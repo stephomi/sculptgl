@@ -91,8 +91,8 @@ define(function (require, exports, module) {
 
       var mesh = this.getMesh();
       mesh.updateDuplicateColorsAndMaterials(iVertsInRadius);
-      var idFaces = mesh.getFacesFromVertices(iVertsInRadius);
-      mesh.updateFlatShading(idFaces);
+      if (mesh.isUsingDrawArrays())
+        mesh.updateDrawArrays(mesh.getFacesFromVertices(iVertsInRadius));
     },
     paint: function (iVerts, center, radiusSquared, intensity, hardness, picking) {
       var mesh = this.getMesh();
@@ -158,7 +158,7 @@ define(function (require, exports, module) {
       }
 
       mesh.updateDuplicateColorsAndMaterials();
-      mesh.updateFlatShading();
+      mesh.updateDrawArrays();
       this.updateRender();
     }
   };

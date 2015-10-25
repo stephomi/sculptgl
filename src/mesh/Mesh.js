@@ -95,7 +95,7 @@ define(function (require, exports, module) {
       this.updateOctree(iFaces);
       if (this._render) {
         this.updateDuplicateGeometry(iVerts);
-        this.updateFlatShading(iFaces);
+        this.updateDrawArrays(iFaces);
       }
     },
     allocateArrays: function () {

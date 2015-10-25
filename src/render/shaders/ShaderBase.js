@@ -24,7 +24,7 @@ define(function (require, exports, module) {
 
   ShaderBase.showSymmetryLine = getOptionsURL().mirrorline;
   ShaderBase.uniformNames = {};
-  ShaderBase.uniformNames.commonUniforms = ['uMV', 'uMVP', 'uN', 'uEM', 'uEN', 'uPlaneO', 'uPlaneN', 'uSym', 'uCurvature', 'uAlpha', 'uFov'];
+  ShaderBase.uniformNames.commonUniforms = ['uMV', 'uMVP', 'uN', 'uEM', 'uEN', 'uFlat', 'uPlaneO', 'uPlaneN', 'uSym', 'uCurvature', 'uAlpha', 'uFov'];
 
   ShaderBase.strings = {};
   ShaderBase.strings.colorSpaceGLSL = colorSpaceGLSL;
@@ -43,10 +43,19 @@ define(function (require, exports, module) {
     'uniform float uCurvature;',
     'uniform float uFov;',
     'varying float vMasking;',
+    'uniform int uFlat;'
   ].join('\n');
   ShaderBase.strings.fragColorFunction = [
     curvatureGLSL,
     colorSpaceGLSL,
+    '#extension GL_OES_standard_derivatives : enable',
+    'vec3 getNormal() {',
+    '  #ifndef GL_OES_standard_derivatives',
+    '    return normalize(gl_FrontFacing ? vNormal : -vNormal);',
+    '  #else',
+    '    return uFlat == 0 ? normalize(gl_FrontFacing ? vNormal : -vNormal) : -normalize(cross(dFdy(vVertex), dFdx(vVertex)));',
+    '  #endif',
+    '}',
     'vec4 encodeFragColor(const in vec3 frag, const in float alpha) {',
     '  vec3 col = computeCurvature(vVertex, vNormal, frag, uCurvature, uFov);',
     '  col *= (0.3 + 0.7 * vMasking);',
@@ -138,6 +147,7 @@ define(function (require, exports, module) {
       gl.uniformMatrix4fv(uniforms.uMVP, false, mesh.getMVP());
       gl.uniformMatrix3fv(uniforms.uN, false, mesh.getN());
 
+      gl.uniform1i(uniforms.uFlat, mesh.getFlatShading());
       gl.uniform3fv(uniforms.uPlaneO, vec3.transformMat4(tmp, mesh.getSymmetryOrigin(), mesh.getMV()));
       gl.uniform3fv(uniforms.uPlaneN, vec3.normalize(tmp, vec3.transformMat3(tmp, mesh.getSymmetryNormal(), mesh.getN())));
       gl.uniform1i(uniforms.uSym, useSym ? 1 : 0);

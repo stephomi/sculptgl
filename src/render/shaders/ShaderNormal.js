@@ -46,7 +46,7 @@ define(function (require, exports, module) {
     ShaderBase.strings.fragColorUniforms,
     ShaderBase.strings.fragColorFunction,
     'void main() {',
-    '  gl_FragColor = encodeFragColor(sRGBToLinear(vNormal * 0.5 + 0.5), uAlpha);',
+    '  gl_FragColor = encodeFragColor(sRGBToLinear(getNormal() * 0.5 + 0.5), uAlpha);',
     '}'
   ].join('\n');
 

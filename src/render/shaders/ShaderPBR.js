@@ -92,14 +92,12 @@ define(function (require, exports, module) {
     pbrGLSL,
     '',
     'void main(void) {',
-    '  vec3 normal = normalize(gl_FrontFacing ? vNormal : -vNormal);',
-    '  vec3 eye = normalize(vVertex);',
-    '',
+    '  vec3 normal = getNormal();',
     '  float roughness = max( 0.0001, vRoughness );',
     '  vec3 albedo = vAlbedo * (1.0 - vMetallic);',
     '  vec3 specular = mix( vec3(0.04), vAlbedo, vMetallic);',
     '',
-    '  vec3 color = uExposure * computeIBL_UE4( normal, -eye, albedo, roughness, specular );',
+    '  vec3 color = uExposure * computeIBL_UE4( normal, -normalize(vVertex), albedo, roughness, specular );',
     '  gl_FragColor = encodeFragColor(color, uAlpha);',
     '}'
   ].join('\n');

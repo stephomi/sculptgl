@@ -89,10 +89,11 @@ define(function (require, exports, module) {
     ShaderBase.strings.fragColorUniforms,
     ShaderBase.strings.fragColorFunction,
     'void main() {',
+    '  vec3 normal = getNormal();',
     '  vec3 nm_z = normalize(vVertex);',
     '  vec3 nm_x = cross(nm_z, vec3(0.0, 1.0, 0.0));',
     '  vec3 nm_y = cross(nm_x, nm_z);',
-    '  vec2 texCoord = 0.5 + 0.5 * vec2(dot(vNormal, nm_x), dot(vNormal, nm_y));',
+    '  vec2 texCoord = 0.5 + 0.5 * vec2(dot(normal, nm_x), dot(normal, nm_y));',
     '  vec3 color = sRGBToLinear(texture2D(uTexture0, texCoord).rgb) * vColor;',
     '  gl_FragColor = encodeFragColor(color, uAlpha);',
     '}'

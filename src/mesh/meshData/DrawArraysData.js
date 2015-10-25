@@ -14,7 +14,7 @@ define(function (require, exports, module) {
 
   DrawArraysData.prototype = {
     getVerticesDrawArrays: function () {
-      if (!this._verticesXYZ) this.updateDrawArrays(true);
+      if (!this._verticesXYZ) this.updateDrawArrays();
       return this._verticesXYZ;
     },
     getNormalsDrawArrays: function () {
@@ -29,7 +29,7 @@ define(function (require, exports, module) {
     getTexCoordsDrawArrays: function () {
       return this._texCoordsST;
     },
-    forceDrawArrays: function () {
+    setAlreadyDrawArrays: function () {
       // kind of a hack, to be used if the main arrays are already draw arrays
       var mesh = this._mesh;
       this._verticesXYZ = mesh.getVertices();
@@ -52,8 +52,10 @@ define(function (require, exports, module) {
       }
     },
     /** Updates the arrays that are going to be used by webgl */
-    updateDrawArrays: function (flat, iFaces) {
+    updateDrawArrays: function (iFaces) {
       var mesh = this._mesh;
+      if (!mesh.isUsingDrawArrays())
+        return;
 
       var vAr = mesh.getVertices();
       var nAr = mesh.getNormals();
@@ -62,7 +64,6 @@ define(function (require, exports, module) {
 
       var fAr = mesh.getFaces();
 
-      var faceNormals = mesh.getFaceNormals();
       var nbTriangles = mesh.getNbTriangles();
       var facesToTris = mesh.hasOnlyTriangles() ? null : mesh.getFacesToTriangles();
 
@@ -80,9 +81,9 @@ define(function (require, exports, module) {
       }
 
       var nbFaces = full ? mesh.getNbFaces() : iFaces.length;
+      console.time('yo');
       for (var i = 0; i < nbFaces; ++i) {
         var idFace = full ? i : iFaces[i];
-        var idTri = idFace * 3;
         var ftt = facesToTris ? facesToTris[idFace] : idFace;
         var vId = ftt * 9;
 
@@ -126,21 +127,15 @@ define(function (require, exports, module) {
         cdm[vId + 8] = mAr[id3 + 2];
 
         // normals
-        if (flat) {
-          cdn[vId] = cdn[vId + 3] = cdn[vId + 6] = faceNormals[idTri];
-          cdn[vId + 1] = cdn[vId + 4] = cdn[vId + 7] = faceNormals[idTri + 1];
-          cdn[vId + 2] = cdn[vId + 5] = cdn[vId + 8] = faceNormals[idTri + 2];
-        } else {
-          cdn[vId] = nAr[id1];
-          cdn[vId + 1] = nAr[id1 + 1];
-          cdn[vId + 2] = nAr[id1 + 2];
-          cdn[vId + 3] = nAr[id2];
-          cdn[vId + 4] = nAr[id2 + 1];
-          cdn[vId + 5] = nAr[id2 + 2];
-          cdn[vId + 6] = nAr[id3];
-          cdn[vId + 7] = nAr[id3 + 1];
-          cdn[vId + 8] = nAr[id3 + 2];
-        }
+        cdn[vId] = nAr[id1];
+        cdn[vId + 1] = nAr[id1 + 1];
+        cdn[vId + 2] = nAr[id1 + 2];
+        cdn[vId + 3] = nAr[id2];
+        cdn[vId + 4] = nAr[id2 + 1];
+        cdn[vId + 5] = nAr[id2 + 2];
+        cdn[vId + 6] = nAr[id3];
+        cdn[vId + 7] = nAr[id3 + 1];
+        cdn[vId + 8] = nAr[id3 + 2];
 
         if (id4 < 0)
           continue;
@@ -180,22 +175,17 @@ define(function (require, exports, module) {
         cdm[vId + 8] = mAr[id4 + 2];
 
         // normals
-        if (flat) {
-          cdn[vId] = cdn[vId + 3] = cdn[vId + 6] = faceNormals[idTri];
-          cdn[vId + 1] = cdn[vId + 4] = cdn[vId + 7] = faceNormals[idTri + 1];
-          cdn[vId + 2] = cdn[vId + 5] = cdn[vId + 8] = faceNormals[idTri + 2];
-        } else {
-          cdn[vId] = nAr[id1];
-          cdn[vId + 1] = nAr[id1 + 1];
-          cdn[vId + 2] = nAr[id1 + 2];
-          cdn[vId + 3] = nAr[id3];
-          cdn[vId + 4] = nAr[id3 + 1];
-          cdn[vId + 5] = nAr[id3 + 2];
-          cdn[vId + 6] = nAr[id4];
-          cdn[vId + 7] = nAr[id4 + 1];
-          cdn[vId + 8] = nAr[id4 + 2];
-        }
+        cdn[vId] = nAr[id1];
+        cdn[vId + 1] = nAr[id1 + 1];
+        cdn[vId + 2] = nAr[id1 + 2];
+        cdn[vId + 3] = nAr[id3];
+        cdn[vId + 4] = nAr[id3 + 1];
+        cdn[vId + 5] = nAr[id3 + 2];
+        cdn[vId + 6] = nAr[id4];
+        cdn[vId + 7] = nAr[id4 + 1];
+        cdn[vId + 8] = nAr[id4 + 2];
       }
+      console.timeEnd('yo');
       if (mesh.isUsingTexCoords())
         this.updateDrawArraysTexCoord(iFaces);
     },

@@ -21,7 +21,7 @@ define(function (require, exports, module) {
       if (skipUpdate) return;
       var mesh = this._mesh;
       mesh.updateDuplicateColorsAndMaterials();
-      mesh.updateFlatShading();
+      mesh.updateDrawArrays();
       mesh.updateColorBuffer();
       mesh.updateMaterialBuffer();
       this._main.setMesh(mesh);

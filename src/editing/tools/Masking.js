@@ -68,7 +68,7 @@ define(function (require, exports, module) {
     updateAndRenderMask: function () {
       var mesh = this.getMesh();
       mesh.updateDuplicateColorsAndMaterials();
-      mesh.updateFlatShading();
+      mesh.updateDrawArrays();
       this.updateRender();
     },
     blur: function () {

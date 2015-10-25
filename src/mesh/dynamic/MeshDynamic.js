@@ -114,7 +114,7 @@ define(function (require, exports, module) {
       if (this.getShowWireframe())
         this.updateWireframe(iFaces);
       if (this.isUsingDrawArrays())
-        this.updateDrawArrays(true, iFaces);
+        this.updateDrawArrays(iFaces);
     },
     getWireframe: function () {
       if (!this._wireframe) {
@@ -126,11 +126,6 @@ define(function (require, exports, module) {
     setShowWireframe: function (showWireframe) {
       this._wireframe = null;
       this.getRender().setShowWireframe(showWireframe);
-    },
-    setFlatShading: function (flatShading) {
-      this.getRender().setFlatShading(flatShading);
-      // recompute wireframe if enabled
-      this.setShowWireframe(this.getShowWireframe());
     },
     updateWireframe: function (iFaces) {
       var wire = this._wireframe;

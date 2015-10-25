@@ -291,8 +291,8 @@ define(function (require, exports, module) {
     var mesh = createMesh(gl, createGridArray.apply(this, slice.call(arguments, 1)));
     if (gl) {
       mesh.setMode(gl.LINES);
-      mesh.setFlatShading(true); // draw array ...
-      mesh.forceDrawArrays();
+      mesh.setUseDrawArrays(true);
+      mesh.setAlreadyDrawArrays();
     }
     return mesh;
   };
@@ -335,8 +335,8 @@ define(function (require, exports, module) {
     });
     if (gl) {
       mesh.setMode(gl.LINES);
-      mesh.setFlatShading(true); // draw array ...
-      mesh.forceDrawArrays();
+      mesh.setUseDrawArrays(true);
+      mesh.setAlreadyDrawArrays();
     }
     return mesh;
   };

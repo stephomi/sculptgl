@@ -19,6 +19,7 @@ define(function (require, exports, module) {
     this._curvature = Math.min(opts.curvature, 5.0);
     this._texture0 = null;
 
+    this._useDrawArrays = false;
     this._vertexBuffer = new Buffer(gl, gl.ARRAY_BUFFER, gl.DYNAMIC_DRAW);
     this._normalBuffer = new Buffer(gl, gl.ARRAY_BUFFER, gl.DYNAMIC_DRAW);
     this._colorBuffer = new Buffer(gl, gl.ARRAY_BUFFER, gl.DYNAMIC_DRAW);
@@ -41,6 +42,9 @@ define(function (require, exports, module) {
   Render.ONLY_DRAW_ARRAYS = false;
 
   Render.prototype = {
+    ////////////////
+    // GETTERS
+    ////////////////
     getCount: function () {
       var gl = this._gl;
       if (this._mode === gl.TRIANGLES)
@@ -49,41 +53,11 @@ define(function (require, exports, module) {
         return this._mesh.getNbVertices();
       return 0;
     },
-    getFlatColor: function () {
-      return this._flatColor;
-    },
     getGL: function () {
       return this._gl;
     },
     getMesh: function () {
       return this._mesh;
-    },
-    getMode: function () {
-      return this._mode;
-    },
-    getAlbedo: function () {
-      return this._albedo;
-    },
-    getRoughness: function () {
-      return this._roughness;
-    },
-    getMetallic: function () {
-      return this._metallic;
-    },
-    setMode: function (mode) {
-      this._mode = mode;
-    },
-    setFlatColor: function (val) {
-      this._flatColor.set(val);
-    },
-    setAlbedo: function (val) {
-      this._albedo.set(val);
-    },
-    setRoughness: function (val) {
-      this._roughness = val;
-    },
-    setMetallic: function (val) {
-      this._metallic = val;
     },
     getVertexBuffer: function () {
       return this._vertexBuffer;
@@ -106,33 +80,44 @@ define(function (require, exports, module) {
     getWireframeBuffer: function () {
       return this._wireframeBuffer;
     },
-    isUsingDrawArrays: function () {
-      // Return true if the render is using drawArrays instead of drawElements
-      return Render.ONLY_DRAW_ARRAYS ? true : this.getFlatShading();
+    ////////////////
+    // GETTERS / SETTERS
+    ////////////////
+    getFlatColor: function () {
+      return this._flatColor;
     },
-    isUsingTexCoords: function () {
-      return this._shaderName === 'UV';
+    setFlatColor: function (val) {
+      this._flatColor.set(val);
     },
-    setOpacity: function (alpha) {
-      this._alpha = alpha;
+    getMode: function () {
+      return this._mode;
+    },
+    setMode: function (mode) {
+      this._mode = mode;
+    },
+    getAlbedo: function () {
+      return this._albedo;
+    },
+    setAlbedo: function (val) {
+      this._albedo.set(val);
+    },
+    getRoughness: function () {
+      return this._roughness;
+    },
+    setRoughness: function (val) {
+      this._roughness = val;
+    },
+    getMetallic: function () {
+      return this._metallic;
+    },
+    setMetallic: function (val) {
+      this._metallic = val;
     },
     getOpacity: function () {
       return this._alpha;
     },
-    setCurvature: function (cur) {
-      this._curvature = cur;
-    },
-    getCurvature: function () {
-      return this._curvature;
-    },
-    isTransparent: function () {
-      return this._alpha < 0.99;
-    },
-    getFlatShading: function () {
-      return this._flatShading;
-    },
-    getShowWireframe: function () {
-      return this._showWireframe;
+    setOpacity: function (alpha) {
+      this._alpha = alpha;
     },
     getTexture0: function () {
       return this._texture0;
@@ -146,14 +131,36 @@ define(function (require, exports, module) {
     setMatcap: function (idMat) {
       this._matcap = idMat;
     },
+    getCurvature: function () {
+      return this._curvature;
+    },
+    setCurvature: function (cur) {
+      this._curvature = cur;
+    },
+    getFlatShading: function () {
+      return this._flatShading;
+    },
+    setFlatShading: function (flatShading) {
+      this._flatShading = flatShading;
+    },
+    getShowWireframe: function () {
+      return this._showWireframe;
+    },
     setShowWireframe: function (showWireframe) {
       this._showWireframe = Render.ONLY_DRAW_ARRAYS ? false : showWireframe;
       this.updateWireframeBuffer();
     },
-    setFlatShading: function (flatShading) {
-      this._flatShading = flatShading;
-      this.updateFlatShading();
-      this.updateBuffers();
+    isUsingDrawArrays: function () {
+      return this._useDrawArrays || Render.ONLY_DRAW_ARRAYS;
+    },
+    setUseDrawArrays: function (bool) {
+      this._useDrawArrays = bool;
+    },
+    isUsingTexCoords: function () {
+      return this._shaderName === 'UV';
+    },
+    isTransparent: function () {
+      return this._alpha < 0.99;
     },
     getShaderName: function () {
       return this._shaderName;
@@ -167,20 +174,18 @@ define(function (require, exports, module) {
       if (hasUV) {
         this._mesh.updateDuplicateGeometry();
         this._mesh.updateDuplicateColorsAndMaterials();
-        if (this.isUsingTexCoords()) this.updateFlatShading();
+        this._mesh.updateDrawArrays();
       }
       this.updateBuffers();
     },
-    updateFlatShading: function (iFaces) {
-      if (this.isUsingDrawArrays())
-        this._mesh.updateDrawArrays(this.getFlatShading(), iFaces);
-    },
     initRender: function () {
-      if (this._shaderName === 'MATCAP' && !this._texture0)
-        this.setMatcap(this._matcap);
+      if (this._shaderName === 'MATCAP' && !this._texture0) this.setMatcap(this._matcap);
       this.setShaderName(this._shaderName);
       this.setShowWireframe(this.getShowWireframe());
     },
+    ////////////////
+    // RENDER
+    ////////////////
     render: function (main) {
       Shader[this._shaderName].getOrCreate(this.getGL()).draw(this, main);
     },
@@ -190,6 +195,9 @@ define(function (require, exports, module) {
     renderFlatColor: function (main) {
       Shader.FLAT.getOrCreate(this.getGL()).draw(this, main);
     },
+    ////////////////
+    // UPDATE BUFFERS
+    ////////////////
     updateVertexBuffer: function () {
       this.getVertexBuffer().update(this._mesh.getRenderVertices());
     },

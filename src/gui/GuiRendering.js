@@ -85,12 +85,9 @@ define(function (require, exports, module) {
       this._main.render();
     },
     onCurvatureChanged: function (val) {
-      var main = this._main;
-      var mesh = main.getMesh();
-      if (!mesh)
-        return;
-      mesh.getRender().setCurvature(val / 20.0);
-      main.render();
+      if (!this._main.getMesh()) return;
+      this._main.getMesh().setCurvature(val / 20.0);
+      this._main.render();
     },
     onEnvironmentChanged: function (val) {
       ShaderPBR.idEnv = val;
@@ -101,12 +98,9 @@ define(function (require, exports, module) {
       this._main.render();
     },
     onTransparencyChanged: function (val) {
-      var main = this._main;
-      var mesh = main.getMesh();
-      if (!mesh)
-        return;
-      mesh.getRender().setOpacity(1.0 - val / 100.0);
-      main.render();
+      if (!this._main.getMesh()) return;
+      this._main.getMesh().setOpacity(1.0 - val / 100.0);
+      this._main.render();
     },
     onShaderChanged: function (val) {
       var main = this._main;
@@ -123,28 +117,19 @@ define(function (require, exports, module) {
       this.updateVisibility();
     },
     onMatcapChanged: function (value) {
-      var main = this._main;
-      var mesh = main.getMesh();
-      if (!mesh)
-        return;
-      mesh.setMatcap(value);
-      main.render();
+      if (!this._main.getMesh()) return;
+      this._main.getMesh().setMatcap(value);
+      this._main.render();
     },
     onFlatShading: function (bool) {
-      var main = this._main;
-      var mesh = main.getMesh();
-      if (!mesh)
-        return;
-      mesh.setFlatShading(bool);
-      main.render();
+      if (!this._main.getMesh()) return;
+      this._main.getMesh().setFlatShading(bool);
+      this._main.render();
     },
     onShowWireframe: function (bool) {
-      var main = this._main;
-      var mesh = main.getMesh();
-      if (!mesh)
-        return;
-      mesh.setShowWireframe(bool);
-      main.render();
+      if (!this._main.getMesh()) return;
+      this._main.getMesh().setShowWireframe(bool);
+      this._main.render();
     },
     addEvents: function () {
       var cbLoadTex = this.loadTextureUV.bind(this);
