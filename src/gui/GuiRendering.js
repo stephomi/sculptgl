@@ -4,7 +4,7 @@ define(function (require, exports, module) {
 
   var TR = require('gui/GuiTR');
   var Render = require('mesh/Render');
-  var Shader = require('render/Shader');
+  var Shader = require('render/ShaderLib');
 
   var ShaderMERGE = Shader.MERGE;
   var ShaderUV = Shader.UV;
@@ -116,7 +116,7 @@ define(function (require, exports, module) {
           this.updateMesh();
           window.alert('No UV on this mesh.');
         } else {
-          mesh.setShader(val);
+          mesh.setShaderName(val);
           main.render();
         }
       }
@@ -167,7 +167,7 @@ define(function (require, exports, module) {
         return;
       }
       this._menu.setVisibility(true);
-      this._ctrlShaders.setValue(mesh.getShaderType(), true);
+      this._ctrlShaders.setValue(mesh.getShaderName(), true);
       this._ctrlFlatShading.setValue(mesh.getFlatShading(), true);
       this._ctrlShowWireframe.setValue(mesh.getShowWireframe(), true);
       this._ctrlMatcap.setValue(mesh.getMatcap(), true);
@@ -178,7 +178,7 @@ define(function (require, exports, module) {
     updateVisibility: function () {
       var mesh = this._main.getMesh();
       if (!mesh) return;
-      var val = mesh.getRender()._shader._type;
+      var val = mesh.getShaderName();
       this._ctrlMatcapTitle.setVisibility(val === 'MATCAP');
       this._ctrlMatcap.setVisibility(val === 'MATCAP');
       this._ctrlImportMatcap.setVisibility(val === 'MATCAP');
@@ -195,7 +195,7 @@ define(function (require, exports, module) {
     getWireframe: function () {
       return this._ctrlShowWireframe.getValue();
     },
-    getShader: function () {
+    getShaderName: function () {
       return this._ctrlShaders.getValue();
     },
     importTexture: function () {

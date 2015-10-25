@@ -33,7 +33,7 @@ define(function (require, exports, module) {
     this.init(mesh);
     this.setRender(mesh.getRender());
     if (mesh.isUsingTexCoords())
-      this.setShader('PBR');
+      this.setShaderName('MATCAP');
     mesh.getRender()._mesh = this;
     this.initRender();
   };

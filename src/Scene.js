@@ -19,7 +19,7 @@ define(function (require, exports, module) {
   var States = require('states/States');
   var Render = require('mesh/Render');
   var Rtt = require('drawables/Rtt');
-  var Shader = require('render/Shader');
+  var Shader = require('render/ShaderLib');
   var WebGLCaps = require('render/WebGLCaps');
 
   var vec3 = glm.vec3;
@@ -137,7 +137,7 @@ define(function (require, exports, module) {
       mat4.translate(gridm, gridm, [0.0, -0.45, 0.0]);
       var scale = 2.5;
       mat4.scale(gridm, gridm, [scale, scale, scale]);
-      this._grid.setShader('FLAT');
+      this._grid.setShaderName('FLAT');
       grid.setFlatColor([0.2140, 0.2140, 0.2140]);
     },
     setOrUnsetMesh: function (mesh, multiSelect) {

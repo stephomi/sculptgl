@@ -246,7 +246,7 @@ define(function (require, exports, module) {
     for (var i = 0, nbm = meshes.length; i < nbm; ++i) {
       var mesh = meshes[i];
       if (mesh.isUsingTexCoords())
-        mesh.setShader('PBR');
+        mesh.setShaderName('MATCAP');
       var matrix = mesh.getMatrix();
 
       mesh = meshes[i] = HoleFilling.createClosedMesh(mesh);

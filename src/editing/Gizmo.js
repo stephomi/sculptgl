@@ -106,7 +106,7 @@ define(function (require, exports, module) {
 
     // line helper
     this._lineHelper = Primitives.createLine2D(this._gl);
-    this._lineHelper.setShader('FLAT');
+    this._lineHelper.setShaderName('FLAT');
 
     this._lastDistToEye = 0.0;
     this._isEditing = false;
@@ -157,7 +157,7 @@ define(function (require, exports, module) {
       tra._pickGeo = Primitives.createArrow(this._gl, THICKNESS_PICK, ARROW_LENGTH, ARROW_CONE_THICK * 0.4);
       tra._pickGeo._gizmo = tra;
       tra._drawGeo = Primitives.createArrow(this._gl, THICKNESS, ARROW_LENGTH, ARROW_CONE_THICK, ARROW_CONE_LENGTH);
-      tra._drawGeo.setShader('FLAT');
+      tra._drawGeo.setShaderName('FLAT');
     },
     _initTranslate: function () {
       var axis = [0.0, 0.0, 0.0];
@@ -172,7 +172,7 @@ define(function (require, exports, module) {
       rot._pickGeo = Primitives.createTorus(this._gl, radius, THICKNESS_PICK * mthick, rad, 6, 64);
       rot._pickGeo._gizmo = rot;
       rot._drawGeo = Primitives.createTorus(this._gl, radius, THICKNESS * mthick, rad, 6, 64);
-      rot._drawGeo.setShader('FLAT');
+      rot._drawGeo.setShaderName('FLAT');
     },
     _initRotate: function () {
       this._createCircle(this._rotX, Math.PI, COLOR_X);
@@ -188,7 +188,7 @@ define(function (require, exports, module) {
       sca._pickGeo = Primitives.createCube(this._gl, CUBE_SIDE_PICK);
       sca._pickGeo._gizmo = sca;
       sca._drawGeo = Primitives.createCube(this._gl, CUBE_SIDE);
-      sca._drawGeo.setShader('FLAT');
+      sca._drawGeo.setShaderName('FLAT');
     },
     _initScale: function () {
       var axis = [0.0, 0.0, 0.0];

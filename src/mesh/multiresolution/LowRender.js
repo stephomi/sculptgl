@@ -4,7 +4,7 @@ define(function (require, exports, module) {
 
   var Utils = require('misc/Utils');
   var Render = require('mesh/Render');
-  var Shader = require('render/Shader');
+  var Shader = require('render/ShaderLib');
   var Buffer = require('render/Buffer');
 
   var LowRender = function (render) {
@@ -34,7 +34,7 @@ define(function (require, exports, module) {
       this.getWireframeBuffer().update(mesh.getWireframe());
     },
     render: function (main) {
-      this.getRenderOrigin()._shader.draw(this, main);
+      Shader[this.getShaderName()].getOrCreate(this.getGL()).draw(this, main);
     },
     renderWireframe: function (main) {
       Shader.WIREFRAME.getOrCreate(this.getGL()).draw(this, main);

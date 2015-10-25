@@ -3,27 +3,25 @@ define(function (require, exports, module) {
   'use strict';
 
   var Buffer = require('render/Buffer');
-  var Shader = require('render/Shader');
+  var Shader = require('render/ShaderLib');
   var WebGLCaps = require('render/WebGLCaps');
 
   var singletonBuffer;
 
-  var Merge = function (gl, shaderType, depth, halfFloat) {
+  var Merge = function (gl, shaderName, depth, halfFloat) {
     this._gl = gl; // webgl context
 
     this._texture = gl.createTexture();
     this._depth = depth === undefined ? gl.createRenderbuffer() : depth;
     this._framebuffer = gl.createFramebuffer();
 
-    this._shader = null;
+    this._shaderName = shaderName || '';
     this._invSize = new Float32Array(2);
     this._vertexBuffer = null;
 
     if (halfFloat && WebGLCaps.hasRTTHalfFloat()) this._type = WebGLCaps.HALF_FLOAT_OES;
     else if (halfFloat && WebGLCaps.hasRTTFloat()) this._type = gl.FLOAT;
     else this._type = gl.UNSIGNED_BYTE;
-
-    this._shaderType = shaderType || '';
 
     this.init();
   };
@@ -49,8 +47,6 @@ define(function (require, exports, module) {
     },
     init: function () {
       var gl = this._gl;
-      if (this.getShaderType())
-        this._shader = Shader[this.getShaderType()].getOrCreate(gl);
 
       if (!singletonBuffer) {
         singletonBuffer = new Buffer(gl, gl.ARRAY_BUFFER, gl.STATIC_DRAW);
@@ -58,9 +54,6 @@ define(function (require, exports, module) {
       }
 
       this._vertexBuffer = singletonBuffer;
-    },
-    getShaderType: function () {
-      return this._shaderType;
     },
     onResize: function (width, height) {
       var gl = this._gl;
@@ -91,7 +84,7 @@ define(function (require, exports, module) {
       this.getVertexBuffer().release();
     },
     render: function (main) {
-      this._shader.draw(this, main);
+      Shader[this._shaderName].getOrCreate(this._gl).draw(this, main);
     }
   };
 

@@ -133,7 +133,7 @@ define(function (require, exports, module) {
       mesh = meshes[i];
 
       // shader + matcap + wire + alpha + flat 
-      u32a[off++] = stringToInt.SHADER_TO_INT[mesh.getShaderType()];
+      u32a[off++] = stringToInt.SHADER_TO_INT[mesh.getShaderName()];
       u32a[off++] = mesh.getMatcap();
       u32a[off++] = mesh.getShowWireframe();
       u32a[off++] = mesh.getFlatShading();

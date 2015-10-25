@@ -117,8 +117,8 @@ define(function (require, exports, module) {
     getWireframe: function () {
       return this._ctrlRendering.getWireframe();
     },
-    getShader: function () {
-      return this._ctrlRendering.getShader();
+    getShaderName: function () {
+      return this._ctrlRendering.getShaderName();
     },
     addAlphaOptions: function (opts) {
       this._ctrlSculpting.addAlphaOptions(opts);

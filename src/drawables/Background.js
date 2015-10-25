@@ -3,7 +3,7 @@ define(function (require, exports, module) {
   'use strict';
 
   var Buffer = require('render/Buffer');
-  var Shader = require('render/Shader');
+  var Shader = require('render/ShaderLib');
 
   var Background = function (gl, main) {
     this._main = main;
@@ -18,7 +18,6 @@ define(function (require, exports, module) {
     this._texWidth = 1;
     this._texHeight = 1;
 
-    this._shader = null; // the shader
     this.init();
   };
 
@@ -26,7 +25,6 @@ define(function (require, exports, module) {
     init: function () {
       this.getTexCoordBuffer().update(new Float32Array([0.0, 0.0, 1.0, 0.0, 0.0, 1.0, 1.0, 1.0]));
       this._monoTex = this.createOnePixelTexture(50, 50, 50, 255);
-      this._shader = Shader.BACKGROUND.getOrCreate(this._gl);
       document.getElementById('backgroundopen').addEventListener('change', this.loadBackground.bind(this), false);
     },
     loadBackground: function (event) {
@@ -112,7 +110,7 @@ define(function (require, exports, module) {
       }
     },
     render: function () {
-      this._shader.draw(this);
+      Shader.BACKGROUND.getOrCreate(this._gl).draw(this);
     }
   };
 

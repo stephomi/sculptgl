@@ -4,7 +4,7 @@ define(function (require, exports, module) {
 
   var glm = require('lib/glMatrix');
   var Buffer = require('render/Buffer');
-  var Shader = require('render/Shader');
+  var Shader = require('render/ShaderLib');
 
   var mat3 = glm.mat3;
   var mat4 = glm.mat4;
@@ -23,7 +23,6 @@ define(function (require, exports, module) {
 
     this._offsetX = 0.0; // horizontal offset (when editing the radius)
 
-    this._shader = null;
     this.init();
   };
 
@@ -60,7 +59,6 @@ define(function (require, exports, module) {
     init: function () {
       this.getCircleBuffer().update(this._getCircleVertices(1.0));
       this.getDotBuffer().update(this._getDotVertices(0.05, 10));
-      this._shader = Shader.SELECTION.getOrCreate(this._gl);
     },
     release: function () {
       this.getCircleBuffer().release();
@@ -170,7 +168,7 @@ define(function (require, exports, module) {
 
       var drawCircle = main._action === 'NOTHING';
       vec3.set(this._color, 0.8, drawCircle && pickedMesh ? 0.0 : 0.4, 0.0);
-      this._shader.draw(this, drawCircle, main.getSculpt().getSymmetry());
+      Shader.SELECTION.getOrCreate(this._gl).draw(this, drawCircle, main.getSculpt().getSymmetry());
     }
   };
 

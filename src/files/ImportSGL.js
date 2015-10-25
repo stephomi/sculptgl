@@ -46,7 +46,7 @@ define(function (require, exports, module) {
         var render = mesh.getRender();
         // we don't have the geometry buffer and data yet so
         // we don't want to call updateBuffers
-        render.getShader().setType(intToString.INT_TO_SHADER[u32a[off++]]);
+        render.setShaderName(intToString.INT_TO_SHADER[u32a[off++]]);
         render.setMatcap(u32a[off++]);
         render._showWireframe = u32a[off++];
         render._flatShading = u32a[off++];

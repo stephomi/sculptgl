@@ -3,7 +3,7 @@ define(function (require, exports, module) {
   'use strict';
 
   var getOptionsURL = require('misc/getOptionsURL');
-  var Shader = require('render/Shader');
+  var Shader = require('render/ShaderLib');
   var Buffer = require('render/Buffer');
   var ShaderMatcap = require('render/shaders/ShaderMatcap');
 
@@ -11,9 +11,8 @@ define(function (require, exports, module) {
     this._mesh = mesh;
     this._gl = gl;
 
-    this._shader = new Shader(gl);
-
     var opts = getOptionsURL();
+    this._shaderName = opts.shader;
     this._flatShading = opts.flatshading;
     this._showWireframe = opts.wireframe;
     this._matcap = Math.min(opts.matcap, ShaderMatcap.matcaps.length - 1); // matcap id
@@ -86,12 +85,6 @@ define(function (require, exports, module) {
     setMetallic: function (val) {
       this._metallic = val;
     },
-    getShader: function () {
-      return this._shader;
-    },
-    getShaderType: function () {
-      return this.getShader().getType();
-    },
     getVertexBuffer: function () {
       return this._vertexBuffer;
     },
@@ -113,13 +106,12 @@ define(function (require, exports, module) {
     getWireframeBuffer: function () {
       return this._wireframeBuffer;
     },
-    /** Return true if the render is using drawArrays instead of drawElements */
     isUsingDrawArrays: function () {
+      // Return true if the render is using drawArrays instead of drawElements
       return Render.ONLY_DRAW_ARRAYS ? true : this.getFlatShading();
     },
-    /** Return true if the shader is using UVs */
     isUsingTexCoords: function () {
-      return this._shader.isUsingTexCoords();
+      return this._shaderName === 'UV';
     },
     setOpacity: function (alpha) {
       this._alpha = alpha;
@@ -163,16 +155,19 @@ define(function (require, exports, module) {
       this.updateFlatShading();
       this.updateBuffers();
     },
-    setShader: function (shaderType) {
+    getShaderName: function () {
+      return this._shaderName;
+    },
+    setShaderName: function (shaderName) {
       var hasUV = this._mesh.hasUV();
-      if (shaderType === 'UV' && !hasUV)
+      if (shaderName === 'UV' && !hasUV)
         return;
-      this._shader.setType(shaderType);
+
+      this._shaderName = shaderName;
       if (hasUV) {
         this._mesh.updateDuplicateGeometry();
         this._mesh.updateDuplicateColorsAndMaterials();
-        if (this.isUsingTexCoords())
-          this.updateFlatShading();
+        if (this.isUsingTexCoords()) this.updateFlatShading();
       }
       this.updateBuffers();
     },
@@ -181,13 +176,13 @@ define(function (require, exports, module) {
         this._mesh.updateDrawArrays(this.getFlatShading(), iFaces);
     },
     initRender: function () {
-      if (this.getShaderType() === 'MATCAP' && !this._texture0)
+      if (this._shaderName === 'MATCAP' && !this._texture0)
         this.setMatcap(this._matcap);
-      this.setShader(this.getShaderType());
+      this.setShaderName(this._shaderName);
       this.setShowWireframe(this.getShowWireframe());
     },
     render: function (main) {
-      this._shader.draw(this, main);
+      Shader[this._shaderName].getOrCreate(this.getGL()).draw(this, main);
     },
     renderWireframe: function (main) {
       Shader.WIREFRAME.getOrCreate(this.getGL()).draw(this, main);
@@ -244,7 +239,7 @@ define(function (require, exports, module) {
     copyRenderConfig: function (mesh) {
       this.setFlatShading(mesh.getFlatShading());
       this.setShowWireframe(mesh.getShowWireframe());
-      this.setShader(mesh.getShaderType());
+      this.setShaderName(mesh.getShaderName());
       this.setMatcap(mesh.getMatcap());
       this.setTexture0(mesh.getTexture0());
       this.setCurvature(mesh.getCurvature());
