@@ -24,11 +24,9 @@ define(function (require, exports, module) {
   Multimesh.PICKING = 3;
 
   Multimesh.prototype = {
-    /** Return the current mesh */
     getCurrentMesh: function () {
       return this._meshes[this._sel];
     },
-    /** Add an extra level to the mesh (subdivision) */
     addLevel: function () {
       if ((this._meshes.length - 1) !== this._sel)
         return this.getCurrentMesh();
@@ -44,7 +42,6 @@ define(function (require, exports, module) {
       this.getRender().initRender();
       return newMesh;
     },
-    /** Reverse the mesh (reverse subdivision) */
     computeReverse: function () {
       if (this._sel !== 0)
         return this.getCurrentMesh();
@@ -61,7 +58,6 @@ define(function (require, exports, module) {
       this.getRender().initRender();
       return newMesh;
     },
-    /** Go to one level below in mesh resolution */
     lowerLevel: function () {
       if (this._sel === 0)
         return this._meshes[0];
@@ -70,7 +66,6 @@ define(function (require, exports, module) {
       this.updateResolution();
       return this.getCurrentMesh();
     },
-    /** Go to one level higher in mesh resolution, if available */
     higherLevel: function () {
       if (this._sel === this._meshes.length - 1)
         return this.getCurrentMesh();
@@ -79,14 +74,12 @@ define(function (require, exports, module) {
       this.updateResolution();
       return this.getCurrentMesh();
     },
-    /** Update the mesh after a change in resolution */
     updateResolution: function () {
       this.updateGeometry();
       this.updateDuplicateColorsAndMaterials();
       this.updateBuffers();
       this._lowRender.updateBuffers(this._meshes[this.getLowIndexRender()]);
     },
-    /** Change the resolution */
     selectResolution: function (sel) {
       while (this._sel > sel) {
         this.lowerLevel();
@@ -95,7 +88,6 @@ define(function (require, exports, module) {
         this.higherLevel();
       }
     },
-    /** Find a select index of a mesh */
     findIndexFromMesh: function (mesh) {
       var meshes = this._meshes;
       for (var i = 0, l = meshes.length; i < l; ++i) {
@@ -103,45 +95,37 @@ define(function (require, exports, module) {
           return i;
       }
     },
-    /** Change the resolution */
     selectMesh: function (mesh) {
       var val = this.findIndexFromMesh(mesh);
       this.selectResolution(val);
     },
-    /** Push a mesh */
     pushMesh: function (mesh) {
       this._meshes.push(mesh);
       this._sel = this._meshes.length - 1;
       this.updateResolution();
     },
-    /** Unshift a mesh */
     unshiftMesh: function (mesh) {
       this._meshes.unshift(mesh);
       this._sel = 1;
       this.lowerLevel();
     },
-    /** Pop the last mesh */
     popMesh: function () {
       this._meshes.pop();
       this._sel = this._meshes.length - 1;
       this.updateResolution();
     },
-    /** Shift the first mesh */
     shiftMesh: function () {
       this._meshes.shift();
       this._sel = 0;
       this.updateResolution();
     },
-    /** Delete the lower resolution meshes */
     deleteLower: function () {
       this._meshes.splice(0, this._sel);
       this._sel = 0;
     },
-    /** Delete the higher resolution meshes */
     deleteHigher: function () {
       this._meshes.splice(this._sel + 1);
     },
-    /** Return the rendering mesh index */
     getLowIndexRender: function () {
       var limit = 500000;
       var sel = this._sel;
@@ -157,28 +141,30 @@ define(function (require, exports, module) {
       }
       return 0;
     },
-    /** Render the at a lower resolution */
-    lowRender: function (main) {
-      var lowSel = this.getLowIndexRender();
-      if (lowSel === this._sel)
-        return this.getCurrentMesh().render(main);
+    _renderLow: function (main) {
       var tmpSel = this._sel;
-      this._sel = lowSel;
+      this._sel = this.getLowIndexRender();
       this._lowRender.render(main);
       this._sel = tmpSel;
     },
-    /** Render the mesh */
+    _renderWireframeLow: function (main) {
+      var tmpSel = this._sel;
+      this._sel = this.getLowIndexRender();
+      this._lowRender.renderWireframe(main);
+      this._sel = tmpSel;
+    },
+    _canUseLowRender: function (main) {
+      if (this.getCurrentMesh().isUsingTexCoords() || this.isUsingDrawArrays()) return false;
+      if (Multimesh.RENDER_HINT === Multimesh.PICKING || Multimesh.RENDER_HINT === Multimesh.NONE) return false;
+      if (main.getMesh() === this && Multimesh.RENDER_HINT !== Multimesh.CAMERA) return false;
+      if (this.getLowIndexRender() === this._sel) return false;
+      return true;
+    },
     render: function (main) {
-      if (this.getCurrentMesh().isUsingTexCoords() || this.isUsingDrawArrays())
-        return this.getCurrentMesh().render(main);
-
-      if (Multimesh.RENDER_HINT === Multimesh.PICKING || Multimesh.RENDER_HINT === Multimesh.NONE)
-        return this.getCurrentMesh().render(main);
-
-      if (main.getMesh() === this && Multimesh.RENDER_HINT !== Multimesh.CAMERA)
-        return this.getCurrentMesh().render(main);
-
-      this.lowRender(main);
+      return this._canUseLowRender(main) ? this._renderLow(main) : this.getCurrentMesh().render(main);
+    },
+    renderWireframe: function (main) {
+      return this._canUseLowRender(main) ? this._renderWireframeLow(main) : this.getCurrentMesh().renderWireframe(main);
     }
   };
 

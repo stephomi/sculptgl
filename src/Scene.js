@@ -235,6 +235,7 @@ define(function (require, exports, module) {
         if (meshes[i].isTransparent()) break;
         meshes[i].render(this);
       }
+      var startTransparent = i;
       if (this._meshPreview) this._meshPreview.render(this);
 
       // background
@@ -247,10 +248,15 @@ define(function (require, exports, module) {
       gl.clear(gl.COLOR_BUFFER_BIT);
 
       gl.enable(gl.BLEND);
+      for (i = 0; i < nbMeshes; ++i) {
+        if (meshes[i].getShowWireframe())
+          meshes[i].renderWireframe(this);
+      }
+
       gl.depthMask(false);
       gl.enable(gl.CULL_FACE);
 
-      for (; i < nbMeshes; ++i) {
+      for (i = startTransparent; i < nbMeshes; ++i) {
         gl.cullFace(gl.FRONT); // draw back first
         meshes[i].render(this);
         gl.cullFace(gl.BACK); // ... and then front

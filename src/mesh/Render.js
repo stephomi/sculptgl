@@ -12,7 +12,6 @@ define(function (require, exports, module) {
     this._gl = gl;
 
     this._shader = new Shader(gl);
-    this._shaderWireframe = new Shader(gl);
 
     var opts = getOptionsURL();
     this._flatShading = opts.flatshading;
@@ -182,7 +181,6 @@ define(function (require, exports, module) {
         this._mesh.updateDrawArrays(this.getFlatShading(), iFaces);
     },
     initRender: function () {
-      this._shaderWireframe.setType('WIREFRAME');
       if (this.getShaderType() === 'MATCAP' && !this._texture0)
         this.setMatcap(this._matcap);
       this.setShader(this.getShaderType());
@@ -190,8 +188,9 @@ define(function (require, exports, module) {
     },
     render: function (main) {
       this._shader.draw(this, main);
-      if (this.getShowWireframe())
-        this._shaderWireframe.draw(this, main);
+    },
+    renderWireframe: function (main) {
+      Shader.WIREFRAME.getOrCreate(this.getGL()).draw(this, main);
     },
     renderFlatColor: function (main) {
       Shader.FLAT.getOrCreate(this.getGL()).draw(this, main);

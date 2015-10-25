@@ -16,6 +16,6 @@ vec3 computeCurvature( const in vec3 vertex, const in vec3 normal, const in vec3
   vec3 ypos = n + dy;
   // fov < 0.0 means ortho
   float depth = fov > 0.0 ? length(vertex) * fov : -fov;
-  float cur = (cross(xneg, xpos).y - cross(yneg, ypos).x) * str * 200.0 / depth;
+  float cur = (cross(xneg, xpos).y - cross(yneg, ypos).x) * str * 80.0 / depth;
   return mix(mix(color, color * 0.3, clamp(-cur * 15.0, 0.0, 1.0)), color * 2.0, clamp(cur * 25.0, 0.0, 1.0));
 }

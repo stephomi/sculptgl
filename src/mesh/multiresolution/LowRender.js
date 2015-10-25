@@ -4,6 +4,7 @@ define(function (require, exports, module) {
 
   var Utils = require('misc/Utils');
   var Render = require('mesh/Render');
+  var Shader = require('render/Shader');
   var Buffer = require('render/Buffer');
 
   var LowRender = function (render) {
@@ -15,15 +16,12 @@ define(function (require, exports, module) {
   };
 
   LowRender.prototype = {
-    /** Return base render */
     getRenderOrigin: function () {
       return this._renderOrigin;
     },
-    /** Return index buffer */
     getIndexBuffer: function () {
       return this._indexBuffer;
     },
-    /** Return wireframe buffer */
     getWireframeBuffer: function () {
       return this._wireframeBuffer;
     },
@@ -31,19 +29,16 @@ define(function (require, exports, module) {
     isUsingDrawArrays: function () {
       return false;
     },
-    /** Updates buffer */
     updateBuffers: function (mesh) {
       this.getIndexBuffer().update(mesh.getTriangles());
       this.getWireframeBuffer().update(mesh.getWireframe());
     },
-    /** Render the mesh */
     render: function (main) {
-      var ro = this.getRenderOrigin();
-      ro._shader.draw(this, main);
-      if (ro.getShowWireframe())
-        ro._shaderWireframe.draw(this, main);
+      this.getRenderOrigin()._shader.draw(this, main);
     },
-    /** Free gl memory */
+    renderWireframe: function (main) {
+      Shader.WIREFRAME.getOrCreate(this.getGL()).draw(this, main);
+    },
     release: function () {
       this.getIndexBuffer().release();
       this.getWireframeBuffer().release();

@@ -8,7 +8,7 @@ define(function (require, exports, module) {
   var fxaaGLSL = require('text!render/shaders/glsl/fxaa.glsl');
 
   var ShaderMerge = ShaderBase.getCopy();
-  ShaderMerge.vertexName = ShaderMerge.fragmentName = 'FxaaFilmic';
+  ShaderMerge.vertexName = ShaderMerge.fragmentName = 'Merge';
 
   ShaderMerge.FILMIC = getOptionsURL().filmic; // edited by the gui
 
