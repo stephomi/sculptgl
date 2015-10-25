@@ -77,6 +77,7 @@ module.exports = function (grunt) {
         'build/**/*.html',
         'build/**/*.js',
         'build/**/*.jpg',
+        'build/**/*.png',
         'build/**/*.css',
         'build/**/*.obj',
         'build/**/*.ply',

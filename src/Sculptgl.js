@@ -308,7 +308,7 @@ define(function (require, exports, module) {
     // HANDLES EVENTS
     ////////////////
     onDeviceUp: function () {
-      this._canvas.style.cursor = 'default';
+      this.setCanvasCursor('default');
       Multimesh.RENDER_HINT = Multimesh.NONE;
       this._sculpt.end();
       if (this._action === 'MASK_EDIT' && this._mesh) {
@@ -357,7 +357,7 @@ define(function (require, exports, module) {
 
       var pickedMesh = this._picking.getMesh();
       if (button === MOUSE_LEFT && pickedMesh)
-        this._canvas.style.cursor = 'none';
+        this.setCanvasCursor('none');
 
       if (button === MOUSE_RIGHT && event.ctrlKey)
         this._action = 'CAMERA_ZOOM';

@@ -132,7 +132,7 @@ define(function (require, exports, module) {
     updateMesh: function () {
       this._menu.setVisibility(!!this._main.getMesh());
     },
-    _startModAlBrushRadius: function (x, y) {
+    _startModalBrushRadius: function (x, y) {
       this._refX = x;
       this._refY = y;
       var cur = GuiSculptingTools[this.getSelectedTool()];
@@ -140,7 +140,7 @@ define(function (require, exports, module) {
         var rad = cur._ctrlRadius.getValue();
         this._refX -= rad;
         this._main.getSelectionRadius().setOffsetX(-rad);
-        this._main.render();
+        this._main.renderSelectOverRtt();
       }
     },
     _checkModifierKey: function (event) {
@@ -218,7 +218,7 @@ define(function (require, exports, module) {
         if (ctrlPicker && !ctrlPicker.getValue()) ctrlPicker.setValue(true);
         break;
       case 88: // X
-        if (!this._modalBrushRadius) this._startModAlBrushRadius(this._lastPageX, this._lastPageY);
+        if (!this._modalBrushRadius) this._startModalBrushRadius(this._lastPageX, this._lastPageY);
         this._modalBrushRadius = main._focusGui = true;
         break;
       default:
@@ -244,15 +244,12 @@ define(function (require, exports, module) {
         event.pageY = this._lastPageY;
         main.setMousePosition(event);
         main.getPicking().intersectionMouseMeshes();
-        main.render();
+        main.renderSelectOverRtt();
         break;
       case 83: // S
         var cur = GuiSculptingTools[this.getSelectedTool()];
         var ctrlPicker = cur._ctrlPicker;
-        if (ctrlPicker && ctrlPicker.getValue()) {
-          ctrlPicker.setValue(false);
-          this._main._action = 'NOTHING';
-        }
+        if (ctrlPicker && ctrlPicker.getValue()) ctrlPicker.setValue(false);
         break;
       case 67: // C
         this._modalBrushIntensity = main._focusGui = false;
@@ -276,7 +273,7 @@ define(function (require, exports, module) {
         var dx = event.pageX - this._refX;
         var dy = event.pageY - this._refY;
         wid._ctrlRadius.setValue(Math.sqrt(dx * dx + dy * dy));
-        this._main.render();
+        this._main.renderSelectOverRtt();
       }
 
       if (this._modalBrushIntensity && wid._ctrlIntensity) {
@@ -286,7 +283,7 @@ define(function (require, exports, module) {
       this._lastPageY = event.pageY;
     },
     onMouseOver: function (event) {
-      if (this._modalBrushRadius) this._startModAlBrushRadius(event.pageX, event.pageY);
+      if (this._modalBrushRadius) this._startModalBrushRadius(event.pageX, event.pageY);
     }
   };
 

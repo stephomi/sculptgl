@@ -130,6 +130,9 @@ define(function (require, exports, module) {
     setMesh: function (mesh) {
       return this.setOrUnsetMesh(mesh);
     },
+    setCanvasCursor: function (style) {
+      this._canvas.style.cursor = style;
+    },
     initGrid: function () {
       var grid = this._grid;
       grid.normalizeSize();

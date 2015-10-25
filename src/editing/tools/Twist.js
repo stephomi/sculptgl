@@ -68,7 +68,7 @@ define(function (require, exports, module) {
         }
       }
       this.updateRender();
-      main.getCanvas().style.cursor = 'default';
+      main.setCanvasCursor('default');
     },
     /** On stroke */
     stroke: function (picking, mx, my, lx, ly, twistData) {

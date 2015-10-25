@@ -109,7 +109,7 @@ define(function (require, exports, module) {
       if (useSym)
         mesh.updateGeometry(mesh.getFacesFromVertices(pickingSym.getPickedVertices()), pickingSym.getPickedVertices());
       this.updateRender();
-      main.getCanvas().style.cursor = 'default';
+      main.setCanvasCursor('default');
     },
     move: function (iVerts, center, radiusSquared, moveData, picking) {
       var mesh = this.getMesh();

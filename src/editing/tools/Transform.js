@@ -31,7 +31,7 @@ define(function (require, exports, module) {
       this._gizmo.onMouseOver();
       picking._mesh = mesh;
 
-      this._main._canvas.style.cursor = 'default';
+      this._main.setCanvasCursor('default');
     },
     start: function (ctrl) {
       var main = this._main;

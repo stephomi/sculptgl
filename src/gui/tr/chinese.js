@@ -125,7 +125,7 @@ define(function (require, exports, module) {
     sculptClay: '黏土',
     sculptAccumulate: '累積 (每道筆劃無限制)',
     sculptColorGlobal: '全域',
-    sculptPickColor: '選擇材質 (S)',
+    sculptPickColor: '選擇材質 (-S)',
     sculptTangentialSmoothing: '僅放鬆',
     sculptTopologicalCheck: null,
     sculptMoveAlongNormal: null,

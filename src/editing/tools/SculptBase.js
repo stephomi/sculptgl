@@ -107,7 +107,7 @@ define(function (require, exports, module) {
       this._radius = origRad;
 
       this.updateRender();
-      main.getCanvas().style.cursor = 'default';
+      main.setCanvasCursor('default');
     },
     sculptStroke: function () {
       var main = this._main;
