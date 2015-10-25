@@ -53,7 +53,8 @@ define(function (require, exports, module) {
     // - convert each tex fetch into srgb
     // - OR do the filmic in the forward shading pass (alpha blending in srgb though)
     // - OR move the filmic op + (other cool linear post process) in a first separate pass
-    '  vec3 color = fxaa(uTexture0, vUVNW, vUVNE, vUVSW, vUVSE, vUVM, uInvSize);',
+    // '  vec3 color = fxaa(uTexture0, vUVNW, vUVNE, vUVSW, vUVSE, vUVM, uInvSize);',
+    '  vec3 color = decodeRGBM(texture2D(uTexture0, vUVM), 1.0);',
     // http://filmicgames.com/archives/75
     '  if(uFilmic == 1){',
     '    vec3 x = max(vec3(0.0), color - vec3(0.004));',

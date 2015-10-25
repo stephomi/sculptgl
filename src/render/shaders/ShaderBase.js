@@ -46,12 +46,13 @@ define(function (require, exports, module) {
   ].join('\n');
   ShaderBase.strings.fragColorFunction = [
     curvatureGLSL,
-    'vec3 applyMaskAndSym(const in vec3 frag) {',
+    colorSpaceGLSL,
+    'vec4 encodeFragColor(const in vec3 frag, const in float alpha) {',
     '  vec3 col = computeCurvature(vVertex, vNormal, frag, uCurvature, uFov);',
     '  col *= (0.3 + 0.7 * vMasking);',
     '  if(uSym == 1 && abs(dot(uPlaneN, vVertex - uPlaneO)) < 0.15)',
-    '      return min(col * 1.5, 1.0);',
-    '  return col;',
+    '      col = min(col * 1.5, 1.0);',
+    '  return alpha != 1.0 ? vec4(col, alpha) : encodeRGBM(col, 1.0);',
     '}'
   ].join('\n');
 

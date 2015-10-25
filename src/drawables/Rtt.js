@@ -64,13 +64,12 @@ define(function (require, exports, module) {
     },
     onResize: function (width, height) {
       var gl = this._gl;
-      var type = this.getType(gl);
 
       this._invSize[0] = 1.0 / width;
       this._invSize[1] = 1.0 / height;
 
       gl.bindTexture(gl.TEXTURE_2D, this._rtt);
-      gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, width, height, 0, gl.RGBA, type, null);
+      gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, width, height, 0, gl.RGBA, gl.UNSIGNED_BYTE, null);
       gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
       gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
       gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);

@@ -100,7 +100,7 @@ define(function (require, exports, module) {
     '  vec3 specular = mix( vec3(0.04), vAlbedo, vMetallic);',
     '',
     '  vec3 color = uExposure * computeIBL_UE4( normal, -eye, albedo, roughness, specular );',
-    '  gl_FragColor = vec4(applyMaskAndSym(color.rgb), uAlpha);',
+    '  gl_FragColor = encodeFragColor(color, uAlpha);',
     '}'
   ].join('\n');
 

@@ -158,91 +158,93 @@ define(function (require, exports, module) {
       return mesh;
     },
     renderSelectOverRtt: function () {
-      if (this.requestRender())
+      if (this._requestRender())
         this._drawFullScene = false;
     },
-    /** Request a render */
-    render: function () {
-      this._drawFullScene = true;
-      this.requestRender();
-    },
-    requestRender: function () {
+    _requestRender: function () {
       if (this._preventRender === true)
         return false; // render already requested for the next frame
+
       window.requestAnimationFrame(this.applyRender.bind(this));
       this._preventRender = true;
       return true;
     },
-    /** Render the scene */
+    render: function () {
+      this._drawFullScene = true;
+      this._requestRender();
+    },
     applyRender: function () {
       this._preventRender = false;
       this.updateMatricesAndSort();
+
       var gl = this._gl;
       if (!gl) return;
 
-      if (this._drawFullScene) {
-        gl.disable(gl.DEPTH_TEST);
-
-        var showContour = this._selectMeshes.length > 0 && this._showContour && this._contour.isEffective();
-        if (showContour) {
-          // flat color RTT for contours
-          gl.bindFramebuffer(gl.FRAMEBUFFER, this._contour.getFramebuffer());
-          gl.clear(gl.COLOR_BUFFER_BIT);
-          for (var s = 0, sel = this._selectMeshes, nbSel = sel.length; s < nbSel; ++s)
-            sel[s].renderFlatColor(this);
-        }
-
-        // main scene RTT
-        gl.bindFramebuffer(gl.FRAMEBUFFER, this._rtt.getFramebuffer());
-        gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
-
-        // BACKGROUND
-        this._background.render();
-
-        gl.enable(gl.DEPTH_TEST);
-        // GRIDc
-        if (this._showGrid)
-          this._grid.render(this);
-
-        // MESHES
-        var i = 0;
-        var meshes = this._meshes;
-        var nbMeshes = meshes.length;
-        // OPAQUE
-        for (i = 0; i < nbMeshes; ++i) {
-          if (meshes[i].isTransparent())
-            break;
-          meshes[i].render(this);
-        }
-        if (this._meshPreview)
-          this._meshPreview.render(this);
-
-        gl.enable(gl.CULL_FACE);
-        // TRANSPARENCY
-        for (; i < nbMeshes; ++i) {
-          gl.cullFace(gl.FRONT); // draw back first
-          meshes[i].render(this);
-          gl.cullFace(gl.BACK); // ... and then front
-          meshes[i].render(this);
-        }
-        gl.disable(gl.CULL_FACE);
-        // We can also draw all the transparent meshes backfaces first and then the front faces
-        // it would be better for intersected transparent meshes but worse for separated meshes
-
-        // draw sobel contour
-        if (showContour)
-          this._contour.render();
-      }
+      if (this._drawFullScene) this._drawScene();
 
       // render to screen
       gl.bindFramebuffer(gl.FRAMEBUFFER, null);
-      gl.disable(gl.DEPTH_TEST);
-      this._rtt.render();
-      this._selection.render(this);
 
+      gl.disable(gl.DEPTH_TEST);
+      this._rtt.render(this); // fxaa (filmic)
+      this._selection.render(this);
+      this._sculpt.postRender(); // draw sculpt gizmos
       gl.enable(gl.DEPTH_TEST);
-      // draw sculpt gizmos
-      this._sculpt.postRender();
+    },
+    _drawScene: function () {
+      var gl = this._gl;
+      var i = 0;
+      var meshes = this._meshes;
+      var nbMeshes = meshes.length;
+
+      ///////////////
+      // CONTOUR 1/2
+      ///////////////
+      gl.disable(gl.DEPTH_TEST);
+      var showContour = this._selectMeshes.length > 0 && this._showContour && this._contour.isEffective();
+      if (showContour) {
+        gl.bindFramebuffer(gl.FRAMEBUFFER, this._contour.getFramebuffer());
+        gl.clear(gl.COLOR_BUFFER_BIT);
+        for (var s = 0, sel = this._selectMeshes, nbSel = sel.length; s < nbSel; ++s)
+          sel[s].renderFlatColor(this);
+      }
+      gl.enable(gl.DEPTH_TEST);
+
+      ///////////////
+      // OPAQUE PASS
+      ///////////////
+      gl.bindFramebuffer(gl.FRAMEBUFFER, this._rtt.getFramebuffer());
+      gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+
+      // grid
+      if (this._showGrid) this._grid.render(this);
+
+      // (post opaque pass)
+      for (i = 0; i < nbMeshes; ++i) {
+        if (meshes[i].isTransparent()) break;
+        meshes[i].render(this);
+      }
+      if (this._meshPreview) this._meshPreview.render(this);
+
+      // background
+      this._background.render();
+
+      ///////////////
+      // TRANSPARENT PASS
+      ///////////////
+      gl.enable(gl.CULL_FACE);
+      for (; i < nbMeshes; ++i) {
+        gl.cullFace(gl.FRONT); // draw back first
+        meshes[i].render(this);
+        gl.cullFace(gl.BACK); // ... and then front
+        meshes[i].render(this);
+      }
+      gl.disable(gl.CULL_FACE);
+
+      ///////////////
+      // CONTOUR 2/2
+      ///////////////
+      if (showContour) this._contour.render();
     },
     /** Pre compute matrices and sort meshes */
     updateMatricesAndSort: function () {
@@ -259,32 +261,41 @@ define(function (require, exports, module) {
       if (this._grid)
         this._grid.updateMatrices(cam);
     },
-    /** Load webgl context */
     initWebGL: function () {
       var attributes = {
         antialias: false,
         stencil: true
       };
+
       var canvas = document.getElementById('canvas');
       var gl = this._gl = canvas.getContext('webgl', attributes) || canvas.getContext('experimental-webgl', attributes);
       if (!gl) {
         window.alert('Could not initialise WebGL. No WebGL, no SculptGL. Sorry.');
         return;
       }
+
       WebGLCaps.initWebGLExtensions(gl);
       if (!WebGLCaps.getWebGLExtension('OES_element_index_uint'))
         Render.ONLY_DRAW_ARRAYS = true;
+
       gl.viewportWidth = window.innerWidth;
       gl.viewportHeight = window.innerHeight;
-      gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
+
       gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true);
       gl.pixelStorei(gl.UNPACK_PREMULTIPLY_ALPHA_WEBGL, false);
       gl.pixelStorei(gl.UNPACK_COLORSPACE_CONVERSION_WEBGL, gl.NONE);
+
+      gl.enable(gl.CULL_FACE);
       gl.frontFace(gl.CCW);
-      gl.depthFunc(gl.LEQUAL);
       gl.cullFace(gl.BACK);
-      gl.disable(gl.CULL_FACE);
+
+      gl.disable(gl.BLEND);
+      gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
+
       gl.disable(gl.DEPTH_TEST);
+      gl.depthFunc(gl.LEQUAL);
+      gl.depthMask(true);
+
       gl.clearColor(0.033, 0.033, 0.033, 1);
       gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
     },
@@ -325,6 +336,7 @@ define(function (require, exports, module) {
       this._background.onResize(newWidth, newHeight);
       this._rtt.onResize(newWidth, newHeight);
       this._contour.onResize(newWidth, newHeight);
+
       this._gl.viewport(0, 0, newWidth, newHeight);
       this._camera.onResize(newWidth, newHeight);
       this.render();

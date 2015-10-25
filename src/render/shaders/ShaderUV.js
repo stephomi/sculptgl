@@ -53,10 +53,9 @@ define(function (require, exports, module) {
     'uniform float uAlpha;',
     ShaderBase.strings.fragColorUniforms,
     ShaderBase.strings.fragColorFunction,
-    ShaderBase.strings.colorSpaceGLSL,
     'void main() {',
-    '  vec3 fragColor = texture2D(uTexture0, vTexCoord).rgb * vColor;',
-    '  gl_FragColor = vec4(applyMaskAndSym(sRGBToLinear(fragColor)), uAlpha);',
+    '  vec3 color = sRGBToLinear(texture2D(uTexture0, vTexCoord).rgb) * vColor;',
+    '  gl_FragColor = encodeFragColor(sRGBToLinear(color), uAlpha);',
     '}'
   ].join('\n');
 

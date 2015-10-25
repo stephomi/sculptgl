@@ -29,7 +29,7 @@ define(function (require, exports, module) {
     'varying vec2 vTexCoord;',
     ShaderBase.strings.colorSpaceGLSL,
     'void main() {',
-    '  gl_FragColor = sRGBToLinear(texture2D(uTexture0, vTexCoord));',
+    '  gl_FragColor = encodeRGBM(sRGBToLinear(texture2D(uTexture0, vTexCoord)).rgb, 1.0);',
     '}'
   ].join('\n');
 

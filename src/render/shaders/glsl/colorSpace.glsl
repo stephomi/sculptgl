@@ -31,3 +31,18 @@ vec3 sRGBToLinear(const in vec3 c) {
 vec4 sRGBToLinear(const in vec4 c) {
     return vec4(c.rgb * (c.rgb * (c.rgb * 0.305306011 + 0.682171111) + 0.012522878), c.a);
 }
+
+// http://graphicrants.blogspot.fr/2009/04/rgbm-color-encoding.html
+vec4 encodeRGBM(const in vec3 col, const in float range) {
+    if(range <= 0.0) return vec4(col, 1.0);
+    vec4 rgbm;
+    vec3 color = col / range;
+    rgbm.a = clamp( max( max( color.r, color.g ), max( color.b, 1e-6 ) ), 0.0, 1.0 );
+    rgbm.a = ceil( rgbm.a * 255.0 ) / 255.0;
+    rgbm.rgb = color / rgbm.a;
+    return rgbm;
+}
+
+vec3 decodeRGBM(const in vec4 col, const in float range) {
+  return range <= 0.0 ? col.rgb : range * col.rgb * col.a;
+}
