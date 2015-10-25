@@ -32,17 +32,17 @@ vec4 sRGBToLinear(const in vec4 c) {
     return vec4(c.rgb * (c.rgb * (c.rgb * 0.305306011 + 0.682171111) + 0.012522878), c.a);
 }
 
+#define RANGE 1.0
 // http://graphicrants.blogspot.fr/2009/04/rgbm-color-encoding.html
-vec4 encodeRGBM(const in vec3 col, const in float range) {
-    if(range <= 0.0) return vec4(col, 1.0);
+vec4 encodeRGBM(const in vec3 col) {
     vec4 rgbm;
-    vec3 color = col / range;
+    vec3 color = col / RANGE;
     rgbm.a = clamp( max( max( color.r, color.g ), max( color.b, 1e-6 ) ), 0.0, 1.0 );
     rgbm.a = ceil( rgbm.a * 255.0 ) / 255.0;
     rgbm.rgb = color / rgbm.a;
     return rgbm;
 }
 
-vec3 decodeRGBM(const in vec4 col, const in float range) {
-  return range <= 0.0 ? col.rgb : range * col.rgb * col.a;
+vec3 decodeRGBM(const in vec4 col) {
+  return RANGE * col.rgb * col.a;
 }

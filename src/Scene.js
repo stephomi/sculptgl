@@ -17,10 +17,9 @@ define(function (require, exports, module) {
   var Multimesh = require('mesh/multiresolution/Multimesh');
   var Primitives = require('drawables/Primitives');
   var States = require('states/States');
-  var Contour = require('drawables/Contour');
   var Render = require('mesh/Render');
   var Rtt = require('drawables/Rtt');
-  var ShaderMatcap = require('render/shaders/ShaderMatcap');
+  var Shader = require('render/Shader');
   var WebGLCaps = require('render/WebGLCaps');
 
   var vec3 = glm.vec3;
@@ -54,8 +53,11 @@ define(function (require, exports, module) {
     this._meshes = []; // the meshes
     this._selectMeshes = []; // multi selection
     this._mesh = null; // the selected mesh
-    this._rtt = null; // rtt
-    this._contour = null; // rtt for contour
+
+    this._rttContour = null; // rtt for contour
+    this._rttMerge = null; // rtt decode opaque + merge transparent
+    this._rttOpaque = null; // rtt half float
+    this._rttTransparent = null; // rtt rgbm
 
     // ui stuffs
     this._focusGui = false; // if the gui is being focused
@@ -73,10 +75,14 @@ define(function (require, exports, module) {
         return;
 
       this._sculpt = new Sculpt(this);
-      this._background = new Background(this._gl, this);
       this._selection = new Selection(this._gl);
-      this._rtt = new Rtt(this._gl);
-      this._contour = new Contour(this._gl);
+      this._background = new Background(this._gl, this);
+
+      this._rttContour = new Rtt(this._gl, 'CONTOUR', null);
+      this._rttMerge = new Rtt(this._gl, 'MERGE', null);
+      this._rttOpaque = new Rtt(this._gl, 'FXAA');
+      this._rttTransparent = new Rtt(this._gl, '', this._rttOpaque.getDepth(), true);
+
       this._grid = Primitives.createGrid(this._gl);
       this.initGrid();
 
@@ -182,13 +188,18 @@ define(function (require, exports, module) {
 
       if (this._drawFullScene) this._drawScene();
 
+      gl.disable(gl.DEPTH_TEST);
+
+      gl.bindFramebuffer(gl.FRAMEBUFFER, this._rttMerge.getFramebuffer());
+      this._rttMerge.render(this); // merge + decode
+
       // render to screen
       gl.bindFramebuffer(gl.FRAMEBUFFER, null);
 
-      gl.disable(gl.DEPTH_TEST);
-      this._rtt.render(this); // fxaa (filmic)
+      this._rttOpaque.render(this); // fxaa
       this._selection.render(this);
       this._sculpt.postRender(); // draw sculpt gizmos
+
       gl.enable(gl.DEPTH_TEST);
     },
     _drawScene: function () {
@@ -201,9 +212,9 @@ define(function (require, exports, module) {
       // CONTOUR 1/2
       ///////////////
       gl.disable(gl.DEPTH_TEST);
-      var showContour = this._selectMeshes.length > 0 && this._showContour && this._contour.isEffective();
+      var showContour = this._selectMeshes.length > 0 && this._showContour && Shader.CONTOUR.color[3] > 0.0;
       if (showContour) {
-        gl.bindFramebuffer(gl.FRAMEBUFFER, this._contour.getFramebuffer());
+        gl.bindFramebuffer(gl.FRAMEBUFFER, this._rttContour.getFramebuffer());
         gl.clear(gl.COLOR_BUFFER_BIT);
         for (var s = 0, sel = this._selectMeshes, nbSel = sel.length; s < nbSel; ++s)
           sel[s].renderFlatColor(this);
@@ -213,7 +224,7 @@ define(function (require, exports, module) {
       ///////////////
       // OPAQUE PASS
       ///////////////
-      gl.bindFramebuffer(gl.FRAMEBUFFER, this._rtt.getFramebuffer());
+      gl.bindFramebuffer(gl.FRAMEBUFFER, this._rttOpaque.getFramebuffer());
       gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
       // grid
@@ -232,19 +243,32 @@ define(function (require, exports, module) {
       ///////////////
       // TRANSPARENT PASS
       ///////////////
+      gl.bindFramebuffer(gl.FRAMEBUFFER, this._rttTransparent.getFramebuffer());
+      gl.clear(gl.COLOR_BUFFER_BIT);
+
+      gl.enable(gl.BLEND);
+      gl.depthMask(false);
       gl.enable(gl.CULL_FACE);
+
       for (; i < nbMeshes; ++i) {
         gl.cullFace(gl.FRONT); // draw back first
         meshes[i].render(this);
         gl.cullFace(gl.BACK); // ... and then front
         meshes[i].render(this);
       }
+
       gl.disable(gl.CULL_FACE);
 
       ///////////////
       // CONTOUR 2/2
       ///////////////
-      if (showContour) this._contour.render();
+      if (showContour) {
+        gl.bindFramebuffer(gl.FRAMEBUFFER, this._rttOpaque.getFramebuffer());
+        this._rttContour.render(this);
+      }
+
+      gl.depthMask(true);
+      gl.disable(gl.BLEND);
     },
     /** Pre compute matrices and sort meshes */
     updateMatricesAndSort: function () {
@@ -285,24 +309,25 @@ define(function (require, exports, module) {
       gl.pixelStorei(gl.UNPACK_PREMULTIPLY_ALPHA_WEBGL, false);
       gl.pixelStorei(gl.UNPACK_COLORSPACE_CONVERSION_WEBGL, gl.NONE);
 
-      gl.enable(gl.CULL_FACE);
+      gl.disable(gl.CULL_FACE);
       gl.frontFace(gl.CCW);
       gl.cullFace(gl.BACK);
 
       gl.disable(gl.BLEND);
-      gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
+      gl.blendFunc(gl.ONE, gl.ONE_MINUS_SRC_ALPHA);
 
       gl.disable(gl.DEPTH_TEST);
       gl.depthFunc(gl.LEQUAL);
       gl.depthMask(true);
 
-      gl.clearColor(0.033, 0.033, 0.033, 1);
+      gl.clearColor(0.0, 0.0, 0.0, 0.0);
       gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
     },
     /** Load textures (preload) */
     loadTextures: function () {
       var self = this;
       var gl = this._gl;
+      var ShaderMatcap = Shader.MATCAP;
 
       var loadTex = function (path, idMaterial) {
         var mat = new Image();
@@ -334,8 +359,11 @@ define(function (require, exports, module) {
       var newHeight = this._gl.viewportHeight = this._canvas.height;
 
       this._background.onResize(newWidth, newHeight);
-      this._rtt.onResize(newWidth, newHeight);
-      this._contour.onResize(newWidth, newHeight);
+
+      this._rttContour.onResize(newWidth, newHeight);
+      this._rttMerge.onResize(newWidth, newHeight);
+      this._rttOpaque.onResize(newWidth, newHeight);
+      this._rttTransparent.onResize(newWidth, newHeight);
 
       this._gl.viewport(0, 0, newWidth, newHeight);
       this._camera.onResize(newWidth, newHeight);

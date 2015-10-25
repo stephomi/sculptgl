@@ -47,7 +47,7 @@ define(function (require, exports, module) {
     '  vec4 rowy = -fac0*texel3 + fac0*texel7 + -fac1*texel4 + fac1*texel6 + -fac1*texel2 + fac1*texel0;',
     '  float mag = dot(rowy, rowy) + dot(rowx, rowx);',
     '  if (mag < 1.5) discard;',
-    '  gl_FragColor = uColor;',
+    '  gl_FragColor = vec4(uColor.rgb * uColor.a, uColor.a);',
     '}'
   ].join('\n');
 
@@ -62,12 +62,7 @@ define(function (require, exports, module) {
     gl.uniform1i(this.uniforms.uTexture0, 0);
     gl.uniform4fv(this.uniforms.uColor, ShaderContour.color);
 
-    gl.depthMask(false);
-    gl.enable(gl.BLEND);
     gl.drawArrays(gl.TRIANGLES, 0, 3);
-    gl.disable(gl.BLEND);
-    gl.depthMask(true);
-
   };
   ShaderContour.initAttributes = function (gl) {
     ShaderContour.attributes.aVertex = new Attribute(gl, ShaderContour.program, 'aVertex', 2, gl.FLOAT);

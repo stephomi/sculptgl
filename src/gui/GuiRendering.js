@@ -6,7 +6,7 @@ define(function (require, exports, module) {
   var Render = require('mesh/Render');
   var Shader = require('render/Shader');
 
-  var ShaderRTT = Shader.RTT;
+  var ShaderMERGE = Shader.MERGE;
   var ShaderUV = Shader.UV;
   var ShaderPBR = Shader.PBR;
   var ShaderMatcap = Shader.MATCAP;
@@ -43,7 +43,7 @@ define(function (require, exports, module) {
       this._ctrlCurvature = menu.addSlider(TR('renderingCurvature'), 20, this.onCurvatureChanged.bind(this), 0, 100, 1);
 
       // filmic tonemapping
-      this._ctrlFilmic = menu.addCheckbox(TR('renderingFilmic'), ShaderRTT.FILMIC, this.onFilmic.bind(this));
+      this._ctrlFilmic = menu.addCheckbox(TR('renderingFilmic'), ShaderMERGE.FILMIC, this.onFilmic.bind(this));
 
       // environments
       var optionEnvs = {};
@@ -81,7 +81,7 @@ define(function (require, exports, module) {
       this.addEvents();
     },
     onFilmic: function (val) {
-      ShaderRTT.FILMIC = val;
+      ShaderMERGE.FILMIC = val;
       this._main.render();
     },
     onCurvatureChanged: function (val) {

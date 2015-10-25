@@ -11,7 +11,6 @@ define(function (require, exports, module) {
   };
 
   GuiBackground.prototype = {
-    /** Initialize */
     init: function (guiParent) {
       // background fold
       var menu = this._menu = guiParent.addMenu(TR('backgroundTitle'));
@@ -19,17 +18,14 @@ define(function (require, exports, module) {
       menu.addButton(TR('backgroundImport'), this, 'importBackground');
       menu.addCheckbox(TR('backgroundFill'), this._main.getBackground()._fill, this.updateFill.bind(this));
     },
-    /** Reset background */
     updateFill: function (val) {
       this._main.getBackground()._fill = val;
       this._main.onCanvasResize();
     },
-    /** Reset background */
     resetBackground: function () {
-      this._main.getBackground()._tex = null;
+      this._main.getBackground().deleteTexture();
       this._main.render();
     },
-    /** Immort background */
     importBackground: function () {
       document.getElementById('backgroundopen').click();
     }

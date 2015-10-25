@@ -43,6 +43,7 @@ define(function (require, exports, module) {
     this.bindAttributes(render);
     this.updateUniforms(render);
     render.getWireframeBuffer().bind();
+
     gl.enable(gl.BLEND);
     gl.drawElements(gl.LINES, render.getMesh().getRenderNbEdges() * 2, gl.UNSIGNED_INT, 0);
     gl.disable(gl.BLEND);

@@ -52,7 +52,7 @@ define(function (require, exports, module) {
     '  col *= (0.3 + 0.7 * vMasking);',
     '  if(uSym == 1 && abs(dot(uPlaneN, vVertex - uPlaneO)) < 0.15)',
     '      col = min(col * 1.5, 1.0);',
-    '  return alpha != 1.0 ? vec4(col, alpha) : encodeRGBM(col, 1.0);',
+    '  return alpha != 1.0 ? vec4(col * alpha, alpha) : encodeRGBM(col);',
     '}'
   ].join('\n');
 
@@ -153,17 +153,7 @@ define(function (require, exports, module) {
     gl.useProgram(this.program);
     this.bindAttributes(render);
     this.updateUniforms(render, main);
-
-    var isTR = render.getMesh().isTransparent();
-    if (isTR) {
-      gl.depthMask(false);
-      gl.enable(gl.BLEND);
-    }
     this.drawBuffer(render);
-    if (isTR) {
-      gl.disable(gl.BLEND);
-      gl.depthMask(true);
-    }
   };
   ShaderBase.drawBuffer = function (render) {
     var gl = render.getGL();

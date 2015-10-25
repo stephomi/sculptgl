@@ -29,7 +29,7 @@ define(function (require, exports, module) {
     'varying vec2 vTexCoord;',
     ShaderBase.strings.colorSpaceGLSL,
     'void main() {',
-    '  gl_FragColor = encodeRGBM(sRGBToLinear(texture2D(uTexture0, vTexCoord)).rgb, 1.0);',
+    '  gl_FragColor = encodeRGBM(sRGBToLinear(texture2D(uTexture0, vTexCoord)).rgb);',
     '}'
   ].join('\n');
 
@@ -54,7 +54,7 @@ define(function (require, exports, module) {
   ShaderBackground.updateUniforms = function (bg) {
     var gl = bg.getGL();
     gl.activeTexture(gl.TEXTURE0);
-    gl.bindTexture(gl.TEXTURE_2D, bg._backgroundLoc);
+    gl.bindTexture(gl.TEXTURE_2D, bg.getTexture());
     gl.uniform1i(this.uniforms.uTexture0, 0);
   };
 

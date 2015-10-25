@@ -8,10 +8,10 @@ define(function (require, exports, module) {
 
   var singletonBuffer;
 
-  var Rtt = function (gl, depth) {
+  var Merge = function (gl, shaderType, depth, halfFloat) {
     this._gl = gl; // webgl context
 
-    this._rtt = gl.createTexture();
+    this._texture = gl.createTexture();
     this._depth = depth === undefined ? gl.createRenderbuffer() : depth;
     this._framebuffer = gl.createFramebuffer();
 
@@ -19,10 +19,16 @@ define(function (require, exports, module) {
     this._invSize = new Float32Array(2);
     this._vertexBuffer = null;
 
+    if (halfFloat && WebGLCaps.hasRTTHalfFloat()) this._type = WebGLCaps.HALF_FLOAT_OES;
+    else if (halfFloat && WebGLCaps.hasRTTFloat()) this._type = gl.FLOAT;
+    else this._type = gl.UNSIGNED_BYTE;
+
+    this._shaderType = shaderType || '';
+
     this.init();
   };
 
-  Rtt.prototype = {
+  Merge.prototype = {
     getGL: function () {
       return this._gl;
     },
@@ -33,7 +39,7 @@ define(function (require, exports, module) {
       return this._framebuffer;
     },
     getTexture: function () {
-      return this._rtt;
+      return this._texture;
     },
     getDepth: function () {
       return this._depth;
@@ -43,7 +49,8 @@ define(function (require, exports, module) {
     },
     init: function () {
       var gl = this._gl;
-      this._shader = Shader[this.getShaderType()].getOrCreate(gl);
+      if (this.getShaderType())
+        this._shader = Shader[this.getShaderType()].getOrCreate(gl);
 
       if (!singletonBuffer) {
         singletonBuffer = new Buffer(gl, gl.ARRAY_BUFFER, gl.STATIC_DRAW);
@@ -53,14 +60,7 @@ define(function (require, exports, module) {
       this._vertexBuffer = singletonBuffer;
     },
     getShaderType: function () {
-      return 'RTT';
-    },
-    getType: function (gl) {
-      if (WebGLCaps.hasRTTHalfFloat())
-        return WebGLCaps.HALF_FLOAT_OES;
-      if (WebGLCaps.hasRTTFloat())
-        return gl.FLOAT;
-      return gl.UNSIGNED_BYTE;
+      return this._shaderType;
     },
     onResize: function (width, height) {
       var gl = this._gl;
@@ -68,8 +68,8 @@ define(function (require, exports, module) {
       this._invSize[0] = 1.0 / width;
       this._invSize[1] = 1.0 / height;
 
-      gl.bindTexture(gl.TEXTURE_2D, this._rtt);
-      gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, width, height, 0, gl.RGBA, gl.UNSIGNED_BYTE, null);
+      gl.bindTexture(gl.TEXTURE_2D, this._texture);
+      gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, width, height, 0, gl.RGBA, this._type, null);
       gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
       gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
       gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
@@ -81,20 +81,19 @@ define(function (require, exports, module) {
       }
 
       gl.bindFramebuffer(gl.FRAMEBUFFER, this._framebuffer);
-      gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, this._rtt, 0);
+      gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, this._texture, 0);
       gl.framebufferRenderbuffer(gl.FRAMEBUFFER, gl.DEPTH_ATTACHMENT, gl.RENDERBUFFER, this._depth);
 
       gl.bindTexture(gl.TEXTURE_2D, null);
     },
     release: function () {
-      if (this._rtt)
-        this._gl.deleteTexture(this._rtt);
+      if (this._texture) this._gl.deleteTexture(this._texture);
       this.getVertexBuffer().release();
     },
-    render: function () {
-      this._shader.draw(this);
+    render: function (main) {
+      this._shader.draw(this, main);
     }
   };
 
-  module.exports = Rtt;
+  module.exports = Merge;
 });
