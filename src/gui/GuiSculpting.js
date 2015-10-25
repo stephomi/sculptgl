@@ -211,18 +211,14 @@ define(function (require, exports, module) {
         this._modalBrushIntensity = main._focusGui = true;
         break;
       case 78: // N
-        if (cur.toggleNegative)
-          cur.toggleNegative();
+        if (cur.toggleNegative) cur.toggleNegative();
         break;
       case 83: // S
         var ctrlPicker = cur._ctrlPicker;
-        if (ctrlPicker) {
-          ctrlPicker.setValue(!ctrlPicker.getValue());
-        }
+        if (ctrlPicker && !ctrlPicker.getValue()) ctrlPicker.setValue(true);
         break;
       case 88: // X
-        if (!this._modalBrushRadius)
-          this._startModAlBrushRadius(this._lastPageX, this._lastPageY);
+        if (!this._modalBrushRadius) this._startModAlBrushRadius(this._lastPageX, this._lastPageY);
         this._modalBrushRadius = main._focusGui = true;
         break;
       default:
@@ -240,7 +236,8 @@ define(function (require, exports, module) {
       }
 
       var main = this._main;
-      if (event.which === 88) { // X
+      switch (event.which) {
+      case 88: // X
         this._modalBrushRadius = main._focusGui = false;
         main.getSelectionRadius().setOffsetX(0.0);
         event.pageX = this._lastPageX;
@@ -248,10 +245,18 @@ define(function (require, exports, module) {
         main.setMousePosition(event);
         main.getPicking().intersectionMouseMeshes();
         main.render();
-
-      } else if (event.which === 67) { // C
-
+        break;
+      case 83: // S
+        var cur = GuiSculptingTools[this.getSelectedTool()];
+        var ctrlPicker = cur._ctrlPicker;
+        if (ctrlPicker && ctrlPicker.getValue()) {
+          ctrlPicker.setValue(false);
+          this._main._action = 'NOTHING';
+        }
+        break;
+      case 67: // C
         this._modalBrushIntensity = main._focusGui = false;
+        break;
       }
     },
     ////////////////
