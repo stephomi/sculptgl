@@ -66,6 +66,7 @@ define(function (require, exports, module) {
     'varying vec3 vNormal;',
     'varying vec3 vColor;',
     'varying float vMasking;',
+    'varying vec3 vVertexPres;',
     'uniform vec3 uAlbedo;',
     'void main() {',
     '  vColor = uAlbedo.x >= 0.0 ? uAlbedo : aColor;',
@@ -75,6 +76,12 @@ define(function (require, exports, module) {
     '  vec4 vertex4 = vec4(aVertex, 1.0);',
     '  vertex4 = mix(vertex4, uEM *vertex4, vMasking);',
     '  vVertex = vec3(uMV * vertex4);',
+    // annoying stuffs : on mobile + with ortho matrix 
+    // there's a precision issue with vVertex lerp between VS and FS
+    // it is caused by the big ortho z translation factor, one solutions
+    // is to use highp, one another to compute the matcap UV in the VS (but 
+    // no flat shading in that case)
+    '  vVertexPres = vVertex / max(1.0, abs(uMV[3][2]));',
     '  gl_Position = uMVP * vertex4;',
     '}'
   ].join('\n');
@@ -83,6 +90,7 @@ define(function (require, exports, module) {
     'precision mediump float;',
     'uniform sampler2D uTexture0;',
     'varying vec3 vVertex;',
+    'varying vec3 vVertexPres;',
     'varying vec3 vNormal;',
     'varying vec3 vColor;',
     'uniform float uAlpha;',
@@ -90,8 +98,8 @@ define(function (require, exports, module) {
     ShaderBase.strings.fragColorFunction,
     'void main() {',
     '  vec3 normal = getNormal();',
-    '  vec3 nm_z = normalize(vVertex);',
-    '  vec3 nm_x = cross(nm_z, vec3(0.0, 1.0, 0.0));',
+    '  vec3 nm_z = normalize(vVertexPres);',
+    '  vec3 nm_x = vec3(-nm_z.z, 0.0, nm_z.x);',
     '  vec3 nm_y = cross(nm_x, nm_z);',
     '  vec2 texCoord = 0.5 + 0.5 * vec2(dot(normal, nm_x), dot(normal, nm_y));',
     '  vec3 color = sRGBToLinear(texture2D(uTexture0, texCoord).rgb) * vColor;',
