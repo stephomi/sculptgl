@@ -98,7 +98,7 @@ define(function (require, exports, module) {
     // rendering
     options.flatshading = queryBool(params.flatshading, false);
     options.wireframe = queryBool(params.wireframe, false);
-    options.curvature = queryNumber(params.curvature, 0, 5, 1); // [0-5]
+    options.curvature = queryNumber(params.curvature, 0, 5, 0); // [0-5]
     options.exposure = queryNumber(params.exposure, 0, 5, 1); // [0-5]
     options.environment = queryInteger(params.environment, 0, Infinity, 0); // [0-inf]
     options.matcap = queryInteger(params.matcap, 0, Infinity, 3); // [0-inf]
