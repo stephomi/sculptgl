@@ -81,7 +81,6 @@ define(function (require, exports, module) {
       }
 
       var nbFaces = full ? mesh.getNbFaces() : iFaces.length;
-      console.time('yo');
       for (var i = 0; i < nbFaces; ++i) {
         var idFace = full ? i : iFaces[i];
         var ftt = facesToTris ? facesToTris[idFace] : idFace;
@@ -185,7 +184,6 @@ define(function (require, exports, module) {
         cdn[vId + 7] = nAr[id4 + 1];
         cdn[vId + 8] = nAr[id4 + 2];
       }
-      console.timeEnd('yo');
       if (mesh.isUsingTexCoords())
         this.updateDrawArraysTexCoord(iFaces);
     },

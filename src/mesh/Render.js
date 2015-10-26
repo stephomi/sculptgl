@@ -39,7 +39,7 @@ define(function (require, exports, module) {
     this._mode = gl.TRIANGLES;
   };
 
-  Render.ONLY_DRAW_ARRAYS = false;
+  Render.ONLY_DRAW_ARRAYS = true;
 
   Render.prototype = {
     ////////////////
