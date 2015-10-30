@@ -139,7 +139,7 @@ define(function (require, exports, module) {
       if (cur._ctrlRadius) {
         var rad = cur._ctrlRadius.getValue();
         this._refX -= rad;
-        this._main.getSelectionRadius().setOffsetX(-rad);
+        this._main.getSelectionRadius().setOffsetX(-rad * this._main.getPixelRatio());
         this._main.renderSelectOverRtt();
       }
     },
@@ -279,11 +279,13 @@ define(function (require, exports, module) {
       if (this._modalBrushIntensity && wid._ctrlIntensity) {
         wid._ctrlIntensity.setValue(wid._ctrlIntensity.getValue() + event.pageX - this._lastPageX);
       }
+
       this._lastPageX = event.pageX;
       this._lastPageY = event.pageY;
     },
     onMouseOver: function (event) {
-      if (this._modalBrushRadius) this._startModalBrushRadius(event.pageX, event.pageY);
+      if (this._modalBrushRadius)
+        this._startModalBrushRadius(event.pageX, event.pageY);
     }
   };
 

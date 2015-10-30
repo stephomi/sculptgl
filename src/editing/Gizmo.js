@@ -273,8 +273,8 @@ define(function (require, exports, module) {
     _updateLineHelper: function (x1, y1, x2, y2) {
       var vAr = this._lineHelper.getVertices();
       var main = this._main;
-      var width = main._canvas.width;
-      var height = main._canvas.height;
+      var width = main.getCanvasWidth();
+      var height = main.getCanvasHeight();
       vAr[0] = ((x1 / width) * 2.0) - 1.0;
       vAr[1] = (((height - y1) / height)) * 2.0 - 1.0;
       vAr[3] = ((x2 / width) * 2.0) - 1.0;
@@ -335,7 +335,7 @@ define(function (require, exports, module) {
         vec3.set(dir, 0.0, 0.0, 0.0)[nbAxis] = 1.0;
       vec3.add(dir, origin, dir);
 
-      // project on canvas and get a 2D line
+      // project on screen and get a 2D line
       vec3.copy(origin, camera.project(origin));
       vec3.copy(dir, camera.project(dir));
 
@@ -363,7 +363,7 @@ define(function (require, exports, module) {
       // helper line
       this._updateLineHelper(origin[0], origin[1], origin[0] + dir[0] * dist, origin[1] + dir[1] * dist);
 
-      var angle = 7 * dist / Math.min(main._canvas.width, main._canvas.height);
+      var angle = 7 * dist / Math.min(main.getCanvasWidth(), main.getCanvasHeight());
       angle %= (Math.PI * 2);
       var nbAxis = this._selected._nbAxis;
 

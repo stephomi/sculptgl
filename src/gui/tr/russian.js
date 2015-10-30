@@ -177,6 +177,9 @@ define(function (require, exports, module) {
     contourShow: 'Показать контур',
     contourColor: 'Цвет',
 
+    // pixel ratio
+    resolution: null,
+
     // matcaps
     matcapPearl: 'Жемчуг',
     matcapClay: 'Глина',

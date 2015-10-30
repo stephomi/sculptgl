@@ -220,7 +220,8 @@ define(function (require, exports, module) {
       var zoom = 70.0;
       if (this._meshes.length > 0) {
         var box = this.computeBoundingBoxMeshes(this._meshes);
-        zoom = 0.8 * vec3.dist([box[0], box[1], box[2]], [box[3], box[4], box[5]]);
+        zoom = 0.3 * vec3.dist([box[0], box[1], box[2]], [box[3], box[4], box[5]]);
+        zoom *= this._camera.computeFrustumFit();
         vec3.set(pivot, (box[0] + box[3]) * 0.5, (box[1] + box[4]) * 0.5, (box[2] + box[5]) * 0.5);
       }
       this._camera.setAndFocusOnPivot(pivot, zoom);
@@ -340,12 +341,13 @@ define(function (require, exports, module) {
       this.render();
     },
     setMousePosition: function (event) {
-      this._mouseX = event.pageX - this._canvas.offsetLeft;
-      this._mouseY = event.pageY - this._canvas.offsetTop;
+      this._mouseX = this._pixelRatio * (event.pageX - this._canvasOffsetLeft);
+      this._mouseY = this._pixelRatio * (event.pageY - this._canvasOffsetTop);
     },
     onDeviceDown: function (event) {
       if (this._focusGui)
         return;
+
       this.setMousePosition(event);
 
       var mouseX = this._mouseX;

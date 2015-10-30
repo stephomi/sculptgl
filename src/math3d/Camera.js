@@ -520,6 +520,23 @@ define(function (require, exports, module) {
       vec3.sub(delta, target, this._offset);
       var cb = this._offsetDelta.bind(this, delta);
       this.delay(cb, duration, 'offset');
+    },
+    computeFrustumFit: function () {
+      var near = this._near;
+
+      if (this._projectionType === 'ORTHOGRAPHIC') {
+        return 1.0 / Math.sin(Math.atan2(Math.min(this._width, this._height) / near * 0.5, 1));
+      }
+
+      var proj = this._proj;
+      var left = near * (proj[8] - 1.0) / proj[0];
+      var right = near * (1.0 + proj[8]) / proj[0];
+      var top = near * (1.0 + proj[9]) / proj[5];
+      var bottom = near * (proj[9] - 1.0) / proj[5];
+      var vertical2 = Math.abs(right - left);
+      var horizontal2 = Math.abs(top - bottom);
+
+      return (this._fov / 45.0) / Math.sin(Math.atan2(Math.min(horizontal2, vertical2) / near * 0.5, 1));
     }
   };
 

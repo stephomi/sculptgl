@@ -117,7 +117,7 @@ define(function (require, exports, module) {
       var dx = main._mouseX - this._lastMouseX;
       var dy = main._mouseY - this._lastMouseY;
       var dist = Math.sqrt(dx * dx + dy * dy);
-      var minSpacing = 0.15 * this._radius;
+      var minSpacing = 0.15 * this._radius * main.getPixelRatio();
 
       if (dist <= minSpacing)
         return;
@@ -392,7 +392,10 @@ define(function (require, exports, module) {
       return new Uint32Array(cleaned.subarray(0, acc));
     },
     postRender: function () {},
-    addSculptToScene: function () {}
+    addSculptToScene: function () {},
+    getScreenRadius: function () {
+      return (this._radius || 1) * this._main.getPixelRatio();
+    }
   };
 
   module.exports = SculptBase;

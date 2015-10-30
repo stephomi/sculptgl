@@ -45,7 +45,7 @@ define(function (require, exports, module) {
     initGui: function () {
       this.deleteGui();
 
-      this._guiMain = new yagui.GuiMain(this._main.getCanvas(), this._main.onCanvasResize.bind(this._main));
+      this._guiMain = new yagui.GuiMain(this._main.getViewport(), this._main.onCanvasResize.bind(this._main));
 
       var ctrls = this._ctrls;
       ctrls.length = 0;
@@ -75,10 +75,17 @@ define(function (require, exports, module) {
       extra.addTitle(TR('contour'));
       extra.addColor(TR('contourColor'), ShaderContour.color, this.onContourColor.bind(this));
 
+      extra.addTitle(TR('resolution'));
+      extra.addSlider('', this._main._pixelRatio, this.onPixelRatio.bind(this), 0.5, 2.0, 0.02);
+
       this.addDonateButton();
 
       this.updateMesh();
       this.setVisibility(true);
+    },
+    onPixelRatio: function (val) {
+      this._main._pixelRatio = val;
+      this._main.onCanvasResize();
     },
     onContourColor: function (col) {
       ShaderContour.color[0] = col[0];

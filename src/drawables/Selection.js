@@ -91,7 +91,7 @@ define(function (require, exports, module) {
 
       return function (camera, main) {
 
-        var screenRadius = main.getSculpt().getCurrentTool()._radius || 1;
+        var screenRadius = main.getSculpt().getCurrentTool().getScreenRadius();
 
         var w = camera._width * 0.5;
         var h = camera._height * 0.5;
@@ -124,7 +124,7 @@ define(function (require, exports, module) {
         var picking = main.getPicking();
         var pickingSym = main.getPickingSymmetry();
         var worldRadius = Math.sqrt(picking.computeWorldRadius2(true));
-        var screenRadius = main.getSculpt().getCurrentTool()._radius || 1;
+        var screenRadius = main.getSculpt().getCurrentTool().getScreenRadius();
 
         var mesh = picking.getMesh();
         var constRadius = DOT_RADIUS * (worldRadius / screenRadius);

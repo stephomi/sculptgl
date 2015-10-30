@@ -359,7 +359,7 @@ define(function (require, exports, module) {
 
         vec3.transformMat4(inter, this.getIntersectionPoint(), this._mesh.getMatrix());
 
-        var offsetX = this._main.getSculpt().getCurrentTool()._radius || 1.0;
+        var offsetX = this._main.getSculpt().getCurrentTool().getScreenRadius();
         if (!ignorePressure) offsetX *= Tablet.getPressureRadius();
 
         var screenInter = this.project(inter);

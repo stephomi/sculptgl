@@ -27,7 +27,15 @@ define(function (require, exports, module) {
 
   var Scene = function () {
     this._gl = null; // webgl context
+
+    // cache canvas stuffs
+    this._pixelRatio = 1.0;
+    this._viewport = document.getElementById('viewport');
     this._canvas = document.getElementById('canvas');
+    this._canvasWidth = 0;
+    this._canvasHeight = 0;
+    this._canvasOffsetLeft = 0;
+    this._canvasOffsetTop = 0;
 
     // core of the app
     this._states = new States(this); // for undo-redo
@@ -36,6 +44,7 @@ define(function (require, exports, module) {
     this._picking = new Picking(this); // the ray picking
     this._pickingSym = new Picking(this, true); // the symmetrical picking
 
+    // TODO primitive builder
     this._meshPreview = null;
     this._torusLength = 0.5;
     this._torusWidth = 0.1;
@@ -94,8 +103,20 @@ define(function (require, exports, module) {
     getBackground: function () {
       return this._background;
     },
+    getViewport: function () {
+      return this._viewport;
+    },
     getCanvas: function () {
       return this._canvas;
+    },
+    getPixelRatio: function () {
+      return this._pixelRatio;
+    },
+    getCanvasWidth: function () {
+      return this._canvasWidth;
+    },
+    getCanvasHeight: function () {
+      return this._canvasHeight;
     },
     getCamera: function () {
       return this._camera;
@@ -311,9 +332,6 @@ define(function (require, exports, module) {
       if (!WebGLCaps.getWebGLExtension('OES_element_index_uint'))
         Render.ONLY_DRAW_ARRAYS = true;
 
-      gl.viewportWidth = window.innerWidth;
-      gl.viewportHeight = window.innerHeight;
-
       gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true);
       gl.pixelStorei(gl.UNPACK_PREMULTIPLY_ALPHA_WEBGL, false);
       gl.pixelStorei(gl.UNPACK_COLORSPACE_CONVERSION_WEBGL, gl.NONE);
@@ -364,9 +382,20 @@ define(function (require, exports, module) {
     },
     /** Called when the window is resized */
     onCanvasResize: function () {
-      var newWidth = this._gl.viewportWidth = this._canvas.width;
-      var newHeight = this._gl.viewportHeight = this._canvas.height;
+      var viewport = this._viewport;
+      var newWidth = viewport.clientWidth * this._pixelRatio;
+      var newHeight = viewport.clientHeight * this._pixelRatio;
 
+      this._canvasOffsetLeft = viewport.offsetLeft;
+      this._canvasOffsetTop = viewport.offsetTop;
+      this._canvasWidth = newWidth;
+      this._canvasHeight = newHeight;
+
+      this._canvas.width = newWidth;
+      this._canvas.height = newHeight;
+
+      this._gl.viewport(0, 0, newWidth, newHeight);
+      this._camera.onResize(newWidth, newHeight);
       this._background.onResize(newWidth, newHeight);
 
       this._rttContour.onResize(newWidth, newHeight);
@@ -374,8 +403,6 @@ define(function (require, exports, module) {
       this._rttOpaque.onResize(newWidth, newHeight);
       this._rttTransparent.onResize(newWidth, newHeight);
 
-      this._gl.viewport(0, 0, newWidth, newHeight);
-      this._camera.onResize(newWidth, newHeight);
       this.render();
     },
     computeBoundingBoxMeshes: function (meshes) {
@@ -410,7 +437,6 @@ define(function (require, exports, module) {
         mat4.mul(mat, mCen, mat);
       }
     },
-    /** Load the sphere */
     addSphere: function () {
       // make a cube and subdivide it
       var mesh = new Multimesh(Primitives.createCube(this._gl));

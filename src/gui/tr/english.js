@@ -177,6 +177,9 @@ define(function (require, exports, module) {
     contourShow: 'Show contour',
     contourColor: 'Color',
 
+    // pixel ratio
+    resolution: 'Resolution',
+
     // matcaps
     matcapPearl: 'Pearl',
     matcapClay: 'Clay',

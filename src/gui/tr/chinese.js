@@ -177,6 +177,9 @@ define(function (require, exports, module) {
     contourShow: null,
     contourColor: null,
 
+    // pixel ratio
+    resolution: null,
+
     // matcaps
     matcapPearl: '珍珠',
     matcapClay: '黏土',
