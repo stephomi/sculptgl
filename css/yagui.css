@@ -24,8 +24,13 @@ body {
   top: -1000px;
 }
 
-#canvas {
+#viewport {
   position: absolute;
+}
+
+#canvas {
+  width: 100%;
+  height: 100%;
   display: block;
 }
 
