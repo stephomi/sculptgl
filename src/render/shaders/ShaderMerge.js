@@ -5,7 +5,6 @@ define(function (require, exports, module) {
   var ShaderBase = require('render/shaders/ShaderBase');
   var Attribute = require('render/Attribute');
   var getOptionsURL = require('misc/getOptionsURL');
-  var fxaaGLSL = require('text!render/shaders/glsl/fxaa.glsl');
 
   var ShaderMerge = ShaderBase.getCopy();
   ShaderMerge.vertexName = ShaderMerge.fragmentName = 'Merge';
@@ -33,7 +32,6 @@ define(function (require, exports, module) {
     'uniform sampler2D uTexture1;',
     'uniform int uFilmic;',
     'varying vec2 vTexCoord;',
-    fxaaGLSL,
     ShaderBase.strings.colorSpaceGLSL,
     'void main() {',
     '  vec4 transparent = texture2D(uTexture1, vTexCoord);',
