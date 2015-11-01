@@ -46,8 +46,9 @@ define(function (require, exports, module) {
     var newAlpha = {};
     newAlpha._name = name;
     newAlpha._texture = u8;
-    newAlpha._ratioX = Math.min(1.0, width / height);
-    newAlpha._ratioY = Math.min(1.0, height / width);
+    newAlpha._ratioX = Math.max(1.0, width / height);
+    newAlpha._ratioY = Math.max(1.0, height / width);
+    newAlpha._ratioMax = Math.max(this._ratioX, this._ratioY);
     newAlpha._width = width;
     newAlpha._height = height;
     var i = 1;
@@ -68,12 +69,15 @@ define(function (require, exports, module) {
 
       var m = this._alphaLookAt;
       var rs = this._alphaSide;
-      var xn = (m[0] * x + m[4] * y + m[8] * z + m[12]) / (this._xSym ? -rs : rs);
-      if (Math.abs(xn) > alpha._ratioX) return 0.0;
-      var yn = (m[1] * x + m[5] * y + m[9] * z + m[13]) / rs;
-      if (Math.abs(yn) > alpha._ratioY) return 0.0;
+
+      var xn = alpha._ratioY * (m[0] * x + m[4] * y + m[8] * z + m[12]) / (this._xSym ? -rs : rs);
+      if (Math.abs(xn) > 1.0) return 0.0;
+
+      var yn = alpha._ratioX * (m[1] * x + m[5] * y + m[9] * z + m[13]) / rs;
+      if (Math.abs(yn) > 1.0) return 0.0;
+
       var aw = alpha._width;
-      xn = (0.5 + xn * 0.5) * aw;
+      xn = (0.5 - xn * 0.5) * aw;
       yn = (0.5 - yn * 0.5) * alpha._height;
       return alpha._texture[(xn | 0) + aw * (yn | 0)] / 255.0;
     },
