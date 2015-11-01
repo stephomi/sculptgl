@@ -10,7 +10,7 @@ define(function (require, exports, module) {
   Utils.STATE_FLAG = 1; // flag value for states (always >= tags values)
 
   Utils.cursors = {};
-  Utils.cursors.dropper = 'url(resources/dropper.png) 10 22, auto';
+  Utils.cursors.dropper = 'url(resources/dropper.png) 5 25, auto';
 
   Utils.makeProxy = function (source, proxy, wrapFunc) {
     var sourceProto = source.prototype;
