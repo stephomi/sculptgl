@@ -280,15 +280,18 @@ define(function (require, exports, module) {
       var vertSculptFlags = mesh.getVerticesSculptFlags();
       var leavesHit = mesh.getLeavesUpdate();
       var inter = this.getIntersectionPoint();
+
       var iFacesInCells = mesh.intersectSphere(inter, rLocal2, leavesHit, mesh.getNbFaces());
       var iVerts = mesh.getVerticesFromFaces(iFacesInCells);
       var nbVerts = iVerts.length;
+
       var sculptFlag = ++Utils.SCULPT_FLAG;
       var pickedVertices = new Uint32Array(Utils.getMemory(4 * nbVerts + 12), 0, nbVerts + 3);
       var acc = 0;
       var itx = inter[0];
       var ity = inter[1];
       var itz = inter[2];
+
       for (var i = 0; i < nbVerts; ++i) {
         var ind = iVerts[i];
         var j = ind * 3;
@@ -300,6 +303,7 @@ define(function (require, exports, module) {
           pickedVertices[acc++] = ind;
         }
       }
+
       this._pickedVertices = new Uint32Array(pickedVertices.subarray(0, acc));
       return this._pickedVertices;
     },
@@ -320,7 +324,6 @@ define(function (require, exports, module) {
       var idf = this.getPickedFace();
       var pickedVertices = new Uint32Array(Utils.getMemory(4 * nbVertices), 0, nbVertices);
       pickedVertices[0] = fAr[idf * 4];
-      vertSculptFlags[pickedVertices[0]] = sculptFlag;
       var acc = 1;
 
       var inter = this.getIntersectionPoint();
@@ -353,7 +356,7 @@ define(function (require, exports, module) {
           pickedVertices[acc++] = idv;
         }
       }
-      this._pickedVertices = new Uint32Array(pickedVertices.subarray(0, acc));
+      this._pickedVertices = new Uint32Array(pickedVertices.subarray(1, acc));
       return this._pickedVertices;
     },
     computeWorldRadius2: (function () {
