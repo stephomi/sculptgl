@@ -56,7 +56,8 @@ define(function (require, exports, module) {
     zip.useWebWorkers = true;
     zip.workerScriptsPath = 'worker/';
     zip.createWriter(new zip.BlobWriter('application/zip'), function (zipWriter) {
-      zipWriter.add('yourMesh.ply', new zip.BlobReader(ExportPLY.exportBinaryPLY(main.getMeshes(), true)), function () {
+      var data = ExportPLY.exportBinaryPLY(main.getMeshes(), true);
+      zipWriter.add('yourMesh.ply', new zip.BlobReader(data), function () {
         zipWriter.close(Export.exportFileSketchfab.bind(this, main, key, xhr));
       });
     }, onerror);

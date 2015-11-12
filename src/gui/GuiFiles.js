@@ -23,6 +23,7 @@ define(function (require, exports, module) {
       menu.addTitle(TR('fileImportTitle'));
       menu.addButton(TR('fileAdd'), this, 'addFile' /*, 'CTRL+O/I'*/ );
       menu.addCheckbox(TR('fileAutoMatrix'), this._main, '_autoMatrix');
+      menu.addCheckbox(TR('fileVertexSRGB'), this._main, '_vertexSRGB');
 
       // export
       menu.addTitle(TR('fileExportSceneTitle'));

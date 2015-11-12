@@ -34,6 +34,7 @@ define(function (require, exports, module) {
     fileImportTitle: 'Import',
     fileAdd: 'Add (obj, sgl, ply, stl)',
     fileAutoMatrix: 'Scale and center',
+    fileVertexSRGB: 'sRGB vertex color',
     fileExportMeshTitle: 'Export Mesh',
     fileExportSceneTitle: 'Export Scene',
     fileExportSGL: 'Save .sgl (SculptGL)',

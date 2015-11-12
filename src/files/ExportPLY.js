@@ -67,7 +67,8 @@ define(function (require, exports, module) {
       };
       Remesh.mergeArrays(meshes, arr);
       vAr = arr.vertices;
-      cAr = arr.colors;
+      // sketchfab linear vertex color space
+      cAr = Utils.convertArrayVec3toLinear(arr.colors);
       fAr = arr.faces;
       // swap xy
       for (i = 0; i < nbVertices; ++i) {

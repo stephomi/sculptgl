@@ -75,6 +75,7 @@ define(function (require, exports, module) {
     this._preventRender = false; // prevent multiple render per frame
     this._drawFullScene = false; // render everything on the rtt
     this._autoMatrix = opts.scalecenter; // scale and center the imported meshes
+    this._vertexSRGB = true; // srgb vs linear colorspace for vertex color
   };
 
   Scene.prototype = {
@@ -486,7 +487,7 @@ define(function (require, exports, module) {
       this.setMesh(mesh);
       return mesh;
     },
-    loadScene: function (fileData, fileType, autoMatrix) {
+    loadScene: function (fileData, fileType) {
       var newMeshes;
       if (fileType === 'obj') newMeshes = Import.importOBJ(fileData, this._gl);
       else if (fileType === 'sgl') newMeshes = Import.importSGL(fileData, this._gl, this);
@@ -499,13 +500,18 @@ define(function (require, exports, module) {
       var meshes = this._meshes;
       for (var i = 0; i < nbNewMeshes; ++i) {
         var mesh = newMeshes[i] = new Multimesh(newMeshes[i]);
+
+        if (!this._vertexSRGB)
+          Utils.convertArrayVec3toSRGB(mesh.getColors());
+
         mesh.init();
         mesh.initRender();
         meshes.push(mesh);
       }
 
-      if (autoMatrix)
+      if (this._autoMatrix)
         this.normalizeAndCenterMeshes(newMeshes);
+
       this._states.pushStateAdd(newMeshes);
       this.setMesh(meshes[meshes.length - 1]);
       this._camera.resetView();

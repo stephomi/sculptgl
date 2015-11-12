@@ -34,6 +34,7 @@ define(function (require, exports, module) {
     fileImportTitle: null,
     fileAdd: 'Add (obj, sgl, ply, stl)',
     fileAutoMatrix: null,
+    fileVertexSRGB: null,
     fileExportMeshTitle: null,
     fileExportSceneTitle: null,
     fileExportSGL: null,

@@ -3,19 +3,19 @@
 
 // approximation
 // http://chilliant.blogspot.fr/2012/08/srgb-approximations-for-hlsl.html
-float linearTosRGB(const in float c) {
+float lineartoSRGB(const in float c) {
     float S1 = sqrt(c);
     float S2 = sqrt(S1);
     float S3 = sqrt(S2);
     return 0.662002687 * S1 + 0.684122060 * S2 - 0.323583601 * S3 - 0.0225411470 * c;
 }
-vec3 linearTosRGB(const in vec3 c) {
+vec3 lineartoSRGB(const in vec3 c) {
     vec3 S1 = sqrt(c);
     vec3 S2 = sqrt(S1);
     vec3 S3 = sqrt(S2);
     return 0.662002687 * S1 + 0.684122060 * S2 - 0.323583601 * S3 - 0.0225411470 * c;
 }
-vec4 linearTosRGB(const in vec4 c) {
+vec4 lineartoSRGB(const in vec4 c) {
     vec3 S1 = sqrt(c.rgb);
     vec3 S2 = sqrt(S1);
     vec3 S3 = sqrt(S2);

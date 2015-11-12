@@ -54,8 +54,8 @@ define(function (require, exports, module) {
     ShaderBase.strings.fragColorUniforms,
     ShaderBase.strings.fragColorFunction,
     'void main() {',
-    '  vec3 color = sRGBToLinear(texture2D(uTexture0, vTexCoord).rgb) * vColor;',
-    '  gl_FragColor = encodeFragColor(sRGBToLinear(color), uAlpha);',
+    '  vec3 color = sRGBToLinear(texture2D(uTexture0, vTexCoord).rgb) * sRGBToLinear(vColor);',
+    '  gl_FragColor = encodeFragColor(color, uAlpha);',
     '}'
   ].join('\n');
 

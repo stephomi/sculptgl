@@ -34,6 +34,7 @@ define(function (require, exports, module) {
     fileImportTitle: 'Импорт',
     fileAdd: 'Добавить(obj,sgl,ply,stl)',
     fileAutoMatrix: 'Масштаб-вид',
+    fileVertexSRGB: null,
     fileExportMeshTitle: 'Эксорт модели',
     fileExportSceneTitle: 'Экспорт сцены',
     fileExportSGL: 'Сохранить .sgl',

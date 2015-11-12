@@ -34,6 +34,7 @@ define(function (require, exports, module) {
     fileImportTitle: '匯入',
     fileAdd: '加入 (obj, sgl, ply, stl)',
     fileAutoMatrix: null,
+    fileVertexSRGB: null,
     fileExportMeshTitle: '匯出網面',
     fileExportSceneTitle: '匯出場景',
     fileExportSGL: '儲存 .sgl (SculptGL)',

@@ -34,6 +34,7 @@ define(function (require, exports, module) {
     fileImportTitle: '가져오기',
     fileAdd: '파일 (obj, sgl, ply, stl)',
     fileAutoMatrix: null,
+    fileVertexSRGB: null,
     fileExportMeshTitle: '메쉬 내보내기',
     fileExportSceneTitle: '장면 내보내기',
     fileExportSGL: 'sgl로 저장하기',

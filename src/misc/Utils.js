@@ -195,7 +195,7 @@ define(function (require, exports, module) {
 
   Utils.normalizeArrayVec3 = function (array, out) {
     var arrayOut = out || array;
-    for (var i = 0, l = array.length; i < l; ++i) {
+    for (var i = 0, l = array.length / 3; i < l; ++i) {
       var j = i * 3;
       var nx = array[j];
       var ny = array[j + 1];
@@ -209,6 +209,27 @@ define(function (require, exports, module) {
       arrayOut[j] = nx * len;
       arrayOut[j + 1] = ny * len;
       arrayOut[j + 2] = nz * len;
+    }
+    return arrayOut;
+  };
+
+  Utils.convertArrayVec3toSRGB = function (array, out) {
+    var arrayOut = out || array;
+    for (var i = 0, l = array.length; i < l; ++i) {
+      var c = array[i];
+      var S1 = Math.sqrt(c);
+      var S2 = Math.sqrt(S1);
+      var S3 = Math.sqrt(S2);
+      arrayOut[i] = 0.662002687 * S1 + 0.684122060 * S2 - 0.323583601 * S3 - 0.0225411470 * c;
+    }
+    return arrayOut;
+  };
+
+  Utils.convertArrayVec3toLinear = function (array, out) {
+    var arrayOut = out || array;
+    for (var i = 0, l = array.length; i < l; ++i) {
+      var c = array[i];
+      arrayOut[i] = c * (c * (c * 0.305306011 + 0.682171111) + 0.012522878);
     }
     return arrayOut;
   };

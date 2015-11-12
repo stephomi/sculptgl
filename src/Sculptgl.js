@@ -68,7 +68,7 @@ define(function (require, exports, module) {
       canvas.addEventListener('webglcontextrestored', this.onContextRestored.bind(this), false);
       window.addEventListener('dragenter', cbStopAndPrevent, false);
       window.addEventListener('dragover', cbStopAndPrevent, false);
-      window.addEventListener('drop', this.loadFiles.bind(this), false);
+      window.addEventListener('drop', cbLoadFiles, false);
       document.getElementById('fileopen').addEventListener('change', cbLoadFiles, false);
     },
     initHammer: function () {
@@ -256,7 +256,7 @@ define(function (require, exports, module) {
       var reader = new FileReader();
       var self = this;
       reader.onload = function (evt) {
-        self.loadScene(evt.target.result, fileType, self._autoMatrix);
+        self.loadScene(evt.target.result, fileType);
         document.getElementById('fileopen').value = '';
       };
 
