@@ -22,6 +22,7 @@ define(function (require, exports, module) {
     data += 'property uchar red\nproperty uchar green\nproperty uchar blue\n';
     data += 'element face ' + nbFaces + '\n';
     data += 'property list uchar uint vertex_indices\nend_header\n';
+
     for (i = 0; i < nbVertices; ++i) {
       j = i * 3;
       data += vAr[j] + ' ' +
@@ -31,6 +32,7 @@ define(function (require, exports, module) {
         ((cAr[j + 1] * 0xff) | 0) + ' ' +
         ((cAr[j + 2] * 0xff) | 0) + '\n';
     }
+
     for (i = 0; i < nbFaces; ++i) {
       j = i * 4;
       var id = fAr[j + 3];
@@ -91,43 +93,54 @@ define(function (require, exports, module) {
     header += 'element face ' + nbFaces + '\n';
     header += 'property list uchar uint vertex_indices\nend_header\n';
 
-    var inc = 0;
-
-    var headerSize = header.length;
     var vertSize = vAr.length * 4 + cAr.length;
     var indexSize = (nbQuads * 4 + nbTriangles * 3) * 4 + nbFaces;
-    var totalSize = headerSize + vertSize + indexSize;
+    var totalSize = header.length + vertSize + indexSize * 2;
     var data = new Uint8Array(totalSize);
+    var dview = new DataView(data.buffer);
 
     j = header.length;
-    for (k = 0; k < j; ++k) {
-      data[k] = header.charCodeAt(k);
+    var posOc = 0;
+    for (posOc = 0; posOc < j; ++posOc) {
+      data[posOc] = header.charCodeAt(posOc);
     }
 
-    var verBuffer = new Uint8Array(vAr.buffer);
-    var offset = headerSize;
     for (i = 0; i < nbVertices; ++i) {
-      j = i * 12;
-      for (inc = 0; inc < 12; ++inc) {
-        data[k++] = verBuffer[j++];
-      }
       j = i * 3;
-      data[k++] = (cAr[j] * 0xff) | 0;
-      data[k++] = (cAr[j + 1] * 0xff) | 0;
-      data[k++] = (cAr[j + 2] * 0xff) | 0;
+      dview.setFloat32(posOc, vAr[j], true);
+      posOc += 4;
+      dview.setFloat32(posOc, vAr[j + 1], true);
+      posOc += 4;
+      dview.setFloat32(posOc, vAr[j + 2], true);
+      posOc += 4;
+
+      dview.setUint8(posOc, Math.round(255.0 * cAr[j]));
+      posOc += 1;
+      dview.setUint8(posOc, Math.round(255.0 * cAr[j + 1]));
+      posOc += 1;
+      dview.setUint8(posOc, Math.round(255.0 * cAr[j + 2]));
+      posOc += 1;
     }
 
-    var bufIndex = new Uint8Array(fAr.buffer);
-    offset += vertSize;
     for (i = 0; i < nbFaces; ++i) {
-      j = i * 16;
-      var isQuad = fAr[i * 4 + 3] >= 0;
-      var nbFacebytes = isQuad ? 16 : 12;
-      data[k++] = isQuad ? 4 : 3;
-      for (inc = 0; inc < nbFacebytes; ++inc) {
-        data[k++] = bufIndex[j++];
+      j = i * 4;
+      var isQuad = fAr[j + 3] >= 0;
+
+      dview.setUint8(posOc, isQuad ? 4 : 3);
+      posOc += 1;
+
+      dview.setUint32(posOc, fAr[j], true);
+      posOc += 4;
+      dview.setUint32(posOc, fAr[j + 1], true);
+      posOc += 4;
+      dview.setUint32(posOc, fAr[j + 2], true);
+      posOc += 4;
+      if (isQuad) {
+        dview.setUint32(posOc, fAr[j + 3], true);
+        posOc += 4;
       }
     }
+
     return new Blob([data]);
   };
 
