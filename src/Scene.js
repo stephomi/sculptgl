@@ -21,6 +21,7 @@ define(function (require, exports, module) {
   var Rtt = require('drawables/Rtt');
   var Shader = require('render/ShaderLib');
   var WebGLCaps = require('render/WebGLCaps');
+  var MainSDF = require('sdf/MainSDF');
 
   var vec3 = glm.vec3;
   var mat4 = glm.mat4;
@@ -100,6 +101,8 @@ define(function (require, exports, module) {
       this._gui.initGui();
       this.onCanvasResize();
       this.addSphere();
+
+      this._mainSDF = new MainSDF(this);
     },
     getBackground: function () {
       return this._background;
@@ -404,6 +407,9 @@ define(function (require, exports, module) {
       this._rttMerge.onResize(newWidth, newHeight);
       this._rttOpaque.onResize(newWidth, newHeight);
       this._rttTransparent.onResize(newWidth, newHeight);
+
+      if (this._mainSDF)
+        this._mainSDF.onCanvasResize(newWidth, newHeight);
 
       this.render();
     },
