@@ -202,7 +202,7 @@ define(function (require, exports, module) {
     sketchfabAbort: 'Прервать загрузку ?',
     sketchfabUploadProcessing: 'Загружается...\nВаша модель доступна :',
 
-    donate: 'Помочь проекту !',
+    about: null,
 
     alphaNone: 'Нет',
     alphaSquare: 'Квадрат',

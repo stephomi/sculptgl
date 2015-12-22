@@ -202,7 +202,7 @@ define(function (require, exports, module) {
     sketchfabAbort: null,
     sketchfabUploadProcessing: null,
 
-    donate: null,
+    about: null,
 
     alphaNone: null,
     alphaSquare: null,

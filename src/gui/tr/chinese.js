@@ -202,7 +202,7 @@ define(function (require, exports, module) {
     sketchfabAbort: '中止最近一次的上傳 ?',
     sketchfabUploadProcessing: null,
 
-    donate: null,
+    about: null,
 
     alphaNone: null,
     alphaSquare: null,

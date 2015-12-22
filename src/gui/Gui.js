@@ -78,7 +78,7 @@ define(function (require, exports, module) {
       extra.addTitle(TR('resolution'));
       extra.addSlider('', this._main._pixelRatio, this.onPixelRatio.bind(this), 0.5, 2.0, 0.02);
 
-      this.addDonateButton();
+      this.addAboutButton();
 
       this.updateMesh();
       this.setVisibility(true);
@@ -94,11 +94,11 @@ define(function (require, exports, module) {
       ShaderContour.color[3] = col[3];
       this._main.render();
     },
-    addDonateButton: function () {
-      var ctrlDonate = this._topbar.addMenu();
-      ctrlDonate.domContainer.innerHTML = TR('donate');
-      ctrlDonate.domContainer.addEventListener('mousedown', function () {
-        document.getElementById('donate').submit();
+    addAboutButton: function () {
+      var ctrlAbout = this._topbar.addMenu();
+      ctrlAbout.domContainer.innerHTML = TR('about');
+      ctrlAbout.domContainer.addEventListener('mousedown', function () {
+        window.open('http://stephaneginier.com', '_blank');
       });
     },
     getWidgetNotification: function () {

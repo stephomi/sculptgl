@@ -202,7 +202,7 @@ define(function (require, exports, module) {
     sketchfabAbort: 'Abort the last upload ?',
     sketchfabUploadProcessing: 'Processing...\nYour model will be available at :',
 
-    donate: 'Donate !',
+    about: 'About & Help',
 
     alphaNone: 'None',
     alphaSquare: 'Square',
