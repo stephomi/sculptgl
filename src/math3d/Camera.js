@@ -19,9 +19,9 @@ define(function (require, exports, module) {
   };
 
   var DELAY_SNAP = 200;
-  var DELAY_ROTATE = 200;
-  var DELAY_TRANSLATE = 200;
-  var DELAY_MOVE_TO = 300;
+  var DELAY_ROTATE = -1;
+  var DELAY_TRANSLATE = -1;
+  var DELAY_MOVE_TO = 200;
 
   var Camera = function (main) {
     this._main = main;
@@ -428,6 +428,11 @@ define(function (require, exports, module) {
       var nTimer = name || 'default';
       if (this._timers[nTimer])
         this.clearTimerN(nTimer);
+
+      if (duration === 0.0)
+        return cb(1.0);
+      else if (duration < 0.0)
+        return;
 
       var lastR = 0;
       var tStart = (new Date()).getTime();
