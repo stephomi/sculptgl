@@ -88,6 +88,7 @@ define(function (require, exports, module) {
     options.outline = queryBool(params.outline, false);
     options.outlinecolor = queryColor(params.outlinecolor, [0.3, 0.0, 0.0, 1.0]);
     options.mirrorline = queryBool(params.mirrorline, false);
+    options.darkenunselected = queryBool(params.darkenunselected, true);
 
     // camera
     options.projection = (params.projection || 'PERSPECTIVE').toUpperCase(); // perspective/orthographic

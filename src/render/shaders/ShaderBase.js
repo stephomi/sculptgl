@@ -23,8 +23,9 @@ define(function (require, exports, module) {
   };
 
   ShaderBase.showSymmetryLine = getOptionsURL().mirrorline;
+  ShaderBase.darkenUnselected = getOptionsURL().darkenunselected;
   ShaderBase.uniformNames = {};
-  ShaderBase.uniformNames.commonUniforms = ['uMV', 'uMVP', 'uN', 'uEM', 'uEN', 'uFlat', 'uPlaneO', 'uPlaneN', 'uSym', 'uCurvature', 'uAlpha', 'uFov'];
+  ShaderBase.uniformNames.commonUniforms = ['uMV', 'uMVP', 'uN', 'uEM', 'uEN', 'uFlat', 'uPlaneO', 'uPlaneN', 'uSym', 'uCurvature', 'uAlpha', 'uFov', 'uDarken'];
 
   ShaderBase.strings = {};
   ShaderBase.strings.colorSpaceGLSL = colorSpaceGLSL;
@@ -40,6 +41,7 @@ define(function (require, exports, module) {
     'uniform vec3 uPlaneN;',
     'uniform vec3 uPlaneO;',
     'uniform int uSym;',
+    'uniform int uDarken;',
     'uniform float uCurvature;',
     'uniform float uFov;',
     'varying float vMasking;',
@@ -58,6 +60,7 @@ define(function (require, exports, module) {
     '}',
     'vec4 encodeFragColor(const in vec3 frag, const in float alpha) {',
     '  vec3 col = computeCurvature(vVertex, vNormal, frag, uCurvature, uFov);',
+    '  if(uDarken == 1) col *= 0.3;',
     '  col *= (0.3 + 0.7 * vMasking);',
     '  if(uSym == 1 && abs(dot(uPlaneN, vVertex - uPlaneO)) < 0.15)',
     '      col = min(col * 1.5, 1.0);',
@@ -137,6 +140,9 @@ define(function (require, exports, module) {
     return function (render, main) {
       var gl = render.getGL();
       var mesh = render.getMesh();
+
+      var sels = main.getSelectedMeshes();
+      var darken = ShaderBase.darkenUnselected && sels.length !== 0 && sels.indexOf(mesh) === -1;
       var useSym = ShaderBase.showSymmetryLine && (mesh === main.getMesh()) && main.getSculpt().getSymmetry();
 
       var uniforms = this.uniforms;
@@ -147,6 +153,7 @@ define(function (require, exports, module) {
       gl.uniformMatrix4fv(uniforms.uMVP, false, mesh.getMVP());
       gl.uniformMatrix3fv(uniforms.uN, false, mesh.getN());
 
+      gl.uniform1i(uniforms.uDarken, darken ? 1 : 0);
       gl.uniform1i(uniforms.uFlat, mesh.getFlatShading());
       gl.uniform3fv(uniforms.uPlaneO, vec3.transformMat4(tmp, mesh.getSymmetryOrigin(), mesh.getMV()));
       gl.uniform3fv(uniforms.uPlaneN, vec3.normalize(tmp, vec3.transformMat3(tmp, mesh.getSymmetryNormal(), mesh.getN())));

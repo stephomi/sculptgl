@@ -177,6 +177,7 @@ define(function (require, exports, module) {
     contour: 'Контур',
     contourShow: 'Показать контур',
     contourColor: 'Цвет',
+    darkenUnselected: null,
 
     // pixel ratio
     resolution: null,

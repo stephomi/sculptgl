@@ -177,6 +177,7 @@ define(function (require, exports, module) {
     contour: null,
     contourShow: null,
     contourColor: null,
+    darkenUnselected: null,
 
     // pixel ratio
     resolution: null,

@@ -40,7 +40,6 @@ define(function (require, exports, module) {
 
       // selection stuffs
       menu.addTitle(TR('sceneSelection'));
-      menu.addCheckbox(TR('contourShow'), this._main._showContour, this.onShowContour.bind(this));
       this._ctrlIsolate = menu.addCheckbox(TR('renderingIsolate'), false, this.showHide.bind(this));
       this._ctrlIsolate.setVisibility(false);
       this._ctrlMerge = menu.addButton(TR('sceneMerge'), this, 'merge');
@@ -48,6 +47,8 @@ define(function (require, exports, module) {
 
       // extra
       menu.addTitle(TR('renderingExtra'));
+      menu.addCheckbox(TR('darkenUnselected'), ShaderBase.darkenUnselected, this.onDarkenUnselected.bind(this));
+      menu.addCheckbox(TR('contourShow'), this._main._showContour, this.onShowContour.bind(this));
       menu.addCheckbox(TR('renderingGrid'), this._main._showGrid, this.onShowGrid.bind(this));
       menu.addCheckbox(TR('renderingSymmetryLine'), ShaderBase.showSymmetryLine, this.onShowSymmetryLine.bind(this));
     },
@@ -162,6 +163,10 @@ define(function (require, exports, module) {
       main.getStates().pushStateCustom(this._cbToggleShowHide, this._cbToggleShowHide, true);
       hMeshes.length = 0;
       main.render();
+    },
+    onDarkenUnselected: function (val) {
+      ShaderBase.darkenUnselected = val;
+      this._main.render();
     },
     onShowSymmetryLine: function (val) {
       ShaderBase.showSymmetryLine = val;

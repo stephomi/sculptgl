@@ -34,6 +34,7 @@ define(function (require, exports, module) {
     start: function (ctrl) {
       var main = this._main;
       var picking = main.getPicking();
+
       if (!picking.intersectionMouseMeshes())
         return false;
 
