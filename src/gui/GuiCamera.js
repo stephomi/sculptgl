@@ -28,10 +28,10 @@ define(function (require, exports, module) {
 
       // camera type
       var optionsType = {};
-      menu.addTitle(TR('cameraProjection'));
+      this._ctrlProjectionTitle = menu.addTitle(TR('cameraProjection'));
       optionsType.PERSPECTIVE = TR('cameraPerspective');
       optionsType.ORTHOGRAPHIC = TR('cameraOrthographic');
-      menu.addCombobox('', camera.getProjectionType(), this.onCameraTypeChange.bind(this), optionsType);
+      this._ctrlProjection = menu.addCombobox('', camera.getProjectionType(), this.onCameraTypeChange.bind(this), optionsType);
 
       // camera fov
       this._ctrlFov = menu.addSlider(TR('cameraFov'), camera.getFov(), this.onFovChange.bind(this), 10, 90, 1);
@@ -44,7 +44,7 @@ define(function (require, exports, module) {
       optionsMode.SPHERICAL = TR('cameraSpherical');
       optionsMode.PLANE = TR('cameraPlane');
       menu.addCombobox('', camera.getMode(), this.onCameraModeChange.bind(this), optionsMode);
-      menu.addCheckbox(TR('cameraPivot'), camera.getUsePivot(), this.onPivotChange.bind(this));
+      this._ctrlPivot = menu.addCheckbox(TR('cameraPivot'), camera.getUsePivot(), this.onPivotChange.bind(this));
     },
     onCameraModeChange: function (value) {
       this._camera.setMode(value);

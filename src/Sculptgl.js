@@ -23,7 +23,7 @@ define(function (require, exports, module) {
     this._lastMouseX = 0;
     this._lastMouseY = 0;
     this._lastScale = 0;
-    // NOTHING, MASK_EDIT, SCULPT_EDIT, CAMERA_ZOOM, CAMERA_ROTATE, CAMERA_PAN_ALT, CAMERA_PAN_WHEEL
+    // NOTHING, MASK_EDIT, SCULPT_EDIT, CAMERA_ZOOM, CAMERA_ROTATE, CAMERA_PAN, CAMERA_PAN_ZOOM_ALT
     this._action = 'NOTHING';
     this._lastNbPointers = 0;
     this._isWheelingIn = false;
@@ -364,13 +364,13 @@ define(function (require, exports, module) {
       if (button === MOUSE_RIGHT && event.ctrlKey)
         this._action = 'CAMERA_ZOOM';
       else if (button === MOUSE_MIDDLE)
-        this._action = 'CAMERA_PAN_WHEEL';
+        this._action = 'CAMERA_PAN';
       else if (!pickedMesh && event.ctrlKey) {
         this._maskX = mouseX;
         this._maskY = mouseY;
         this._action = 'MASK_EDIT';
       } else if ((!pickedMesh || button === MOUSE_RIGHT) && event.altKey)
-        this._action = 'CAMERA_PAN_ALT';
+        this._action = 'CAMERA_PAN_ZOOM_ALT';
       else if (button === MOUSE_RIGHT || (button === MOUSE_LEFT && !pickedMesh))
         this._action = 'CAMERA_ROTATE';
       else
@@ -391,13 +391,13 @@ define(function (require, exports, module) {
       var mouseY = this._mouseY;
       var action = this._action;
 
-      if (action === 'CAMERA_ZOOM' || (action === 'CAMERA_PAN_ALT' && !event.altKey)) {
+      if (action === 'CAMERA_ZOOM' || (action === 'CAMERA_PAN_ZOOM_ALT' && !event.altKey)) {
 
         Multimesh.RENDER_HINT = Multimesh.CAMERA;
         this._camera.zoom((mouseX - this._lastMouseX + mouseY - this._lastMouseY) / 1000);
         this.render();
 
-      } else if (action === 'CAMERA_PAN_ALT' || action === 'CAMERA_PAN_WHEEL') {
+      } else if (action === 'CAMERA_PAN_ZOOM_ALT' || action === 'CAMERA_PAN') {
 
         Multimesh.RENDER_HINT = Multimesh.CAMERA;
         this._camera.translate((mouseX - this._lastMouseX) / 1000, (mouseY - this._lastMouseY) / 1000);

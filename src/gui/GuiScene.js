@@ -8,6 +8,7 @@ define(function (require, exports, module) {
 
   var GuiScene = function (guiParent, ctrlGui) {
     this._main = ctrlGui._main; // main application
+    this._menu = null;
     this._hideMeshes = [];
     this._cbToggleShowHide = this.toggleShowHide.bind(this, true);
     this.init(guiParent);
@@ -16,7 +17,7 @@ define(function (require, exports, module) {
   GuiScene.prototype = {
     /** Initialize */
     init: function (guiParent) {
-      var menu = guiParent.addMenu(TR('sceneTitle'));
+      var menu = this._menu = guiParent.addMenu(TR('sceneTitle'));
 
       // scene
       menu.addButton(TR('sceneReset'), this._main, 'clearScene' /*, 'CTRL+ALT+N'*/ );

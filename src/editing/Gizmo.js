@@ -33,27 +33,6 @@ define(function (require, exports, module) {
   var CUBE_SIDE = 0.35;
   var CUBE_SIDE_PICK = CUBE_SIDE * 1.2;
 
-  // edit masks
-  var TRANS_X = 1 << 0;
-  var TRANS_Y = 1 << 1;
-  var TRANS_Z = 1 << 2;
-  var ROT_X = 1 << 3;
-  var ROT_Y = 1 << 4;
-  var ROT_Z = 1 << 5;
-  var ROT_W = 1 << 6;
-  var PLANE_XY = 1 << 7;
-  var PLANE_XZ = 1 << 8;
-  var PLANE_YZ = 1 << 9;
-  var SCALE_X = 1 << 10;
-  var SCALE_Y = 1 << 11;
-  var SCALE_Z = 1 << 12;
-  var SCALE_W = 1 << 13;
-
-  var TRANS_XYZ = TRANS_X | TRANS_Y | TRANS_Z;
-  var ROT_XYZ = ROT_X | ROT_Y | ROT_Z;
-  var PLANE_XYZ = PLANE_XY | PLANE_XZ | PLANE_YZ;
-  var SCALE_XYZW = SCALE_X | SCALE_Y | SCALE_Z | SCALE_W;
-
   var createGizmo = function (type, nbAxis) {
     return {
       _finalMatrix: mat4.create(),
@@ -79,6 +58,9 @@ define(function (require, exports, module) {
   var Gizmo = function (main) {
     this._main = main;
     this._gl = main._gl;
+
+    // activated gizmos
+    this._activatedType = TRANS_XYZ | ROT_XYZ | PLANE_XYZ | SCALE_XYZW | ROT_W;
 
     // trans arrow 1 dim
     this._transX = createGizmo(TRANS_X, 0);
@@ -134,19 +116,49 @@ define(function (require, exports, module) {
     this._initPickables();
   };
 
+  // edit masks
+  var TRANS_X = Gizmo.TRANS_X = 1 << 0;
+  var TRANS_Y = Gizmo.TRANS_Y = 1 << 1;
+  var TRANS_Z = Gizmo.TRANS_Z = 1 << 2;
+  var ROT_X = Gizmo.ROT_X = 1 << 3;
+  var ROT_Y = Gizmo.ROT_Y = 1 << 4;
+  var ROT_Z = Gizmo.ROT_Z = 1 << 5;
+  var ROT_W = Gizmo.ROT_W = 1 << 6;
+  var PLANE_XY = Gizmo.PLANE_XY = 1 << 7;
+  var PLANE_XZ = Gizmo.PLANE_XZ = 1 << 8;
+  var PLANE_YZ = Gizmo.PLANE_YZ = 1 << 9;
+  var SCALE_X = Gizmo.SCALE_X = 1 << 10;
+  var SCALE_Y = Gizmo.SCALE_Y = 1 << 11;
+  var SCALE_Z = Gizmo.SCALE_Z = 1 << 12;
+  var SCALE_W = Gizmo.SCALE_W = 1 << 13;
+
+  var TRANS_XYZ = Gizmo.TRANS_XYZ = TRANS_X | TRANS_Y | TRANS_Z;
+  var ROT_XYZ = Gizmo.ROT_XYZ = ROT_X | ROT_Y | ROT_Z;
+  var PLANE_XYZ = Gizmo.PLANE_XYZ = PLANE_XY | PLANE_XZ | PLANE_YZ;
+  var SCALE_XYZW = Gizmo.SCALE_XYZW = SCALE_X | SCALE_Y | SCALE_Z | SCALE_W;
+
   Gizmo.prototype = {
+    setActivatedType: function (type) {
+      this._activatedType = type;
+      this._initPickables();
+    },
     _initPickables: function () {
       var pickables = this._pickables;
-      pickables.push(this._transX._pickGeo);
-      pickables.push(this._transY._pickGeo);
-      pickables.push(this._transZ._pickGeo);
-      pickables.push(this._rotX._pickGeo);
-      pickables.push(this._rotY._pickGeo);
-      pickables.push(this._rotZ._pickGeo);
-      pickables.push(this._scaleX._pickGeo);
-      pickables.push(this._scaleY._pickGeo);
-      pickables.push(this._scaleZ._pickGeo);
-      pickables.push(this._scaleW._pickGeo);
+      pickables.length = 0;
+      var type = this._activatedType;
+
+      if (type & TRANS_X) pickables.push(this._transX._pickGeo);
+      if (type & TRANS_Y) pickables.push(this._transY._pickGeo);
+      if (type & TRANS_Z) pickables.push(this._transZ._pickGeo);
+
+      if (type & ROT_X) pickables.push(this._rotX._pickGeo);
+      if (type & ROT_Y) pickables.push(this._rotY._pickGeo);
+      if (type & ROT_Z) pickables.push(this._rotZ._pickGeo);
+
+      if (type & SCALE_X) pickables.push(this._scaleX._pickGeo);
+      if (type & SCALE_Y) pickables.push(this._scaleY._pickGeo);
+      if (type & SCALE_Z) pickables.push(this._scaleZ._pickGeo);
+      if (type & SCALE_W) pickables.push(this._scaleW._pickGeo);
     },
     _createArrow: function (tra, axis, color) {
       var mat = tra._baseMatrix;
@@ -480,7 +492,7 @@ define(function (require, exports, module) {
     render: function () {
       this._updateMatrices();
 
-      var type = this._isEditing && this._selected ? this._selected._type : -1;
+      var type = this._isEditing && this._selected ? this._selected._type : this._activatedType;
 
       if (type & ROT_W) this._drawGizmo(this._rotW);
 

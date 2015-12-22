@@ -146,18 +146,22 @@ define(function (require, exports, module) {
       vec3.copy(tool._color, materials[0].getValue());
       tool._material[0] = materials[1].getValue() / 100;
       tool._material[1] = materials[2].getValue() / 100;
-      var mesh = main.getMesh();
-      if (mesh) {
-        mesh.setAlbedo(tool._color);
-        mesh.setRoughness(tool._material[0]);
-        mesh.setMetallic(tool._material[1]);
-        main.render();
-      }
-    },
-    resetMaterialOverride: function (main, ctrlPicker, tool) {
-      ctrlPicker.setValue(tool._pickColor);
+
       var mesh = main.getMesh();
       if (!mesh) return;
+
+      mesh.setAlbedo(tool._color);
+      mesh.setRoughness(tool._material[0]);
+      mesh.setMetallic(tool._material[1]);
+      main.render();
+    },
+    resetMaterialOverride: function (main, tool) {
+      if (this._ctrlPicker.getValue() !== tool._pickColor)
+        this._ctrlPicker.setValue(tool._pickColor);
+
+      var mesh = main.getMesh();
+      if (!mesh || !mesh.getAlbedo) return;
+
       mesh.getAlbedo()[0] = -1.0;
       mesh.setRoughness(-1.0);
       mesh.setMetallic(-1.0);
@@ -195,8 +199,9 @@ define(function (require, exports, module) {
       var ctrlRoughness = fold.addSlider(TR('sculptRoughness'), tool._material[0] * 100, cbMatChanged, 0, 100, 1);
       var ctrlMetallic = fold.addSlider(TR('sculptMetallic'), tool._material[1] * 100, cbMatChanged, 0, 100, 1);
       materials.push(ctrlColor, ctrlRoughness, ctrlMetallic);
-      window.addEventListener('keyup', this.resetMaterialOverride.bind(this, main, this._ctrlPicker, tool));
-      window.addEventListener('mouseup', this.resetMaterialOverride.bind(this, main, this._ctrlPicker, tool));
+
+      window.addEventListener('keyup', this.resetMaterialOverride.bind(this, main, tool));
+      window.addEventListener('mouseup', this.resetMaterialOverride.bind(this, main, tool));
 
       tool.setPickCallback(this.onPickedMaterial.bind(this, materials, tool, main));
 
