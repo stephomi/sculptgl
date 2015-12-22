@@ -354,24 +354,24 @@ define(function (require, exports, module) {
       var mouseY = this._mouseY;
       var button = event.which;
 
+      var canEdit = false;
       if (button === MOUSE_LEFT)
-        this._sculpt.start(event.shiftKey);
+        canEdit = this._sculpt.start(event.shiftKey);
 
-      var pickedMesh = this._picking.getMesh();
-      if (button === MOUSE_LEFT && pickedMesh)
+      if (button === MOUSE_LEFT && canEdit)
         this.setCanvasCursor('none');
 
       if (button === MOUSE_RIGHT && event.ctrlKey)
         this._action = 'CAMERA_ZOOM';
       else if (button === MOUSE_MIDDLE)
         this._action = 'CAMERA_PAN';
-      else if (!pickedMesh && event.ctrlKey) {
+      else if (!canEdit && event.ctrlKey) {
         this._maskX = mouseX;
         this._maskY = mouseY;
         this._action = 'MASK_EDIT';
-      } else if ((!pickedMesh || button === MOUSE_RIGHT) && event.altKey)
+      } else if ((!canEdit || button === MOUSE_RIGHT) && event.altKey)
         this._action = 'CAMERA_PAN_ZOOM_ALT';
-      else if (button === MOUSE_RIGHT || (button === MOUSE_LEFT && !pickedMesh))
+      else if (button === MOUSE_RIGHT || (button === MOUSE_LEFT && !canEdit))
         this._action = 'CAMERA_ROTATE';
       else
         this._action = 'SCULPT_EDIT';

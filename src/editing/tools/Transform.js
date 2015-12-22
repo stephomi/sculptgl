@@ -40,17 +40,18 @@ define(function (require, exports, module) {
       if (mesh && this._gizmo.onMouseDown()) {
         this.pushState();
         picking._mesh = mesh;
-        return;
+        return true;
       }
 
       if (!picking.intersectionMouseMeshes(main.getMeshes(), main._mouseX, main._mouseY))
-        return;
+        return false;
 
       if (!main.setOrUnsetMesh(picking.getMesh(), ctrl))
-        return;
+        return false;
 
       this._lastMouseX = main._mouseX;
       this._lastMouseY = main._mouseY;
+      return false;
     },
     end: function () {
       this._gizmo.onMouseUp();

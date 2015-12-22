@@ -35,11 +35,11 @@ define(function (require, exports, module) {
       var main = this._main;
       var picking = main.getPicking();
       if (!picking.intersectionMouseMeshes())
-        return;
+        return false;
 
       var mesh = main.setOrUnsetMesh(picking.getMesh(), ctrl);
       if (!mesh)
-        return;
+        return false;
 
       picking.initAlpha();
       var pickingSym = main.getSculpt().getSymmetry() ? main.getPickingSymmetry() : null;
@@ -47,10 +47,13 @@ define(function (require, exports, module) {
         pickingSym.intersectionMouseMesh(mesh);
         pickingSym.initAlpha();
       }
+
       this.pushState();
       this._lastMouseX = main._mouseX;
       this._lastMouseY = main._mouseY;
       this.startSculpt();
+
+      return true;
     },
     end: function () {
       if (this.getMesh())

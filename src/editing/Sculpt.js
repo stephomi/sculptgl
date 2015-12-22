@@ -59,10 +59,10 @@ define(function (require, exports, module) {
     },
     start: function (ctrl) {
       var tool = this.getCurrentTool();
-      tool.start(ctrl);
-      if (!this._main.getPicking().getMesh() || !this.isUsingContinuous())
-        return;
-      this._sculptTimer = window.setInterval(tool._cbContinuous, 16.6);
+      var canEdit = tool.start(ctrl);
+      if (this._main.getPicking().getMesh() && this.isUsingContinuous())
+        this._sculptTimer = window.setInterval(tool._cbContinuous, 16.6);
+      return canEdit;
     },
     end: function () {
       this.getCurrentTool().end();
