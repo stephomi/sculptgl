@@ -3,9 +3,6 @@ define(function (require, exports, module) {
   'use strict';
 
   var TR = {
-    // config
-    configTitle: 'Config',
-
     // background
     backgroundTitle: 'Background',
     backgroundReset: 'Reset',

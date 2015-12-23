@@ -3,9 +3,6 @@ define(function (require, exports, module) {
   'use strict';
 
   var TR = {
-    // config
-    configTitle: '設定',
-
     // background
     backgroundTitle: '背景',
     backgroundReset: '重設',

@@ -3,9 +3,6 @@ define(function (require, exports, module) {
   'use strict';
 
   var TR = {
-    // config
-    configTitle: '환경설정',
-
     // background
     backgroundTitle: '배경',
     backgroundReset: '초기화',
