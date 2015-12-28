@@ -216,15 +216,17 @@ define(function (require, exports, module) {
       this.onDeviceWheel(dir);
     },
     resetCameraScene: function () {
-      var pivot = [0.0, 0.0, 0.0];
-      var zoom = 70.0;
       if (this._meshes.length > 0) {
+        var pivot = [0.0, 0.0, 0.0];
         var box = this.computeBoundingBoxMeshes(this._meshes);
-        zoom = 0.3 * vec3.dist([box[0], box[1], box[2]], [box[3], box[4], box[5]]);
+        var zoom = 0.3 * vec3.dist([box[0], box[1], box[2]], [box[3], box[4], box[5]]);
         zoom *= this._camera.computeFrustumFit();
         vec3.set(pivot, (box[0] + box[3]) * 0.5, (box[1] + box[4]) * 0.5, (box[2] + box[5]) * 0.5);
+        this._camera.setAndFocusOnPivot(pivot, zoom);
+      } else {
+        this._camera.resetView();
       }
-      this._camera.setAndFocusOnPivot(pivot, zoom);
+
       this.render();
     },
     ////////////////
