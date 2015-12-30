@@ -68,9 +68,9 @@ define(function (require, exports, module) {
     this._transZ = createGizmo(TRANS_Z, 2);
 
     // trans plane 2 dim
-    this._planeXY = createGizmo(PLANE_XY);
-    this._planeXZ = createGizmo(PLANE_XZ);
-    this._planeYZ = createGizmo(PLANE_YZ);
+    this._planeX = createGizmo(PLANE_X, 0);
+    this._planeY = createGizmo(PLANE_Y, 1);
+    this._planeZ = createGizmo(PLANE_Z, 2);
 
     // scale cube 1 dim
     this._scaleX = createGizmo(SCALE_X, 0);
@@ -124,9 +124,9 @@ define(function (require, exports, module) {
   var ROT_Y = Gizmo.ROT_Y = 1 << 4;
   var ROT_Z = Gizmo.ROT_Z = 1 << 5;
   var ROT_W = Gizmo.ROT_W = 1 << 6;
-  var PLANE_XY = Gizmo.PLANE_XY = 1 << 7;
-  var PLANE_XZ = Gizmo.PLANE_XZ = 1 << 8;
-  var PLANE_YZ = Gizmo.PLANE_YZ = 1 << 9;
+  var PLANE_X = Gizmo.PLANE_X = 1 << 7;
+  var PLANE_Y = Gizmo.PLANE_Y = 1 << 8;
+  var PLANE_Z = Gizmo.PLANE_Z = 1 << 9;
   var SCALE_X = Gizmo.SCALE_X = 1 << 10;
   var SCALE_Y = Gizmo.SCALE_Y = 1 << 11;
   var SCALE_Z = Gizmo.SCALE_Z = 1 << 12;
@@ -134,7 +134,7 @@ define(function (require, exports, module) {
 
   var TRANS_XYZ = Gizmo.TRANS_XYZ = TRANS_X | TRANS_Y | TRANS_Z;
   var ROT_XYZ = Gizmo.ROT_XYZ = ROT_X | ROT_Y | ROT_Z;
-  var PLANE_XYZ = Gizmo.PLANE_XYZ = PLANE_XY | PLANE_XZ | PLANE_YZ;
+  var PLANE_XYZ = Gizmo.PLANE_XYZ = PLANE_X | PLANE_Y | PLANE_Z;
   var SCALE_XYZW = Gizmo.SCALE_XYZW = SCALE_X | SCALE_Y | SCALE_Z | SCALE_W;
 
   Gizmo.prototype = {
@@ -150,6 +150,10 @@ define(function (require, exports, module) {
       if (type & TRANS_X) pickables.push(this._transX._pickGeo);
       if (type & TRANS_Y) pickables.push(this._transY._pickGeo);
       if (type & TRANS_Z) pickables.push(this._transZ._pickGeo);
+
+      if (type & PLANE_X) pickables.push(this._planeX._pickGeo);
+      if (type & PLANE_Y) pickables.push(this._planeY._pickGeo);
+      if (type & PLANE_Z) pickables.push(this._planeZ._pickGeo);
 
       if (type & ROT_X) pickables.push(this._rotX._pickGeo);
       if (type & ROT_Y) pickables.push(this._rotY._pickGeo);
@@ -171,11 +175,24 @@ define(function (require, exports, module) {
       tra._drawGeo = Primitives.createArrow(this._gl, THICKNESS, ARROW_LENGTH, ARROW_CONE_THICK, ARROW_CONE_LENGTH);
       tra._drawGeo.setShaderName('FLAT');
     },
+    _createPlane: function (pla, color, wx, wy, wz, hx, hy, hz) {
+      vec3.copy(pla._color, color);
+
+      pla._pickGeo = Primitives.createPlane(this._gl, 0.0, 0.0, 0.0, wx, wy, wz, hx, hy, hz);
+      pla._pickGeo._gizmo = pla;
+      pla._drawGeo = Primitives.createPlane(this._gl, 0.0, 0.0, 0.0, wx, wy, wz, hx, hy, hz);
+      pla._drawGeo.setShaderName('FLAT');
+    },
     _initTranslate: function () {
       var axis = [0.0, 0.0, 0.0];
       this._createArrow(this._transX, vec3.set(axis, 0.0, 0.0, -1.0), COLOR_X);
       this._createArrow(this._transY, vec3.set(axis, 0.0, 1.0, 0.0), COLOR_Y);
       this._createArrow(this._transZ, vec3.set(axis, 1.0, 0.0, 0.0), COLOR_Z);
+
+      var s = ARROW_LENGTH * 0.2;
+      this._createPlane(this._planeX, COLOR_X, 0.0, s, 0.0, 0.0, 0.0, s);
+      this._createPlane(this._planeY, COLOR_Y, s, 0.0, 0.0, 0.0, 0.0, s);
+      this._createPlane(this._planeZ, COLOR_Z, s, 0.0, 0.0, 0.0, s, 0.0);
     },
     _createCircle: function (rot, rad, color, radius, mthick) {
       radius = radius || ROT_RADIUS;
@@ -264,6 +281,10 @@ define(function (require, exports, module) {
       this._transX.updateFinalMatrix(traScale);
       this._transY.updateFinalMatrix(traScale);
       this._transZ.updateFinalMatrix(traScale);
+
+      this._planeX.updateFinalMatrix(traScale);
+      this._planeY.updateFinalMatrix(traScale);
+      this._planeZ.updateFinalMatrix(traScale);
 
       this._rotX.updateFinalMatrix(traScale);
       this._rotY.updateFinalMatrix(traScale);
@@ -357,7 +378,21 @@ define(function (require, exports, module) {
       offset[0] = main._mouseX - origin[0];
       offset[1] = main._mouseY - origin[1];
     },
-    _startPlaneEdit: function () {},
+    _startPlaneEdit: function () {
+      var main = this._main;
+      var camera = main.getCamera();
+
+      var origin = this._editLineOrigin;
+
+      // 3d origin (center of gizmo)
+      this._computeCenterGizmo(origin);
+
+      vec3.copy(origin, camera.project(origin));
+
+      var offset = this._editOffset;
+      offset[0] = main._mouseX - origin[0];
+      offset[1] = main._mouseY - origin[1];
+    },
     _startScaleEdit: function () {
       this._startTranslateEdit();
     },
@@ -431,7 +466,43 @@ define(function (require, exports, module) {
 
       main.render();
     },
-    _updatePlaneEdit: function () {},
+    _updatePlaneEdit: function () {
+      var main = this._main;
+      var camera = main.getCamera();
+      var mesh = main.getMesh();
+
+      var vec = [main._mouseX, main._mouseY, 0.0];
+      vec2.sub(vec, vec, this._editOffset);
+
+      var near = camera.unproject(vec[0], vec[1], 0.0);
+      var far = camera.unproject(vec[0], vec[1], 0.1);
+
+      vec3.transformMat4(near, near, this._editTransInv);
+      vec3.transformMat4(far, far, this._editTransInv);
+
+      // intersection line plane
+      var inter = [0.0, 0.0, 0.0];
+      inter[this._selected._nbAxis] = 1.0;
+
+      var dist1 = vec3.dot(near, inter);
+      var dist2 = vec3.dot(far, inter);
+      // ray copplanar to triangle
+      if (dist1 === dist2)
+        return false;
+
+      // intersection between ray and triangle
+      var val = -dist1 / (dist2 - dist1);
+      inter[0] = near[0] + (far[0] - near[0]) * val;
+      inter[1] = near[1] + (far[1] - near[1]) * val;
+      inter[2] = near[2] + (far[2] - near[2]) * val;
+
+      vec3.transformMat4(inter, inter, this._editScaleRotInv);
+      var edim = mesh.getEditMatrix();
+      mat4.identity(edim);
+      mat4.translate(edim, edim, inter);
+
+      main.render();
+    },
     _updateScaleEdit: function () {
       var main = this._main;
       var mesh = main.getMesh();
@@ -479,14 +550,21 @@ define(function (require, exports, module) {
       scene.push(this._transX._drawGeo);
       scene.push(this._transY._drawGeo);
       scene.push(this._transZ._drawGeo);
+
+      scene.push(this._planeX._drawGeo);
+      scene.push(this._planeY._drawGeo);
+      scene.push(this._planeZ._drawGeo);
+
       scene.push(this._rotX._drawGeo);
       scene.push(this._rotY._drawGeo);
       scene.push(this._rotZ._drawGeo);
       scene.push(this._rotW._drawGeo);
+
       scene.push(this._scaleX._drawGeo);
       scene.push(this._scaleY._drawGeo);
       scene.push(this._scaleZ._drawGeo);
       scene.push(this._scaleW._drawGeo);
+
       return scene;
     },
     render: function () {
@@ -499,6 +577,10 @@ define(function (require, exports, module) {
       if (type & TRANS_X) this._drawGizmo(this._transX);
       if (type & TRANS_Y) this._drawGizmo(this._transY);
       if (type & TRANS_Z) this._drawGizmo(this._transZ);
+
+      if (type & PLANE_X) this._drawGizmo(this._planeX);
+      if (type & PLANE_Y) this._drawGizmo(this._planeY);
+      if (type & PLANE_Z) this._drawGizmo(this._planeZ);
 
       if (type & ROT_X) this._drawGizmo(this._rotX);
       if (type & ROT_Y) this._drawGizmo(this._rotY);

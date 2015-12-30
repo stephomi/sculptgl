@@ -10,6 +10,48 @@ define(function (require, exports, module) {
 
   var Primitives = {};
 
+  var createPlaneArray = function (lx, ly, lz, wx, wy, wz, hx, hy, hz) {
+    lx = lx !== undefined ? lx : -0.5;
+    ly = ly !== undefined ? ly : 0.0;
+    lz = lz !== undefined ? lz : -0.5;
+
+    wx = wx !== undefined ? wx : 1.0;
+    wy = wy !== undefined ? wy : 0.0;
+    wz = wz !== undefined ? wz : 0.0;
+
+    hx = hx !== undefined ? hx : 0.0;
+    hy = hy !== undefined ? hy : 0.0;
+    hz = hz !== undefined ? hz : 1.0;
+
+    var faces = new Float32Array(4);
+    faces[0] = 0;
+    faces[1] = 1;
+    faces[2] = 2;
+    faces[3] = 3;
+
+    var v = new Float32Array(12);
+    v[0] = lx;
+    v[1] = ly;
+    v[2] = lz;
+
+    v[3] = lx + wx;
+    v[4] = ly + wy;
+    v[5] = lz + wz;
+
+    v[6] = lx + wx + hx;
+    v[7] = ly + wy + hy;
+    v[8] = lz + wz + hz;
+
+    v[9] = lx + hx;
+    v[10] = ly + hy;
+    v[11] = lz + hz;
+
+    return {
+      faces: faces,
+      vertices: v
+    };
+  };
+
   var createCubeArray = function (side) {
     side = side || 1.0;
 
@@ -307,6 +349,10 @@ define(function (require, exports, module) {
 
   Primitives.createTorus = function (gl) {
     return createMesh(gl, createTorusArray.apply(this, slice.call(arguments, 1)));
+  };
+
+  Primitives.createPlane = function (gl) {
+    return createMesh(gl, createPlaneArray.apply(this, slice.call(arguments, 1)));
   };
 
   Primitives.createArrow = function (gl, thick, height, rConeT, rConeH, radSegments, heightSegments) {
