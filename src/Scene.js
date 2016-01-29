@@ -223,9 +223,10 @@ define(function (require, exports, module) {
 
       this._rttOpaque.render(this); // fxaa
       this._selection.render(this);
-      this._sculpt.postRender(); // draw sculpt gizmos
 
       gl.enable(gl.DEPTH_TEST);
+
+      this._sculpt.postRender(); // draw sculpt gizmos
     },
     _drawScene: function () {
       var gl = this._gl;
