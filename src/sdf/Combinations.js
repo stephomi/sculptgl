@@ -100,24 +100,7 @@ define(function (require, exports, module) {
     BaseCombination.call(this, op1, op2);
   };
   Combinations.UNION.prototype = {
-    shaderName: 'opUnion',
-    distanceTo: function (p) {
-      var a = this._op1.distanceTo(p);
-      var b = this._op2.distanceTo(p);
-
-      if (this._roundRadius > 0.0) {
-        var e = Math.max(this._roundRadius - Math.abs(a[0] - b[0]), 0.0);
-        var dr = Math.min(a[0], b[0]) - e * e * 0.25 / this._roundRadius;
-        return [dr, a[0] < b[0] ? a[1] : b[1]];
-      }
-
-      if (this._chamferRadius > 0.0) {
-        var dc = Math.min(Math.min(a[0], b[0]), (a[0] - this._chamferRadius + b[0]) * Math.SQRT1_2);
-        return [dc, a[0] < b[0] ? a[1] : b[1]];
-      }
-
-      return a[0] < b[0] ? a : b;
-    }
+    shaderName: 'opUnion'
   };
   Utils.makeProxy(BaseCombination, Combinations.UNION);
 
@@ -128,24 +111,7 @@ define(function (require, exports, module) {
     BaseCombination.call(this, op1, op2);
   };
   Combinations.INTER.prototype = {
-    shaderName: 'opInter',
-    distanceTo: function (p) {
-      var a = this._op1.distanceTo(p);
-      var b = this._op2.distanceTo(p);
-
-      if (this._roundRadius > 0.0) {
-        var u = [Math.max(0.0, this._roundRadius + a[0]), Math.max(0.0, this._roundRadius + b[0])];
-        var d = Math.min(this._roundRadius, Math.max(a[0], b[0])) + vec2.len(u);
-        return [d, a[0] > b[0] ? a[1] : b[1]];
-      }
-
-      if (this._chamferRadius > 0.0) {
-        var dc = Math.max(Math.max(a[0], b[0]), (a[0] + this._chamferRadius + b[0]) * Math.SQRT1_2);
-        return [dc, a[0] > b[0] ? a[1] : b[1]];
-      }
-
-      return a[0] > b[0] ? a : b;
-    }
+    shaderName: 'opInter'
   };
   Utils.makeProxy(BaseCombination, Combinations.INTER);
 
@@ -156,24 +122,7 @@ define(function (require, exports, module) {
     BaseCombination.call(this, op1, op2);
   };
   Combinations.SUB.prototype = {
-    shaderName: 'opSub',
-    distanceTo: function (p) {
-      var a = this._op1.distanceTo(p);
-      var b = this._op2.distanceTo(p);
-
-      if (this._roundRadius > 0.0) {
-        var u = [Math.max(0.0, this._roundRadius + a[0]), Math.max(0.0, this._roundRadius - b[0])];
-        var d = Math.min(this._roundRadius, Math.max(a[0], -b[0])) + vec2.len(u);
-        return [d, a[1]];
-      }
-
-      if (this._chamferRadius > 0.0) {
-        var dc = Math.max(Math.max(a[0], -b[0]), (a[0] + this._chamferRadius - b[0]) * Math.SQRT1_2);
-        return [dc, a[1]];
-      }
-
-      return [Math.max(-b[0], a[0]), a[1]];
-    }
+    shaderName: 'opSub'
   };
   Utils.makeProxy(BaseCombination, Combinations.SUB);
 

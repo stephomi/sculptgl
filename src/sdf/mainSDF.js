@@ -43,7 +43,6 @@ define(function (require, exports, module) {
 
       this._hookCamera();
       this._hookGui();
-      this._hookPicking();
       this._hookSculpt();
     },
     _hookCamera: function () {
@@ -52,18 +51,6 @@ define(function (require, exports, module) {
       camera.updateProjection();
       camera._sdfView = mat3.create();
       this._main._gui._ctrlCamera._ctrlPivot.setValue(false);
-    },
-    _hookPicking: function () {
-      var main = this._main;
-      var picking = main.getPicking();
-      var mainScene = main.getMeshes();
-      var self = this;
-      var oldInter = picking.intersectionMouseMeshes;
-      picking.intersectionMouseMeshes = function (meshes, mx, my) {
-        if (mainScene === meshes || !meshes)
-          return self.intersects();
-        return oldInter.call(this, meshes, mx, my);
-      };
     },
     _onDeviceDown: function (event) {
       var main = this._main;
@@ -97,7 +84,6 @@ define(function (require, exports, module) {
       main._lastMouseY = mouseY;
     },
     _hookSculpt: function () {
-      var self = this;
       var main = this._main;
       var picking = main.getPicking();
       // force transform tool
@@ -125,18 +111,8 @@ define(function (require, exports, module) {
 
         var dx = Math.abs(main._mouseX - this._lastMouseX);
         var dy = Math.abs(main._mouseY - this._lastMouseY);
-        if (dx * dx + dy * dy < 4.0) {
-
-          if (self._lastPrim)
-            return;
-
-          self.intersects();
-          if (main.getMesh() !== picking.getMesh())
-            self._dirtyScene = true;
-
-          main.setMesh(picking.getMesh());
+        if (dx * dx + dy * dy < 4.0)
           return;
-        }
 
         var mesh = this.getMesh();
         if (!mesh)
@@ -191,53 +167,6 @@ define(function (require, exports, module) {
 
       gl.enable(gl.DEPTH_TEST);
       main._sculpt.postRender();
-    },
-    intersects: function () {
-      var main = this._main;
-      var camera = main.getCamera();
-      var width = main._canvasWidth;
-      var height = main._canvasHeight;
-
-      var mx = (-1.0 + 2.0 * (main._mouseX / width)) * (width / height);
-      var my = -1.0 + 2.0 * (1.0 - main._mouseY / height);
-
-      var dir = [mx, my, 2.0];
-      vec3.normalize(dir, dir);
-      vec3.transformMat3(dir, dir, main.getCamera()._sdfView);
-
-      var origin = camera.unproject(camera._width * 0.5, camera._height * 0.5, 0.0);
-
-      return this.castRay(origin, dir);
-    },
-    castRay: function (ro, rd) {
-      var tmin = 1.0;
-      var tmax = 200.0;
-
-      var precis = 0.02;
-      var t = tmin;
-      var point = [0.0, 0.0, 0.0];
-      var root = this._rootSDF;
-
-      var inter = null;
-      for (var i = 0; i < 50; ++i) {
-        vec3.scaleAndAdd(point, ro, rd, t);
-        var res = root.distanceTo(point, res);
-
-        if (res[0] < precis || t > tmax) break;
-        t += res[0];
-        inter = res[1];
-      }
-
-      var picking = this._main.getPicking();
-      if (t > tmax || !inter) {
-        picking._mesh = null;
-        return null;
-      }
-
-      vec3.copy(picking.getIntersectionPoint(), point);
-      picking._mesh = inter;
-
-      return inter;
     }
   };
 
