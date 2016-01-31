@@ -4,23 +4,16 @@ define(function (require, exports, module) {
 
   var glm = require('lib/glMatrix');
   var Utils = require('misc/Utils');
+  var NodeAbstract = require('sdf/NodeAbstract');
 
-  var vec3 = glm.vec3;
   var mat4 = glm.mat4;
+  var vec3 = glm.vec3;
 
-  var m4identity = mat4.create(); // should not be modified
-  var tmp3 = [0.0, 0.0, 0.0];
-
-  var toVec3str = function (arr) {
-    return 'vec3(' + arr[0].toExponential() + ',' + arr[1].toExponential() + ',' + arr[2].toExponential() + ')';
-  };
-  var toVec2str = function (arr) {
-    return 'vec2(' + arr[0].toExponential() + ',' + arr[1].toExponential() + ')';
-  };
+  var m4tmp = mat4.create();
+  var v3zero = [0.0, 0.0, 0.0];
 
   var Primitives = {};
   Primitives.SHADER_UID_VAR = 1;
-  Primitives.MATERIAL_UID_VAR = 1;
 
   var declare = function (type, strVal, string) {
     var varName = 'tmpPrim_' + (Primitives.SHADER_UID_VAR++);
@@ -32,90 +25,77 @@ define(function (require, exports, module) {
   // BASE PRIMITIVE
   /////////////////
   var BasePrimitive = function () {
-    this._id = Primitives.SHADER_UID_VAR++;
+    NodeAbstract.call(this);
 
-    this._center = [0.0, 0.0, 0.0];
-    this._color = [1.0, 0.5, 0.5];
+    // for transforms
+    this._matrix = mat4.create();
     this._editMatrix = mat4.create();
-    this._uniformNames = ['uPrimitivePos', 'uPrimitiveColor'];
 
-    this._selected = false;
+    this.uBaseTransform = mat4.create();
+    this.uBaseScale = 1.0;
+    this.uBaseColor = [1.0, 0.5, 0.5];
+    this.uBaseMod = [-50.0, -50.0, -50.0];
+    this._uniformNames.push('uBaseTransform', 'uBaseScale', 'uBaseColor', 'uBaseMod');
+
     this._combinator = undefined;
   };
   BasePrimitive.prototype = {
-    getID: function () {
-      return this._id;
-    },
     setCombinator: function (combinator) {
       this._combinator = combinator;
     },
+    getParam: function (name) {
+      if (name === 'uBaseTransform') return mat4.invert(this.uBaseTransform, mat4.mul(m4tmp, this._matrix, this._editMatrix));
+      if (name === 'uBaseScale') return vec3.len(mat4.mul(m4tmp, this._matrix, this._editMatrix));
+      return this[name];
+    },
     declareUniforms: function () {
-      var unifs = [
-        'uniform vec3 uPrimitivePos;',
-        'uniform vec3 uPrimitiveColor;'
-      ];
-      if (this._combinator)
-        unifs = unifs.concat(this._combinator.declareUniforms());
-      return unifs.join('\n');
+      var unifs = NodeAbstract.prototype.declareUniforms.call(this);
+      if (this._combinator) unifs = unifs.concat(this._combinator.declareUniforms());
+      return unifs;
     },
     updateUniforms: function (gl, uniforms) {
-      gl.uniform3fv(uniforms.uPrimitivePos, this.getPosition());
-      gl.uniform3fv(uniforms.uPrimitiveColor, this.getColor());
-      if (this._combinator)
-        this._combinator.updateUniforms(gl, uniforms);
+      NodeAbstract.prototype.updateUniforms.call(this, gl, uniforms);
+      if (this._combinator) this._combinator.updateUniforms(gl, uniforms);
     },
     getUniformNames: function () {
       var unifs = this._uniformNames;
-      if (this._combinator)
-        unifs = unifs.concat(this._combinator.getUniformNames());
+      if (this._combinator) unifs = unifs.concat(this._combinator.getUniformNames());
       return unifs;
-    },
-    getSelected: function () {
-      return this._selected;
-    },
-    setSelected: function (bool) {
-      this._selected = bool;
     },
     shaderDistanceMat: function (string) {
       var dist = this.shaderDistance(string);
-      return declare('vec4', 'vec4(' + dist + ', ' + this.getColorStr() + ')', string);
-    },
-    getColor: function () {
-      return this._color;
-    },
-    getColorStr: function () {
-      if (this._selected) return 'uPrimitiveColor';
-      return toVec3str(this._color);
-    },
-    getPosition: function () {
-      return vec3.transformMat4(tmp3, this._center, this._editMatrix);
-    },
-    getPositionStr: function () {
-      if (this._selected) return 'uPrimitivePos';
-      return toVec3str(vec3.transformMat4(tmp3, this._center, this._editMatrix));
+      return declare('vec4', 'vec4(' + dist + ', ' + this.getParamStr('uBaseColor') + ')', string);
     },
     getCenter: function () {
-      return this._center;
+      return v3zero;
     },
     getMatrix: function () {
-      return m4identity;
+      return this._matrix;
     },
     getEditMatrix: function () {
       return this._editMatrix;
+    },
+    getTransformPointStr: function () {
+      return 'pMod((' + this.getParamStr('uBaseTransform') + ' * vec4(point, 1.0)).xyz, ' + this.getParamStr('uBaseMod') + ')';
     }
   };
+  Utils.makeProxy(NodeAbstract, BasePrimitive);
 
   /////////
   // SPHERE
   /////////
   Primitives.SPHERE = function () {
     BasePrimitive.call(this);
-    this._radius = 4.0;
+    this.uSphereRadius = 4.0;
+    this._uniformNames.push('uSphereRadius');
   };
   Primitives.SPHERE.prototype = {
     type: 'PRIMITIVE',
     shaderDistance: function () {
-      return 'sdSphere(point - ' + this.getPositionStr() + ', ' + this._radius.toExponential() + ')';
+      var pt = this.getTransformPointStr();
+      var radius = this.getParamStr('uSphereRadius');
+      var scale = this.getParamStr('uBaseScale');
+      return 'sdSphere(' + pt + ', ' + radius + ') * ' + scale;
     }
   };
   Utils.makeProxy(BasePrimitive, Primitives.SPHERE);
@@ -125,12 +105,16 @@ define(function (require, exports, module) {
   //////
   Primitives.BOX = function () {
     BasePrimitive.call(this);
-    this._side = [4.0, 4.0, 4.0];
+    this.uBoxSides = [2.0, 4.0, 8.0, 1.0];
+    this._uniformNames.push('uBoxSides');
   };
   Primitives.BOX.prototype = {
     type: 'PRIMITIVE',
     shaderDistance: function () {
-      return 'sdBox(point - ' + this.getPositionStr() + ', ' + toVec3str(this._side) + ')';
+      var pt = this.getTransformPointStr();
+      var sides = this.getParamStr('uBoxSides');
+      var scale = this.getParamStr('uBaseScale');
+      return 'sdBox(' + pt + ', ' + sides + ') * ' + scale;
     }
   };
   Utils.makeProxy(BasePrimitive, Primitives.BOX);
@@ -140,15 +124,57 @@ define(function (require, exports, module) {
   ////////
   Primitives.TORUS = function () {
     BasePrimitive.call(this);
-    this._side = [4.0, 0.5];
+    this.uTorusRadii = [4.0, 0.5];
+    this._uniformNames.push('uTorusRadii');
   };
   Primitives.TORUS.prototype = {
     type: 'PRIMITIVE',
     shaderDistance: function () {
-      return 'sdTorus(point - ' + this.getPositionStr() + ', ' + toVec2str(this._side) + ')';
+      var pt = this.getTransformPointStr();
+      var radii = this.getParamStr('uTorusRadii');
+      var scale = this.getParamStr('uBaseScale');
+      return 'sdTorus(' + pt + ', ' + radii + ') * ' + scale;
     }
   };
   Utils.makeProxy(BasePrimitive, Primitives.TORUS);
+
+  //////////
+  // CAPSULE
+  //////////
+  Primitives.CAPSULE = function () {
+    BasePrimitive.call(this);
+    this.uCapsuleRH = [2.0, 5.0];
+    this._uniformNames.push('uCapsuleRH');
+  };
+  Primitives.CAPSULE.prototype = {
+    type: 'PRIMITIVE',
+    shaderDistance: function () {
+      var pt = this.getTransformPointStr();
+      var rh = this.getParamStr('uCapsuleRH');
+      var scale = this.getParamStr('uBaseScale');
+      return 'sdCapsule(' + pt + ', ' + rh + ') * ' + scale;
+    }
+  };
+  Utils.makeProxy(BasePrimitive, Primitives.CAPSULE);
+
+  ////////////
+  // ELLIPSOID
+  ////////////
+  Primitives.ELLIPSOID = function () {
+    BasePrimitive.call(this);
+    this.uEllipsoidSides = [2.0, 4.0, 8.0];
+    this._uniformNames.push('uEllipsoidSides');
+  };
+  Primitives.ELLIPSOID.prototype = {
+    type: 'PRIMITIVE',
+    shaderDistance: function () {
+      var pt = this.getTransformPointStr();
+      var sides = this.getParamStr('uEllipsoidSides');
+      var scale = this.getParamStr('uBaseScale');
+      return 'sdEllipsoid(' + pt + ', ' + sides + ') * ' + scale;
+    }
+  };
+  Utils.makeProxy(BasePrimitive, Primitives.ELLIPSOID);
 
   module.exports = Primitives;
 });

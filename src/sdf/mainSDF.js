@@ -11,7 +11,6 @@ define(function (require, exports, module) {
   var Gizmo = require('editing/Gizmo');
   var glm = require('lib/glMatrix');
 
-  var vec3 = glm.vec3;
   var mat3 = glm.mat3;
   var mat4 = glm.mat4;
 
@@ -31,7 +30,7 @@ define(function (require, exports, module) {
   MainSDF.prototype = {
     _initScene: function () {
       var sphere = new Primitives.SPHERE();
-      sphere._center[0] = -10.0;
+      sphere._matrix[12] -= 10.0;
       this._rootSDF = sphere;
     },
     _hookSculptGL: function () {
@@ -91,7 +90,7 @@ define(function (require, exports, module) {
       sculpt._tool = 'TRANSFORM';
 
       var transformTool = sculpt.getCurrentTool();
-      transformTool._gizmo.setActivatedType(Gizmo.TRANS_XYZ | Gizmo.PLANE_XYZ);
+      transformTool._gizmo.setActivatedType(Gizmo.TRANS_XYZ | Gizmo.PLANE_XYZ | Gizmo.ROT_XYZ | Gizmo.ROT_W | Gizmo.SCALE_W);
 
       transformTool.start = function () {
         var mesh = this.getMesh();
@@ -121,7 +120,7 @@ define(function (require, exports, module) {
         if (this.isIdentity(mesh.getEditMatrix()))
           return;
 
-        vec3.transformMat4(mesh.getCenter(), mesh.getCenter(), mesh.getEditMatrix());
+        mat4.mul(mesh.getMatrix(), mesh.getMatrix(), mesh.getEditMatrix());
         mat4.identity(mesh.getEditMatrix());
       };
     },
@@ -142,6 +141,7 @@ define(function (require, exports, module) {
 
       gui._ctrlCamera._ctrlProjectionTitle.setVisibility(false);
       gui._ctrlCamera._ctrlProjection.setVisibility(false);
+      gui._ctrlCamera._ctrlPivot.setVisibility(false);
       gui._ctrlCamera._ctrlFov.setVisibility(false);
 
       this._sdfGUI = new Gui(this);

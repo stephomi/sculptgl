@@ -2,10 +2,8 @@ define(function (require, exports, module) {
 
   'use strict';
 
-  var glm = require('lib/glMatrix');
   var Utils = require('misc/Utils');
-
-  var vec2 = glm.vec2;
+  var NodeAbstract = require('sdf/NodeAbstract');
 
   var Combinations = {};
   Combinations.SHADER_UID_VAR = 1;
@@ -20,44 +18,22 @@ define(function (require, exports, module) {
   // BASE COMBINATION
   ///////////////////
   var BaseCombination = function (op1, op2) {
+    NodeAbstract.call(this);
     this._op1 = op1;
     this._op2 = op2;
 
     if (op1.setCombinator) op1.setCombinator(this);
     if (op2.setCombinator) op2.setCombinator(this);
 
-    this._roundRadius = 0.0;
-    this._chamferRadius = 0.0;
-    this._uniformNames = ['uRoundRadius', 'uChamferRadius'];
+    this.uRoundRadius = 3.0;
+    this.uChamferRadius = 3.0;
+    this.uColumns = [2.0, 3.0];
+    this.uStairs = [2.0, 3.0];
+    this._uniformNames.push('uRoundRadius', 'uChamferRadius', 'uColumns', 'uStairs');
   };
   BaseCombination.prototype = {
     type: 'COMBINATION',
     shaderName: 'shaderName',
-    getRoundRadius: function () {
-      return this._roundRadius;
-    },
-    setRoundRadius: function (r) {
-      this._roundRadius = r;
-    },
-    getChamferRadius: function () {
-      return this._chamferRadius;
-    },
-    setChamferRadius: function (r) {
-      this._chamferRadius = r;
-    },
-    declareUniforms: function () {
-      return [
-        'uniform float uRoundRadius;',
-        'uniform float uChamferRadius;',
-      ].join('\n');
-    },
-    updateUniforms: function (gl, uniforms) {
-      gl.uniform1f(uniforms.uRoundRadius, this._roundRadius);
-      gl.uniform1f(uniforms.uChamferRadius, this._chamferRadius);
-    },
-    getUniformNames: function () {
-      return this._uniformNames;
-    },
     shaderMaterialColor: function (string) {
       this._op1.shaderMaterialColor(string);
       this._op2.shaderMaterialColor(string);
@@ -68,15 +44,25 @@ define(function (require, exports, module) {
     shaderDistance: function (string) {
       return this.combinationDistance(string, 'shaderDistance', 'float');
     },
+    resetTransitions: function (name) {
+      this.uRoundRadius = Math.abs(this.uRoundRadius) * (name === 'ROUND' ? 1.0 : -1.0);
+      this.uChamferRadius = Math.abs(this.uChamferRadius) * (name === 'CHAMFER' ? 1.0 : -1.0);
+      this.uColumns[0] = Math.abs(this.uColumns[0]) * (name === 'COLUMNS' ? 1.0 : -1.0);
+      this.uStairs[0] = Math.abs(this.uStairs[0]) * (name === 'STAIRS' ? 1.0 : -1.0);
+    },
     getShaderFunc: function () {
-      if (this._roundRadius > 0.0) return this.shaderName + 'Round';
-      if (this._chamferRadius > 0.0) return this.shaderName + 'Chamfer';
+      if (this.uRoundRadius > 0.0) return this.shaderName + 'Round';
+      if (this.uChamferRadius > 0.0) return this.shaderName + 'Chamfer';
+      if (this.uColumns[0] > 0.0) return this.shaderName + 'Columns';
+      if (this.uStairs[0] > 0.0) return this.shaderName + 'Stairs';
       return this.shaderName;
     },
     extraParameter: function () {
       var isSelected = this._op1._selected || this._op2._selected;
-      if (this._roundRadius > 0.0) return [isSelected ? 'uRoundRadius' : this._roundRadius.toExponential()];
-      if (this._chamferRadius > 0.0) return [isSelected ? 'uChamferRadius' : this._chamferRadius.toExponential()];
+      if (this.uRoundRadius > 0.0) return [isSelected ? 'uRoundRadius' : this.toStr(this.uRoundRadius)];
+      if (this.uChamferRadius > 0.0) return [isSelected ? 'uChamferRadius' : this.toStr(this.uChamferRadius)];
+      if (this.uColumns[0] > 0.0) return [isSelected ? 'uColumns' : this.toStr(this.uColumns)];
+      if (this.uStairs[0] > 0.0) return [isSelected ? 'uStairs' : this.toStr(this.uStairs)];
       return [''];
     },
     combinationDistance: function (string, func, type) {
@@ -92,6 +78,7 @@ define(function (require, exports, module) {
       return declare(type, this.getShaderFunc() + '(' + op1 + ', ' + op2 + params + ')', string);
     }
   };
+  Utils.makeProxy(NodeAbstract, BaseCombination);
 
   ////////
   // UNION

@@ -75,9 +75,9 @@ define(function (require, exports, module) {
       // extra.addTitle(TR('contour'));
       // extra.addColor(TR('contourColor'), ShaderContour.color, this.onContourColor.bind(this));
 
-      var extra = this._topbar.addMenu('Extra');
-      extra.addTitle(TR('resolution'));
-      extra.addSlider('', this._main._pixelRatio, this.onPixelRatio.bind(this), 0.5, 2.0, 0.02);
+      var extra = this._topbar.addMenu('Resolution');
+      extra.addTitle('Ratio');
+      extra.addSlider('', this._main._pixelRatio, this.onPixelRatio.bind(this), 0.1, 1.5, 0.02);
 
       this.addAboutButton();
 
