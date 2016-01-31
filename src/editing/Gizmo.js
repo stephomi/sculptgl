@@ -60,31 +60,31 @@ define(function (require, exports, module) {
     this._gl = main._gl;
 
     // activated gizmos
-    this._activatedType = TRANS_XYZ | ROT_XYZ | PLANE_XYZ | SCALE_XYZW | ROT_W;
+    this._activatedType = Gizmo.TRANS_XYZ | Gizmo.ROT_XYZ | Gizmo.PLANE_XYZ | Gizmo.SCALE_XYZW | Gizmo.ROT_W;
 
     // trans arrow 1 dim
-    this._transX = createGizmo(TRANS_X, 0);
-    this._transY = createGizmo(TRANS_Y, 1);
-    this._transZ = createGizmo(TRANS_Z, 2);
+    this._transX = createGizmo(Gizmo.TRANS_X, 0);
+    this._transY = createGizmo(Gizmo.TRANS_Y, 1);
+    this._transZ = createGizmo(Gizmo.TRANS_Z, 2);
 
     // trans plane 2 dim
-    this._planeX = createGizmo(PLANE_X, 0);
-    this._planeY = createGizmo(PLANE_Y, 1);
-    this._planeZ = createGizmo(PLANE_Z, 2);
+    this._planeX = createGizmo(Gizmo.PLANE_X, 0);
+    this._planeY = createGizmo(Gizmo.PLANE_Y, 1);
+    this._planeZ = createGizmo(Gizmo.PLANE_Z, 2);
 
     // scale cube 1 dim
-    this._scaleX = createGizmo(SCALE_X, 0);
-    this._scaleY = createGizmo(SCALE_Y, 1);
-    this._scaleZ = createGizmo(SCALE_Z, 2);
+    this._scaleX = createGizmo(Gizmo.SCALE_X, 0);
+    this._scaleY = createGizmo(Gizmo.SCALE_Y, 1);
+    this._scaleZ = createGizmo(Gizmo.SCALE_Z, 2);
     // scale cube 3 dim
-    this._scaleW = createGizmo(SCALE_W);
+    this._scaleW = createGizmo(Gizmo.SCALE_W);
 
     // rot arc 1 dim
-    this._rotX = createGizmo(ROT_X, 0);
-    this._rotY = createGizmo(ROT_Y, 1);
-    this._rotZ = createGizmo(ROT_Z, 2);
+    this._rotX = createGizmo(Gizmo.ROT_X, 0);
+    this._rotY = createGizmo(Gizmo.ROT_Y, 1);
+    this._rotZ = createGizmo(Gizmo.ROT_Z, 2);
     // full arc display
-    this._rotW = createGizmo(ROT_W);
+    this._rotW = createGizmo(Gizmo.ROT_W);
 
     // line helper
     this._lineHelper = Primitives.createLine2D(this._gl);
@@ -392,6 +392,7 @@ define(function (require, exports, module) {
       var offset = this._editOffset;
       offset[0] = main._mouseX - origin[0];
       offset[1] = main._mouseY - origin[1];
+      vec2.set(this._editLineOrigin, main._mouseX, main._mouseY);
     },
     _startScaleEdit: function () {
       this._startTranslateEdit();
@@ -473,6 +474,9 @@ define(function (require, exports, module) {
 
       var vec = [main._mouseX, main._mouseY, 0.0];
       vec2.sub(vec, vec, this._editOffset);
+
+      // helper line
+      this._updateLineHelper(this._editLineOrigin[0], this._editLineOrigin[1], main._mouseX, main._mouseY);
 
       var near = camera.unproject(vec[0], vec[1], 0.0);
       var far = camera.unproject(vec[0], vec[1], 0.1);
