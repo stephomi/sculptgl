@@ -528,9 +528,11 @@ define(function (require, exports, module) {
     },
     computeFrustumFit: function () {
       var near = this._near;
+      var x;
 
       if (this._projectionType === 'ORTHOGRAPHIC') {
-        return 1.0 / Math.sin(Math.atan2(Math.min(this._width, this._height) / near * 0.5, 1));
+        x = Math.min(this._width, this._height) / near * 0.5;
+        return Math.sqrt(1.0 + x * x) / x;
       }
 
       var proj = this._proj;
@@ -541,7 +543,8 @@ define(function (require, exports, module) {
       var vertical2 = Math.abs(right - left);
       var horizontal2 = Math.abs(top - bottom);
 
-      return (this._fov / 45.0) / Math.sin(Math.atan2(Math.min(horizontal2, vertical2) / near * 0.5, 1));
+      x = Math.min(horizontal2, vertical2) / near * 0.5;
+      return (this._fov / 45.0) * Math.sqrt(1.0 + x * x) / x;
     }
   };
 
