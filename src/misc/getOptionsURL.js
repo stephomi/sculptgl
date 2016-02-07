@@ -33,6 +33,8 @@ define(function (require, exports, module) {
 
   var readShortcuts = function (str) {
     var shortcuts = {};
+
+    // tools
     shortcuts['0'.charCodeAt(0)] = 'MOVE';
     shortcuts['1'.charCodeAt(0)] = 'BRUSH';
     shortcuts['2'.charCodeAt(0)] = 'INFLATE';
@@ -45,6 +47,26 @@ define(function (require, exports, module) {
     shortcuts['9'.charCodeAt(0)] = 'PAINT';
     shortcuts['E'.charCodeAt(0)] = 'TRANSFORM';
 
+    // sculpting
+    shortcuts['C'.charCodeAt(0)] = 'INTENSITY';
+    shortcuts['X'.charCodeAt(0)] = 'RADIUS';
+    shortcuts['N'.charCodeAt(0)] = 'NEGATIVE';
+    shortcuts['S'.charCodeAt(0)] = 'PICKER';
+    shortcuts[46] = 'DELETE'; // DEL
+
+    // camera
+    shortcuts['F'.charCodeAt(0)] = 'CAMERA_FRONT';
+    shortcuts['T'.charCodeAt(0)] = 'CAMERA_TOP';
+    shortcuts['L'.charCodeAt(0)] = 'CAMERA_LEFT';
+    shortcuts[32] = 'CAMERA_RESET'; // SPACE
+    shortcuts[37] = 'STRIFE_LEFT';
+    shortcuts[39] = 'STRIFE_RIGHT';
+    shortcuts[38] = 'STRIFE_UP';
+    shortcuts[40] = 'STRIFE_DOWN';
+
+    // rendering
+    shortcuts['W'.charCodeAt(0)] = 'WIREFRAME';
+
     if (!str)
       return shortcuts;
 
@@ -52,7 +74,14 @@ define(function (require, exports, module) {
     for (var i = 0, nbVars = vars.length; i < nbVars; i++) {
       var pair = vars[i].split(':', 2);
       if (pair.length !== 2) continue;
-      shortcuts[pair[1].toUpperCase().charCodeAt(0)] = pair[0].toUpperCase();
+
+      var key = pair[1].toUpperCase();
+      var tInt = parseInt(key, 10);
+      // check if we consider it as charcode
+      if (tInt === tInt && tInt >= 10) key = tInt;
+      else key = key.charCodeAt(0);
+
+      shortcuts[key] = pair[0].toUpperCase();
     }
 
     return shortcuts;
@@ -112,6 +141,13 @@ define(function (require, exports, module) {
   };
 
   getOptionsURL();
+
+  getOptionsURL.getShortKey = function (key) {
+    // handles numpad
+    if (key >= 96 && key <= 105)
+      key -= 48;
+    return getOptionsURL().shortcuts[key] || key;
+  };
 
   module.exports = getOptionsURL;
 });

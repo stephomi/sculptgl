@@ -181,10 +181,10 @@ define(function (require, exports, module) {
         return;
 
       var main = this._main;
-      var key = event.which;
+      var shk = getOptionsURL.getShortKey(event.which);
       event.stopPropagation();
 
-      if (!main._focusGui || key === 88 || key === 67)
+      if (!main._focusGui || shk === 'RADIUS' || shk === 'INTENSITY')
         event.preventDefault();
 
       event.handled = true;
@@ -194,32 +194,28 @@ define(function (require, exports, module) {
       if (main._action !== 'NOTHING')
         return;
 
-      // handles numpad
-      if (key >= 96 && key <= 105) key -= 48;
-      var opts = getOptionsURL();
-      var strTool = opts.shortcuts[key];
-      if (strTool && Tools[strTool])
-        return this._ctrlSculpt.setValue(strTool);
+      if (shk && Tools[shk])
+        return this._ctrlSculpt.setValue(shk);
 
       var cur = GuiSculptingTools[this.getSelectedTool()];
 
-      switch (key) {
-      case 46: // DEL
+      switch (shk) {
+      case 'DELETE':
         main.deleteCurrentSelection();
         break;
-      case 67: // C
+      case 'INTENSITY':
         this._modalBrushIntensity = main._focusGui = true;
         break;
-      case 78: // N
-        if (cur.toggleNegative) cur.toggleNegative();
-        break;
-      case 83: // S
-        var ctrlPicker = cur._ctrlPicker;
-        if (ctrlPicker && !ctrlPicker.getValue()) ctrlPicker.setValue(true);
-        break;
-      case 88: // X
+      case 'RADIUS':
         if (!this._modalBrushRadius) this._startModalBrushRadius(this._lastPageX, this._lastPageY);
         this._modalBrushRadius = main._focusGui = true;
+        break;
+      case 'NEGATIVE':
+        if (cur.toggleNegative) cur.toggleNegative();
+        break;
+      case 'PICKER':
+        var ctrlPicker = cur._ctrlPicker;
+        if (ctrlPicker && !ctrlPicker.getValue()) ctrlPicker.setValue(true);
         break;
       default:
         event.handled = false;
@@ -236,8 +232,8 @@ define(function (require, exports, module) {
       }
 
       var main = this._main;
-      switch (event.which) {
-      case 88: // X
+      switch (getOptionsURL.getShortKey(event.which)) {
+      case 'RADIUS':
         this._modalBrushRadius = main._focusGui = false;
         main.getSelectionRadius().setOffsetX(0.0);
         event.pageX = this._lastPageX;
@@ -246,12 +242,12 @@ define(function (require, exports, module) {
         main.getPicking().intersectionMouseMeshes();
         main.renderSelectOverRtt();
         break;
-      case 83: // S
+      case 'PICKER':
         var cur = GuiSculptingTools[this.getSelectedTool()];
         var ctrlPicker = cur._ctrlPicker;
         if (ctrlPicker && ctrlPicker.getValue()) ctrlPicker.setValue(false);
         break;
-      case 67: // C
+      case 'INTENSITY':
         this._modalBrushIntensity = main._focusGui = false;
         break;
       }

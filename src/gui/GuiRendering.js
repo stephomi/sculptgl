@@ -5,6 +5,7 @@ define(function (require, exports, module) {
   var TR = require('gui/GuiTR');
   var Render = require('mesh/Render');
   var Shader = require('render/ShaderLib');
+  var getOptionsURL = require('misc/getOptionsURL');
 
   var ShaderMERGE = Shader.MERGE;
   var ShaderUV = Shader.UV;
@@ -249,7 +250,7 @@ define(function (require, exports, module) {
     // KEY EVENTS
     ////////////////
     onKeyUp: function (event) {
-      if (event.which === 87 && !event.ctrlKey) // W
+      if (getOptionsURL.getShortKey(event.which) === 'WIREFRAME' && !event.ctrlKey)
         this._ctrlShowWireframe.setValue(!this._ctrlShowWireframe.getValue());
     }
   };

@@ -3,6 +3,7 @@ define(function (require, exports, module) {
   'use strict';
 
   var TR = require('gui/GuiTR');
+  var getOptionsURL = require('misc/getOptionsURL');
 
   var GuiCamera = function (guiParent, ctrlGui) {
     this._main = ctrlGui._main; // main application
@@ -62,11 +63,12 @@ define(function (require, exports, module) {
     onKeyDown: function (event) {
       if (event.handled === true)
         return;
+
       event.stopPropagation();
       if (this._main._focusGui)
         return;
+
       event.preventDefault();
-      var key = event.which;
       var main = this._main;
       var camera = main.getCamera();
       event.handled = true;
@@ -74,22 +76,24 @@ define(function (require, exports, module) {
         camera.snapClosestRotation();
         main.render();
       }
-      switch (key) {
-      case 37: // LEFT
+
+      switch (getOptionsURL.getShortKey(event.which)) {
+      case 'STRIFE_LEFT':
         camera._moveX = -1;
         break;
-      case 39: // RIGHT
+      case 'STRIFE_RIGHT':
         camera._moveX = 1;
         break;
-      case 38: // UP
+      case 'STRIFE_UP':
         camera._moveZ = -1;
         break;
-      case 40: // DOWN
+      case 'STRIFE_DOWN':
         camera._moveZ = 1;
         break;
       default:
         event.handled = false;
       }
+
       if (event.handled === true && this._cameraTimer === -1) {
         this._cameraTimer = window.setInterval(this._cbTranslation, 16.6);
       }
@@ -103,35 +107,38 @@ define(function (require, exports, module) {
     onKeyUp: function (event) {
       if (event.handled === true)
         return;
+
       event.stopPropagation();
       if (this._main._focusGui)
         return;
+
       event.preventDefault();
       event.handled = true;
-      var key = event.which;
       var camera = this._camera;
-      switch (key) {
-      case 37: // LEFT
-      case 39: // RIGHT
+
+      switch (getOptionsURL.getShortKey(event.which)) {
+      case 'STRIFE_LEFT':
+      case 'STRIFE_RIGHT':
         camera._moveX = 0;
         break;
-      case 38: // UP
-      case 40: // DOWN
+      case 'STRIFE_UP':
+      case 'STRIFE_DOWN':
         camera._moveZ = 0;
         break;
-      case 32: // SPACE
+      case 'CAMERA_RESET':
         this.resetCamera();
         break;
-      case 70: // F
+      case 'CAMERA_FRONT':
         this.resetFront();
         break;
-      case 84: // T
+      case 'CAMERA_TOP':
         this.resetTop();
         break;
-      case 76: // L
+      case 'CAMERA_LEFT':
         this.resetLeft();
         break;
       }
+
       if (this._cameraTimer !== -1 && camera._moveX === 0 && camera._moveZ === 0) {
         clearInterval(this._cameraTimer);
         this._cameraTimer = -1;
