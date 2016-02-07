@@ -1,3 +1,10 @@
+#define PI 3.141592653589793
+#define PI_2 1.5707963267948966
+#define SQRT1_2 0.7071067811865476
+#define SQRT2 1.4142135623730951
+
+// raymarching code from https://www.shadertoy.com/view/Xds3zN
+
 // blend color for chamfer and round operators (sd is simple operator distance)
 vec3 colorBlending(const in float sd, const in vec4 a, const in vec4 b) {
   float ra = clamp(sd / a.x, 0.0, 1.0);
@@ -22,12 +29,16 @@ vec3 colorInter(const in vec4 a, const in vec4 b){
 }
 
 vec2 pR45(const in vec2 p) {
-  return (p + vec2(p.y, -p.x)) * 0.7071067811865476;
+  return (p + vec2(p.y, -p.x)) * SQRT1_2;
 }
 
 /////////////
 // PRIMITIVES
 /////////////
+
+float cullPlane(const in vec3 p) {
+  return p.y >= -0.502 ? p.y + 0.5 : 20.0;
+}
 
 float sdSphere(const in vec3 p, const in float s) {
   return length(p) - s;
@@ -117,7 +128,7 @@ vec4 opSubRound(const in vec4 a, const in vec4 b, const in float r) {
 
 // UNION CHAMFER
 float opUnionChamfer(const in float a, const in float b, const in float r) {
-  return min(min(a, b), (a - r + b) * 0.7071067811865476);
+  return min(min(a, b), (a - r + b) * SQRT1_2);
 }
 vec4 opUnionChamfer(const in vec4 a, const in vec4 b, const in float r) {
   return vec4(opUnionChamfer(a.x, b.x, r), colorUnion(a, b));
@@ -125,7 +136,7 @@ vec4 opUnionChamfer(const in vec4 a, const in vec4 b, const in float r) {
 
 // INTER CHAMFER
 float opInterChamfer(const in float a, const in float b, const in float r) {
-  return max(max(a, b), (a + r + b) * 0.7071067811865476);
+  return max(max(a, b), (a + r + b) * SQRT1_2);
 }
 vec4 opInterChamfer(const in vec4 a, const in vec4 b, const in float r) {
   return vec4(opInterChamfer(a.x, b.x, r), colorInter(a, b));
@@ -149,10 +160,10 @@ float opUnionColumns(const in float a, const in  float b, const in vec2 rn) {
   float n = rn.y;
   if((a < r) && (b < r)) {
     vec2 p = vec2(a, b);
-    float columnradius = r * 1.4142135623730951 / ((n - 1.0) * 2.0 + 1.4142135623730951);
+    float columnradius = r * SQRT2 / ((n - 1.0) * 2.0 + SQRT2);
     p = pR45(p);
-    p.x -= 0.7071067811865476 * r;
-    p.x += columnradius * 1.4142135623730951;
+    p.x -= SQRT1_2 * r;
+    p.x += columnradius * SQRT2;
     if(mod(n, 2.0) == 1.0) {
       p.y += columnradius;
     }
@@ -181,12 +192,12 @@ float opSubColumns(const in float ain, const float b, const vec2 rn) {
   //avoid the expensive computation where not needed (produces discontinuity though)
   if((a < r) && (b < r)) {
     vec2 p = vec2(a, b);
-    float columnradius = r * 1.4142135623730951 / n / 2.0;
-    columnradius = r * 1.4142135623730951 / ((n - 1.0) * 2.0 + 1.4142135623730951);
+    float columnradius = r * SQRT2 / n / 2.0;
+    columnradius = r * SQRT2 / ((n - 1.0) * 2.0 + SQRT2);
 
     p = pR45(p);
     p.y += columnradius;
-    p.x -= 0.7071067811865476 * (r + columnradius);
+    p.x -= SQRT1_2 * (r + columnradius);
 
     if(mod(n, 2.0) == 1.0) {
       p.y += columnradius;
@@ -264,13 +275,13 @@ vec4 mapDistanceColor(const in vec3 point) {
 float mapDistance(const in vec3 point) {
   %ID_MAP_DISTANCE
 }
-
+    
 vec4 castRay(const in vec3 ro, const in vec3 rd) {
   float t = 1.0;
-  float tmax = 1000.0;
+  float tmax = 50.0;
 
-  float precis = 0.02;
-  for(int i = 0; i < 100; i++) {
+  float precis = 0.002;
+  for(int i = 0; i < 50; i++) {
     float dist = mapDistance(ro + rd * t);
     if(dist < precis || t > tmax)
       break;
@@ -282,15 +293,15 @@ vec4 castRay(const in vec3 ro, const in vec3 rd) {
 }
 
 float softshadow(const in vec3 ro, const in vec3 rd) {
-  float t = 10.0;
-  float tmax = 100.0;
-  float precis = 0.005;
+  float t = 0.02;
+  float tmax = 2.5;
+  float precis = 0.001;
   float res = 1.0;
   for(int i = 0; i < 16; i++) {
     float h = mapDistance(ro + rd * t);
     res = min(res, 20.0 * h / t);
-    t += max( h, 0.02);
-    if(h < precis || t > tmax) break;
+    t += clamp( h, 0.02, 0.10 );
+    if(h < 0.001 || t > tmax) break;
   }
   return clamp(res, 0.0, 1.0);
 }
@@ -324,14 +335,6 @@ vec3 render(const in vec3 ro, const in vec3 rd) {
     vec3 pos = ro + res.x * rd;
     vec3 nor = calcNormal(pos);
 
-    // special case of plane
-    if(res.y == 10000.0) {
-      float f = mod(floor(0.5*pos.z) + floor(0.5*pos.x), 2.0);
-      col = 0.4 + 0.1 * f * vec3(1.0);
-    } else {
-      col = res.yzw;
-    }
-
     vec3 ref = reflect( rd, nor );
     float occ = calcAO( pos, nor );
     vec3  lig = normalize(vec3(-0.6, 0.7, -0.5));
@@ -353,16 +356,52 @@ vec3 render(const in vec3 ro, const in vec3 rd) {
     lin += 0.30 * bac * vec3(0.25, 0.25, 0.25) * occ;
     lin += 0.40 * fre * vec3(1.00, 1.00, 1.00) * occ;
 
-    col *= lin;
+    col = res.yzw * lin;
   }
 
   return clamp(col, 0.0, 1.0);
 }
 
-// https://www.shadertoy.com/view/Xds3zN
+#ifdef SHADERTOY
+mat3 setCamera( const in vec3 ro, const in vec3 ta, const float cr ){
+  vec3 cw = normalize(ta-ro);
+  vec3 cp = vec3(sin(cr), cos(cr),0.0);
+  vec3 cu = normalize( cross(cw,cp) );
+  vec3 cv = normalize( cross(cu,cw) );
+  return mat3( cu, cv, cw );
+}
+
+void mainImage(out vec4 fragColor, in vec2 fragCoord){
+  vec2 q = fragCoord.xy / iResolution.xy;
+  vec2 p = -1.0 + 2.0 * q;
+  p.x *= iResolution.x / iResolution.y;
+  vec2 mo = iMouse.xy / iResolution.xy;
+  float time = 15.0 + iGlobalTime;
+
+  // camera 
+  vec3 ro = SHADERTOY_ZOOM * vec3( -0.5 + 3.5 * cos(0.1 * time + 6.0 * mo.x), 1.0 + 2.0 * mo.y, 0.5 + 3.5 * sin(0.1 * time + 6.0 * mo.x));
+  vec3 ta = vec3(-0.5, -0.4, 0.5);
+
+  // camera-to-world transformation
+  mat3 ca = setCamera(ro, ta, 0.0);
+
+  // ray direction
+  vec3 rd = ca * normalize(vec3(p.xy, 2.0));
+
+  fragColor = vec4(render(ro, rd), 1.0);
+}
+
+#else
+
 vec3 raymarch(const in vec3 origin, const in mat3 view, const in vec2 uv, const in vec2 invSize) {
   vec2 p = -1.0 + 2.0 * uv;
   p.x *= invSize.y / invSize.x;
   vec3 rd = normalize(view * vec3(p, 2.0));
   return render(origin, rd);
 }
+
+void main() {
+  gl_FragColor = vec4(raymarch(uOrigin, uView, vUV, uInvSize), 1.0);
+}
+
+#endif

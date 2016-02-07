@@ -36,10 +36,7 @@ define(function (require, exports, module) {
     'uniform vec2 uInvSize;',
     'varying vec2 vUV;',
     '%ID_UNIFORM',
-    sdfGLSL,
-    'void main() {',
-    '  gl_FragColor = vec4(raymarch(uOrigin, uView, vUV, uInvSize), 1.0);',
-    '}'
+    sdfGLSL
   ].join('\n');
 
   ShaderSDF.createFragment = function (mainSDF) {
@@ -55,10 +52,7 @@ define(function (require, exports, module) {
     var string = [''];
     var res = mainSDF._rootSDF.shaderDistanceMat(string);
     // add a culled plane
-    string[0] += [
-      'vec2 plane = vec2(point.y >= -5.02 ? point.y + 5.0 : 200.0, 10000.0);',
-      'return ' + res + '.x < plane.x ? ' + res + ' : plane.xyyy;'
-    ].join('\n');
+    string[0] += 'return ' + res + ';';
     glsl = glsl.replace('%ID_MAP_DISTANCE_COLOR', string[0]);
 
     ////////////
@@ -67,7 +61,7 @@ define(function (require, exports, module) {
     string = [''];
     res = mainSDF._rootSDF.shaderDistance(string);
     // add a culled plane
-    string[0] += 'return min(' + res + ', point.y >= -5.02 ? point.y + 5.0 : 200.0);';
+    string[0] += 'return ' + res + ';';
     glsl = glsl.replace('%ID_MAP_DISTANCE', string[0]);
 
     ///////////

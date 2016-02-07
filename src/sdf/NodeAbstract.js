@@ -10,11 +10,41 @@ define(function (require, exports, module) {
     this._selected = false;
   };
   NodeAbstract.prototype = {
-    toStr: function (val) {
-      if (!val.length) return val.toExponential();
+    initObjectJSON: function (obj) {
+      var keys = Object.keys(obj);
+      for (var i = 0, nbKeys = keys.length; i < nbKeys; ++i) {
+        var key = keys[i];
+        if (key[0] === 'u') {
+          this[key] = obj[key];
+        }
+      }
+    },
+    toJSON: function () {
+      // serialize keys that start with u
+      var json = {};
+      json.type = this.type;
 
-      var str = val[0].toExponential();
-      for (var i = 1, nbElt = val.length; i < nbElt; ++i) str += ',' + val[i].toExponential();
+      var keys = Object.keys(this);
+      for (var i = 0, nbKeys = keys.length; i < nbKeys; ++i) {
+        var key = keys[i];
+        if (key[0] === 'u') {
+          var val = this[key];
+          if (val.length) val = Array.apply([], val); // in case of typed array
+          json[key] = val;
+        }
+      }
+
+      return json;
+    },
+    _prettyFloat: function (val) {
+      var str = val.toString();
+      return str.indexOf('.') !== -1.0 ? str : str + '.0';
+    },
+    toStr: function (val) {
+      if (!val.length) return this._prettyFloat(val);
+
+      var str = this._prettyFloat(val[0]);
+      for (var i = 1, nbElt = val.length; i < nbElt; ++i) str += ',' + this._prettyFloat(val[i]);
 
       if (val.length < 5) return 'vec' + val.length + '(' + str + ')';
       return 'mat4(' + str + ')';

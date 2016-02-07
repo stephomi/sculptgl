@@ -301,7 +301,7 @@ define(function (require, exports, module) {
       this._speed = Utils.SCALE * 0.9;
       this.centerDelay([0.0, 0.0, 0.0], DELAY_MOVE_TO);
       this.offsetDelay([0.0, 0.0, 0.0], DELAY_MOVE_TO);
-      var delta = [0.0, 0.0, 30.0 + this._speed / 3.0];
+      var delta = [0.0, 0.0, 3.0 + this._speed / 30.0];
       vec3.sub(delta, delta, this._trans);
       this.translateDelay(delta, DELAY_MOVE_TO);
       this.quatDelay([0.0, 0.0, 0.0, 1.0], DELAY_MOVE_TO);

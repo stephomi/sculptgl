@@ -6,6 +6,7 @@ define(function (require, exports, module) {
   var Shader = require('sdf/Shader');
   require('render/ShaderLib').SDF = Shader;
   var GuiCamera = require('gui/GuiCamera');
+  var Combinations = require('sdf/Combinations');
   var Primitives = require('sdf/Primitives');
   var Gui = require('sdf/Gui');
   var Gizmo = require('editing/Gizmo');
@@ -20,6 +21,7 @@ define(function (require, exports, module) {
     this._rttSDF = new Rtt(this._gl, 'SDF', null);
 
     this._rootSDF = undefined;
+    this._lastPrim = undefined; // last selected primitive
     this._dirtyScene = true;
 
     this._initScene();
@@ -29,9 +31,9 @@ define(function (require, exports, module) {
 
   MainSDF.prototype = {
     _initScene: function () {
-      var sphere = new Primitives.SPHERE();
-      sphere._matrix[12] -= 10.0;
-      this._rootSDF = sphere;
+      var plane = new Primitives.PLANE();
+      plane._matrix[13] -= 0.3;
+      this._rootSDF = plane;
     },
     _hookSculptGL: function () {
       var main = this._main;
@@ -40,16 +42,38 @@ define(function (require, exports, module) {
       this._main.applyRender = this._applyRender.bind(this);
       this._main.onDeviceDown = this._onDeviceDown.bind(this);
 
+      this._hookReadFile();
       this._hookCamera();
       this._hookGui();
       this._hookSculpt();
+    },
+    _hookReadFile: function () {
+      var self = this;
+
+      this._main.getFileType = function (name) {
+        if (name.toLowerCase().endsWith('.json')) return 'json';
+        return;
+      };
+
+      this._main.readFile = function (file, ftype) {
+        if (ftype !== 'json')
+          return;
+
+        var reader = new FileReader();
+        reader.onload = function (evt) {
+          self.createRootFromJSON(evt.target.result);
+          document.getElementById('fileopen').value = '';
+        };
+
+        reader.readAsText(file);
+      };
     },
     _hookCamera: function () {
       var camera = this._main.getCamera();
       camera.setFov(53);
       camera.updateProjection();
       camera._sdfView = mat3.create();
-      this._main._gui._ctrlCamera._ctrlPivot.setValue(false);
+      camera.setUsePivot(false);
     },
     _onDeviceDown: function (event) {
       var main = this._main;
@@ -167,6 +191,35 @@ define(function (require, exports, module) {
 
       gl.enable(gl.DEPTH_TEST);
       main._sculpt.postRender();
+    },
+    createRootFromJSON: function (json) {
+      var scene = JSON.parse(json);
+      this._rootSDF = this._createNode(scene.root);
+      this._dirtyScene = true;
+      this._lastPrim = undefined;
+      this._sdfGUI.applyPrimitive();
+      this._sdfGUI._ctrlBlendColor.setValue(scene.blendColor);
+      this._main.render();
+    },
+    _createNode: function (obj) {
+      var type = obj.type;
+      var node;
+
+      if (Combinations[type]) {
+        var op1 = this._createNode(obj.op1);
+        var op2 = this._createNode(obj.op2);
+        node = new Combinations[type](op1, op2);
+        node.initObjectJSON(obj);
+
+      } else if (Primitives[type]) {
+        node = new Primitives[type]();
+        node.initObjectJSON(obj);
+
+      } else {
+        console.error('Unknown type :', type);
+      }
+
+      return node;
     }
   };
 
