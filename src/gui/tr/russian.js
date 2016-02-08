@@ -16,9 +16,9 @@ define(function (require, exports, module) {
     cameraFront: 'Спереди (F)',
     cameraLeft: 'Слева (L)',
     cameraTop: 'Сверху (T)',
-    cameraMode: null,
+    cameraMode: 'Режим камеры',
     cameraOrbit: 'Орбита (Вращение)',
-    cameraSpherical: null,
+    cameraSpherical: 'Сферическая (трекбол)',
     cameraPlane: 'Плоскость (трекбол)',
     cameraProjection: 'Проекция',
     cameraPerspective: 'Перспективная',
@@ -31,7 +31,7 @@ define(function (require, exports, module) {
     fileImportTitle: 'Импорт',
     fileAdd: 'Добавить(obj,sgl,ply,stl)',
     fileAutoMatrix: 'Масштаб-вид',
-    fileVertexSRGB: null,
+    fileVertexSRGB: 'Цвета вершин sRGB',
     fileExportMeshTitle: 'Эксорт модели',
     fileExportSceneTitle: 'Экспорт сцены',
     fileExportSGL: 'Сохранить .sgl',
@@ -44,8 +44,8 @@ define(function (require, exports, module) {
     sceneReset: 'Очистить сцену',
     sceneAddSphere: 'Добавить сферу',
     sceneAddCube: 'Добавить куб',
-    sceneAddCylinder: null,
-    sceneAddTorus: null,
+    sceneAddCylinder: 'Добавить цилиндр',
+    sceneAddTorus: 'Добавить тор',
     sceneSelection: 'Выбрать',
     sceneMerge: 'Объединить',
 
@@ -102,9 +102,9 @@ define(function (require, exports, module) {
     sculptLocalScale: '3D масштабирование',
     sculptPaint: '2D Кисть',
     sculptMasking: '2D Маска (-Ctrl)',
-    sculptTransform: null,
+    sculptTransform: 'Трансформация',
 
-    sculptCommon: null,
+    sculptCommon: 'Общее',
     sculptTool: 'Инструмент',
     sculptSymmetry: 'Симетрия',
     sculptContinuous: 'Спрей',
@@ -124,9 +124,9 @@ define(function (require, exports, module) {
     sculptAccumulate: 'Наращивать без ограничений',
     sculptColorGlobal: 'Глобальный',
     sculptPickColor: 'Пипетка материал (-S)',
-    sculptTangentialSmoothing: null,
-    sculptTopologicalCheck: null,
-    sculptMoveAlongNormal: null,
+    sculptTangentialSmoothing: 'Сглаживание по касательной',
+    sculptTopologicalCheck: 'Проверка топологии',
+    sculptMoveAlongNormal: 'Перемещать вдоль нормали',
     sculptMaskingClear: 'Очистить (-Ctrl + Drag)',
     sculptMaskingInvert: 'Инверсия (-Ctrl + Click)',
     sculptMaskingBlur: 'Сгладить',
@@ -135,7 +135,7 @@ define(function (require, exports, module) {
     sculptPaintAll: 'Краска',
     sculptExtractTitle: 'Извлечь',
     sculptExtractThickness: 'Толщина',
-    sculptExtractAction: 'Извлечь !',
+    sculptExtractAction: 'Извлечь!',
 
     // states
     stateTitle: 'История',
@@ -156,28 +156,28 @@ define(function (require, exports, module) {
     renderingCurvature: 'Рельефность',
     renderingPBR: 'PBR',
     renderingTransparency: 'Прозрачность',
-    renderingNormal: 'Normal Map',
+    renderingNormal: 'Карта нормалей',
     renderingUV: 'UV',
     renderingShader: 'Шейдеры',
     renderingMaterial: 'Материал',
     renderingImportUV: 'Импорт (jpg, png...)',
     renderingImportMatcap: 'Импорт (jpg, png...)',
     renderingExtra: 'Дополнительно',
-    renderingFlat: 'Плоское-рельефное',
+    renderingFlat: 'Плоскости',
     renderingWireframe: 'Каркас (W)',
     renderingExposure: 'Экспозиция',
     renderingEnvironment: 'Отражение',
     renderingIsolate: 'Изолировать / Показать (I)',
-    renderingFilmic: null,
+    renderingFilmic: 'Пленка',
 
     // contour
     contour: 'Контур',
     contourShow: 'Показать контур',
     contourColor: 'Цвет',
-    darkenUnselected: null,
+    darkenUnselected: 'Затемнить невыбранное',
 
     // pixel ratio
-    resolution: null,
+    resolution: 'Разрешение',
 
     // matcaps
     matcapPearl: 'Жемчуг',
@@ -189,17 +189,17 @@ define(function (require, exports, module) {
     // sketchfab
     sketchfabTitle: 'В Sketchfab.com ',
     sketchfabUpload: 'Загрузить',
-    sketchfabUploadMessage: 'Ведите ключ sketchfab API Key.\n' +
-      'Вы также можете оставить «Гость», чтобы загрузить anonymously.\n' +
-      '(Откроется новое окно, когда загрузка и обработка закончена)',
+    sketchfabUploadMessage: 'Ведите API-ключ sketchfab.\n' +
+      'Оставьте слово «guest», чтобы загрузить модель анонимно.\n' +
+      '(По окончании загрузки и обработки откроется новое окно)',
     sketchfabUploadError: function (error) {
-      return 'Sketchfab ошибка загрузки :\n' + error;
+      return 'Ошибка загрузки в Sketchfab :\n' + error;
     },
-    sketchfabUploadSuccess: 'Загрузка выполнена !\nHere is your link :',
-    sketchfabAbort: 'Прервать загрузку ?',
-    sketchfabUploadProcessing: 'Загружается...\nВаша модель доступна :',
+    sketchfabUploadSuccess: 'Загрузка выполнена !\nВаша ссылка:',
+    sketchfabAbort: 'Прервать загрузку?',
+    sketchfabUploadProcessing: 'Обработка...\nВаша модель будет доступна после:',
 
-    about: null,
+    about: 'О программе',
 
     alphaNone: 'Нет',
     alphaSquare: 'Квадрат',
