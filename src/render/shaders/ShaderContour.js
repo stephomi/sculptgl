@@ -5,6 +5,7 @@ define(function (require, exports, module) {
   var getOptionsURL = require('misc/getOptionsURL');
   var ShaderBase = require('render/shaders/ShaderBase');
   var Attribute = require('render/Attribute');
+  var outlineGLSL = require('text!render/shaders/glsl/outline.glsl');
 
   var ShaderContour = ShaderBase.getCopy();
   ShaderContour.vertexName = ShaderContour.fragmentName = 'SobelContour';
@@ -13,7 +14,7 @@ define(function (require, exports, module) {
   ShaderContour.uniforms = {};
   ShaderContour.attributes = {};
 
-  ShaderContour.uniformNames = ['uTexture0', 'uColor'];
+  ShaderContour.uniformNames = ['uTexture0', 'uColor', 'uInvSize'];
 
   ShaderContour.vertex = [
     'attribute vec2 aVertex;',
@@ -30,22 +31,10 @@ define(function (require, exports, module) {
     'uniform sampler2D uTexture0;',
     'uniform vec4 uColor;',
     'varying vec2 vTexCoord;',
+    'uniform vec2 uInvSize;',
+    outlineGLSL,
     'void main() {',
-    '  float fac0 = 2.0;',
-    '  float fac1 = 1.0;',
-    '  float ox = dFdx(vTexCoord).x;',
-    '  float oy = dFdy(vTexCoord).y;',
-    '  vec4 texel0 = texture2D(uTexture0, vTexCoord + vec2(ox, oy));',
-    '  vec4 texel1 = texture2D(uTexture0, vTexCoord + vec2(ox, 0.0));',
-    '  vec4 texel2 = texture2D(uTexture0, vTexCoord + vec2(ox, -oy));',
-    '  vec4 texel3 = texture2D(uTexture0, vTexCoord + vec2(0.0, -oy));',
-    '  vec4 texel4 = texture2D(uTexture0, vTexCoord + vec2(-ox, -oy));',
-    '  vec4 texel5 = texture2D(uTexture0, vTexCoord + vec2(-ox, 0.0));',
-    '  vec4 texel6 = texture2D(uTexture0, vTexCoord + vec2(-ox, oy));',
-    '  vec4 texel7 = texture2D(uTexture0, vTexCoord + vec2(0.0, oy));',
-    '  vec4 rowx = -fac0*texel5 + fac0*texel1 + -fac1*texel6 + fac1*texel0 + -fac1*texel4 + fac1*texel2;',
-    '  vec4 rowy = -fac0*texel3 + fac0*texel7 + -fac1*texel4 + fac1*texel6 + -fac1*texel2 + fac1*texel0;',
-    '  float mag = dot(rowy, rowy) + dot(rowx, rowx);',
+    '  float mag = outlineDistance(vTexCoord, uTexture0, uInvSize);',
     '  if (mag < 1.5) discard;',
     '  gl_FragColor = vec4(uColor.rgb * uColor.a, uColor.a);',
     '}'
@@ -61,6 +50,8 @@ define(function (require, exports, module) {
     gl.bindTexture(gl.TEXTURE_2D, rtt.getTexture());
     gl.uniform1i(this.uniforms.uTexture0, 0);
     gl.uniform4fv(this.uniforms.uColor, ShaderContour.color);
+
+    gl.uniform2fv(this.uniforms.uInvSize, rtt.getInverseSize());
 
     gl.drawArrays(gl.TRIANGLES, 0, 3);
   };

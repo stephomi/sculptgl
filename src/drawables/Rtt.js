@@ -8,7 +8,7 @@ define(function (require, exports, module) {
 
   var singletonBuffer;
 
-  var Merge = function (gl, shaderName, depth, halfFloat) {
+  var Rtt = function (gl, shaderName, depth, halfFloat) {
     this._gl = gl; // webgl context
 
     this._texture = gl.createTexture();
@@ -26,7 +26,7 @@ define(function (require, exports, module) {
     this.init();
   };
 
-  Merge.prototype = {
+  Rtt.prototype = {
     getGL: function () {
       return this._gl;
     },
@@ -88,5 +88,5 @@ define(function (require, exports, module) {
     }
   };
 
-  module.exports = Merge;
+  module.exports = Rtt;
 });
