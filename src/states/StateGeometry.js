@@ -20,9 +20,8 @@ define(function (require, exports, module) {
     isNoop: function () {
       return this._idVertState.length === 0;
     },
-    undo: function (skipUpdate) {
+    undo: function () {
       this.pullVertices();
-      if (skipUpdate) return;
       var mesh = this._mesh;
       mesh.updateGeometry(mesh.getFacesFromVertices(this._idVertState), this._idVertState);
       mesh.updateGeometryBuffers();
