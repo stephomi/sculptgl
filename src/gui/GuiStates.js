@@ -22,11 +22,13 @@ define(function (require, exports, module) {
       menu.addSlider('', States.STACK_LENGTH, states.setNewMaxStack.bind(states), 3, 50, 1);
     },
     onUndo: function () {
+      this._main._action = 'NOTHING';
       this._main.getStates().undo();
       this._main.render();
       this._ctrlGui.updateMesh();
     },
     onRedo: function () {
+      this._main._action = 'NOTHING';
       this._main.getStates().redo();
       this._main.render();
       this._ctrlGui.updateMesh();
