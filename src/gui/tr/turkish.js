@@ -187,7 +187,7 @@ define(function (require, exports, module) {
     matcapWhite: 'Beyaz',
 
     // sketchfab
-    sketchfabTitle: 'Sketchfab'a git !',
+    sketchfabTitle: 'Sketchfab\'a git !',
     sketchfabUpload: 'Yükle',
     sketchfabUploadMessage: 'Lütfen sketchfab entegrasyon anahtarını giriniz.\n' +
       'Anonim olarak kullanmak için "guest" olarak bırakınız.\n' +
