@@ -6,37 +6,39 @@ define(function (require, exports, module) {
   var Tools = require('editing/tools/Tools');
   var TR = require('gui/GuiTR');
   var Picking = require('math3d/Picking');
+  var Enums = require('misc/Enums');
   var Utils = require('misc/Utils');
 
   var vec3 = glm.vec3;
 
   var GuiSculptingTools = {};
+  GuiSculptingTools.tools = [];
+  var GuiTools = GuiSculptingTools.tools;
 
   GuiSculptingTools.initGuiTools = function (sculpt, menu, main) {
     // init each tools ui
-    var tnames = Tools.keys;
-    for (var i = 0, nbTools = tnames.length; i < nbTools; ++i) {
-      var tn = tnames[i];
-      var uTool = GuiSculptingTools[tn];
+    for (var i = 0, nbTools = Tools.length; i < nbTools; ++i) {
+      if (!Tools[i]) continue;
+      var uTool = GuiTools[i];
       if (!uTool) {
-        console.error('No gui for : ' + tn);
-        GuiSculptingTools[tn] = {
+        console.error('No gui for tool index : ' + i);
+        GuiSculptingTools[i] = {
           _ctrls: [],
           init: function () {}
         };
       }
-      GuiSculptingTools[tn].init(sculpt.getTool(tn), menu, main);
-      GuiSculptingTools.hide(tn);
+      uTool.init(sculpt.getTool(i), menu, main);
+      GuiSculptingTools.hide(i);
     }
   };
 
-  GuiSculptingTools.hide = function (toolKey) {
-    for (var i = 0, ctrls = GuiSculptingTools[toolKey]._ctrls, nbCtrl = ctrls.length; i < nbCtrl; ++i)
+  GuiSculptingTools.hide = function (toolIndex) {
+    for (var i = 0, ctrls = GuiTools[toolIndex]._ctrls, nbCtrl = ctrls.length; i < nbCtrl; ++i)
       ctrls[i].setVisibility(false);
   };
 
-  GuiSculptingTools.show = function (toolKey) {
-    for (var i = 0, ctrls = GuiSculptingTools[toolKey]._ctrls, nbCtrl = ctrls.length; i < nbCtrl; ++i)
+  GuiSculptingTools.show = function (toolIndex) {
+    for (var i = 0, ctrls = GuiTools[toolIndex]._ctrls, nbCtrl = ctrls.length; i < nbCtrl; ++i)
       ctrls[i].setVisibility(true);
   };
 
@@ -48,8 +50,7 @@ define(function (require, exports, module) {
   var addCtrlRadius = function (tool, fold, widget, main) {
     var ctrl = fold.addSlider(TR('sculptRadius'), tool._radius, function (val) {
       setOnChange.call(tool, '_radius', 1, val);
-      if (main.getSelectionRadius().getOffsetX() === 0.0)
-        main.getSelectionRadius().setOffsetX(0.01); // it just have to be !== 0
+      main.getSculptManager().getSelection().setIsEditMode(true);
       main.renderSelectOverRtt();
     }, 5, 500, 1);
     widget._ctrlRadius = ctrl;
@@ -86,7 +87,7 @@ define(function (require, exports, module) {
     ctrls.push(fold.addButton(TR('sculptImportAlpha'), importAlpha));
   };
 
-  GuiSculptingTools.BRUSH = {
+  GuiTools[Enums.Tools.BRUSH] = {
     _ctrls: [],
     init: function (tool, fold, main) {
       this._ctrls.push(addCtrlRadius(tool, fold, this, main));
@@ -99,7 +100,7 @@ define(function (require, exports, module) {
     }
   };
 
-  GuiSculptingTools.CREASE = {
+  GuiTools[Enums.Tools.CREASE] = {
     _ctrls: [],
     init: function (tool, fold, main) {
       this._ctrls.push(addCtrlRadius(tool, fold, this, main));
@@ -110,7 +111,7 @@ define(function (require, exports, module) {
     }
   };
 
-  GuiSculptingTools.DRAG = {
+  GuiTools[Enums.Tools.DRAG] = {
     _ctrls: [],
     init: function (tool, fold, main) {
       this._ctrls.push(addCtrlRadius(tool, fold, this, main));
@@ -118,18 +119,7 @@ define(function (require, exports, module) {
     }
   };
 
-  GuiSculptingTools.FLATTEN = {
-    _ctrls: [],
-    init: function (tool, fold, main) {
-      this._ctrls.push(addCtrlRadius(tool, fold, this, main));
-      this._ctrls.push(addCtrlIntensity(tool, fold, this));
-      this._ctrls.push(addCtrlNegative(tool, fold, this));
-      this._ctrls.push(addCtrlCulling(tool, fold));
-      addCtrlAlpha(this._ctrls, fold, tool, this);
-    }
-  };
-
-  GuiSculptingTools.INFLATE = {
+  GuiTools[Enums.Tools.FLATTEN] = {
     _ctrls: [],
     init: function (tool, fold, main) {
       this._ctrls.push(addCtrlRadius(tool, fold, this, main));
@@ -140,7 +130,18 @@ define(function (require, exports, module) {
     }
   };
 
-  GuiSculptingTools.PAINT = {
+  GuiTools[Enums.Tools.INFLATE] = {
+    _ctrls: [],
+    init: function (tool, fold, main) {
+      this._ctrls.push(addCtrlRadius(tool, fold, this, main));
+      this._ctrls.push(addCtrlIntensity(tool, fold, this));
+      this._ctrls.push(addCtrlNegative(tool, fold, this));
+      this._ctrls.push(addCtrlCulling(tool, fold));
+      addCtrlAlpha(this._ctrls, fold, tool, this);
+    }
+  };
+
+  GuiTools[Enums.Tools.PAINT] = {
     _ctrls: [],
     onMaterialChanged: function (main, tool, materials) {
       vec3.copy(tool._color, materials[0].getValue());
@@ -179,7 +180,7 @@ define(function (require, exports, module) {
     onColorPick: function (tool, main, val) {
       tool._pickColor = val;
       main.setCanvasCursor(val ? Utils.cursors.dropper : 'default');
-      main._action = val ? 'SCULPT_EDIT' : 'NOTHING';
+      main._action = val ? Enums.Action.SCULPT_EDIT : Enums.Action.NOTHING;
       main.renderSelectOverRtt();
     },
     init: function (tool, fold, main) {
@@ -210,7 +211,7 @@ define(function (require, exports, module) {
     }
   };
 
-  GuiSculptingTools.PINCH = {
+  GuiTools[Enums.Tools.PINCH] = {
     _ctrls: [],
     init: function (tool, fold, main) {
       this._ctrls.push(addCtrlRadius(tool, fold, this, main));
@@ -221,7 +222,7 @@ define(function (require, exports, module) {
     }
   };
 
-  GuiSculptingTools.TWIST = {
+  GuiTools[Enums.Tools.TWIST] = {
     _ctrls: [],
     init: function (tool, fold, main) {
       this._ctrls.push(addCtrlRadius(tool, fold, this, main));
@@ -230,7 +231,7 @@ define(function (require, exports, module) {
     }
   };
 
-  GuiSculptingTools.LOCALSCALE = {
+  GuiTools[Enums.Tools.LOCALSCALE] = {
     _ctrls: [],
     init: function (tool, fold, main) {
       this._ctrls.push(addCtrlRadius(tool, fold, this, main));
@@ -239,7 +240,7 @@ define(function (require, exports, module) {
     }
   };
 
-  GuiSculptingTools.MOVE = {
+  GuiTools[Enums.Tools.MOVE] = {
     _ctrls: [],
     init: function (tool, fold, main) {
       this._ctrls.push(addCtrlRadius(tool, fold, this, main));
@@ -250,7 +251,7 @@ define(function (require, exports, module) {
     }
   };
 
-  GuiSculptingTools.SMOOTH = {
+  GuiTools[Enums.Tools.SMOOTH] = {
     _ctrls: [],
     init: function (tool, fold, main) {
       this._ctrls.push(addCtrlRadius(tool, fold, this, main));
@@ -261,7 +262,7 @@ define(function (require, exports, module) {
     }
   };
 
-  GuiSculptingTools.MASKING = {
+  GuiTools[Enums.Tools.MASKING] = {
     _ctrls: [],
     init: function (tool, fold, main) {
       this._ctrls.push(addCtrlRadius(tool, fold, this, main));
@@ -282,7 +283,7 @@ define(function (require, exports, module) {
     }
   };
 
-  GuiSculptingTools.TRANSFORM = {
+  GuiTools[Enums.Tools.TRANSFORM] = {
     _ctrls: [],
     init: function () {}
   };

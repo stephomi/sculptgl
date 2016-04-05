@@ -5,12 +5,16 @@ define(function (require, exports, module) {
   var Utils = require('misc/Utils');
   var Subdivision = require('editing/Subdivision');
   var Mesh = require('mesh/Mesh');
+  var createMeshData = require('mesh/MeshData');
 
-  var MeshResolution = function (transformData, render, mesh) {
-    this._meshOrigin = mesh || new Mesh();
-    if (mesh) this._meshOrigin.setID(mesh.getID());
-    this._meshOrigin.setTransformData(transformData);
-    this._meshOrigin.setRender(render);
+  var MeshResolution = function (mesh, keepMesh) {
+    Mesh.call(this);
+
+    this.setID(mesh.getID());
+    this.setMeshData(keepMesh ? mesh.getMeshData() : createMeshData());
+    this.setRenderData(mesh.getRenderData());
+    this.setTransformData(mesh.getTransformData());
+
     this._detailsXYZ = null; // details vectors (Float32Array)
     this._detailsRGB = null; // details vectors (Float32Array)
     this._detailsPBR = null; // details vectors (Float32Array)
@@ -19,32 +23,11 @@ define(function (require, exports, module) {
   };
 
   MeshResolution.prototype = {
-    getMeshOrigin: function () {
-      return this._meshOrigin;
-    },
-    getDetailsVertices: function () {
-      return this._detailsXYZ;
-    },
-    getDetailsColors: function () {
-      return this._detailsRGB;
-    },
-    getDetailsMaterials: function () {
-      return this._detailsPBR;
-    },
     getEvenMapping: function () {
       return this._evenMapping;
     },
     getVerticesMapping: function () {
       return this._vertMapping;
-    },
-    setDetailsVertices: function (dAr) {
-      this._detailsXYZ = dAr;
-    },
-    setDetailsColors: function (dcAr) {
-      this._detailsRGB = dcAr;
-    },
-    setDetailsMaterials: function (dmAr) {
-      this._detailsPBR = dmAr;
     },
     setVerticesMapping: function (vmAr) {
       this._vertMapping = vmAr;
@@ -54,17 +37,19 @@ define(function (require, exports, module) {
     },
     /** Go to one level above (down to up) */
     higherSynthesis: function (meshDown) {
-      meshDown.computePartialSubdivision(this.getVertices(), this.getColors(), this.getMaterials());
+      meshDown.computePartialSubdivision(this.getVertices(), this.getColors(), this.getMaterials(), this.getNbVertices());
       this.applyDetails();
     },
     /** Go to one level below (up to down) */
     lowerAnalysis: function (meshUp) {
       this.copyDataFromHigherRes(meshUp);
-      var subdVerts = new Float32Array(meshUp.getNbVertices() * 3);
-      var subdColors = new Float32Array(meshUp.getNbVertices() * 3);
-      var subdMaterials = new Float32Array(meshUp.getNbVertices() * 3);
-      this.computePartialSubdivision(subdVerts, subdColors, subdMaterials);
-      meshUp.computeDetails(subdVerts, subdColors, subdMaterials);
+      var nbVertices = meshUp.getNbVertices();
+      var subdVerts = new Float32Array(nbVertices * 3);
+      var subdColors = new Float32Array(nbVertices * 3);
+      var subdMaterials = new Float32Array(nbVertices * 3);
+
+      this.computePartialSubdivision(subdVerts, subdColors, subdMaterials, nbVertices);
+      meshUp.computeDetails(subdVerts, subdColors, subdMaterials, nbVertices);
     },
     copyDataFromHigherRes: function (meshUp) {
       var vArDown = this.getVertices();
@@ -74,6 +59,7 @@ define(function (require, exports, module) {
       var vArUp = meshUp.getVertices();
       var cArUp = meshUp.getColors();
       var mArUp = meshUp.getMaterials();
+
       if (this.getEvenMapping() === false) {
         vArDown.set(vArUp.subarray(0, nbVertices * 3));
         cArDown.set(cArUp.subarray(0, nbVertices * 3));
@@ -95,37 +81,38 @@ define(function (require, exports, module) {
         }
       }
     },
-    computePartialSubdivision: function (subdVerts, subdColors, subdMaterials) {
-      var verts = subdVerts;
-      var colors = subdColors;
-      var materials = subdMaterials;
+    computePartialSubdivision: function (subdVerts, subdColors, subdMaterials, nbVerticesUp) {
       var vertMap = this.getVerticesMapping();
-      if (vertMap) {
-        verts = new Float32Array(subdVerts.length);
-        colors = new Float32Array(subdColors.length);
-        materials = new Float32Array(subdMaterials.length);
+      if (!vertMap) {
+        Subdivision.partialSubdivision(this, subdVerts, subdColors, subdMaterials);
+        return;
       }
+
+      var verts = new Float32Array(nbVerticesUp * 3);
+      var colors = new Float32Array(nbVerticesUp * 3);
+      var materials = new Float32Array(nbVerticesUp * 3);
+
       Subdivision.partialSubdivision(this, verts, colors, materials);
-      if (vertMap) {
-        var startMapping = this.getEvenMapping() === true ? 0 : this.getNbVertices();
-        if (startMapping > 0) {
-          subdVerts.set(verts.subarray(0, startMapping * 3));
-          subdColors.set(colors.subarray(0, startMapping * 3));
-          subdMaterials.set(materials.subarray(0, startMapping * 3));
-        }
-        for (var i = startMapping, l = subdVerts.length / 3; i < l; ++i) {
-          var id = i * 3;
-          var idUp = vertMap[i] * 3;
-          subdVerts[idUp] = verts[id];
-          subdVerts[idUp + 1] = verts[id + 1];
-          subdVerts[idUp + 2] = verts[id + 2];
-          subdColors[idUp] = colors[id];
-          subdColors[idUp + 1] = colors[id + 1];
-          subdColors[idUp + 2] = colors[id + 2];
-          subdMaterials[idUp] = materials[id];
-          subdMaterials[idUp + 1] = materials[id + 1];
-          subdMaterials[idUp + 2] = materials[id + 2];
-        }
+
+      var startMapping = this.getEvenMapping() === true ? 0 : this.getNbVertices();
+      if (startMapping > 0) {
+        subdVerts.set(verts.subarray(0, startMapping * 3));
+        subdColors.set(colors.subarray(0, startMapping * 3));
+        subdMaterials.set(materials.subarray(0, startMapping * 3));
+      }
+
+      for (var i = startMapping; i < nbVerticesUp; ++i) {
+        var id = i * 3;
+        var idUp = vertMap[i] * 3;
+        subdVerts[idUp] = verts[id];
+        subdVerts[idUp + 1] = verts[id + 1];
+        subdVerts[idUp + 2] = verts[id + 2];
+        subdColors[idUp] = colors[id];
+        subdColors[idUp + 1] = colors[id + 1];
+        subdColors[idUp + 2] = colors[id + 2];
+        subdMaterials[idUp] = materials[id];
+        subdMaterials[idUp + 1] = materials[id + 1];
+        subdMaterials[idUp + 2] = materials[id + 2];
       }
     },
     /** Apply back the detail vectors */
@@ -136,18 +123,18 @@ define(function (require, exports, module) {
       var nArUp = this.getNormals();
       var cArUp = this.getColors();
       var mArUp = this.getMaterials();
-      var nbVertsUp = this.getNbVertices();
+      var nbVerticesUp = this.getNbVertices();
 
-      var vArTemp = new Float32Array(Utils.getMemory(vArUp.length * 4), 0, vArUp.length);
-      vArTemp.set(vArUp);
+      var vArTemp = new Float32Array(Utils.getMemory(nbVerticesUp * 3 * 4), 0, nbVerticesUp * 3);
+      vArTemp.set(vArUp.subarray(0, nbVerticesUp * 3));
 
-      var dAr = this.getDetailsVertices();
-      var dColorAr = this.getDetailsColors();
-      var dMaterialAr = this.getDetailsMaterials();
+      var dAr = this._detailsXYZ;
+      var dColorAr = this._detailsRGB;
+      var dMaterialAr = this._detailsPBR;
 
       var min = Math.min;
       var max = Math.max;
-      for (var i = 0; i < nbVertsUp; ++i) {
+      for (var i = 0; i < nbVerticesUp; ++i) {
         var j = i * 3;
 
         // color delta vec
@@ -173,6 +160,7 @@ define(function (require, exports, module) {
         var len = nx * nx + ny * ny + nz * nz;
         if (len === 0.0)
           continue;
+
         len = 1.0 / Math.sqrt(len);
         nx *= len;
         ny *= len;
@@ -193,6 +181,7 @@ define(function (require, exports, module) {
         len = tx * tx + ty * ty + tz * tz;
         if (len === 0.0)
           continue;
+
         len = 1.0 / Math.sqrt(len);
         tx *= len;
         ty *= len;
@@ -215,7 +204,7 @@ define(function (require, exports, module) {
       }
     },
     /** Compute the detail vectors */
-    computeDetails: function (subdVerts, subdColors, subdMaterials) {
+    computeDetails: function (subdVerts, subdColors, subdMaterials, nbVerticesUp) {
       var vrvStartCountUp = this.getVerticesRingVertStartCount();
       var vertRingVertUp = this.getVerticesRingVert();
       var vArUp = this.getVertices();
@@ -224,12 +213,9 @@ define(function (require, exports, module) {
       var mArUp = this.getMaterials();
       var nbVertices = this.getNbVertices();
 
-      var dAr = new Float32Array(subdVerts.length);
-      this.setDetailsVertices(dAr);
-      var dColorAr = new Float32Array(subdVerts.length);
-      this.setDetailsColors(dColorAr);
-      var dMaterialAr = new Float32Array(subdVerts.length);
-      this.setDetailsMaterials(dMaterialAr);
+      var dAr = this._detailsXYZ = new Float32Array(nbVerticesUp * 3);
+      var dColorAr = this._detailsRGB = new Float32Array(nbVerticesUp * 3);
+      var dMaterialAr = this._detailsPBR = new Float32Array(nbVerticesUp * 3);
 
       for (var i = 0; i < nbVertices; ++i) {
         var j = i * 3;
@@ -295,11 +281,7 @@ define(function (require, exports, module) {
     }
   };
 
-  Utils.makeProxy(Mesh, MeshResolution, function (proto) {
-    return function () {
-      return proto.apply(this.getMeshOrigin(), arguments);
-    };
-  });
+  Utils.makeProxy(Mesh, MeshResolution);
 
   module.exports = MeshResolution;
 });

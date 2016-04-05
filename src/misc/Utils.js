@@ -9,25 +9,31 @@ define(function (require, exports, module) {
   Utils.SCULPT_FLAG = 1; // flag value for sculpt (always >= tags values)
   Utils.STATE_FLAG = 1; // flag value for states (always >= tags values)
 
+  Utils.TRI_INDEX = 4294967295; // just a big integer to flag invalid positive index
+
   Utils.cursors = {};
   Utils.cursors.dropper = 'url(resources/dropper.png) 5 25, auto';
 
-  Utils.makeProxy = function (source, proxy, wrapFunc) {
-    var sourceProto = source.prototype;
-    var proxyProto = proxy.prototype;
-    var protos = Object.keys(sourceProto);
-    for (var i = 0, l = protos.length; i < l; ++i) {
-      var proto = protos[i];
-      if (!proxyProto[proto])
-        proxyProto[proto] = wrapFunc ? wrapFunc(sourceProto[proto]) : sourceProto[proto];
+  Utils.extend = function (dest, src) {
+    var keys = Object.keys(src);
+    for (var i = 0, l = keys.length; i < l; ++i) {
+      var key = keys[i];
+      if (dest[key] === undefined) dest[key] = src[key];
     }
+    return dest;
   };
 
-  Utils.littleEndian = (function () {
-    var buffer = new ArrayBuffer(2);
-    new DataView(buffer).setInt16(0, 256, true);
-    return new Int16Array(buffer)[0] === 256;
-  })();
+  Utils.makeProxy = function (source, proxy) {
+    Utils.extend(proxy.prototype, source.prototype);
+  };
+
+  Utils.invert = function (obj) {
+    var keys = Object.keys(obj);
+    var inv = {};
+    for (var i = 0, nbkeys = keys.length; i < nbkeys; ++i)
+      inv[obj[keys[i]]] = keys[i];
+    return inv;
+  };
 
   Utils.replaceElement = function (array, oldValue, newValue) {
     for (var i = 0, l = array.length; i < l; ++i) {
@@ -72,6 +78,7 @@ define(function (require, exports, module) {
   var sortFunc = function (a, b) {
     return a - b;
   };
+
   /** sort an array and delete duplicate values */
   Utils.tidy = function (array) {
     array.sort(sortFunc);
@@ -105,6 +112,12 @@ define(function (require, exports, module) {
     }
     return result;
   };
+
+  Utils.littleEndian = (function () {
+    var buffer = new ArrayBuffer(2);
+    new DataView(buffer).setInt16(0, 256, true);
+    return new Int16Array(buffer)[0] === 256;
+  })();
 
   /** Get bytes */
   Utils.getBytes = function (data, offset) {

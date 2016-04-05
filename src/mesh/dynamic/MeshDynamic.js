@@ -2,9 +2,12 @@ define(function (require, exports, module) {
 
   'use strict';
 
+  var Enums = require('misc/Enums');
   var Utils = require('misc/Utils');
-  var Topology = require('mesh/dynamic/Topology');
+  var Subdivision = require('mesh/dynamic/Subdivision');
+  var Decimation = require('mesh/dynamic/Decimation');
   var Mesh = require('mesh/Mesh');
+  var createMeshData = require('mesh/MeshData');
 
   // Dynamic topology mesh (triangles only)
   // Obviously less performant than the static topology mesh
@@ -16,55 +19,53 @@ define(function (require, exports, module) {
   // Basically... "quick and dirty" (the edges will be drawn twice)
 
   var MeshDynamic = function (mesh) {
-    Mesh.call(this, mesh.getGL());
-    this.setTransformData(mesh.getTransformData());
+    Mesh.call(this);
     this.setID(mesh.getID());
-    this._dynamicTopology = new Topology(this);
 
-    // vertices rings
-    var vdata = this.getVertexData();
-    this._vrings = vdata._vertRingVert = []; // vertex ring
-    this._frings = vdata._vertRingFace = []; // face ring
-    this._nbFaces = 0;
-    this._nbVertices = 0;
+    this._meshData = createMeshData();
+    this.setRenderData(mesh.getRenderData());
+    this.setTransformData(mesh.getTransformData());
 
     this._facesStateFlags = null; // state flags (<= Utils.STATE_FLAG) (Int32Array)
     this._wireframe = null; // Uint32Array
+
     this.init(mesh);
-    this.setRender(mesh.getRender());
+
     if (mesh.isUsingTexCoords())
-      this.setShaderName('MATCAP');
-    mesh.getRender()._mesh = this;
+      this.setShaderType(Enums.Shader.MATCAP);
+
     this.initRender();
+    this.isDynamic = true;
   };
 
+  MeshDynamic.SUBDIVISION_FACTOR = 75; // subdivision factor
+  MeshDynamic.DECIMATION_FACTOR = 0; // decimation factor
+  MeshDynamic.LINEAR = false; // linear subdivision
+
   MeshDynamic.prototype = {
-    getDynamicTopology: function () {
-      return this._dynamicTopology;
+    subdivide: function (iTris, center, radius2, detail2, states) {
+      return Subdivision.subdivision(this, iTris, center, radius2, detail2, states, MeshDynamic.LINEAR);
+    },
+    decimate: function (iTris, center, radius2, detail2, states) {
+      return Decimation.decimation(this, iTris, center, radius2, detail2, states);
+    },
+    getSubdivisionFactor: function () {
+      return MeshDynamic.SUBDIVISION_FACTOR * 0.01;
+    },
+    getDecimationFactor: function () {
+      return MeshDynamic.DECIMATION_FACTOR * 0.01;
     },
     getVerticesProxy: function () {
       return this.getVertices(); // for now no proxy sculpting for dynamic meshes
     },
-    getNbVertices: function () {
-      return this._nbVertices;
-    },
-    setNbVertices: function (nbVertices) {
-      this._nbVertices = nbVertices;
-    },
     addNbVertice: function (nb) {
-      this._nbVertices += nb;
-    },
-    getNbFaces: function () {
-      return this._nbFaces;
+      this._meshData._nbVertices += nb;
     },
     getNbTriangles: function () {
-      return this._nbFaces;
-    },
-    setNbFaces: function (nbFaces) {
-      this._nbFaces = nbFaces;
+      return this.getNbFaces();
     },
     addNbFace: function (nb) {
-      this._nbFaces += nb;
+      this._meshData._nbFaces += nb;
     },
     getNbEdges: function () {
       return this.getNbTriangles() * 3;
@@ -72,32 +73,20 @@ define(function (require, exports, module) {
     getFacesStateFlags: function () {
       return this._facesStateFlags;
     },
-    getRenderVertices: function () {
-      if (this.isUsingDrawArrays()) return this.getVerticesDrawArrays();
-      return this.getVertices().subarray(0, this.getNbVertices() * 3);
-    },
-    getRenderNormals: function () {
-      if (this.isUsingDrawArrays()) return this.getNormalsDrawArrays();
-      return this.getNormals().subarray(0, this.getNbVertices() * 3);
-    },
-    getRenderColors: function () {
-      if (this.isUsingDrawArrays()) return this.getColorsDrawArrays();
-      return this.getColors().subarray(0, this.getNbVertices() * 3);
-    },
-    getRenderMaterials: function () {
-      if (this.isUsingDrawArrays()) return this.getMaterialsDrawArrays();
-      return this.getMaterials().subarray(0, this.getNbVertices() * 3);
-    },
-    getRenderTriangles: function () {
-      return this.getTriangles().subarray(0, this.getNbTriangles() * 3);
-    },
     init: function (mesh) {
-      this.setVertices(mesh.getVertices().slice());
-      this.setColors(mesh.getColors().slice());
-      this.setMaterials(mesh.getMaterials().slice());
-      this.setFaces(new Int32Array(mesh.getNbTriangles() * 4));
+      this._meshData._vertRingVert = []; // vertex ring
+      this._meshData._vertRingFace = []; // face ring
+
+      var nbVertices = mesh.getNbVertices();
+
+      // make sure to strip UVs
+      this.setVertices(new Float32Array(mesh.getVertices().subarray(0, nbVertices * 3)));
+      this.setColors(new Float32Array(mesh.getColors().subarray(0, nbVertices * 3)));
+      this.setMaterials(new Float32Array(mesh.getMaterials().subarray(0, nbVertices * 3)));
+
+      this.setFaces(new Uint32Array(mesh.getNbTriangles() * 4));
       this.setNbFaces(mesh.getNbTriangles());
-      this.setNbVertices(mesh.getNbVertices());
+      this.setNbVertices(nbVertices);
 
       this.allocateArrays();
 
@@ -121,11 +110,11 @@ define(function (require, exports, module) {
         this._wireframe = new Uint32Array(this.getTriangles().length * 2);
         this.updateWireframe();
       }
-      return this._wireframe.subarray(0, this.getNbEdges() * 2);
+      return this._wireframe;
     },
     setShowWireframe: function (showWireframe) {
       this._wireframe = null;
-      this.getRender().setShowWireframe(showWireframe);
+      Mesh.prototype.setShowWireframe.call(this, showWireframe);
     },
     updateWireframe: function (iFaces) {
       var wire = this._wireframe;
@@ -164,22 +153,20 @@ define(function (require, exports, module) {
     },
     resizeArray: function (orig, targetSize) {
       if (!orig) return null;
-      // multiply by 2 the size
+
+      // shrink size
       if (orig.length >= targetSize) return orig.subarray(0, targetSize * 2);
+
+      // expand
       var tmp = new orig.constructor(targetSize * 2);
       tmp.set(orig);
+
       return tmp;
     },
     /** Reallocate mesh resources */
     reAllocateArrays: function (nbAddElements) {
-      this.reAllocate(nbAddElements);
-      if (this.isUsingDrawArrays())
-        this.getDrawArraysData().reAllocateArrays(nbAddElements);
-      this.getFaceData().reAllocateArrays(nbAddElements);
-      this.getVertexData().reAllocateArrays(nbAddElements);
-      this.getOctree().reAllocateArrays(nbAddElements);
-    },
-    reAllocate: function (nbAddElements) {
+      var mdata = this._meshData;
+
       var nbDyna = this._facesStateFlags.length;
       var nbTriangles = this.getNbTriangles();
       var len = nbTriangles + nbAddElements;
@@ -187,6 +174,49 @@ define(function (require, exports, module) {
         this._facesStateFlags = this.resizeArray(this._facesStateFlags, len);
         if (this.getShowWireframe())
           this._wireframe = this.resizeArray(this._wireframe, len * 6);
+
+        mdata._facesABCD = this.resizeArray(mdata._facesABCD, len * 4);
+        mdata._trianglesABC = this.resizeArray(mdata._trianglesABC, len * 3);
+        // mdata._faceEdges = this.resizeArray(mdata._faceEdges, len * 4); // TODO used ?
+        // mdata._facesToTriangles = this.resizeArray(mdata._facesToTriangles, len); // TODO used ?
+
+        mdata._faceBoxes = this.resizeArray(mdata._faceBoxes, len * 6);
+        mdata._faceNormalsXYZ = this.resizeArray(mdata._faceNormalsXYZ, len * 3);
+        mdata._faceCentersXYZ = this.resizeArray(mdata._faceCentersXYZ, len * 3);
+
+        mdata._facesTagFlags = this.resizeArray(mdata._facesTagFlags, len);
+
+        mdata._facePosInLeaf = this.resizeArray(mdata._facePosInLeaf, len);
+      }
+
+      nbDyna = mdata._verticesXYZ.length / 3;
+      var nbVertices = this.getNbVertices();
+      len = nbVertices + nbAddElements;
+      if (nbDyna < len || nbDyna > len * 4) {
+        mdata._verticesXYZ = this.resizeArray(mdata._verticesXYZ, len * 3);
+        mdata._normalsXYZ = this.resizeArray(mdata._normalsXYZ, len * 3);
+        mdata._colorsRGB = this.resizeArray(mdata._colorsRGB, len * 3);
+        mdata._materialsPBR = this.resizeArray(mdata._materialsPBR, len * 3);
+
+        mdata._vertOnEdge = this.resizeArray(mdata._vertOnEdge, len);
+
+        mdata._vertTagFlags = this.resizeArray(mdata._vertTagFlags, len);
+        mdata._vertSculptFlags = this.resizeArray(mdata._vertSculptFlags, len);
+        mdata._vertStateFlags = this.resizeArray(mdata._vertStateFlags, len);
+
+        // mdata._vertProxy = this.resizeArray(mdata._vertProxy, len * 3);
+      }
+
+      if (this.isUsingDrawArrays()) {
+        var nbMagic = 10;
+        nbDyna = mdata._verticesXYZ.length / 9;
+        len = nbTriangles + nbAddElements * nbMagic;
+        if (nbDyna < len || nbDyna > len * 4) {
+          mdata._verticesXYZ = this.resizeArray(mdata._verticesXYZ, len * 9);
+          mdata._normalsXYZ = this.resizeArray(mdata._normalsXYZ, len * 9);
+          mdata._colorsRGB = this.resizeArray(mdata._colorsRGB, len * 9);
+          mdata._materialsPBR = this.resizeArray(mdata._materialsPBR, len * 9);
+        }
       }
     },
     initTriangles: function (mesh) {
@@ -200,12 +230,12 @@ define(function (require, exports, module) {
         fAr[id4] = iArMesh[id3];
         fAr[id4 + 1] = iArMesh[id3 + 1];
         fAr[id4 + 2] = iArMesh[id3 + 2];
-        fAr[id4 + 3] = -1;
+        fAr[id4 + 3] = Utils.TRI_INDEX;
       }
     },
     initVerticesTopology: function () {
-      var vrings = this._vrings;
-      var frings = this._frings;
+      var vrings = this._meshData._vertRingVert;
+      var frings = this._meshData._vertRingFace;
       var i = 0;
       var nbVertices = this.getNbVertices();
       vrings.length = frings.length = nbVertices;
@@ -232,8 +262,8 @@ define(function (require, exports, module) {
       var fAr = this.getFaces();
       var vflags = this.getVerticesTagFlags();
 
-      var vring = this._vrings[iVert];
-      var fring = this._frings[iVert];
+      var vring = this._meshData._vertRingVert[iVert];
+      var fring = this._meshData._vertRingFace[iVert];
       vring.length = 0;
       var nbTris = fring.length;
 

@@ -4,6 +4,7 @@ define(function (require, exports, module) {
 
   var Buffer = require('render/Buffer');
   var Shader = require('render/ShaderLib');
+  var Enums = require('misc/Enums');
 
   var Background = function (gl, main) {
     this._main = main;
@@ -110,7 +111,7 @@ define(function (require, exports, module) {
       }
     },
     render: function () {
-      Shader.BACKGROUND.getOrCreate(this._gl).draw(this);
+      Shader[Enums.Shader.BACKGROUND].getOrCreate(this._gl).draw(this);
     }
   };
 

@@ -15,7 +15,7 @@ define(function (require, exports, module) {
     this._depth = depth === undefined ? gl.createRenderbuffer() : depth;
     this._framebuffer = gl.createFramebuffer();
 
-    this._shaderName = shaderName || '';
+    this._shaderType = shaderName || null;
     this._invSize = new Float32Array(2);
     this._vertexBuffer = null;
 
@@ -84,7 +84,7 @@ define(function (require, exports, module) {
       this.getVertexBuffer().release();
     },
     render: function (main) {
-      Shader[this._shaderName].getOrCreate(this._gl).draw(this, main);
+      Shader[this._shaderType].getOrCreate(this._gl).draw(this, main);
     }
   };
 

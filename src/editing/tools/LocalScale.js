@@ -16,7 +16,7 @@ define(function (require, exports, module) {
     /** Start a sculpt sculpt stroke */
     startSculpt: function () {
       var main = this._main;
-      if (main.getSculpt().getSymmetry()) {
+      if (main.getSculptManager().getSymmetry()) {
         var pickingSym = main.getPickingSymmetry();
         pickingSym.intersectionMouseMesh();
         pickingSym.setLocalRadius2(main.getPicking().getLocalRadius2());
@@ -31,7 +31,7 @@ define(function (require, exports, module) {
       picking.pickVerticesInSphere(rLocal2);
       this.stroke(picking, delta);
 
-      if (main.getSculpt().getSymmetry()) {
+      if (main.getSculptManager().getSymmetry()) {
         var pickingSym = main.getPickingSymmetry();
         if (pickingSym.getMesh()) {
           pickingSym.pickVerticesInSphere(rLocal2);
@@ -45,7 +45,7 @@ define(function (require, exports, module) {
       var iVertsInRadius = picking.getPickedVertices();
 
       // undo-redo
-      this._states.pushVertices(iVertsInRadius);
+      this._main.getStateManager().pushVertices(iVertsInRadius);
       iVertsInRadius = this.dynamicTopology(picking);
 
       if (this._culling)

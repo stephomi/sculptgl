@@ -6,8 +6,9 @@ define(function (require, exports, module) {
   var HoleFilling = require('editing/HoleFilling');
   var SurfaceNets = require('editing/SurfaceNets');
   var Geometry = require('math3d/Geometry');
-  var Mesh = require('mesh/Mesh');
+  var MeshStatic = require('mesh/MeshStatic/MeshStatic');
   var Utils = require('misc/Utils');
+  var Enums = require('misc/Enums');
 
   var vec3 = glm.vec3;
 
@@ -68,19 +69,19 @@ define(function (require, exports, module) {
     }
   };
 
-  var voxelize = function (mesh, voxels, dims, step) {
+  var voxelize = function (mesh, voxels, min, step) {
     var invStep = 1.0 / step;
 
-    var vminx = dims[0][0];
-    var vminy = dims[1][0];
-    var vminz = dims[2][0];
+    var vminx = min[0];
+    var vminy = min[1];
+    var vminz = min[2];
 
     var rx = voxels.dims[0];
     var ry = voxels.dims[1];
     var distField = voxels.distanceField;
     var crossedEdges = voxels.crossedEdges;
-    var colors = voxels.colors;
-    var materials = voxels.materials;
+    var colors = voxels.colorField;
+    var materials = voxels.materialField;
 
     var iAr = mesh.getTriangles();
     var vAr = mesh.getVertices();
@@ -199,42 +200,45 @@ define(function (require, exports, module) {
   };
 
   // grid structure
-  var createVoxelData = function (dims, step) {
-    var rx = 1 + Math.ceil((dims[0][1] - dims[0][0]) / step);
-    var ry = 1 + Math.ceil((dims[1][1] - dims[1][0]) / step);
-    var rz = 1 + Math.ceil((dims[2][1] - dims[2][0]) / step);
+  var createVoxelData = function (min, max, step) {
+    var rx = 1 + Math.ceil((max[0] - min[0]) / step);
+    var ry = 1 + Math.ceil((max[1] - min[1]) / step);
+    var rz = 1 + Math.ceil((max[2] - min[2]) / step);
     var datalen = rx * ry * rz;
     var buffer = Utils.getMemory((4 * (1 + 3 + 3) + 3) * datalen);
     var distField = new Float32Array(buffer, 0, datalen);
     var colors = new Float32Array(buffer, 4 * datalen, datalen * 3);
     var materials = new Float32Array(buffer, 16 * datalen, datalen * 3);
     var crossedEdges = new Uint8Array(buffer, 28 * datalen, datalen * 3);
+
     // Initialize data
     for (var idf = 0; idf < datalen; ++idf)
       distField[idf] = Infinity;
+
     for (var ide = 0, datalene = datalen * 3; ide < datalene; ++ide)
       crossedEdges[ide] = 0;
+
     for (var idc = 0, datalenc = datalen * 3; idc < datalenc; ++idc)
       colors[idc] = materials[idc] = -1;
+
     var voxels = {};
     voxels.dims = [rx, ry, rz];
     voxels.crossedEdges = crossedEdges;
     voxels.distanceField = distField;
-    voxels.colors = colors;
-    voxels.materials = materials;
+    voxels.colorField = colors;
+    voxels.materialField = materials;
     return voxels;
   };
 
-  var createMesh = function (mesh, vertices, faces, colors, materials) {
-    var newMesh = new Mesh(mesh.getGL());
+  var createMesh = function (mesh, faces, vertices, colors, materials) {
+    var newMesh = new MeshStatic(mesh.getGL());
     newMesh.setID(mesh.getID());
+    newMesh.setFaces(faces);
     newMesh.setVertices(vertices);
     if (colors) newMesh.setColors(colors);
     if (materials) newMesh.setMaterials(materials);
-    newMesh.setFaces(faces);
+    newMesh.setRenderData(mesh.getRenderData());
     newMesh.init();
-    newMesh.setRender(mesh.getRender());
-    mesh.getRender()._mesh = newMesh;
     newMesh.initRender();
     return newMesh;
   };
@@ -246,7 +250,7 @@ define(function (require, exports, module) {
     for (var i = 0, nbm = meshes.length; i < nbm; ++i) {
       var mesh = meshes[i];
       if (mesh.isUsingTexCoords())
-        mesh.setShaderName('MATCAP');
+        mesh.setShaderType(Enums.Shader.MATCAP);
       var matrix = mesh.getMatrix();
 
       mesh = meshes[i] = HoleFilling.createClosedMesh(mesh);
@@ -284,14 +288,12 @@ define(function (require, exports, module) {
     var step = Math.max((box[3] - box[0]), (box[4] - box[1]), (box[5] - box[2])) / Remesh.RESOLUTION;
     var stepMin = step * 2.5;
     var stepMax = step * 1.5;
-    var dims = [
-      [box[0] - stepMin, box[3] + stepMax],
-      [box[1] - stepMin, box[4] + stepMax],
-      [box[2] - stepMin, box[5] + stepMax]
-    ];
-    var voxels = createVoxelData(dims, step);
+
+    var min = [box[0] - stepMin, box[1] - stepMin, box[2] - stepMin];
+    var max = [box[3] + stepMax, box[4] + stepMax, box[5] + stepMax];
+    var voxels = createVoxelData(min, max, step);
     for (var i = 0, l = meshes.length; i < l; ++i)
-      voxelize(meshes[i], voxels, dims, step);
+      voxelize(meshes[i], voxels, min, step);
     console.timeEnd('2. voxelization');
 
     console.time('3. flood');
@@ -299,14 +301,15 @@ define(function (require, exports, module) {
     console.timeEnd('3. flood');
 
     console.time('4. surfaceNet');
-    var min = [dims[0][0], dims[1][0], dims[2][0]];
-    var max = [dims[0][1] + stepMax, dims[1][1] + stepMax, dims[2][1] + stepMax];
+    max[0] += stepMax;
+    max[1] += stepMax;
+    max[2] += stepMax;
     SurfaceNets.BLOCK = Remesh.BLOCK;
-    var res = SurfaceNets.computeSurface(voxels, [min, max]);
+    var res = SurfaceNets.computeSurface(voxels, min, max);
     console.timeEnd('4. surfaceNet');
 
     console.time('5. createMesh');
-    var nmesh = createMesh(baseMesh, res.vertices, res.faces, res.colors, res.materials);
+    var nmesh = createMesh(baseMesh, res.faces, res.vertices, res.colors, res.materials);
     console.time('5. createMesh');
 
     console.timeEnd('remesh total');
@@ -332,8 +335,8 @@ define(function (require, exports, module) {
 
     var vAr = arr.vertices = arr.vertices !== undefined ? new Float32Array(nbVertices * 3) : null;
     var cAr = arr.colors = arr.colors !== undefined ? new Float32Array(nbVertices * 3) : null;
-    var mAr = arr.materials = arr.materials !== undefined ? new Int32Array(nbFaces * 4) : null;
-    var fAr = arr.faces = arr.faces !== undefined ? new Int32Array(nbFaces * 4) : null;
+    var mAr = arr.materials = arr.materials !== undefined ? new Float32Array(nbVertices * 3) : null;
+    var fAr = arr.faces = arr.faces !== undefined ? new Uint32Array(nbFaces * 4) : null;
 
     var ver = [0.0, 0.0, 0.0];
     var offsetVerts = 0;
@@ -374,10 +377,10 @@ define(function (require, exports, module) {
         fAr[offsetFaces + k] = mFaces[k] + offsetIndex;
         fAr[offsetFaces + k + 1] = mFaces[k + 1] + offsetIndex;
         fAr[offsetFaces + k + 2] = mFaces[k + 2] + offsetIndex;
-        fAr[offsetFaces + k + 3] = mFaces[k + 3] >= 0 ? mFaces[k + 3] + offsetIndex : -1;
+        fAr[offsetFaces + k + 3] = mFaces[k + 3] === Utils.TRI_INDEX ? Utils.TRI_INDEX : mFaces[k + 3] + offsetIndex;
       }
       offsetIndex += mNbVertices;
-      offsetFaces = mNbFaces * 4;
+      offsetFaces += mNbFaces * 4;
     }
   };
 
@@ -389,7 +392,7 @@ define(function (require, exports, module) {
       faces: null
     };
     Remesh.mergeArrays(meshes, arr);
-    return createMesh(baseMesh, arr.vertices, arr.faces, arr.colors, arr.materials);
+    return createMesh(baseMesh, arr.faces, arr.vertices, arr.colors, arr.materials);
   };
 
   module.exports = Remesh;

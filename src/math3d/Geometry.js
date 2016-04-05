@@ -13,14 +13,6 @@ define(function (require, exports, module) {
     return [(2.0 * mouseX / width) - 1.0, 1.0 - (2.0 * mouseY / height)];
   };
 
-  Geometry.reflect = function (vec, nor) {
-    var d = vec3.dot(vec, nor);
-    vec[0] -= 2 * d * nor[0];
-    vec[1] -= 2 * d * nor[1];
-    vec[2] -= 2 * d * nor[2];
-    return vec;
-  };
-
   /** Projection of mouse coordinate on sphere unit */
   Geometry.mouseOnUnitSphere = function (mouseXY) {
     var mouseX = mouseXY[0];

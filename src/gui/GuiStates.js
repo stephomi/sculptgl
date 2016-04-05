@@ -3,7 +3,8 @@ define(function (require, exports, module) {
   'use strict';
 
   var TR = require('gui/GuiTR');
-  var States = require('states/States');
+  var Enums = require('misc/Enums');
+  var StateManager = require('states/StateManager');
 
   var GuiTablet = function (guiParent, ctrlGui) {
     this._ctrlGui = ctrlGui; // main gui controller
@@ -18,18 +19,18 @@ define(function (require, exports, module) {
       menu.addButton(TR('stateUndo'), this, 'onUndo', 'CTRL+Z');
       menu.addButton(TR('stateRedo'), this, 'onRedo', 'CTRL+Y');
       menu.addTitle(TR('stateMaxStack'));
-      var states = this._main.getStates();
-      menu.addSlider('', States.STACK_LENGTH, states.setNewMaxStack.bind(states), 3, 50, 1);
+      var states = this._main.getStateManager();
+      menu.addSlider('', StateManager.STACK_LENGTH, states.setNewMaxStack.bind(states), 3, 50, 1);
     },
     onUndo: function () {
-      this._main._action = 'NOTHING';
-      this._main._sculpt.end(); // abort current sculpting operation
-      this._main.getStates().undo();
+      this._main._action = Enums.Action.NOTHING;
+      this._main.getSculptManager().end(); // abort current sculpting operation
+      this._main.getStateManager().undo();
       this._main.render();
       this._ctrlGui.updateMesh();
     },
     onRedo: function () {
-      this._main.getStates().redo();
+      this._main.getStateManager().redo();
       this._main.render();
       this._ctrlGui.updateMesh();
     },

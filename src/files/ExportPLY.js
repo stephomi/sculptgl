@@ -36,7 +36,8 @@ define(function (require, exports, module) {
     for (i = 0; i < nbFaces; ++i) {
       j = i * 4;
       var id = fAr[j + 3];
-      data += (id >= 0 ? '4 ' : '3 ') + fAr[j] + ' ' + fAr[j + 1] + ' ' + fAr[j + 2] + (id >= 0 ? ' ' + id + '\n' : '\n');
+      var isQuad = id !== Utils.TRI_INDEX;
+      data += (isQuad ? '4 ' : '3 ') + fAr[j] + ' ' + fAr[j + 1] + ' ' + fAr[j + 2] + (isQuad ? ' ' + id + '\n' : '\n');
     }
     return new Blob([data]);
   };
@@ -124,7 +125,7 @@ define(function (require, exports, module) {
 
     for (i = 0; i < nbFaces; ++i) {
       j = i * 4;
-      var isQuad = fAr[j + 3] >= 0;
+      var isQuad = fAr[j + 3] !== Utils.TRI_INDEX;
 
       dview.setUint8(posOc, isQuad ? 4 : 3);
       posOc += 1;

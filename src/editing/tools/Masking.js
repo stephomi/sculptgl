@@ -7,7 +7,7 @@ define(function (require, exports, module) {
   var SculptBase = require('editing/tools/SculptBase');
   var Paint = require('editing/tools/Paint');
   var Smooth = require('editing/tools/Smooth');
-  var Mesh = require('mesh/Mesh');
+  var MeshStatic = require('mesh/MeshStatic/MeshStatic');
 
   var vec3 = glm.vec3;
   var mat3 = glm.mat3;
@@ -28,11 +28,11 @@ define(function (require, exports, module) {
   Masking.prototype = {
     pushState: function () {
       // too lazy to add a pushStateMaterial
-      this._states.pushStateColorAndMaterial(this.getMesh());
+      this._main.getStateManager().pushStateColorAndMaterial(this.getMesh());
     },
     updateMeshBuffers: function () {
       var mesh = this.getMesh();
-      if (mesh.getDynamicTopology)
+      if (mesh.isDynamic)
         mesh.updateBuffers();
       else
         mesh.updateMaterialBuffer();
@@ -79,7 +79,7 @@ define(function (require, exports, module) {
       iVerts = mesh.expandsVertices(iVerts, 1);
 
       this.pushState();
-      this._states.pushVertices(iVerts);
+      this._main.getStateManager().pushVertices(iVerts);
 
       var mAr = mesh.getMaterials();
       var nbVerts = iVerts.length;
@@ -96,7 +96,7 @@ define(function (require, exports, module) {
         return;
 
       this.pushState();
-      this._states.pushVertices(iVerts);
+      this._main.getStateManager().pushVertices(iVerts);
 
       var mAr = mesh.getMaterials();
       var nbVerts = iVerts.length;
@@ -114,7 +114,7 @@ define(function (require, exports, module) {
         return;
 
       this.pushState();
-      this._states.pushVertices(iVerts);
+      this._main.getStateManager().pushVertices(iVerts);
 
       var mAr = mesh.getMaterials();
       for (var i = 0, nb = iVerts.length; i < nb; ++i)
@@ -126,7 +126,7 @@ define(function (require, exports, module) {
       var mesh = meshState;
       if (!mesh) mesh = this.getMesh();
       if (!isState)
-        this._states.pushStateCustom(this.invert.bind(this, true, mesh));
+        this._main.getStateManager().pushStateCustom(this.invert.bind(this, true, mesh));
 
       var mAr = mesh.getMaterials();
       for (var i = 0, nb = mesh.getNbVertices(); i < nb; ++i)
@@ -151,8 +151,9 @@ define(function (require, exports, module) {
         fAr[j + 1] = iTag[fAr[j + 1]] + offset;
         fAr[j + 2] = iTag[fAr[j + 2]] + offset;
         var id4 = fAr[j + 3];
-        if (id4 >= 0) fAr[j + 3] = iTag[id4] + offset;
+        if (id4 !== Utils.TRI_INDEX) fAr[j + 3] = iTag[id4] + offset;
       }
+
       var end = fAr.length / 4;
       for (i = endFaces; i < end; ++i) {
         j = i * 4;
@@ -163,7 +164,7 @@ define(function (require, exports, module) {
       }
     },
     invertFaces: function (fAr) {
-      for (var i = 0, nb = fAr.length; i < nb; ++i) {
+      for (var i = 0, nb = fAr.length / 4; i < nb; ++i) {
         var id = i * 4;
         var temp = fAr[id];
         fAr[id] = fAr[id + 2];
@@ -179,7 +180,7 @@ define(function (require, exports, module) {
       var noThick = this._thickness === 0;
 
       var nbFaces = iFaces.length;
-      var nbNewFaces = new Int32Array(Utils.getMemory(nbFaces * 4 * 4 * 3), 0, nbFaces * 4 * 3);
+      var nbNewFaces = new Uint32Array(Utils.getMemory(nbFaces * 4 * 4 * 3), 0, nbFaces * 4 * 3);
       var offsetFLink = noThick ? nbFaces : nbFaces * 2;
       for (var i = 0; i < nbFaces; ++i) {
         var idf = i * 4;
@@ -190,7 +191,7 @@ define(function (require, exports, module) {
         var iv4 = nbNewFaces[idf + 3] = fAr[idOld + 3];
         if (noThick)
           continue;
-        var isQuad = iv4 >= 0;
+        var isQuad = iv4 !== Utils.TRI_INDEX;
 
         var b1 = mAr[iv1 * 3 + 2] >= maskClamp || eAr[iv1] >= 1;
         var b2 = mAr[iv2 * 3 + 2] >= maskClamp || eAr[iv2] >= 1;
@@ -246,7 +247,7 @@ define(function (require, exports, module) {
         }
       }
 
-      var fArNew = new Int32Array(nbNewFaces.subarray(0, offsetFLink * 4));
+      var fArNew = new Uint32Array(nbNewFaces.subarray(0, offsetFLink * 4));
       this.remapAndMirrorIndices(fArNew, nbFaces, iVerts);
       if (this._thickness > 0)
         this.invertFaces(fArNew);
@@ -318,7 +319,7 @@ define(function (require, exports, module) {
       var fArNew = this.extractFaces(iFaces, iVerts, maskClamp);
       var vArNew = this.extractVertices(iVerts);
 
-      var newMesh = new Mesh(mesh.getGL());
+      var newMesh = new MeshStatic(mesh.getGL());
       newMesh.setVertices(vArNew);
       newMesh.setFaces(fArNew);
 

@@ -64,7 +64,7 @@ define(function (require, exports, module) {
         return;
 
       var iVerts = this.getUnmaskedVertices();
-      this._states.pushVertices(iVerts);
+      this._main.getStateManager().pushVertices(iVerts);
 
       this.applyEditMatrix(iVerts);
       if (iVerts.length === 0) return;

@@ -4,6 +4,7 @@ define(function (require, exports, module) {
 
   var glm = require('lib/glMatrix');
   var Primitives = require('drawables/Primitives');
+  var Enums = require('misc/Enums');
 
   var vec2 = glm.vec2;
   var vec3 = glm.vec3;
@@ -18,7 +19,7 @@ define(function (require, exports, module) {
   var COLOR_SW = vec3.fromValues(0.8, 0.4, 0.2);
 
   // overall scale of the gizmo
-  var GIZMO_SIZE = 0.08;
+  var GIZMO_SIZE = 80.0;
   // arrow
   var ARROW_LENGTH = 2.5;
   var ARROW_CONE_THICK = 6.0;
@@ -42,7 +43,7 @@ define(function (require, exports, module) {
       _drawGeo: null,
       _pickGeo: null,
       _isSelected: false,
-      _type: type !== undefined ? type : -1,
+      _type: type,
       _nbAxis: nbAxis !== undefined ? nbAxis : -1,
       _lastInter: [0.0, 0.0, 0.0],
       updateMatrix: function () {
@@ -88,7 +89,7 @@ define(function (require, exports, module) {
 
     // line helper
     this._lineHelper = Primitives.createLine2D(this._gl);
-    this._lineHelper.setShaderName('FLAT');
+    this._lineHelper.setShaderType(Enums.Shader.FLAT);
 
     this._lastDistToEye = 0.0;
     this._isEditing = false;
@@ -173,7 +174,7 @@ define(function (require, exports, module) {
       tra._pickGeo = Primitives.createArrow(this._gl, THICKNESS_PICK, ARROW_LENGTH, ARROW_CONE_THICK * 0.4);
       tra._pickGeo._gizmo = tra;
       tra._drawGeo = Primitives.createArrow(this._gl, THICKNESS, ARROW_LENGTH, ARROW_CONE_THICK, ARROW_CONE_LENGTH);
-      tra._drawGeo.setShaderName('FLAT');
+      tra._drawGeo.setShaderType(Enums.Shader.FLAT);
     },
     _createPlane: function (pla, color, wx, wy, wz, hx, hy, hz) {
       vec3.copy(pla._color, color);
@@ -181,7 +182,7 @@ define(function (require, exports, module) {
       pla._pickGeo = Primitives.createPlane(this._gl, 0.0, 0.0, 0.0, wx, wy, wz, hx, hy, hz);
       pla._pickGeo._gizmo = pla;
       pla._drawGeo = Primitives.createPlane(this._gl, 0.0, 0.0, 0.0, wx, wy, wz, hx, hy, hz);
-      pla._drawGeo.setShaderName('FLAT');
+      pla._drawGeo.setShaderType(Enums.Shader.FLAT);
     },
     _initTranslate: function () {
       var axis = [0.0, 0.0, 0.0];
@@ -201,7 +202,7 @@ define(function (require, exports, module) {
       rot._pickGeo = Primitives.createTorus(this._gl, radius, THICKNESS_PICK * mthick, rad, 6, 64);
       rot._pickGeo._gizmo = rot;
       rot._drawGeo = Primitives.createTorus(this._gl, radius, THICKNESS * mthick, rad, 6, 64);
-      rot._drawGeo.setShaderName('FLAT');
+      rot._drawGeo.setShaderType(Enums.Shader.FLAT);
     },
     _initRotate: function () {
       this._createCircle(this._rotX, Math.PI, COLOR_X);
@@ -217,7 +218,7 @@ define(function (require, exports, module) {
       sca._pickGeo = Primitives.createCube(this._gl, CUBE_SIDE_PICK);
       sca._pickGeo._gizmo = sca;
       sca._drawGeo = Primitives.createCube(this._gl, CUBE_SIDE);
-      sca._drawGeo.setShaderName('FLAT');
+      sca._drawGeo.setShaderType(Enums.Shader.FLAT);
     },
     _initScale: function () {
       var axis = [0.0, 0.0, 0.0];
@@ -526,7 +527,7 @@ define(function (require, exports, module) {
 
       var distOffset = vec3.len(this._editOffset);
       var inter = [1.0, 1.0, 1.0];
-      var scaleMult = Math.max(-0.99, (vec3.dist(origin, vec) - distOffset) / distOffset);
+      var scaleMult = Math.max(-0.99, (vec2.dist(origin, vec) - distOffset) / distOffset);
       if (nbAxis === -1) {
         inter[0] += scaleMult;
         inter[1] += scaleMult;

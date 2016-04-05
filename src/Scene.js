@@ -4,20 +4,20 @@ define(function (require, exports, module) {
 
   var glm = require('lib/glMatrix');
   var getOptionsURL = require('misc/getOptionsURL');
+  var Enums = require('misc/Enums');
   var Utils = require('misc/Utils');
-  var Sculpt = require('editing/Sculpt');
+  var SculptManager = require('editing/SculptManager');
   var Subdivision = require('editing/Subdivision');
   var Import = require('files/Import');
   var Gui = require('gui/Gui');
   var Camera = require('math3d/Camera');
   var Picking = require('math3d/Picking');
   var Background = require('drawables/Background');
-  var Selection = require('drawables/Selection');
   var Mesh = require('mesh/Mesh');
   var Multimesh = require('mesh/multiresolution/Multimesh');
   var Primitives = require('drawables/Primitives');
-  var States = require('states/States');
-  var Render = require('mesh/Render');
+  var StateManager = require('states/StateManager');
+  var Render = require('mesh/RenderData');
   var Rtt = require('drawables/Rtt');
   var Shader = require('render/ShaderLib');
   var WebGLCaps = require('render/WebGLCaps');
@@ -38,8 +38,8 @@ define(function (require, exports, module) {
     this._canvasOffsetTop = 0;
 
     // core of the app
-    this._states = new States(this); // for undo-redo
-    this._sculpt = null;
+    this._stateManager = new StateManager(this); // for undo-redo
+    this._sculptManager = null;
     this._camera = new Camera(this);
     this._picking = new Picking(this); // the ray picking
     this._pickingSym = new Picking(this, true); // the symmetrical picking
@@ -58,7 +58,6 @@ define(function (require, exports, module) {
     this._showGrid = opts.grid;
     this._grid = null;
     this._background = null;
-    this._selection = null; // the selection geometry (red hover circle)
     this._meshes = []; // the meshes
     this._selectMeshes = []; // multi selection
     this._mesh = null; // the selected mesh
@@ -84,14 +83,13 @@ define(function (require, exports, module) {
       if (!this._gl)
         return;
 
-      this._sculpt = new Sculpt(this);
-      this._selection = new Selection(this._gl);
+      this._sculptManager = new SculptManager(this);
       this._background = new Background(this._gl, this);
 
-      this._rttContour = new Rtt(this._gl, 'CONTOUR', null);
-      this._rttMerge = new Rtt(this._gl, 'MERGE', null);
-      this._rttOpaque = new Rtt(this._gl, 'FXAA');
-      this._rttTransparent = new Rtt(this._gl, '', this._rttOpaque.getDepth(), true);
+      this._rttContour = new Rtt(this._gl, Enums.Shader.CONTOUR, null);
+      this._rttMerge = new Rtt(this._gl, Enums.Shader.MERGE, null);
+      this._rttOpaque = new Rtt(this._gl, Enums.Shader.FXAA);
+      this._rttTransparent = new Rtt(this._gl, null, this._rttOpaque.getDepth(), true);
 
       this._grid = Primitives.createGrid(this._gl);
       this.initGrid();
@@ -131,9 +129,6 @@ define(function (require, exports, module) {
     getMesh: function () {
       return this._mesh;
     },
-    getSelectionRadius: function () {
-      return this._selection;
-    },
     getSelectedMeshes: function () {
       return this._selectMeshes;
     },
@@ -143,11 +138,11 @@ define(function (require, exports, module) {
     getPickingSymmetry: function () {
       return this._pickingSym;
     },
-    getSculpt: function () {
-      return this._sculpt;
+    getSculptManager: function () {
+      return this._sculptManager;
     },
-    getStates: function () {
-      return this._states;
+    getStateManager: function () {
+      return this._stateManager;
     },
     setMesh: function (mesh) {
       return this.setOrUnsetMesh(mesh);
@@ -162,7 +157,7 @@ define(function (require, exports, module) {
       mat4.translate(gridm, gridm, [0.0, -0.45, 0.0]);
       var scale = 2.5;
       mat4.scale(gridm, gridm, [scale, scale, scale]);
-      this._grid.setShaderName('FLAT');
+      this._grid.setShaderType(Enums.Shader.FLAT);
       grid.setFlatColor([0.2140, 0.2140, 0.2140]);
     },
     setOrUnsetMesh: function (mesh, multiSelect) {
@@ -222,11 +217,10 @@ define(function (require, exports, module) {
       gl.bindFramebuffer(gl.FRAMEBUFFER, null);
 
       this._rttOpaque.render(this); // fxaa
-      this._selection.render(this);
 
       gl.enable(gl.DEPTH_TEST);
 
-      this._sculpt.postRender(); // draw sculpt gizmos
+      this._sculptManager.postRender(); // draw sculpting gizmo stuffs
     },
     _drawScene: function () {
       var gl = this._gl;
@@ -238,7 +232,7 @@ define(function (require, exports, module) {
       // CONTOUR 1/2
       ///////////////
       gl.disable(gl.DEPTH_TEST);
-      var showContour = this._selectMeshes.length > 0 && this._showContour && Shader.CONTOUR.color[3] > 0.0;
+      var showContour = this._selectMeshes.length > 0 && this._showContour && Shader[Enums.Shader.CONTOUR].color[3] > 0.0;
       if (showContour) {
         gl.bindFramebuffer(gl.FRAMEBUFFER, this._rttContour.getFramebuffer());
         gl.clear(gl.COLOR_BUFFER_BIT);
@@ -356,7 +350,7 @@ define(function (require, exports, module) {
     loadTextures: function () {
       var self = this;
       var gl = this._gl;
-      var ShaderMatcap = Shader.MATCAP;
+      var ShaderMatcap = Shader[Enums.Shader.MATCAP];
 
       var loadTex = function (path, idMaterial) {
         var mat = new Image();
@@ -410,7 +404,7 @@ define(function (require, exports, module) {
     computeBoundingBoxMeshes: function (meshes) {
       var bound = [Infinity, Infinity, Infinity, -Infinity, -Infinity, -Infinity];
       for (var i = 0, l = meshes.length; i < l; ++i) {
-        var bi = meshes[i].getWorldBound();
+        var bi = meshes[i].computeWorldBound();
         if (bi[0] < bound[0]) bound[0] = bi[0];
         if (bi[1] < bound[1]) bound[1] = bi[1];
         if (bi[2] < bound[2]) bound[2] = bi[2];
@@ -423,7 +417,7 @@ define(function (require, exports, module) {
     computeBoundingBoxScene: function () {
       var scene = this._meshes.slice();
       scene.push(this._grid);
-      this._sculpt.addSculptToScene(scene);
+      this._sculptManager.addSculptToScene(scene);
       return this.computeBoundingBoxMeshes(scene);
     },
     normalizeAndCenterMeshes: function (meshes) {
@@ -484,7 +478,7 @@ define(function (require, exports, module) {
     },
     addNewMesh: function (mesh) {
       this._meshes.push(mesh);
-      this._states.pushStateAdd(mesh);
+      this._stateManager.pushStateAdd(mesh);
       this.setMesh(mesh);
       return mesh;
     },
@@ -513,24 +507,24 @@ define(function (require, exports, module) {
       if (this._autoMatrix)
         this.normalizeAndCenterMeshes(newMeshes);
 
-      this._states.pushStateAdd(newMeshes);
+      this._stateManager.pushStateAdd(newMeshes);
       this.setMesh(meshes[meshes.length - 1]);
       this._camera.resetView();
       return newMeshes;
     },
     clearScene: function () {
-      this.getStates().reset();
+      this.getStateManager().reset();
       this.getMeshes().length = 0;
       this.getCamera().resetView();
       this.setMesh(null);
-      this._action = 'NOTHING';
+      this._action = Enums.Action.NOTHING;
     },
     deleteCurrentSelection: function () {
       if (!this._mesh)
         return;
 
       this.removeMeshes(this._selectMeshes);
-      this._states.pushStateRemove(this._selectMeshes.slice());
+      this._stateManager.pushStateRemove(this._selectMeshes.slice());
       this._selectMeshes.length = 0;
       this.setMesh(null);
     },

@@ -6,12 +6,18 @@ define(function (require, exports, module) {
     this._parent = parent ? parent : null; // parent
     this._depth = parent ? parent._depth + 1 : 0; // depth of current node
     this._children = []; // children
+
     // extended boundary for intersect test
     this._aabbLoose = [Infinity, Infinity, Infinity, -Infinity, -Infinity, -Infinity];
+
     // boundary in order to store exactly the face according to their center
     this._aabbSplit = [Infinity, Infinity, Infinity, -Infinity, -Infinity, -Infinity];
     this._iFaces = []; // faces (if cell is a leaf)
+
+    this._flag = 0; // to track deleted cell
   };
+
+  OctreeCell.FLAG = 0;
 
   OctreeCell.MAX_DEPTH = 8; // maximum depth
   OctreeCell.MAX_FACES = 100; // maximum faces per cell
@@ -23,14 +29,15 @@ define(function (require, exports, module) {
   })();
 
   OctreeCell.prototype = {
+    resetNbFaces: function (nbFaces) {
+      var facesAll = this._iFaces;
+      facesAll.length = nbFaces;
+      for (var i = 0; i < nbFaces; ++i)
+        facesAll[i] = i;
+    },
     /** Subdivide octree, aabbSplit must be already set, and aabbLoose will be expanded if it's a leaf  */
-    build: function (mesh, iFaces) {
-      var aabbLoose = this._aabbLoose;
-      var aabbSplit = this._aabbSplit;
+    build: function (mesh) {
       var i = 0;
-      for (i = 0; i < 6; ++i)
-        aabbLoose[i] = aabbSplit[i];
-      this._iFaces = iFaces;
 
       var stack = OctreeCell.STACK;
       stack[0] = this;
@@ -49,6 +56,7 @@ define(function (require, exports, module) {
           leaves.push(cell);
         }
       }
+
       var nbLeaves = leaves.length;
       for (i = 0; i < nbLeaves; ++i)
         leaves[i].constructLeaf(mesh);
@@ -147,6 +155,7 @@ define(function (require, exports, module) {
           }
         }
       }
+
       child0.setAabbSplit(xmin, ymin, zmin, xcen, ycen, zcen);
       child1.setAabbSplit(xmin + dX, ymin, zmin, xcen + dX, ycen, zcen);
       child2.setAabbSplit(xcen, ycen - dY, zcen, xmax, ymax - dY, zmax);
@@ -169,8 +178,17 @@ define(function (require, exports, module) {
       aabb[4] = ymax;
       aabb[5] = zmax;
     },
+    setAabbLoose: function (xmin, ymin, zmin, xmax, ymax, zmax) {
+      var aabb = this._aabbLoose;
+      aabb[0] = xmin;
+      aabb[1] = ymin;
+      aabb[2] = zmin;
+      aabb[3] = xmax;
+      aabb[4] = ymax;
+      aabb[5] = zmax;
+    },
     /** Collect faces in cells hit by a ray */
-    collectIntersectRay: function (vNear, eyeDir, collectFaces) {
+    collectIntersectRay: function (vNear, eyeDir, collectFaces, leavesHit) {
       var vx = vNear[0];
       var vy = vNear[1];
       var vz = vNear[2];
@@ -195,12 +213,14 @@ define(function (require, exports, module) {
         var tmax = Math.min(Math.max(t1, t2), Math.max(t3, t4), Math.max(t5, t6));
         if (tmax < 0 || tmin > tmax) // no intersection
           continue;
+
         var children = cell._children;
         if (children.length === 8) {
           for (var i = 0; i < 8; ++i)
             stack[curStack + i] = children[i];
           curStack += 8;
         } else {
+          if (leavesHit) leavesHit.push(cell);
           var iFaces = cell._iFaces;
           collectFaces.set(iFaces, acc);
           acc += iFaces.length;
@@ -209,7 +229,7 @@ define(function (require, exports, module) {
       return new Uint32Array(collectFaces.subarray(0, acc));
     },
     /** Collect faces inside a sphere */
-    collectIntersectSphere: function (vert, radiusSquared, leavesHit, collectFaces) {
+    collectIntersectSphere: function (vert, radiusSquared, collectFaces, leavesHit) {
       var vx = vert[0];
       var vy = vert[1];
       var vz = vert[2];
@@ -246,7 +266,7 @@ define(function (require, exports, module) {
             stack[curStack + i] = children[i];
           curStack += 8;
         } else {
-          leavesHit.push(cell);
+          if (leavesHit) leavesHit.push(cell);
           var iFaces = cell._iFaces;
           collectFaces.set(iFaces, acc);
           acc += iFaces.length;
@@ -268,6 +288,7 @@ define(function (require, exports, module) {
         if (cx > split[3]) continue;
         if (cy > split[4]) continue;
         if (cz > split[5]) continue;
+
         var loose = cell._aabbLoose;
         // expands cell aabb loose with aabb face
         if (bxmin < loose[0]) loose[0] = bxmin;
@@ -277,6 +298,7 @@ define(function (require, exports, module) {
         if (bymax > loose[4]) loose[4] = bymax;
         if (bzmax > loose[5]) loose[5] = bzmax;
         var children = cell._children;
+
         if (children.length === 8) {
           for (var i = 0; i < 8; ++i)
             stack[curStack + i] = children[i];
@@ -288,30 +310,26 @@ define(function (require, exports, module) {
       }
     },
     /** Cut leaves if needed */
-    checkEmptiness: function () {
-      var stack = OctreeCell.STACK;
-      stack[0] = this;
-      var curStack = 1;
-      while (curStack > 0) {
-        var cell = stack[--curStack];
+    pruneIfPossible: function () {
+      var cell = this;
+      while (cell._parent) {
         var parent = cell._parent;
-        if (!parent)
-          continue;
+
         var children = parent._children;
+        // means that the current cell has already pruned
         if (children.length === 0)
-          continue;
-        var pushParent = true;
+          return;
+
+        // check if we can prune
         for (var i = 0; i < 8; ++i) {
           var child = children[i];
           if (child._iFaces.length > 0 || child._children.length === 8) {
-            pushParent = false;
-            break;
+            return;
           }
         }
-        if (pushParent === true) {
-          children.length = 0;
-          cell[curStack++] = parent;
-        }
+
+        children.length = 0;
+        cell = parent;
       }
     },
     /** Expand aabb loose */

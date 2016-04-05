@@ -2,11 +2,9 @@ define(function (require, exports, module) {
 
   'use strict';
 
-  var glm = require('lib/glMatrix');
-  var Mesh = require('mesh/Mesh');
+  var Utils = require('misc/Utils');
+  var MeshStatic = require('mesh/MeshStatic/MeshStatic');
   var Remesh = require('editing/Remesh');
-
-  var mat4 = glm.mat4;
 
   var Primitives = {};
 
@@ -66,8 +64,8 @@ define(function (require, exports, module) {
     uv[5] = uv[7] = uv[21] = uv[24] = uv[26] = uv[27] = 0.75;
     uv[17] = uv[19] = uv[20] = uv[22] = 0.0;
 
-    var f = new Int32Array(24);
-    var ft = new Int32Array(24);
+    var f = new Uint32Array(24);
+    var ft = new Uint32Array(24);
     f[0] = f[8] = f[21] = ft[0] = 0;
     f[1] = f[11] = f[12] = ft[1] = 1;
     f[2] = f[15] = f[16] = ft[2] = ft[15] = ft[16] = 2;
@@ -100,8 +98,6 @@ define(function (require, exports, module) {
     topCap = topCap !== undefined ? topCap : true;
     lowCap = lowCap !== undefined ? lowCap : true;
 
-    topCap = topCap;
-    lowCap = lowCap;
     var isSingularTop = topCap && radiusTop === 0.0;
     var isSingularBottom = lowCap && radiusBottom === 0.0;
     var heightHalf = height * 0.5;
@@ -121,7 +117,7 @@ define(function (require, exports, module) {
       nbFaces -= radSegments;
     }
     var vAr = new Float32Array(nbVertices * 3);
-    var fAr = new Int32Array(nbFaces * 4);
+    var fAr = new Uint32Array(nbFaces * 4);
 
     var id = 0;
     var k = 0;
@@ -162,7 +158,7 @@ define(function (require, exports, module) {
         fAr[k] = j;
         fAr[k + 1] = j === radSegments - 1 ? 0 : j + 1;
         fAr[k + 2] = last;
-        fAr[k + 3] = -1;
+        fAr[k + 3] = Utils.TRI_INDEX;
       }
     }
 
@@ -176,7 +172,7 @@ define(function (require, exports, module) {
         fAr[k] = j === radSegments - 1 ? end : end + j + 1;
         fAr[k + 1] = end + j;
         fAr[k + 2] = last;
-        fAr[k + 3] = -1;
+        fAr[k + 3] = Utils.TRI_INDEX;
       }
     }
 
@@ -203,7 +199,7 @@ define(function (require, exports, module) {
     var endTubular = isFull ? nbTubular : nbTubular - 1;
 
     var vAr = new Float32Array(nbVertices * 3);
-    var fAr = new Int32Array(nbFaces * 4);
+    var fAr = new Uint32Array(nbFaces * 4);
     var id = 0;
     var k = 0;
     var i = 0;
@@ -240,7 +236,7 @@ define(function (require, exports, module) {
         fAr[k] = last;
         fAr[k + 1] = j === nbRadial - 1 ? 0 : j + 1;
         fAr[k + 2] = j;
-        fAr[k + 3] = -1;
+        fAr[k + 3] = Utils.TRI_INDEX;
       }
 
       ++last;
@@ -252,7 +248,7 @@ define(function (require, exports, module) {
         fAr[k] = last;
         fAr[k + 1] = end + j;
         fAr[k + 2] = j === nbRadial - 1 ? end : end + j + 1;
-        fAr[k + 3] = -1;
+        fAr[k + 3] = Utils.TRI_INDEX;
       }
     }
 
@@ -317,7 +313,7 @@ define(function (require, exports, module) {
   };
 
   var createMesh = function (gl, arr) {
-    var mesh = new Mesh(gl);
+    var mesh = new MeshStatic(gl);
     mesh.setVertices(arr.vertices);
     if (arr.faces) mesh.setFaces(arr.faces);
     if (arr.uv && arr.facesUV) mesh.initTexCoordsDataFromOBJData(arr.uv, arr.facesUV);
@@ -363,9 +359,9 @@ define(function (require, exports, module) {
     rConeT = rConeT || 5.0;
     rConeH = rConeH || 0.2;
 
-    var base = createMesh(gl, createCylinderArray(thick, thick, height, radSegments, heightSegments));
-    var cone = createMesh(gl, createCylinderArray(0.0, thick * rConeT, height * rConeH, radSegments, heightSegments));
-    mat4.translate(cone.getMatrix(), cone.getMatrix(), [0.0, height * 0.5, 0.0]);
+    var base = createMesh(null, createCylinderArray(thick, thick, height, radSegments, heightSegments));
+    var cone = createMesh(null, createCylinderArray(0.0, thick * rConeT, height * rConeH, radSegments, heightSegments));
+    cone.getMatrix()[13] = height * 0.5;
 
     var arrow = {
       vertices: null,

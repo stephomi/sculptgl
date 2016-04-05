@@ -2,6 +2,9 @@ define(function (require, exports, module) {
 
   'use strict';
 
+  var Enums = require('misc/Enums');
+  var keyAction = Enums.KeyAction;
+
   var queryBool = function (value, def) {
     if (value === undefined) return def;
     return value !== 'false' && value !== '0';
@@ -35,37 +38,37 @@ define(function (require, exports, module) {
     var shortcuts = {};
 
     // tools
-    shortcuts['0'.charCodeAt(0)] = 'MOVE';
-    shortcuts['1'.charCodeAt(0)] = 'BRUSH';
-    shortcuts['2'.charCodeAt(0)] = 'INFLATE';
-    shortcuts['3'.charCodeAt(0)] = 'TWIST';
-    shortcuts['4'.charCodeAt(0)] = 'SMOOTH';
-    shortcuts['5'.charCodeAt(0)] = 'FLATTEN';
-    shortcuts['6'.charCodeAt(0)] = 'PINCH';
-    shortcuts['7'.charCodeAt(0)] = 'CREASE';
-    shortcuts['8'.charCodeAt(0)] = 'DRAG';
-    shortcuts['9'.charCodeAt(0)] = 'PAINT';
-    shortcuts['E'.charCodeAt(0)] = 'TRANSFORM';
+    shortcuts['0'.charCodeAt(0)] = keyAction.MOVE;
+    shortcuts['1'.charCodeAt(0)] = keyAction.BRUSH;
+    shortcuts['2'.charCodeAt(0)] = keyAction.INFLATE;
+    shortcuts['3'.charCodeAt(0)] = keyAction.TWIST;
+    shortcuts['4'.charCodeAt(0)] = keyAction.SMOOTH;
+    shortcuts['5'.charCodeAt(0)] = keyAction.FLATTEN;
+    shortcuts['6'.charCodeAt(0)] = keyAction.PINCH;
+    shortcuts['7'.charCodeAt(0)] = keyAction.CREASE;
+    shortcuts['8'.charCodeAt(0)] = keyAction.DRAG;
+    shortcuts['9'.charCodeAt(0)] = keyAction.PAINT;
+    shortcuts['E'.charCodeAt(0)] = keyAction.TRANSFORM;
 
     // sculpting
-    shortcuts['C'.charCodeAt(0)] = 'INTENSITY';
-    shortcuts['X'.charCodeAt(0)] = 'RADIUS';
-    shortcuts['N'.charCodeAt(0)] = 'NEGATIVE';
-    shortcuts['S'.charCodeAt(0)] = 'PICKER';
-    shortcuts[46] = 'DELETE'; // DEL
+    shortcuts['C'.charCodeAt(0)] = keyAction.INTENSITY;
+    shortcuts['X'.charCodeAt(0)] = keyAction.RADIUS;
+    shortcuts['N'.charCodeAt(0)] = keyAction.NEGATIVE;
+    shortcuts['S'.charCodeAt(0)] = keyAction.PICKER;
+    shortcuts[46] = keyAction.DELETE; // DEL
 
     // camera
-    shortcuts['F'.charCodeAt(0)] = 'CAMERA_FRONT';
-    shortcuts['T'.charCodeAt(0)] = 'CAMERA_TOP';
-    shortcuts['L'.charCodeAt(0)] = 'CAMERA_LEFT';
-    shortcuts[32] = 'CAMERA_RESET'; // SPACE
-    shortcuts[37] = 'STRIFE_LEFT';
-    shortcuts[39] = 'STRIFE_RIGHT';
-    shortcuts[38] = 'STRIFE_UP';
-    shortcuts[40] = 'STRIFE_DOWN';
+    shortcuts['F'.charCodeAt(0)] = keyAction.CAMERA_FRONT;
+    shortcuts['T'.charCodeAt(0)] = keyAction.CAMERA_TOP;
+    shortcuts['L'.charCodeAt(0)] = keyAction.CAMERA_LEFT;
+    shortcuts[32] = keyAction.CAMERA_RESET; // SPACE
+    shortcuts[37] = keyAction.STRIFE_LEFT;
+    shortcuts[39] = keyAction.STRIFE_RIGHT;
+    shortcuts[38] = keyAction.STRIFE_UP;
+    shortcuts[40] = keyAction.STRIFE_DOWN;
 
     // rendering
-    shortcuts['W'.charCodeAt(0)] = 'WIREFRAME';
+    shortcuts['W'.charCodeAt(0)] = keyAction.WIREFRAME;
 
     if (!str)
       return shortcuts;
@@ -81,7 +84,8 @@ define(function (require, exports, module) {
       if (tInt === tInt && tInt >= 10) key = tInt;
       else key = key.charCodeAt(0);
 
-      shortcuts[key] = pair[0].toUpperCase();
+      var keyac = keyAction[pair[0].toUpperCase()];
+      if (keyac !== undefined) shortcuts[key] = keyac;
     }
 
     return shortcuts;
@@ -96,6 +100,14 @@ define(function (require, exports, module) {
       params[pair[0].toLowerCase()] = pair[1];
     }
     return params;
+  };
+
+  var getEnum = function (obj, str, def) {
+    if (str) {
+      var val = obj[str.toUpperCase()];
+      if (val !== undefined) return val;
+    }
+    return def;
   };
 
   var options;
@@ -117,11 +129,11 @@ define(function (require, exports, module) {
     options.outline = queryBool(params.outline, false);
     options.outlinecolor = queryColor(params.outlinecolor, [0.3, 0.0, 0.0, 1.0]);
     options.mirrorline = queryBool(params.mirrorline, false);
-    options.darkenunselected = queryBool(params.darkenunselected, true);
+    options.darkenunselected = queryBool(params.darkenunselected, false);
 
     // camera
-    options.projection = (params.projection || 'PERSPECTIVE').toUpperCase(); // perspective/orthographic
-    options.cameramode = (params.cameramode || 'ORBIT').toUpperCase(); // orbit/spherical/plane
+    options.projection = getEnum(Enums.Projection, params.projection, Enums.Projection.PERSPECTIVE); // perspective/orthographic
+    options.cameramode = getEnum(Enums.CameraMode, params.cameramode, Enums.Projection.ORBIT); // orbit/spherical/plane
     options.pivot = queryBool(params.pivot, true);
     options.fov = queryNumber(params.fov, 10, 90, 45); // [10-90]
 
@@ -132,7 +144,7 @@ define(function (require, exports, module) {
     options.exposure = queryNumber(params.exposure, 0, 5, 1); // [0-5]
     options.environment = queryInteger(params.environment, 0, Infinity, 0); // [0-inf]
     options.matcap = queryInteger(params.matcap, 0, Infinity, 3); // [0-inf]
-    options.shader = (params.shader || 'MATCAP').toUpperCase(); // pbr/matcap/normal/uv
+    options.shader = getEnum(Enums.Shader, params.shader, Enums.Shader.MATCAP); // pbr/matcap/normal/uv
     options.filmic = queryBool(params.filmic, false);
 
     options.shortcuts = readShortcuts(params.shortcuts);
@@ -144,9 +156,8 @@ define(function (require, exports, module) {
 
   getOptionsURL.getShortKey = function (key) {
     // handles numpad
-    if (key >= 96 && key <= 105)
-      key -= 48;
-    return getOptionsURL().shortcuts[key] || key;
+    if (key >= 96 && key <= 105) key -= 48;
+    return getOptionsURL().shortcuts[key];
   };
 
   module.exports = getOptionsURL;

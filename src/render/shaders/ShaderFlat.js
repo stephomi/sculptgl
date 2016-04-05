@@ -37,9 +37,9 @@ define(function (require, exports, module) {
     '}'
   ].join('\n');
 
-  ShaderFlat.updateUniforms = function (render, main) {
-    render.getGL().uniform3fv(this.uniforms.uColor, render.getFlatColor());
-    ShaderBase.updateUniforms.call(this, render, main);
+  ShaderFlat.updateUniforms = function (mesh, main) {
+    mesh.getGL().uniform3fv(this.uniforms.uColor, mesh.getFlatColor());
+    ShaderBase.updateUniforms.call(this, mesh, main);
   };
 
   module.exports = ShaderFlat;

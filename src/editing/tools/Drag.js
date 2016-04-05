@@ -25,7 +25,7 @@ define(function (require, exports, module) {
       var main = this._main;
       var mesh = this.getMesh();
       var picking = main.getPicking();
-      var pickingSym = main.getSculpt().getSymmetry() ? main.getPickingSymmetry() : null;
+      var pickingSym = main.getSculptManager().getSymmetry() ? main.getPickingSymmetry() : null;
 
       var dx = main._mouseX - this._lastMouseX;
       var dy = main._mouseY - this._lastMouseY;
@@ -65,7 +65,7 @@ define(function (require, exports, module) {
       picking.pickVerticesInSphere(picking.getLocalRadius2());
       picking.computePickedNormal();
       // if dyn topo, we need to the picking and the sculpting altogether
-      if (mesh.getDynamicTopology)
+      if (mesh.isDynamic)
         this.stroke(picking, false);
 
       if (pickingSym) {
@@ -74,7 +74,7 @@ define(function (require, exports, module) {
         pickingSym.pickVerticesInSphere(pickingSym.getLocalRadius2());
       }
 
-      if (!mesh.getDynamicTopology) this.stroke(picking, false);
+      if (!mesh.isDynamic) this.stroke(picking, false);
       if (pickingSym) this.stroke(pickingSym, true);
       return true;
     },
@@ -83,7 +83,7 @@ define(function (require, exports, module) {
       var iVertsInRadius = picking.getPickedVertices();
 
       // undo-redo
-      this._states.pushVertices(iVertsInRadius);
+      this._main.getStateManager().pushVertices(iVertsInRadius);
       iVertsInRadius = this.dynamicTopology(picking);
 
       picking.updateAlpha(this._lockPosition);

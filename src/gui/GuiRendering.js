@@ -3,14 +3,15 @@ define(function (require, exports, module) {
   'use strict';
 
   var TR = require('gui/GuiTR');
-  var Render = require('mesh/Render');
+  var RenderData = require('mesh/RenderData');
   var Shader = require('render/ShaderLib');
   var getOptionsURL = require('misc/getOptionsURL');
+  var Enums = require('misc/Enums');
 
-  var ShaderMERGE = Shader.MERGE;
-  var ShaderUV = Shader.UV;
-  var ShaderPBR = Shader.PBR;
-  var ShaderMatcap = Shader.MATCAP;
+  var ShaderMERGE = Shader[Enums.Shader.MERGE];
+  var ShaderUV = Shader[Enums.Shader.UV];
+  var ShaderPBR = Shader[Enums.Shader.PBR];
+  var ShaderMatcap = Shader[Enums.Shader.MATCAP];
 
   var GuiRendering = function (guiParent, ctrlGui) {
     this._main = ctrlGui._main; // main application
@@ -32,13 +33,13 @@ define(function (require, exports, module) {
       menu.close();
 
       // shader selection
-      var optionsShaders = {};
-      optionsShaders.MATCAP = TR('renderingMatcap');
-      optionsShaders.PBR = TR('renderingPBR');
-      optionsShaders.NORMAL = TR('renderingNormal');
-      optionsShaders.UV = TR('renderingUV');
+      var optionsShaders = [];
+      optionsShaders[Enums.Shader.MATCAP] = TR('renderingMatcap');
+      optionsShaders[Enums.Shader.PBR] = TR('renderingPBR');
+      optionsShaders[Enums.Shader.NORMAL] = TR('renderingNormal');
+      optionsShaders[Enums.Shader.UV] = TR('renderingUV');
       menu.addTitle(TR('renderingShader'));
-      this._ctrlShaders = menu.addCombobox('', 'PBR', this.onShaderChanged.bind(this), optionsShaders);
+      this._ctrlShaders = menu.addCombobox('', Enums.Shader.MATCAP, this.onShaderChanged.bind(this), optionsShaders);
 
       // flat shading
       this._ctrlCurvature = menu.addSlider(TR('renderingCurvature'), 20, this.onCurvatureChanged.bind(this), 0, 100, 1);
@@ -76,7 +77,7 @@ define(function (require, exports, module) {
 
       // wireframe
       this._ctrlShowWireframe = menu.addCheckbox(TR('renderingWireframe'), false, this.onShowWireframe.bind(this));
-      if (Render.ONLY_DRAW_ARRAYS)
+      if (RenderData.ONLY_DRAW_ARRAYS)
         this._ctrlShowWireframe.setVisibility(false);
 
       this.addEvents();
@@ -99,37 +100,58 @@ define(function (require, exports, module) {
       this._main.render();
     },
     onTransparencyChanged: function (val) {
-      if (!this._main.getMesh()) return;
-      this._main.getMesh().setOpacity(1.0 - val / 100.0);
+      var meshes = this._main.getSelectedMeshes();
+      for (var i = 0, nb = meshes.length; i < nb; ++i) {
+        meshes[i].setOpacity(1.0 - val / 100.0);
+      }
       this._main.render();
     },
     onShaderChanged: function (val) {
       var main = this._main;
-      var mesh = main.getMesh();
-      if (mesh) {
-        if (val === 'UV' && !mesh.hasUV()) {
-          this.updateMesh();
-          window.alert('No UV on this mesh.');
-        } else {
-          mesh.setShaderName(val);
-          main.render();
+
+      var warning = false;
+      var meshes = this._main.getSelectedMeshes();
+      for (var i = 0, nb = meshes.length; i < nb; ++i) {
+        var mesh = meshes[i];
+
+        if (mesh) {
+          if (val === Enums.Shader.UV && !mesh.hasUV()) {
+            if (!warning)
+              window.alert('No UV on the mesh.');
+            warning = true;
+          } else {
+            mesh.setShaderType(val);
+            main.render();
+          }
+          if (warning)
+            this.updateMesh();
         }
       }
+
       this.updateVisibility();
     },
     onMatcapChanged: function (value) {
-      if (!this._main.getMesh()) return;
-      this._main.getMesh().setMatcap(value);
+      var meshes = this._main.getSelectedMeshes();
+      for (var i = 0, nb = meshes.length; i < nb; ++i) {
+        var mesh = meshes[i];
+        if (mesh.getShaderType() !== Enums.Shader.MATCAP)
+          mesh.setShaderType(Enums.Shader.MATCAP);
+        mesh.setMatcap(value);
+      }
       this._main.render();
     },
     onFlatShading: function (bool) {
-      if (!this._main.getMesh()) return;
-      this._main.getMesh().setFlatShading(bool);
+      var meshes = this._main.getSelectedMeshes();
+      for (var i = 0, nb = meshes.length; i < nb; ++i) {
+        meshes[i].setFlatShading(bool);
+      }
       this._main.render();
     },
     onShowWireframe: function (bool) {
-      if (!this._main.getMesh()) return;
-      this._main.getMesh().setShowWireframe(bool);
+      var meshes = this._main.getSelectedMeshes();
+      for (var i = 0, nb = meshes.length; i < nb; ++i) {
+        meshes[i].setShowWireframe(bool);
+      }
       this._main.render();
     },
     addEvents: function () {
@@ -152,8 +174,9 @@ define(function (require, exports, module) {
         this._menu.setVisibility(false);
         return;
       }
+
       this._menu.setVisibility(true);
-      this._ctrlShaders.setValue(mesh.getShaderName(), true);
+      this._ctrlShaders.setValue(mesh.getShaderType(), true);
       this._ctrlFlatShading.setValue(mesh.getFlatShading(), true);
       this._ctrlShowWireframe.setValue(mesh.getShowWireframe(), true);
       this._ctrlMatcap.setValue(mesh.getMatcap(), true);
@@ -164,16 +187,16 @@ define(function (require, exports, module) {
     updateVisibility: function () {
       var mesh = this._main.getMesh();
       if (!mesh) return;
-      var val = mesh.getShaderName();
-      this._ctrlMatcapTitle.setVisibility(val === 'MATCAP');
-      this._ctrlMatcap.setVisibility(val === 'MATCAP');
-      this._ctrlImportMatcap.setVisibility(val === 'MATCAP');
+      var val = mesh.getShaderType();
+      this._ctrlMatcapTitle.setVisibility(val === Enums.Shader.MATCAP);
+      this._ctrlMatcap.setVisibility(val === Enums.Shader.MATCAP);
+      this._ctrlImportMatcap.setVisibility(val === Enums.Shader.MATCAP);
 
-      this._ctrlExposure.setVisibility(val === 'PBR');
-      this._ctrlEnvTitle.setVisibility(val === 'PBR');
-      this._ctrlEnv.setVisibility(val === 'PBR');
+      this._ctrlExposure.setVisibility(val === Enums.Shader.PBR);
+      this._ctrlEnvTitle.setVisibility(val === Enums.Shader.PBR);
+      this._ctrlEnv.setVisibility(val === Enums.Shader.PBR);
 
-      this._ctrlUV.setVisibility(val === 'UV');
+      this._ctrlUV.setVisibility(val === Enums.Shader.UV);
     },
     getFlatShading: function () {
       return this._ctrlFlatShading.getValue();
@@ -250,7 +273,7 @@ define(function (require, exports, module) {
     // KEY EVENTS
     ////////////////
     onKeyUp: function (event) {
-      if (getOptionsURL.getShortKey(event.which) === 'WIREFRAME' && !event.ctrlKey)
+      if (getOptionsURL.getShortKey(event.which) === Enums.KeyAction.WIREFRAME && !event.ctrlKey)
         this._ctrlShowWireframe.setValue(!this._ctrlShowWireframe.getValue());
     }
   };

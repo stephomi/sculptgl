@@ -20,8 +20,12 @@ define(function (require, exports, module) {
       this._gl.deleteBuffer(this._buffer);
     },
     /** Update the buffer content */
-    update: function (data) {
+    update: function (data, nbElts) {
       this._gl.bindBuffer(this._type, this._buffer);
+
+      if (nbElts !== undefined && nbElts !== data.length)
+        data = data.subarray(0, nbElts);
+
       if (data.length > this._size) {
         this._gl.bufferData(this._type, data, this._hint);
         this._size = data.length;

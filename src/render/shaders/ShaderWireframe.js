@@ -37,18 +37,19 @@ define(function (require, exports, module) {
   ].join('\n');
 
   ShaderWireframe.getOrCreate = ShaderBase.getOrCreate;
-  ShaderWireframe.draw = function (render /*, main*/ ) {
-    var gl = render.getGL();
+  ShaderWireframe.draw = function (mesh /*, main*/ ) {
+    var gl = mesh.getGL();
     gl.useProgram(this.program);
-    this.bindAttributes(render);
-    this.updateUniforms(render);
-    render.getWireframeBuffer().bind();
+    this.bindAttributes(mesh);
+    this.updateUniforms(mesh);
+    mesh.getWireframeBuffer().bind();
 
-    gl.drawElements(gl.LINES, render.getMesh().getRenderNbEdges() * 2, gl.UNSIGNED_INT, 0);
+    gl.drawElements(gl.LINES, mesh.getRenderNbEdges() * 2, gl.UNSIGNED_INT, 0);
   };
-  ShaderWireframe.updateUniforms = function (render) {
-    render.getGL().uniformMatrix4fv(this.uniforms.uMVP, false, render.getMesh().getMVP());
-    render.getGL().uniformMatrix4fv(this.uniforms.uEM, false, render.getMesh().getEditMatrix());
+  ShaderWireframe.updateUniforms = function (mesh) {
+    var gl = mesh.getGL();
+    gl.uniformMatrix4fv(this.uniforms.uMVP, false, mesh.getMVP());
+    gl.uniformMatrix4fv(this.uniforms.uEM, false, mesh.getEditMatrix());
   };
 
   module.exports = ShaderWireframe;

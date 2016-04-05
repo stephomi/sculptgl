@@ -23,7 +23,7 @@ define(function (require, exports, module) {
       var intensity = this._intensity * Tablet.getPressureIntensity();
 
       // undo-redo
-      this._states.pushVertices(iVertsInRadius);
+      this._main.getStateManager().pushVertices(iVertsInRadius);
 
       if (this._culling)
         iVertsInRadius = this.getFrontVertices(iVertsInRadius, picking.getEyeDirection());
@@ -42,8 +42,10 @@ define(function (require, exports, module) {
       var vAr = mesh.getVertices();
       var mAr = mesh.getMaterials();
       var nbVerts = iVerts.length;
-      var smoothVerts = new Float32Array(nbVerts * 3);
+
+      var smoothVerts = new Float32Array(Utils.getMemory(nbVerts * 4 * 3), 0, nbVerts * 3);
       this.laplacianSmooth(iVerts, smoothVerts);
+
       for (var i = 0; i < nbVerts; ++i) {
         var ind = iVerts[i] * 3;
         var vx = vAr[ind];
@@ -66,8 +68,10 @@ define(function (require, exports, module) {
       var mAr = mesh.getMaterials();
       var nAr = mesh.getNormals();
       var nbVerts = iVerts.length;
-      var smoothVerts = new Float32Array(nbVerts * 3);
+
+      var smoothVerts = new Float32Array(Utils.getMemory(nbVerts * 4 * 3), 0, nbVerts * 3);
       this.laplacianSmooth(iVerts, smoothVerts);
+
       for (var i = 0; i < nbVerts; ++i) {
         var ind = iVerts[i] * 3;
         var vx = vAr[ind];
@@ -103,8 +107,10 @@ define(function (require, exports, module) {
       var mAr = mesh.getMaterials();
       var nAr = mesh.getNormals();
       var nbVerts = iVerts.length;
-      var smoothVerts = new Float32Array(nbVerts * 3);
+
+      var smoothVerts = new Float32Array(Utils.getMemory(nbVerts * 4 * 3), 0, nbVerts * 3);
       this.laplacianSmooth(iVerts, smoothVerts);
+
       for (var i = 0; i < nbVerts; ++i) {
         var ind = iVerts[i] * 3;
         var vx = vAr[ind];

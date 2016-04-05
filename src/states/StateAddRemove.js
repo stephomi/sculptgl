@@ -20,14 +20,13 @@ define(function (require, exports, module) {
       var i, l;
       for (i = 0, l = addMeshes.length; i < l; ++i)
         meshesMain.splice(main.getIndexMesh(addMeshes[i]), 1);
+
       var remMeshes = this._removedMeshes;
       for (i = 0, l = remMeshes.length; i < l; ++i)
         meshesMain.push(remMeshes[i]);
-      // re link the mesh's render to the current mesh
+
       for (i = 0, l = meshesMain.length; i < l; ++i) {
-        var mesh = meshesMain[i];
-        mesh.getRender()._mesh = mesh;
-        mesh.initRender();
+        meshesMain[i].initRender();
       }
 
       var sel = this._selectMeshes;

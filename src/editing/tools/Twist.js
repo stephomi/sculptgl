@@ -34,7 +34,7 @@ define(function (require, exports, module) {
       var mouseY = main._mouseY;
       var picking = main.getPicking();
       this.initTwistData(picking, mouseX, mouseY, this._twistData);
-      if (main.getSculpt().getSymmetry()) {
+      if (main.getSculptManager().getSymmetry()) {
         var pickingSym = main.getPickingSymmetry();
         pickingSym.intersectionMouseMesh();
         pickingSym.setLocalRadius2(picking.getLocalRadius2());
@@ -60,7 +60,7 @@ define(function (require, exports, module) {
       picking.pickVerticesInSphere(rLocal2);
       this.stroke(picking, mx, my, lx, ly, this._twistData);
 
-      if (main.getSculpt().getSymmetry()) {
+      if (main.getSculptManager().getSymmetry()) {
         var pickingSym = main.getPickingSymmetry();
         if (pickingSym.getMesh()) {
           pickingSym.pickVerticesInSphere(rLocal2);
@@ -75,7 +75,7 @@ define(function (require, exports, module) {
       var iVertsInRadius = picking.getPickedVertices();
 
       // undo-redo
-      this._states.pushVertices(iVertsInRadius);
+      this._main.getStateManager().pushVertices(iVertsInRadius);
       iVertsInRadius = this.dynamicTopology(picking);
 
       if (this._culling)

@@ -126,6 +126,7 @@ define(function (require, exports, module) {
     // gl.deleteShader(vShader);
     return this;
   };
+
   ShaderBase.initUniforms = function (gl) {
     var program = this.program;
     var unifNames = this.uniformNames;
@@ -135,15 +136,14 @@ define(function (require, exports, module) {
       unifs[name] = gl.getUniformLocation(program, name);
     }
   };
+
   ShaderBase.updateUniforms = (function () {
     var tmp = [0.0, 0.0, 0.0];
-    return function (render, main) {
-      var gl = render.getGL();
-      var mesh = render.getMesh();
+    return function (mesh, main) {
+      var gl = mesh.getGL();
 
-      var sels = main.getSelectedMeshes();
-      var darken = ShaderBase.darkenUnselected && sels.length !== 0 && sels.indexOf(mesh) === -1;
-      var useSym = ShaderBase.showSymmetryLine && (mesh === main.getMesh()) && main.getSculpt().getSymmetry();
+      var darken = ShaderBase.darkenUnselected && main.getIndexSelectMesh(mesh) < 0;
+      var useSym = ShaderBase.showSymmetryLine && (mesh.getID() === main.getMesh().getID()) && main.getSculptManager().getSymmetry();
 
       var uniforms = this.uniforms;
 
@@ -165,24 +165,27 @@ define(function (require, exports, module) {
       gl.uniform1f(uniforms.uFov, cam.isOrthographic() ? -Math.abs(cam._trans[2]) * 25.0 : cam.getFov());
     };
   })();
-  ShaderBase.draw = function (render, main) {
-    var gl = render.getGL();
+
+  ShaderBase.draw = function (mesh, main) {
+    var gl = mesh.getGL();
     gl.useProgram(this.program);
-    this.bindAttributes(render);
-    this.updateUniforms(render, main);
-    this.drawBuffer(render);
+    this.bindAttributes(mesh);
+    this.updateUniforms(mesh, main);
+    this.drawBuffer(mesh);
   };
-  ShaderBase.drawBuffer = function (render) {
-    var gl = render.getGL();
-    if (render.isUsingDrawArrays()) {
-      gl.drawArrays(render.getMode(), 0, render.getCount());
+
+  ShaderBase.drawBuffer = function (mesh) {
+    var gl = mesh.getGL();
+    if (mesh.isUsingDrawArrays()) {
+      gl.drawArrays(mesh.getMode(), 0, mesh.getCount());
     } else {
-      render.getIndexBuffer().bind();
-      gl.drawElements(render.getMode(), render.getCount(), gl.UNSIGNED_INT, 0);
+      mesh.getIndexBuffer().bind();
+      gl.drawElements(mesh.getMode(), mesh.getCount(), gl.UNSIGNED_INT, 0);
     }
     gl.bindBuffer(gl.ARRAY_BUFFER, null);
     gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, null);
   };
+
   ShaderBase.setTextureParameters = function (gl, tex) {
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
     if (Utils.isPowerOfTwo(tex.width) && Utils.isPowerOfTwo(tex.height)) {
@@ -196,6 +199,7 @@ define(function (require, exports, module) {
       gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
     }
   };
+
   ShaderBase.onLoadTexture0 = function (gl, tex, main) {
     this.texture0 = gl.createTexture();
     gl.bindTexture(gl.TEXTURE_2D, this.texture0);
@@ -205,6 +209,17 @@ define(function (require, exports, module) {
     if (main)
       main.render();
   };
+
+  ShaderBase.getDummyTexture = function (gl) {
+    if (this._dummyTex)
+      return this._dummyTex;
+    this._dummyTex = gl.createTexture();
+    gl.bindTexture(gl.TEXTURE_2D, this._dummyTex);
+    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, 1, 1, 0, gl.RGBA, gl.UNSIGNED_BYTE, new Uint8Array(4));
+    gl.bindTexture(gl.TEXTURE_2D, null);
+    return this._dummyTex;
+  };
+
   ShaderBase.getOrCreateTexture0 = function (gl, texPath, main) {
     if (this.texture0 !== undefined)
       return this.texture0;
@@ -214,6 +229,7 @@ define(function (require, exports, module) {
     tex.onload = this.onLoadTexture0.bind(this, gl, tex, main);
     return false;
   };
+
   ShaderBase.initAttributes = function (gl) {
     var program = this.program;
     var attrs = this.attributes;
@@ -222,13 +238,14 @@ define(function (require, exports, module) {
     attrs.aColor = new Attribute(gl, program, 'aColor', 3, gl.FLOAT);
     attrs.aMaterial = new Attribute(gl, program, 'aMaterial', 3, gl.FLOAT);
   };
-  ShaderBase.bindAttributes = function (render) {
+
+  ShaderBase.bindAttributes = function (mesh) {
     var attrs = this.attributes;
     var active = this.activeAttributes;
-    if (active.vertex) attrs.aVertex.bindToBuffer(render.getVertexBuffer());
-    if (active.normal) attrs.aNormal.bindToBuffer(render.getNormalBuffer());
-    if (active.color) attrs.aColor.bindToBuffer(render.getColorBuffer());
-    if (active.material) attrs.aMaterial.bindToBuffer(render.getMaterialBuffer());
+    if (active.vertex) attrs.aVertex.bindToBuffer(mesh.getVertexBuffer());
+    if (active.normal) attrs.aNormal.bindToBuffer(mesh.getNormalBuffer());
+    if (active.color) attrs.aColor.bindToBuffer(mesh.getColorBuffer());
+    if (active.material) attrs.aMaterial.bindToBuffer(mesh.getMaterialBuffer());
   };
 
   ShaderBase.getCopy = function () {

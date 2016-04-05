@@ -21,9 +21,9 @@ define(function (require, exports, module) {
     case StateMultiresolution.SUBDIVISION:
     case StateMultiresolution.REVERSION:
       if (!isRedo) {
-        this._vArState = this._mesh.getVertices().slice(); // copies of vertices coordinates
-        this._cArState = this._mesh.getColors().slice(); // copies of colors
-        this._mArState = this._mesh.getMaterials().slice(); // copies of materials
+        this._vArState = new Float32Array(this._mesh.getVertices()); // copies of vertices coordinates
+        this._cArState = new Float32Array(this._mesh.getColors()); // copies of colors
+        this._mArState = new Float32Array(this._mesh.getMaterials()); // copies of materials
       }
       break;
     }
@@ -47,22 +47,21 @@ define(function (require, exports, module) {
         break;
       case StateMultiresolution.DELETE_LOWER:
         Array.prototype.unshift.apply(mul._meshes, this._deletedMeshes);
-        mul._sel = this._deletedMeshes.length;
         break;
       case StateMultiresolution.DELETE_HIGHER:
         Array.prototype.push.apply(mul._meshes, this._deletedMeshes);
         this._mesh.setVerticesMapping(this._vMappingState);
         break;
       case StateMultiresolution.SUBDIVISION:
-        this._mesh.setVertices(this._vArState.slice());
-        this._mesh.setColors(this._cArState.slice());
-        this._mesh.setMaterials(this._mArState.slice());
+        this._mesh.setVertices(new Float32Array(this._vArState));
+        this._mesh.setColors(new Float32Array(this._cArState));
+        this._mesh.setMaterials(new Float32Array(this._mArState));
         mul.popMesh();
         break;
       case StateMultiresolution.REVERSION:
-        this._mesh.setVertices(this._vArState.slice());
-        this._mesh.setColors(this._cArState.slice());
-        this._mesh.setMaterials(this._mArState.slice());
+        this._mesh.setVertices(new Float32Array(this._vArState));
+        this._mesh.setColors(new Float32Array(this._cArState));
+        this._mesh.setMaterials(new Float32Array(this._mArState));
         mul.shiftMesh();
         break;
       }

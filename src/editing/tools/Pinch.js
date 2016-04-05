@@ -23,7 +23,7 @@ define(function (require, exports, module) {
       var intensity = this._intensity * Tablet.getPressureIntensity();
 
       // undo-redo
-      this._states.pushVertices(iVertsInRadius);
+      this._main.getStateManager().pushVertices(iVertsInRadius);
       iVertsInRadius = this.dynamicTopology(picking);
 
       if (this._culling)

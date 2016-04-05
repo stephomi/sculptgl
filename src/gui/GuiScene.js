@@ -117,7 +117,7 @@ define(function (require, exports, module) {
 
       var newMesh = Remesh.mergeMeshes(selMeshes, main.getMesh() || selMeshes[0]);
       main.removeMeshes(selMeshes);
-      main.getStates().pushStateAddRemove(newMesh, selMeshes.slice());
+      main.getStateManager().pushStateAddRemove(newMesh, selMeshes.slice());
       main.getMeshes().push(newMesh);
       main.setMesh(newMesh);
     },
@@ -148,8 +148,8 @@ define(function (require, exports, module) {
         }
       }
 
-      main.getStates().pushStateRemove(hMeshes.slice());
-      main.getStates().pushStateCustom(this._cbToggleShowHide, this._cbToggleShowHide, true);
+      main.getStateManager().pushStateRemove(hMeshes.slice());
+      main.getStateManager().pushStateCustom(this._cbToggleShowHide, this._cbToggleShowHide, true);
       main.render();
     },
     showAll: function () {
@@ -159,8 +159,8 @@ define(function (require, exports, module) {
       for (var i = 0, nbAdd = hMeshes.length; i < nbAdd; ++i) {
         meshes.push(hMeshes[i]);
       }
-      main.getStates().pushStateAdd(hMeshes.slice());
-      main.getStates().pushStateCustom(this._cbToggleShowHide, this._cbToggleShowHide, true);
+      main.getStateManager().pushStateAdd(hMeshes.slice());
+      main.getStateManager().pushStateCustom(this._cbToggleShowHide, this._cbToggleShowHide, true);
       hMeshes.length = 0;
       main.render();
     },

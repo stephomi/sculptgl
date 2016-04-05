@@ -2,6 +2,7 @@ define(function (require, exports, module) {
 
   'use strict';
 
+  var Enums = require('misc/Enums');
   var Utils = require('misc/Utils');
 
   // Overview sculpt :
@@ -16,7 +17,6 @@ define(function (require, exports, module) {
 
   var SculptBase = function (main) {
     this._main = main;
-    this._states = main ? main.getStates() : null; // for undo-redo
     this._cbContinuous = this.updateContinuous.bind(this); // callback continuous
     this._lastMouseX = 0.0;
     this._lastMouseY = 0.0;
@@ -43,7 +43,7 @@ define(function (require, exports, module) {
         return false;
 
       picking.initAlpha();
-      var pickingSym = main.getSculpt().getSymmetry() ? main.getPickingSymmetry() : null;
+      var pickingSym = main.getSculptManager().getSymmetry() ? main.getPickingSymmetry() : null;
       if (pickingSym) {
         pickingSym.intersectionMouseMesh(mesh);
         pickingSym.initAlpha();
@@ -58,10 +58,10 @@ define(function (require, exports, module) {
     },
     end: function () {
       if (this.getMesh())
-        this.getMesh().checkLeavesUpdate();
+        this.getMesh().balanceOctree();
     },
     pushState: function () {
-      this._states.pushStateGeometry(this.getMesh());
+      this._main.getStateManager().pushStateGeometry(this.getMesh());
     },
     startSculpt: function () {
       if (this._lockPosition === true)
@@ -71,7 +71,7 @@ define(function (require, exports, module) {
     preUpdate: function (canBeContinuous) {
       var main = this._main;
       var picking = main.getPicking();
-      var isSculpting = main._action === 'SCULPT_EDIT';
+      var isSculpting = main._action === Enums.Action.SCULPT_EDIT;
 
       if (isSculpting && !canBeContinuous)
         return;
@@ -82,7 +82,7 @@ define(function (require, exports, module) {
         picking.intersectionMouseMeshes();
 
       var mesh = picking.getMesh();
-      if (mesh && main.getSculpt().getSymmetry())
+      if (mesh && main.getSculptManager().getSymmetry())
         main.getPickingSymmetry().intersectionMouseMesh(mesh);
     },
     update: function (continuous) {
@@ -94,11 +94,11 @@ define(function (require, exports, module) {
     updateSculptLock: function (continuous) {
       var main = this._main;
       if (!continuous)
-        this._states.getCurrentState().undo(); // I can't believe it actually worked
+        this._main.getStateManager().getCurrentState().undo(); // tricky
 
       var picking = main.getPicking();
       var origRad = this._radius;
-      var pickingSym = main.getSculpt().getSymmetry() ? main.getPickingSymmetry() : null;
+      var pickingSym = main.getSculptManager().getSymmetry() ? main.getPickingSymmetry() : null;
 
       var dx = main._mouseX - this._lastMouseX;
       var dy = main._mouseY - this._lastMouseY;
@@ -116,7 +116,7 @@ define(function (require, exports, module) {
     sculptStroke: function () {
       var main = this._main;
       var picking = main.getPicking();
-      var pickingSym = main.getSculpt().getSymmetry() ? main.getPickingSymmetry() : null;
+      var pickingSym = main.getSculptManager().getSymmetry() ? main.getPickingSymmetry() : null;
 
       var dx = main._mouseX - this._lastMouseX;
       var dy = main._mouseY - this._lastMouseY;
@@ -157,7 +157,7 @@ define(function (require, exports, module) {
         picking.computePickedNormal();
       }
       // if dyn topo, we need to the picking and the sculpting altogether
-      var dynTopo = mesh.getDynamicTopology && !this._lockPosition;
+      var dynTopo = mesh.isDynamic && !this._lockPosition;
       if (dynTopo && pick1)
         this.stroke(picking, false);
 
@@ -178,7 +178,7 @@ define(function (require, exports, module) {
     },
     updateMeshBuffers: function () {
       var mesh = this.getMesh();
-      if (mesh.getDynamicTopology)
+      if (mesh.isDynamic)
         mesh.updateBuffers();
       else
         mesh.updateGeometryBuffers();
@@ -187,7 +187,7 @@ define(function (require, exports, module) {
       if (this._lockPosition) return this.update(true);
       var main = this._main;
       var picking = main.getPicking();
-      var pickingSym = main.getSculpt().getSymmetry() ? main.getPickingSymmetry() : null;
+      var pickingSym = main.getSculptManager().getSymmetry() ? main.getPickingSymmetry() : null;
       this.makeStroke(main._mouseX, main._mouseY, picking, pickingSym);
       this.updateRender();
     },
@@ -330,19 +330,19 @@ define(function (require, exports, module) {
     dynamicTopology: function (picking) {
       var mesh = this.getMesh();
       var iVerts = picking.getPickedVertices();
-      if (!mesh.getDynamicTopology)
+      if (!mesh.isDynamic)
         return iVerts;
+
+      var subFactor = mesh.getSubdivisionFactor();
+      var decFactor = mesh.getDecimationFactor();
+      if (subFactor === 0.0 && decFactor === 0.0)
+        return iVerts;
+
       if (iVerts.length === 0) {
         iVerts = mesh.getVerticesFromFaces([picking.getPickedFace()]);
         // undo-redo
-        this._states.pushVertices(iVerts);
+        this._main.getStateManager().pushVertices(iVerts);
       }
-
-      var topo = mesh.getDynamicTopology();
-      var subFactor = topo.getSubdivisionFactor();
-      var decFactor = topo.getDecimationFactor();
-      if (subFactor === 0.0 && decFactor === 0.0)
-        return iVerts;
 
       var iFaces = mesh.getFacesFromVertices(iVerts);
       var radius2 = picking.getLocalRadius2();
@@ -351,12 +351,12 @@ define(function (require, exports, module) {
       var d2Min = (d2Max / 4.2025) * decFactor;
 
       // undo-redo
-      this._states.pushFaces(iFaces);
+      this._main.getStateManager().pushFaces(iFaces);
 
       if (subFactor)
-        iFaces = topo.subdivision(iFaces, center, radius2, d2Max, this._states);
+        iFaces = mesh.subdivide(iFaces, center, radius2, d2Max, this._main.getStateManager());
       if (decFactor)
-        iFaces = topo.decimation(iFaces, center, radius2, d2Min, this._states);
+        iFaces = mesh.decimate(iFaces, center, radius2, d2Min, this._main.getStateManager());
       iVerts = mesh.getVerticesFromFaces(iFaces);
 
       var nbVerts = iVerts.length;
@@ -369,6 +369,7 @@ define(function (require, exports, module) {
         if (vscf[iVert] === sculptFlag)
           iVertsInRadius[acc++] = iVert;
       }
+
       iVertsInRadius = new Uint32Array(iVertsInRadius.subarray(0, acc));
       mesh.updateTopology(iFaces);
       mesh.updateGeometry(iFaces, iVertsInRadius);
@@ -395,7 +396,9 @@ define(function (require, exports, module) {
       }
       return new Uint32Array(cleaned.subarray(0, acc));
     },
-    postRender: function () {},
+    postRender: function (selection) {
+      selection.render(this._main);
+    },
     addSculptToScene: function () {},
     getScreenRadius: function () {
       return (this._radius || 1) * this._main.getPixelRatio();

@@ -2,34 +2,24 @@ define(function (require, exports, module) {
 
   'use strict';
 
-  var Sbackground = require('render/shaders/ShaderBackground');
-  var Scontour = require('render/shaders/ShaderContour');
-  var Sselection = require('render/shaders/ShaderSelection');
-  var Sflat = require('render/shaders/ShaderFlat');
-  var Sfxaa = require('render/shaders/ShaderFxaa');
-  var Smatcap = require('render/shaders/ShaderMatcap');
-  var Smerge = require('render/shaders/ShaderMerge');
-  var Snormal = require('render/shaders/ShaderNormal');
-  var SPBR = require('render/shaders/ShaderPBR');
-  var Suv = require('render/shaders/ShaderUV');
-  var Swireframe = require('render/shaders/ShaderWireframe');
+  var Enums = require('misc/Enums');
 
-  var ShaderLib = {};
+  var ShaderLib = [];
 
   // 3D shaders
-  ShaderLib.PBR = SPBR;
-  ShaderLib.MATCAP = Smatcap;
-  ShaderLib.NORMAL = Snormal;
-  ShaderLib.UV = Suv;
-  ShaderLib.WIREFRAME = Swireframe;
-  ShaderLib.FLAT = Sflat;
-  ShaderLib.SELECTION = Sselection;
+  ShaderLib[Enums.Shader.PBR] = require('render/shaders/ShaderPBR');
+  ShaderLib[Enums.Shader.MATCAP] = require('render/shaders/ShaderMatcap');
+  ShaderLib[Enums.Shader.NORMAL] = require('render/shaders/ShaderNormal');
+  ShaderLib[Enums.Shader.UV] = require('render/shaders/ShaderUV');
+  ShaderLib[Enums.Shader.WIREFRAME] = require('render/shaders/ShaderWireframe');
+  ShaderLib[Enums.Shader.FLAT] = require('render/shaders/ShaderFlat');
+  ShaderLib[Enums.Shader.SELECTION] = require('render/shaders/ShaderSelection');
 
   // 2D screen shaders
-  ShaderLib.BACKGROUND = Sbackground;
-  ShaderLib.MERGE = Smerge;
-  ShaderLib.FXAA = Sfxaa;
-  ShaderLib.CONTOUR = Scontour;
+  ShaderLib[Enums.Shader.BACKGROUND] = require('render/shaders/ShaderBackground');
+  ShaderLib[Enums.Shader.MERGE] = require('render/shaders/ShaderMerge');
+  ShaderLib[Enums.Shader.FXAA] = require('render/shaders/ShaderFxaa');
+  ShaderLib[Enums.Shader.CONTOUR] = require('render/shaders/ShaderContour');
 
   module.exports = ShaderLib;
 });

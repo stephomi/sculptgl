@@ -2,8 +2,8 @@ define(function (require, exports, module) {
 
   'use strict';
 
-  var Mesh = require('mesh/Mesh');
   var Utils = require('misc/Utils');
+  var MeshStatic = require('mesh/MeshStatic/MeshStatic');
 
   var Import = {};
 
@@ -172,7 +172,7 @@ define(function (require, exports, module) {
   ///////////////
   // READ VERTEX
   ///////////////
-  var cleanVertexElement = function (element, infos) {
+  var prepareElements = function (element, infos) {
     var props = element.properties;
     var objProperties = element.objProperties = {};
     element.offsetOctet = 0;
@@ -181,6 +181,7 @@ define(function (require, exports, module) {
       var prop = props[i];
       var objProp = objProperties[prop.name] = {};
       objProp.type = prop.type;
+      objProp.type2 = prop.type2;
       if (infos.isBinary) {
         objProp.offsetOctet = element.offsetOctet;
         element.offsetOctet += typeToOctet(prop.type);
@@ -189,6 +190,10 @@ define(function (require, exports, module) {
       }
     }
   };
+
+  ///////////////
+  // READ VERTEX
+  ///////////////
 
   var readAsciiVertex = function (element, infos, vAr, cAr) {
 
@@ -201,20 +206,29 @@ define(function (require, exports, module) {
     var parseY = getParseFunc(props.y.type, true);
     var parseZ = getParseFunc(props.z.type, true);
 
+    var xID = props.x.id;
+    var yID = props.y.id;
+    var zID = props.z.id;
+
     var parseR, parseG, parseB;
     if (props.red) parseR = getParseFunc(props.red.type, true);
     if (props.green) parseG = getParseFunc(props.green.type, true);
     if (props.blue) parseB = getParseFunc(props.blue.type, true);
 
+    var rID, gID, bID;
+    if (props.red) rID = props.red.id;
+    if (props.green) gID = props.green.id;
+    if (props.blue) bID = props.blue.id;
+
     for (var i = 0; i < count; ++i) {
       var id = i * 3;
       var split = lines[offsetLine + i].trim().split(/\s+/);
-      vAr[id] = parseX(split[props.x.id]);
-      vAr[id + 1] = parseY(split[props.y.id]);
-      vAr[id + 2] = parseZ(split[props.z.id]);
-      if (parseR) cAr[id] = parseR(split[props.red.id]);
-      if (parseG) cAr[id + 1] = parseG(split[props.green.id]);
-      if (parseB) cAr[id + 2] = parseB(split[props.blue.id]);
+      vAr[id] = parseX(split[xID]);
+      vAr[id + 1] = parseY(split[yID]);
+      vAr[id + 2] = parseZ(split[zID]);
+      if (parseR) cAr[id] = parseR(split[rID]);
+      if (parseG) cAr[id + 1] = parseG(split[gID]);
+      if (parseB) cAr[id + 2] = parseB(split[bID]);
     }
 
     infos.offsetLine += count;
@@ -253,7 +267,7 @@ define(function (require, exports, module) {
 
   var readElementVertex = function (element, infos) {
 
-    cleanVertexElement(element, infos);
+    prepareElements(element, infos);
 
     var vAr = infos.vertices = new Float32Array(element.count * 3);
     var cAr;
@@ -274,11 +288,15 @@ define(function (require, exports, module) {
 
     var count = element.count;
     var lines = infos.lines;
+    var props = element.objProperties;
     var offsetLine = infos.offsetLine;
-    var obj = element.properties[0];
 
-    var parseCount = getParseFunc(obj.type);
-    var parseIndex = getParseFunc(obj.type2);
+    var propIndex = props.vertex_index || props.vertex_indices;
+
+    var parseCount = getParseFunc(propIndex.type);
+    var parseIndex = getParseFunc(propIndex.type2);
+
+    var id = propIndex.id;
 
     var idFace = 0;
     for (var i = 0; i < count; ++i) {
@@ -287,68 +305,57 @@ define(function (require, exports, module) {
       if (nbVert !== 3 && nbVert !== 4)
         continue;
 
-      fAr[idFace] = parseIndex(split[1]);
-      fAr[idFace + 1] = parseIndex(split[2]);
-      fAr[idFace + 2] = parseIndex(split[3]);
-      fAr[idFace + 3] = nbVert === 4 ? parseIndex(split[4]) : -1;
+      fAr[idFace] = parseIndex(split[id + 1]);
+      fAr[idFace + 1] = parseIndex(split[id + 2]);
+      fAr[idFace + 2] = parseIndex(split[id + 3]);
+      fAr[idFace + 3] = nbVert === 4 ? parseIndex(split[id + 4]) : Utils.TRI_INDEX;
       idFace += 4;
     }
 
     infos.offsetLine += count;
   };
 
-  var readBinaryIndex = function (element, infos, fAr) {
+  var readBinaryIndex = function (element, infos, fAr, dummy) {
     var count = element.count;
-    var obj = element.properties[0];
+    var props = element.objProperties;
+    var propIndex = props.vertex_index || props.vertex_indices || element.properties[0];
 
     var dview = new DataView(infos.buffer, infos.offsetOctet);
-    var readCount = getBinaryRead(dview, {
-      type: obj.type,
-      offsetOctet: 0
-    });
+    var readCount = getBinaryRead(dview, propIndex);
 
     var readIndex = getBinaryRead(dview, {
-      type: obj.type2,
-      offsetOctet: 0
+      type: propIndex.type2,
+      offsetOctet: propIndex.offsetOctet + typeToOctet(propIndex.type)
     });
 
+    var nbOctetIndex = typeToOctet(propIndex.type2);
+    var offsetOctet = element.offsetOctet;
     var offsetCurrent = 0;
 
-    var nbOctetCount = typeToOctet(obj.type);
-    var nbOctetIndex = typeToOctet(obj.type2);
     var idf = 0;
     for (var i = 0; i < count; ++i) {
       var nbVert = readCount(offsetCurrent);
-      offsetCurrent += nbOctetCount;
-      if (nbVert !== 3 && nbVert !== 4) {
-        offsetCurrent += nbVert * nbOctetIndex;
-        continue;
-      }
 
-      fAr[idf++] = readIndex(offsetCurrent);
-      offsetCurrent += nbOctetIndex;
-
-      fAr[idf++] = readIndex(offsetCurrent);
-      offsetCurrent += nbOctetIndex;
-
-      fAr[idf++] = readIndex(offsetCurrent);
-      offsetCurrent += nbOctetIndex;
-
-      if (nbVert === 4) {
+      if (nbVert === 3 || nbVert === 4) {
         fAr[idf++] = readIndex(offsetCurrent);
-        offsetCurrent += nbOctetIndex;
-      } else {
-        fAr[idf++] = -1;
+        fAr[idf++] = readIndex(offsetCurrent + nbOctetIndex);
+        fAr[idf++] = readIndex(offsetCurrent + 2 * nbOctetIndex);
+        fAr[idf++] = nbVert === 3 ? Utils.TRI_INDEX : readIndex(offsetCurrent + 3 * nbOctetIndex);
       }
+
+      offsetCurrent += nbVert * nbOctetIndex + offsetOctet;
     }
 
-    infos.faces = fAr.subarray(0, idf);
+    if (!dummy)
+      infos.faces = fAr.subarray(0, idf);
     infos.offsetOctet += offsetCurrent;
   };
 
   var readElementIndex = function (element, infos) {
 
-    var fAr = infos.faces = new Int32Array(element.count * 4);
+    prepareElements(element, infos);
+
+    var fAr = infos.faces = new Uint32Array(element.count * 4);
     if (!infos.isBinary)
       readAsciiIndex(element, infos, fAr);
     else
@@ -365,22 +372,7 @@ define(function (require, exports, module) {
 
     } else {
 
-      var obj = element.properties[0];
-
-      var dview = new DataView(infos.buffer, infos.offsetOctet);
-      var readCount = getBinaryRead(dview, {
-        type: obj.type,
-        offsetOctet: 0
-      });
-
-      var offsetCurrent = 0;
-      var nbOctetCount = typeToOctet(obj.type);
-      var nbOctetIndex = typeToOctet(obj.type2);
-      for (var i = 0; i < count; ++i) {
-        offsetCurrent += nbOctetCount + readCount(offsetCurrent) * nbOctetIndex;
-      }
-
-      infos.offsetOctet += offsetCurrent;
+      readBinaryIndex(element, infos, [], true);
     }
 
   };
@@ -403,7 +395,7 @@ define(function (require, exports, module) {
       }
     }
 
-    var mesh = new Mesh(gl);
+    var mesh = new MeshStatic(gl);
     mesh.setVertices(infos.vertices);
     mesh.setFaces(infos.faces);
     mesh.setColors(infos.colors);

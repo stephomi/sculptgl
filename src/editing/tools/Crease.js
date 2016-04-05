@@ -24,12 +24,11 @@ define(function (require, exports, module) {
 
       this.updateProxy(iVertsInRadius);
       // undo-redo
-      this._states.pushVertices(iVertsInRadius);
+      this._main.getStateManager().pushVertices(iVertsInRadius);
       iVertsInRadius = this.dynamicTopology(picking);
 
-      var iVertsFront = this.getFrontVertices(iVertsInRadius, picking.getEyeDirection());
       if (this._culling)
-        iVertsInRadius = iVertsFront;
+        iVertsInRadius = this.getFrontVertices(iVertsInRadius, picking.getEyeDirection());
 
       picking.updateAlpha(this._lockPosition);
       picking.setIdAlpha(this._idAlpha);

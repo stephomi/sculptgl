@@ -211,6 +211,7 @@ define(function (require, exports, module) {
       var alpha = 0.0;
       var k = 0;
       var id = 0;
+
       // edge vertex
       if (vertOnEdgeOld[i] || Subdivision.LINEAR) {
         var startF = vrfStartCount[i * 2];
@@ -221,21 +222,24 @@ define(function (require, exports, module) {
           var i2 = fArOld[idFace + 1];
           var i3 = fArOld[idFace + 2];
           var i4 = fArOld[idFace + 3];
-          id = -1;
+          var isTri = i4 === Utils.TRI_INDEX;
+          id = Utils.TRI_INDEX;
+
           if (i1 === i) {
             if (eArOld[feArOld[idFace]] === 1) id = i2;
-            else if (eArOld[feArOld[i4 < 0 ? idFace + 2 : idFace + 3]] === 1) id = i4 < 0 ? i3 : i4;
+            else if (eArOld[feArOld[isTri ? idFace + 2 : idFace + 3]] === 1) id = isTri ? i3 : i4;
           } else if (i2 === i) {
             if (eArOld[feArOld[idFace]] === 1) id = i1;
             else if (eArOld[feArOld[idFace + 1]] === 1) id = i3;
           } else if (i3 === i) {
             if (eArOld[feArOld[idFace + 1]] === 1) id = i2;
-            else if (eArOld[feArOld[idFace + 2]] === 1) id = i4 < 0 ? i1 : i4;
+            else if (eArOld[feArOld[idFace + 2]] === 1) id = isTri ? i1 : i4;
           } else if (i4 === i) {
             if (eArOld[feArOld[idFace + 2]] === 1) id = i3;
             else if (eArOld[feArOld[idFace + 3]] === 1) id = i1;
           }
-          if (id < 0) continue;
+
+          if (id === Utils.TRI_INDEX) continue;
           id *= 3;
           avx += vArOld[id];
           avy += vArOld[id + 1];
@@ -293,7 +297,8 @@ define(function (require, exports, module) {
       for (k = startFace; k < endFace; ++k) {
         id = vertRingFace[k] * 4;
         var iv4 = fArOld[id + 3];
-        if (iv4 < 0) continue;
+        if (iv4 === Utils.TRI_INDEX) continue;
+
         nbQuad++;
         var iv1 = fArOld[id];
         var iv2 = fArOld[id + 1];
@@ -307,6 +312,7 @@ define(function (require, exports, module) {
         oppy += vArOld[ivOpp + 1];
         oppz += vArOld[ivOpp + 2];
       }
+
       // interior vertex quad
       if (nbQuad === (endFace - startFace)) {
         if (count === 4) {
@@ -361,8 +367,10 @@ define(function (require, exports, module) {
       var iv2 = fAr[id + 1];
       var iv3 = fAr[id + 2];
       var iv4 = fAr[id + 3];
+      var isQuad = iv4 !== Utils.TRI_INDEX;
       var ivMid1, ivMid2, ivMid3, ivMid4, ivCen;
-      if (iv4 >= 0) {
+
+      if (isQuad) {
         ivMid1 = oddComputer.computeQuadEdgeVertex(iv1, iv2, iv3, iv4, feAr[id]);
         ivMid2 = oddComputer.computeQuadEdgeVertex(iv2, iv3, iv4, iv1, feAr[id + 1]);
         ivMid3 = oddComputer.computeQuadEdgeVertex(iv3, iv4, iv1, iv2, feAr[id + 2]);
@@ -373,11 +381,12 @@ define(function (require, exports, module) {
         ivMid2 = oddComputer.computeTriangleEdgeVertex(iv2, iv3, iv1, feAr[id + 1]);
         ivMid3 = oddComputer.computeTriangleEdgeVertex(iv3, iv1, iv2, feAr[id + 2]);
       }
+
       if (!fArOut)
         continue;
 
       id *= 4;
-      if (iv4 >= 0) {
+      if (isQuad) {
         fArOut[id + 1] = fArOut[id + 4] = ivMid1;
         fArOut[id + 6] = fArOut[id + 9] = ivMid2;
         fArOut[id + 11] = fArOut[id + 14] = ivMid3;
@@ -391,13 +400,94 @@ define(function (require, exports, module) {
         fArOut[id] = fArOut[id + 5] = fArOut[id + 8] = ivMid1;
         fArOut[id + 1] = fArOut[id + 10] = fArOut[id + 12] = ivMid2;
         fArOut[id + 2] = fArOut[id + 6] = fArOut[id + 14] = ivMid3;
-        fArOut[id + 3] = fArOut[id + 7] = fArOut[id + 11] = fArOut[id + 15] = -1;
+        fArOut[id + 3] = fArOut[id + 7] = fArOut[id + 11] = fArOut[id + 15] = Utils.TRI_INDEX;
         fArOut[id + 4] = iv1;
         fArOut[id + 9] = iv2;
         fArOut[id + 13] = iv3;
       }
     }
     return oddComputer._tagEdges;
+  };
+
+  /** Computes uv faces and uv coordinates for center vertices */
+  var computeFaceTexCoords = function (mesh, newMesh, tagEdges) {
+    var fArUVOld = mesh.getFacesTexCoord();
+    var fAr = newMesh.getFaces();
+    var fArUV = new Uint32Array(fAr.length);
+    var feAr = mesh.getFaceEdges();
+
+    var nbVertices = mesh.getNbVertices();
+    var offset = newMesh.getNbVertices() - nbVertices;
+
+    var startCount = newMesh.getVerticesDuplicateStartCount();
+    var uvAr = newMesh.getTexCoords();
+    for (var i = 0, len = mesh.getNbFaces(); i < len; ++i) {
+      var id = i * 4;
+      var iuv1 = fArUVOld[id];
+      var iuv2 = fArUVOld[id + 1];
+      var iuv3 = fArUVOld[id + 2];
+      var iuv4 = fArUVOld[id + 3];
+      if (iuv1 >= nbVertices) iuv1 += offset;
+      if (iuv2 >= nbVertices) iuv2 += offset;
+      if (iuv3 >= nbVertices) iuv3 += offset;
+      if (iuv4 !== Utils.TRI_INDEX && iuv4 >= nbVertices) iuv4 += offset;
+
+      var ide = feAr[id];
+      var tg1 = tagEdges[ide] - 1;
+      if (tg1 < 0)
+        tg1 = startCount[(-tg1 - 1) * 2];
+      else if (startCount[tg1 * 2] > 0)
+        tagEdges[ide] = -tg1;
+
+      ide = feAr[id + 1];
+      var tg2 = tagEdges[ide] - 1;
+      if (tg2 < 0)
+        tg2 = startCount[(-tg2 - 1) * 2];
+      else if (startCount[tg2 * 2] > 0)
+        tagEdges[ide] = -tg2;
+
+      ide = feAr[id + 2];
+      var tg3 = tagEdges[ide] - 1;
+      if (tg3 < 0)
+        tg3 = startCount[(-tg3 - 1) * 2];
+      else if (startCount[tg3 * 2] > 0)
+        tagEdges[ide] = -tg3;
+
+      id *= 4;
+      if (iuv4 !== Utils.TRI_INDEX) {
+        ide = feAr[i * 4 + 3];
+        var tg4 = tagEdges[ide] - 1;
+        if (tg4 < 0)
+          tg4 = startCount[(-tg4 - 1) * 2];
+        else if (startCount[tg4 * 2] > 0)
+          tagEdges[ide] = -tg4;
+
+        fArUV[id + 1] = fArUV[id + 4] = tg1;
+        fArUV[id + 6] = fArUV[id + 9] = tg2;
+        fArUV[id + 11] = fArUV[id + 14] = tg3;
+        fArUV[id + 3] = fArUV[id + 12] = tg4;
+        fArUV[id + 2] = fArUV[id + 7] = fArUV[id + 8] = fArUV[id + 13] = fAr[id + 2];
+        fArUV[id] = iuv1;
+        fArUV[id + 5] = iuv2;
+        fArUV[id + 10] = iuv3;
+        fArUV[id + 15] = iuv4;
+
+        // even averaging for center quad
+        var im = fAr[id + 2] * 2;
+        uvAr[im] = (uvAr[iuv1 * 2] + uvAr[iuv2 * 2] + uvAr[iuv3 * 2] + uvAr[iuv4 * 2]) * 0.25;
+        uvAr[im + 1] = (uvAr[iuv1 * 2 + 1] + uvAr[iuv2 * 2 + 1] + uvAr[iuv3 * 2 + 1] + uvAr[iuv4 * 2 + 1]) * 0.25;
+      } else {
+        fArUV[id] = fArUV[id + 5] = fArUV[id + 8] = tg1;
+        fArUV[id + 1] = fArUV[id + 10] = fArUV[id + 12] = tg2;
+        fArUV[id + 2] = fArUV[id + 6] = fArUV[id + 14] = tg3;
+        fArUV[id + 3] = fArUV[id + 7] = fArUV[id + 11] = fArUV[id + 15] = Utils.TRI_INDEX;
+        fArUV[id + 4] = iuv1;
+        fArUV[id + 9] = iuv2;
+        fArUV[id + 13] = iuv3;
+      }
+    }
+
+    newMesh.setFacesTexCoord(fArUV);
   };
 
   /** Subdivide tex coords mesh */
@@ -435,12 +525,13 @@ define(function (require, exports, module) {
     len = fArOld.length;
     for (i = 0; i < len; ++i) {
       var ide = feAr[i];
-      if (ide === -1)
+      if (ide === Utils.TRI_INDEX)
         continue;
+
       var iNext = (i + 1) % 4 === 0 ? i - 3 : i + 1;
       var iuv1 = fArUVOld[i];
       var iuv2 = fArUVOld[iNext];
-      if (iuv2 < 0)
+      if (iuv2 === Utils.TRI_INDEX)
         iuv2 = fArUVOld[i - 2];
       var tg = tagEdges[ide] - 1;
 
@@ -473,94 +564,13 @@ define(function (require, exports, module) {
     computeFaceTexCoords(mesh, newMesh, tagEdges);
   };
 
-  /** Computes uv faces and uv coordinates for center vertices */
-  var computeFaceTexCoords = function (mesh, newMesh, tagEdges) {
-    var fArUVOld = mesh.getFacesTexCoord();
-    var fAr = newMesh.getFaces();
-    var fArUV = new Int32Array(fAr.length);
-    var feAr = mesh.getFaceEdges();
-
-    var nbVertices = mesh.getNbVertices();
-    var offset = newMesh.getNbVertices() - nbVertices;
-
-    var startCount = newMesh.getVerticesDuplicateStartCount();
-    var uvAr = newMesh.getTexCoords();
-    for (var i = 0, len = mesh.getNbFaces(); i < len; ++i) {
-      var id = i * 4;
-      var iuv1 = fArUVOld[id];
-      var iuv2 = fArUVOld[id + 1];
-      var iuv3 = fArUVOld[id + 2];
-      var iuv4 = fArUVOld[id + 3];
-      if (iuv1 >= nbVertices) iuv1 += offset;
-      if (iuv2 >= nbVertices) iuv2 += offset;
-      if (iuv3 >= nbVertices) iuv3 += offset;
-      if (iuv4 >= nbVertices) iuv4 += offset;
-
-      var ide = feAr[id];
-      var tg1 = tagEdges[ide] - 1;
-      if (tg1 < 0)
-        tg1 = startCount[(-tg1 - 1) * 2];
-      else if (startCount[tg1 * 2] > 0)
-        tagEdges[ide] = -tg1;
-
-      ide = feAr[id + 1];
-      var tg2 = tagEdges[ide] - 1;
-      if (tg2 < 0)
-        tg2 = startCount[(-tg2 - 1) * 2];
-      else if (startCount[tg2 * 2] > 0)
-        tagEdges[ide] = -tg2;
-
-      ide = feAr[id + 2];
-      var tg3 = tagEdges[ide] - 1;
-      if (tg3 < 0)
-        tg3 = startCount[(-tg3 - 1) * 2];
-      else if (startCount[tg3 * 2] > 0)
-        tagEdges[ide] = -tg3;
-
-      id *= 4;
-      if (iuv4 >= 0) {
-        ide = feAr[i * 4 + 3];
-        var tg4 = tagEdges[ide] - 1;
-        if (tg4 < 0)
-          tg4 = startCount[(-tg4 - 1) * 2];
-        else if (startCount[tg4 * 2] > 0)
-          tagEdges[ide] = -tg4;
-
-        fArUV[id + 1] = fArUV[id + 4] = tg1;
-        fArUV[id + 6] = fArUV[id + 9] = tg2;
-        fArUV[id + 11] = fArUV[id + 14] = tg3;
-        fArUV[id + 3] = fArUV[id + 12] = tg4;
-        fArUV[id + 2] = fArUV[id + 7] = fArUV[id + 8] = fArUV[id + 13] = fAr[id + 2];
-        fArUV[id] = iuv1;
-        fArUV[id + 5] = iuv2;
-        fArUV[id + 10] = iuv3;
-        fArUV[id + 15] = iuv4;
-
-        // even averaging for center quad
-        var im = fAr[id + 2] * 2;
-        uvAr[im] = (uvAr[iuv1 * 2] + uvAr[iuv2 * 2] + uvAr[iuv3 * 2] + uvAr[iuv4 * 2]) * 0.25;
-        uvAr[im + 1] = (uvAr[iuv1 * 2 + 1] + uvAr[iuv2 * 2 + 1] + uvAr[iuv3 * 2 + 1] + uvAr[iuv4 * 2 + 1]) * 0.25;
-      } else {
-        fArUV[id] = fArUV[id + 5] = fArUV[id + 8] = tg1;
-        fArUV[id + 1] = fArUV[id + 10] = fArUV[id + 12] = tg2;
-        fArUV[id + 2] = fArUV[id + 6] = fArUV[id + 14] = tg3;
-        fArUV[id + 3] = fArUV[id + 7] = fArUV[id + 11] = fArUV[id + 15] = -1;
-        fArUV[id + 4] = iuv1;
-        fArUV[id + 9] = iuv2;
-        fArUV[id + 13] = iuv3;
-      }
-    }
-
-    newMesh.setFacesTexCoord(fArUV);
-  };
-
   /** Apply a complete subdivision (by updating the topology) */
   Subdivision.fullSubdivision = function (baseMesh, newMesh) {
     var nbVertices = baseMesh.getNbVertices() + baseMesh.getNbEdges() + baseMesh.getNbQuads();
     newMesh.setVertices(new Float32Array(nbVertices * 3));
     newMesh.setColors(new Float32Array(nbVertices * 3));
     newMesh.setMaterials(new Float32Array(nbVertices * 3));
-    newMesh.setFaces(new Int32Array(baseMesh.getNbFaces() * 4 * 4));
+    newMesh.setFaces(new Uint32Array(baseMesh.getNbFaces() * 4 * 4));
     applyEvenSmooth(baseMesh, newMesh.getVertices(), newMesh.getColors(), newMesh.getMaterials());
     var tags = applyOddSmooth(baseMesh, newMesh.getVertices(), newMesh.getColors(), newMesh.getMaterials(), newMesh.getFaces());
     if (baseMesh.hasUV())

@@ -35,7 +35,7 @@ define(function (require, exports, module) {
       var picking = main.getPicking();
       this.initMoveData(picking, this._moveData);
 
-      if (main.getSculpt().getSymmetry()) {
+      if (main.getSculptManager().getSymmetry()) {
         var pickingSym = main.getPickingSymmetry();
         pickingSym.intersectionMouseMesh();
         pickingSym.setLocalRadius2(picking.getLocalRadius2());
@@ -52,7 +52,7 @@ define(function (require, exports, module) {
       vec3.copy(moveData.center, picking.getIntersectionPoint());
       var iVerts = picking.getPickedVertices();
       // undo-redo
-      this._states.pushVertices(iVerts);
+      this._main.getStateManager().pushVertices(iVerts);
 
       var vAr = picking.getMesh().getVertices();
       var nbVerts = iVerts.length;
@@ -81,7 +81,7 @@ define(function (require, exports, module) {
       var main = this._main;
       var picking = main.getPicking();
       var pickingSym = main.getPickingSymmetry();
-      var useSym = main.getSculpt().getSymmetry() && pickingSym.getMesh();
+      var useSym = main.getSculptManager().getSymmetry() && pickingSym.getMesh();
 
       picking.updateAlpha(this._lockPosition);
       picking.setIdAlpha(this._idAlpha);

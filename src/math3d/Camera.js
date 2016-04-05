@@ -4,6 +4,7 @@ define(function (require, exports, module) {
 
   var glm = require('lib/glMatrix');
   var getOptionsURL = require('misc/getOptionsURL');
+  var Enums = require('misc/Enums');
   var Utils = require('misc/Utils');
   var Geometry = require('math3d/Geometry');
 
@@ -27,8 +28,8 @@ define(function (require, exports, module) {
     this._main = main;
 
     var opts = getOptionsURL();
-    this._mode = opts.cameramode || 'ORBIT'; // SPHERICAL / PLANE
-    this._projectionType = opts.projection || 'PERSPECTIVE'; // ORTHOGRAPHIC
+    this._mode = opts.cameramode || Enums.CameraMode.ORBIT; // SPHERICAL / PLANE
+    this._projectionType = opts.projection || Enums.Projection.PERSPECTIVE; // ORTHOGRAPHIC
 
     this._quatRot = [0.0, 0.0, 0.0, 1.0]; // quaternion rotation
     this._view = mat4.create(); // view matrix
@@ -73,7 +74,7 @@ define(function (require, exports, module) {
     },
     setMode: function (mode) {
       this._mode = mode;
-      if (mode === 'ORBIT')
+      if (mode === Enums.CameraMode.ORBIT)
         this.resetViewFront();
     },
     setFov: function (fov) {
@@ -97,7 +98,7 @@ define(function (require, exports, module) {
       return this._projectionType;
     },
     isOrthographic: function () {
-      return this._projectionType === 'ORTHOGRAPHIC';
+      return this._projectionType === Enums.Projection.ORTHOGRAPHIC;
     },
     getMode: function () {
       return this._mode;
@@ -109,9 +110,10 @@ define(function (require, exports, module) {
       return this._usePivot;
     },
     getConstantScreen: function () {
-      if (this._projectionType === 'ORTHOGRAPHIC')
-        return 1.0 / this.getOrthoZoom();
-      return Math.min(this._proj[0], this._proj[5] * 0.5);
+      var cwidth = this._main.getCanvas().clientWidth;
+      if (this._projectionType === Enums.Projection.ORTHOGRAPHIC)
+        return cwidth / this.getOrthoZoom();
+      return cwidth * this._proj[0];
     },
     start: (function () {
       var pivot = [0.0, 0.0, 0.0];
@@ -140,7 +142,7 @@ define(function (require, exports, module) {
         vec3.transformQuat(this._offset, this._offset, this._quatRot);
 
         // adjust zoom
-        if (this._projectionType === 'PERSPECTIVE') {
+        if (this._projectionType === Enums.Projection.PERSPECTIVE) {
           var oldZoom = this.getTransZ();
           this._trans[2] = vec3.dist(this.computePosition(), this._center) * this._fov / 45;
           this._offset[2] += this.getTransZ() - oldZoom;
@@ -158,19 +160,21 @@ define(function (require, exports, module) {
       return function (mouseX, mouseY) {
 
         var normalizedMouseXY = Geometry.normalizedMouse(mouseX, mouseY, this._width, this._height);
-        if (this._mode === 'ORBIT') {
+        if (this._mode === Enums.CameraMode.ORBIT) {
           vec2.sub(diff, normalizedMouseXY, this._lastNormalizedMouseXY);
           this.setOrbit(this._rotX - diff[1] * 2, this._rotY + diff[0] * 2);
 
           this.rotateDelay([-diff[1] * 6, diff[0] * 6], DELAY_ROTATE);
-        } else if (this._mode === 'PLANE') {
+
+        } else if (this._mode === Enums.CameraMode.PLANE) {
           var length = vec2.dist(this._lastNormalizedMouseXY, normalizedMouseXY);
           vec2.sub(diff, normalizedMouseXY, this._lastNormalizedMouseXY);
           vec3.normalize(axisRot, vec3.set(axisRot, -diff[1], diff[0], 0.0));
           quat.mul(this._quatRot, quat.setAxisAngle(quatTmp, axisRot, length * 2.0), this._quatRot);
 
           this.rotateDelay([axisRot[0], axisRot[1], axisRot[2], length * 6], DELAY_ROTATE);
-        } else if (this._mode === 'SPHERICAL') {
+
+        } else if (this._mode === Enums.CameraMode.SPHERICAL) {
           var mouseOnSphereBefore = Geometry.mouseOnUnitSphere(this._lastNormalizedMouseXY);
           var mouseOnSphereAfter = Geometry.mouseOnUnitSphere(normalizedMouseXY);
           var angle = Math.acos(Math.min(1.0, vec3.dot(mouseOnSphereBefore, mouseOnSphereAfter)));
@@ -193,7 +197,7 @@ define(function (require, exports, module) {
       quat.rotateY(qrt, qrt, this._rotY);
     },
     getTransZ: function () {
-      return this._projectionType === 'PERSPECTIVE' ? this._trans[2] * 45 / this._fov : 1000.0;
+      return this._projectionType === Enums.Projection.PERSPECTIVE ? this._trans[2] * 45 / this._fov : 1000.0;
     },
     updateView: (function () {
       var up = [0.0, 1.0, 0.0];
@@ -232,7 +236,7 @@ define(function (require, exports, module) {
       };
     })(),
     updateProjection: function () {
-      if (this._projectionType === 'PERSPECTIVE') {
+      if (this._projectionType === Enums.Projection.PERSPECTIVE) {
         mat4.perspective(this._proj, this._fov * Math.PI / 180.0, this._width / this._height, this._near, this._far);
         this._proj[10] = -1.0;
         this._proj[14] = -2 * this._near;
@@ -244,7 +248,7 @@ define(function (require, exports, module) {
       var trans = this._trans;
       trans[0] += this._moveX * this._speed * trans[2] / 50 / 400.0;
       trans[2] = Math.max(0.00001, trans[2] + this._moveZ * this._speed / 400.0);
-      if (this._projectionType === 'ORTHOGRAPHIC')
+      if (this._projectionType === Enums.Projection.ORTHOGRAPHIC)
         this.updateOrtho();
       this.updateView();
     },
@@ -277,7 +281,7 @@ define(function (require, exports, module) {
     },
     setTrans: function (trans) {
       vec3.copy(this._trans, trans);
-      if (this._projectionType === 'ORTHOGRAPHIC')
+      if (this._projectionType === Enums.Projection.ORTHOGRAPHIC)
         this.updateOrtho();
       this.updateView();
     },
@@ -298,7 +302,7 @@ define(function (require, exports, module) {
       return vec3.transformMat3(pos, pos, mat3.transpose(rot, rot));
     },
     resetView: function () {
-      this._speed = Utils.SCALE * 0.9;
+      this._speed = Utils.SCALE * 1.5;
       this.centerDelay([0.0, 0.0, 0.0], DELAY_MOVE_TO);
       this.offsetDelay([0.0, 0.0, 0.0], DELAY_MOVE_TO);
       var delta = [0.0, 0.0, 30.0 + this._speed / 3.0];
@@ -458,7 +462,7 @@ define(function (require, exports, module) {
     _rotDelta: (function () {
       var qTmp = [0.0, 0.0, 0.0, 0.0];
       return function (delta, dr) {
-        if (this._mode === 'ORBIT') {
+        if (this._mode === Enums.CameraMode.ORBIT) {
           var rx = this._rotX + delta[0] * dr;
           var ry = this._rotY + delta[1] * dr;
           this.setOrbit(rx, ry);
@@ -481,7 +485,7 @@ define(function (require, exports, module) {
         var qrt = this._quatRot;
         quat.mul(this._quatRot, this._quatRot, qr);
 
-        if (this._mode === 'ORBIT') {
+        if (this._mode === Enums.CameraMode.ORBIT) {
           var qx = qrt[0];
           var qy = qrt[1];
           var qz = qrt[2];
@@ -530,7 +534,7 @@ define(function (require, exports, module) {
       var near = this._near;
       var x;
 
-      if (this._projectionType === 'ORTHOGRAPHIC') {
+      if (this._projectionType === Enums.Projection.ORTHOGRAPHIC) {
         x = Math.min(this._width, this._height) / near * 0.5;
         return Math.sqrt(1.0 + x * x) / x;
       }

@@ -74,7 +74,7 @@ define(function (require, exports, module) {
     '  vNormal = mix(aNormal, uEN * aNormal, vMasking);',
     '  vNormal = normalize(uN * vNormal);',
     '  vec4 vertex4 = vec4(aVertex, 1.0);',
-    '  vertex4 = mix(vertex4, uEM *vertex4, vMasking);',
+    '  vertex4 = mix(vertex4, uEM * vertex4, vMasking);',
     '  vVertex = vec3(uMV * vertex4);',
     // annoying stuffs : on mobile + with ortho matrix 
     // there's a precision issue with vVertex lerp between VS and FS
@@ -107,17 +107,17 @@ define(function (require, exports, module) {
     '}'
   ].join('\n');
 
-  ShaderMatcap.updateUniforms = function (render, main) {
-    var gl = render.getGL();
+  ShaderMatcap.updateUniforms = function (mesh, main) {
+    var gl = mesh.getGL();
     var uniforms = this.uniforms;
 
     gl.activeTexture(gl.TEXTURE0);
-    render.setTexture0(ShaderMatcap.textures[render.getMatcap()] || ShaderMatcap.textures[0]);
-    gl.bindTexture(gl.TEXTURE_2D, render.getTexture0());
+    mesh.setTexture0(ShaderMatcap.textures[mesh.getMatcap()]);
+    gl.bindTexture(gl.TEXTURE_2D, mesh.getTexture0() || this.getDummyTexture(gl));
     gl.uniform1i(uniforms.uTexture0, 0);
 
-    gl.uniform3fv(uniforms.uAlbedo, render.getAlbedo());
-    ShaderBase.updateUniforms.call(this, render, main);
+    gl.uniform3fv(uniforms.uAlbedo, mesh.getAlbedo());
+    ShaderBase.updateUniforms.call(this, mesh, main);
   };
 
   module.exports = ShaderMatcap;

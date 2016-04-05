@@ -30,7 +30,7 @@ define(function (require, exports, module) {
       if (!this._accumulate && !this._lockPosition)
         this.updateProxy(iVertsInRadius);
       // undo-redo
-      this._states.pushVertices(iVertsInRadius);
+      this._main.getStateManager().pushVertices(iVertsInRadius);
       if (!this._lockPosition)
         iVertsInRadius = this.dynamicTopology(picking);
 

@@ -2,12 +2,14 @@ define(function (require, exports, module) {
 
   'use strict';
 
+  var Selection = require('drawables/Selection');
   var Tools = require('editing/tools/Tools');
+  var Enums = require('misc/Enums');
 
-  var Sculpt = function (main) {
+  var SculptManager = function (main) {
     this._main = main;
 
-    this._tool = 'BRUSH'; // sculpting mode
+    this._toolIndex = Enums.Tools.BRUSH; // sculpting mode
     this._tools = []; // the sculpting tools
 
     // symmetry stuffs
@@ -17,38 +19,44 @@ define(function (require, exports, module) {
     this._continuous = false; // continuous sculpting
     this._sculptTimer = -1; // continuous interval timer
 
+    this._selection = new Selection(main._gl); // the selection geometry (red hover circle)
+
     this.init();
   };
 
-  Sculpt.prototype = {
-    getToolName: function () {
-      return this._tool;
+  SculptManager.prototype = {
+    setToolIndex: function (id) {
+      this._toolIndex = id;
+    },
+    getToolIndex: function () {
+      return this._toolIndex;
     },
     getCurrentTool: function () {
-      return this._tools[this._tool];
+      return this._tools[this._toolIndex];
     },
     getSymmetry: function () {
       return this._symmetry;
     },
-    getTool: function (key) {
-      return this._tools[key];
+    getTool: function (index) {
+      return this._tools[index];
+    },
+    getSelection: function () {
+      return this._selection;
     },
     init: function () {
       var main = this._main;
       var tools = this._tools;
-      var tnames = Tools.keys;
-      for (var i = 0, nb = tnames.length; i < nb; ++i) {
-        var tn = tnames[i];
-        tools[tn] = new Tools[tn](main);
+      for (var i = 0, nb = Tools.length; i < nb; ++i) {
+        if (Tools[i]) tools[i] = new Tools[i](main);
       }
     },
     canBeContinuous: function () {
-      switch (this._tool) {
-      case 'TWIST':
-      case 'MOVE':
-      case 'DRAG':
-      case 'LOCALSCALE':
-      case 'TRANSFORM':
+      switch (this._toolIndex) {
+      case Enums.Tools.TWIST:
+      case Enums.Tools.MOVE:
+      case Enums.Tools.DRAG:
+      case Enums.Tools.LOCALSCALE:
+      case Enums.Tools.TRANSFORM:
         return false;
       default:
         return true;
@@ -80,12 +88,12 @@ define(function (require, exports, module) {
       this.getCurrentTool().update();
     },
     postRender: function () {
-      this.getCurrentTool().postRender();
+      this.getCurrentTool().postRender(this._selection);
     },
     addSculptToScene: function (scene) {
       return this.getCurrentTool().addSculptToScene(scene);
     }
   };
 
-  module.exports = Sculpt;
+  module.exports = SculptManager;
 });

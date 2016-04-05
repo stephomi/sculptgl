@@ -10,16 +10,16 @@ define(function (require, exports, module) {
   var StMultiresolution = require('states/StateMultiresolution');
   var StCustom = require('states/StateCustom');
 
-  var States = function (main) {
+  var StateManager = function (main) {
     this._main = main; // main
     this._undos = []; // undo actions
     this._redos = []; // redo actions
     this._curUndoIndex = -1; // current index in undo
   };
 
-  States.STACK_LENGTH = 15;
+  StateManager.STACK_LENGTH = 15;
 
-  States.prototype = {
+  StateManager.prototype = {
     pushStateCustom: function (undocb, redocb, squash) {
       var st = new StCustom(undocb, redocb);
       st.squash = squash;
@@ -37,13 +37,13 @@ define(function (require, exports, module) {
       this.pushState(new StAddRemove(this._main, addMesh, []));
     },
     pushStateColorAndMaterial: function (mesh) {
-      if (mesh.getDynamicTopology)
+      if (mesh.isDynamic)
         this.pushState(new StDynamic(this._main, mesh));
       else
         this.pushState(new StColorAndMaterial(this._main, mesh));
     },
     pushStateGeometry: function (mesh) {
-      if (mesh.getDynamicTopology)
+      if (mesh.isDynamic)
         this.pushState(new StDynamic(this._main, mesh));
       else
         this.pushState(new StGeometry(this._main, mesh));
@@ -52,7 +52,7 @@ define(function (require, exports, module) {
       this.pushState(new StMultiresolution(this._main, multimesh, type));
     },
     setNewMaxStack: function (maxStack) {
-      States.STACK_LENGTH = maxStack;
+      StateManager.STACK_LENGTH = maxStack;
       var undos = this._undos;
       var redos = this._redos;
       while (this._curUndoIndex >= maxStack) {
@@ -68,7 +68,7 @@ define(function (require, exports, module) {
       ++Utils.STATE_FLAG;
       var undos = this._undos;
       if (this._curUndoIndex === -1) undos.length = 0;
-      else if (undos.length >= States.STACK_LENGTH) {
+      else if (undos.length >= StateManager.STACK_LENGTH) {
         undos.shift();
         --this._curUndoIndex;
       }
@@ -125,8 +125,8 @@ define(function (require, exports, module) {
         this._curUndoIndex--;
         this._redos.length = 0;
       }
-    },
+    }
   };
 
-  module.exports = States;
+  module.exports = StateManager;
 });

@@ -67,20 +67,20 @@ define(function (require, exports, module) {
     ShaderBase.initAttributes.call(this, gl);
     ShaderUV.attributes.aTexCoord = new Attribute(gl, ShaderUV.program, 'aTexCoord', 2, gl.FLOAT);
   };
-  ShaderUV.bindAttributes = function (render) {
-    ShaderBase.bindAttributes.call(this, render);
-    ShaderUV.attributes.aTexCoord.bindToBuffer(render.getTexCoordBuffer());
+  ShaderUV.bindAttributes = function (mesh) {
+    ShaderBase.bindAttributes.call(this, mesh);
+    ShaderUV.attributes.aTexCoord.bindToBuffer(mesh.getTexCoordBuffer());
   };
-  ShaderUV.updateUniforms = function (render, main) {
-    var gl = render.getGL();
+  ShaderUV.updateUniforms = function (mesh, main) {
+    var gl = mesh.getGL();
     var uniforms = this.uniforms;
 
     gl.activeTexture(gl.TEXTURE0);
-    gl.bindTexture(gl.TEXTURE_2D, ShaderBase.getOrCreateTexture0.call(this, gl, ShaderUV.texPath, main) || null);
+    gl.bindTexture(gl.TEXTURE_2D, this.getOrCreateTexture0(gl, ShaderUV.texPath, main) || this.getDummyTexture(gl));
     gl.uniform1i(uniforms.uTexture0, 0);
 
-    gl.uniform3fv(uniforms.uAlbedo, render.getAlbedo());
-    ShaderBase.updateUniforms.call(this, render, main);
+    gl.uniform3fv(uniforms.uAlbedo, mesh.getAlbedo());
+    ShaderBase.updateUniforms.call(this, mesh, main);
   };
 
   module.exports = ShaderUV;

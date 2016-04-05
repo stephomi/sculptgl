@@ -4,42 +4,15 @@ define(function (require, exports, module) {
 
   var ShaderBase = require('render/shaders/ShaderBase');
 
-  var invert = function (obj) {
-    var keys = Object.keys(obj);
-    var inv = {};
-    for (var i = 0, nbkeys = keys.length; i < nbkeys; ++i)
-      inv[obj[keys[i]]] = keys[i];
-    return inv;
-  };
-
-  var stringToInt = {};
-  var intToString = {};
-  stringToInt.MODE_TO_INT = {
-    ORBIT: 0,
-    SPHERICAL: 1,
-    PLANE: 2
-  };
-  intToString.INT_TO_MODE = invert(stringToInt.MODE_TO_INT);
-
-  stringToInt.PROJECTION_TO_INT = {
-    PERSPECTIVE: 0,
-    ORTHOGRAPHIC: 1
-  };
-  intToString.INT_TO_PROJECTION = invert(stringToInt.PROJECTION_TO_INT);
-
-  stringToInt.SHADER_TO_INT = {
-    PBR: 0,
-    NORMAL: 2,
-    UV: 4,
-    MATCAP: 5
-  };
-  intToString.INT_TO_SHADER = invert(stringToInt.SHADER_TO_INT);
-
   var Export = {};
-  Export.intToString = intToString;
-  Export.stringToInt = stringToInt;
 
-  // current version 2
+  // versions
+  // 1 initial
+  // 2 + camera,shader, matcap, wire, alpha, flat 
+  // 3 faces u32 instead of i32
+  Export.VERSION = 3;
+
+  // current version 3
   //
   // Version (u32)
 
@@ -74,13 +47,13 @@ define(function (require, exports, module) {
   // materials (f32 * 3 * nbVertices)
 
   // NbFaces (u32)
-  // faces (i32 * 4 * nbFaces)
+  // faces (u32 * 4 * nbFaces)
 
   // NbTexCoords (u32) => 0 means no UV
   // texcoords (f32 * 2 * nbTexCoords)
 
   // NbFacesTexCoords (u32) => 0 or nbFaces
-  // faces (i32 * 4 * nbFaces)
+  // faces (u32 * 4 * nbFaces)
   //
   /** Export SGL (sculptgl) file */
 
@@ -111,9 +84,8 @@ define(function (require, exports, module) {
     var buffer = new ArrayBuffer(nbBytes);
     var f32a = new Float32Array(buffer);
     var u32a = new Uint32Array(buffer);
-    var i32a = new Int32Array(buffer);
     var off = 0;
-    u32a[off++] = 2;
+    u32a[off++] = Export.VERSION;
 
     // misc stuffs
     u32a[off++] = main._showGrid;
@@ -122,8 +94,8 @@ define(function (require, exports, module) {
 
     // camera stuffs
     var cam = main.getCamera();
-    u32a[off++] = stringToInt.PROJECTION_TO_INT[cam.getProjectionType()];
-    u32a[off++] = stringToInt.MODE_TO_INT[cam.getMode()];
+    u32a[off++] = cam.getProjectionType();
+    u32a[off++] = cam.getMode();
     f32a[off++] = cam.getFov();
     u32a[off++] = cam.getUsePivot();
 
@@ -133,7 +105,7 @@ define(function (require, exports, module) {
       mesh = meshes[i];
 
       // shader + matcap + wire + alpha + flat 
-      u32a[off++] = stringToInt.SHADER_TO_INT[mesh.getShaderName()];
+      u32a[off++] = mesh.getShaderType();
       u32a[off++] = mesh.getMatcap();
       u32a[off++] = mesh.getShowWireframe();
       u32a[off++] = mesh.getFlatShading();
@@ -149,7 +121,7 @@ define(function (require, exports, module) {
       // vertices
       var nbVertices = mesh.getNbVertices();
       u32a[off++] = nbVertices;
-      f32a.set(mesh.getVertices(), off);
+      f32a.set(mesh.getVertices().subarray(0, nbVertices * 3), off);
       off += nbVertices * 3;
 
       // colors
@@ -169,7 +141,7 @@ define(function (require, exports, module) {
       // faces
       var nbFaces = mesh.getNbFaces();
       u32a[off++] = nbFaces;
-      i32a.set(mesh.getFaces().subarray(0, nbFaces * 4), off);
+      u32a.set(mesh.getFaces().subarray(0, nbFaces * 4), off);
       off += nbFaces * 4;
 
       var hasUV = mesh.hasUV();
@@ -184,7 +156,7 @@ define(function (require, exports, module) {
       // face uvs
       u32a[off++] = hasUV ? nbFaces : 0;
       if (hasUV) {
-        i32a.set(mesh.getFacesTexCoord().subarray(0, nbFaces * 4), off);
+        u32a.set(mesh.getFacesTexCoord().subarray(0, nbFaces * 4), off);
         off += nbFaces * 4;
       }
     }

@@ -2,7 +2,8 @@ define(function (require, exports, module) {
 
   'use strict';
 
-  var Mesh = require('mesh/Mesh');
+  var Utils = require('misc/Utils');
+  var MeshStatic = require('mesh/MeshStatic/MeshStatic');
 
   var Edge = function (v1, v2) {
     this.previous = null;
@@ -26,7 +27,8 @@ define(function (require, exports, module) {
       var testEdge = borderEdges[i];
       if (testEdge.v1 === iLast) {
         testEdge.previous = last;
-        last.next = last = testEdge;
+        last.next = testEdge;
+        last = testEdge;
         iLast = borderEdges[i].v2;
         borderEdges[i] = borderEdges[--nbEdges];
         if (iLast === iEnd)
@@ -51,10 +53,11 @@ define(function (require, exports, module) {
     for (var i = 0, len = mesh.getNbFaces(); i < len; ++i) {
       var id = i * 4;
       var iv4 = feAr[id + 3];
+      var isQuad = iv4 !== Utils.TRI_INDEX;
       if (eAr[feAr[id]] === 1) borderEdges.push(new Edge(fAr[id], fAr[id + 1]));
       if (eAr[feAr[id + 1]] === 1) borderEdges.push(new Edge(fAr[id + 1], fAr[id + 2]));
-      if (eAr[feAr[id + 2]] === 1) borderEdges.push(new Edge(fAr[id + 2], fAr[iv4 < 0 ? id : id + 3]));
-      if (iv4 >= 0 && eAr[iv4] === 1) borderEdges.push(new Edge(fAr[id + 3], fAr[id]));
+      if (eAr[feAr[id + 2]] === 1) borderEdges.push(new Edge(fAr[id + 2], fAr[isQuad ? id + 3 : id]));
+      if (isQuad && eAr[iv4] === 1) borderEdges.push(new Edge(fAr[id + 3], fAr[id]));
     }
 
     var holes = [];
@@ -99,7 +102,7 @@ define(function (require, exports, module) {
       var iv2 = current.v2;
       var iv3 = next.v2;
 
-      newTris.push(iv1, iv2, last, -1);
+      newTris.push(iv1, iv2, last, Utils.TRI_INDEX);
       iv1 *= 3;
       iv2 *= 3;
       iv3 *= 3;
@@ -137,10 +140,8 @@ define(function (require, exports, module) {
     newMaterials.push(mat1 / count, mat2 / count, mat3 / count);
   };
 
-  var HoleFilling = {};
-
-  HoleFilling.createMesh = function (mesh, vertices, faces, colors, materials) {
-    var newMesh = new Mesh();
+  var createMesh = function (mesh, vertices, faces, colors, materials) {
+    var newMesh = new MeshStatic();
     newMesh.setID(mesh.getID());
     newMesh.setVertices(vertices);
     if (colors) newMesh.setColors(colors);
@@ -149,13 +150,13 @@ define(function (require, exports, module) {
 
     // small hack
     newMesh.setTransformData(mesh.getTransformData());
-    newMesh.setRender(mesh.getRender());
+    newMesh.setRenderData(mesh.getRenderData());
 
     newMesh.init();
     return newMesh;
   };
 
-  HoleFilling.closeHoles = function (mesh) {
+  var closeHoles = function (mesh) {
     var holes = detectHoles(mesh);
     if (holes.length === 0)
       return mesh;
@@ -174,13 +175,13 @@ define(function (require, exports, module) {
 
     // set vertices
     var vertices = new Float32Array(newVertsLen);
-    vertices.set(mesh.getVertices());
+    vertices.set(mesh.getVertices().subarray(0, oldVertsLen));
     // set colors
     var colors = new Float32Array(newVertsLen);
-    colors.set(mesh.getColors());
+    colors.set(mesh.getColors().subarray(0, oldVertsLen));
     // set materials
     var materials = new Float32Array(newVertsLen);
-    materials.set(mesh.getMaterials());
+    materials.set(mesh.getMaterials().subarray(0, oldVertsLen));
 
     if (newVertsLen > oldVertsLen) {
       vertices.set(newVerts, oldVertsLen);
@@ -189,18 +190,25 @@ define(function (require, exports, module) {
     }
 
     // set faces
-    var faces = new Int32Array(mesh.getNbFaces() * 4 + newFaces.length);
+    var faces = new Uint32Array(mesh.getNbFaces() * 4 + newFaces.length);
     faces.set(mesh.getFaces());
     if (newFaces.length > 0)
       faces.set(newFaces, mesh.getNbFaces() * 4);
 
-    return HoleFilling.createMesh(mesh, vertices, faces, colors, materials);
+    return createMesh(mesh, vertices, faces, colors, materials);
   };
 
+  var HoleFilling = {};
+
   HoleFilling.createClosedMesh = function (mesh) {
-    var closed = HoleFilling.closeHoles(mesh);
-    if (closed === mesh)
-      closed = HoleFilling.createMesh(mesh, mesh.getVertices().slice(), mesh.getFaces().slice(), mesh.getColors().slice(), mesh.getMaterials().slice());
+    var closed = closeHoles(mesh);
+    if (closed === mesh) {
+      var vertices = new Float32Array(mesh.getVertices());
+      var faces = new Uint32Array(mesh.getFaces());
+      var colors = new Float32Array(mesh.getColors());
+      var materials = new Float32Array(mesh.getMaterials());
+      closed = createMesh(mesh, vertices, faces, colors, materials);
+    }
     return closed;
   };
 

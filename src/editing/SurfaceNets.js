@@ -14,7 +14,7 @@ define(function (require, exports, module) {
 
   // This is just the vertex number of each cube
   var computeCubeEdges = function () {
-    var cubeEdges = new Int32Array(24);
+    var cubeEdges = new Uint32Array(24);
     var k = 0;
     for (var i = 0; i < 8; ++i) {
       for (var j = 1; j <= 4; j <<= 1) {
@@ -32,7 +32,7 @@ define(function (require, exports, module) {
     //Initialize the intersection table.
     //  This is a 2^(cube configuration) ->  2^(edge configuration) map
     //  There is one entry for each possible cube configuration, and the output is a 12-bit vector enumerating all edges crossing the 0-level.
-    var edgeTable = new Int32Array(256);
+    var edgeTable = new Uint32Array(256);
     for (var i = 0; i < 256; ++i) {
       var em = 0;
       for (var j = 0; j < 24; j += 2) {
@@ -49,7 +49,11 @@ define(function (require, exports, module) {
   var cubeEdges = computeCubeEdges();
   var edgeTable = computeEdgeTable(cubeEdges);
 
-  var readScalarValues = function (data, grid, dims, n, colors, materials, cols, mats) {
+  var readScalarValues = function (voxels, grid, dims, n, cols, mats) {
+    var colors = voxels.colorField;
+    var materials = voxels.materialField;
+    var data = voxels.distanceField;
+
     //Read in 8 field values around this vertex and store them in an array
     //Also calculate 8-bit mask, like in marching cubes, so we can speed up sign checks later
     var c1 = 0;
@@ -158,22 +162,17 @@ define(function (require, exports, module) {
     }
   };
 
-  SurfaceNets.computeSurface = function (voxels, bounds) {
+  SurfaceNets.computeSurface = function (voxels, min, max) {
     var dims = voxels.dims;
-    var colors = voxels.colors;
-    var materials = voxels.materials;
-    var data = voxels.distanceField;
-    if (!bounds) {
-      bounds = [
-        [0.0, 0.0, 0.0], dims
-      ];
-    }
+
+    if (!min) min = [0.0, 0.0, 0.0];
+    if (!max) max = dims;
 
     var scale = [0.0, 0.0, 0.0];
     var shift = [0.0, 0.0, 0.0];
     for (var i = 0; i < 3; ++i) {
-      scale[i] = (bounds[1][i] - bounds[0][i]) / dims[i];
-      shift[i] = bounds[0][i];
+      scale[i] = (max[i] - min[i]) / dims[i];
+      shift[i] = min[i];
     }
 
     var vertices = [];
@@ -198,7 +197,7 @@ define(function (require, exports, module) {
       for (x[1] = 0; x[1] < dims[1] - 1; ++x[1], ++n, m += 2) {
         for (x[0] = 0; x[0] < dims[0] - 1; ++x[0], ++n, ++m) {
 
-          var mask = readScalarValues(data, grid, dims, n, colors, materials, cols, mats);
+          var mask = readScalarValues(voxels, grid, dims, n, cols, mats);
           //Check for early termination if cell does not intersect boundary
           if (mask === 0 || mask === 0xff)
             continue;
@@ -216,7 +215,7 @@ define(function (require, exports, module) {
       colors: new Float32Array(cols),
       materials: new Float32Array(mats),
       vertices: new Float32Array(vertices),
-      faces: new Int32Array(faces)
+      faces: new Uint32Array(faces)
     };
   };
 

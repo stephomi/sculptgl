@@ -2,8 +2,8 @@ define(function (require, exports, module) {
 
   'use strict';
 
-  var Mesh = require('mesh/Mesh');
   var Utils = require('misc/Utils');
+  var MeshStatic = require('mesh/MeshStatic/MeshStatic');
 
   var Import = {};
 
@@ -20,16 +20,16 @@ define(function (require, exports, module) {
     nbTriangles = vb.length / 9;
     var mapVertices = new Map();
     var nbVertices = [0];
-    var iAr = new Int32Array(nbTriangles * 4);
+    var iAr = new Uint32Array(nbTriangles * 4);
     for (var i = 0; i < nbTriangles; ++i) {
       var idt = i * 4;
       var idv = i * 9;
       iAr[idt] = Import.detectNewVertex(mapVertices, vb, vbc, idv, nbVertices);
       iAr[idt + 1] = Import.detectNewVertex(mapVertices, vb, vbc, idv + 3, nbVertices);
       iAr[idt + 2] = Import.detectNewVertex(mapVertices, vb, vbc, idv + 6, nbVertices);
-      iAr[idt + 3] = -1;
+      iAr[idt + 3] = Utils.TRI_INDEX;
     }
-    var mesh = new Mesh(gl);
+    var mesh = new MeshStatic(gl);
     mesh.setVertices(vb.subarray(0, nbVertices[0] * 3));
     if (vbc)
       mesh.setColors(vbc.subarray(0, nbVertices[0] * 3));

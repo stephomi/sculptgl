@@ -3,6 +3,7 @@ define(function (require, exports, module) {
   'use strict';
 
   var glm = require('lib/glMatrix');
+  var Utils = require('misc/Utils');
 
   var vec3 = glm.vec3;
 
@@ -146,12 +147,12 @@ define(function (require, exports, module) {
         str = 'f ' + (offV + fAr[j]) + '/' + (offTex + fArUV[j]);
         str += ' ' + (offV + fAr[j + 1]) + '/' + (offTex + fArUV[j + 1]);
         str += ' ' + (offV + fAr[j + 2]) + '/' + (offTex + fArUV[j + 2]);
-        str += (id >= 0 ? ' ' + (offV + id) + '/' + (offTex + fArUV[j + 3]) + '\n' : '\n');
+        str += (id !== Utils.TRI_INDEX ? ' ' + (offV + id) + '/' + (offTex + fArUV[j + 3]) + '\n' : '\n');
       } else {
         str = 'f ' + (offV + fAr[j]);
         str += ' ' + (offV + fAr[j + 1]);
         str += ' ' + (offV + fAr[j + 2]);
-        str += (id >= 0 ? ' ' + (offV + id) + '\n' : '\n');
+        str += (id !== Utils.TRI_INDEX ? ' ' + (offV + id) + '\n' : '\n');
       }
       it = appendString(bufView, str, it);
     }

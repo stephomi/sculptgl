@@ -5,6 +5,7 @@ define(function (require, exports, module) {
   var glm = require('lib/glMatrix');
   var Buffer = require('render/Buffer');
   var Shader = require('render/ShaderLib');
+  var Enums = require('misc/Enums');
 
   var mat3 = glm.mat3;
   var mat4 = glm.mat4;
@@ -22,6 +23,7 @@ define(function (require, exports, module) {
     this._color = new Float32Array([0.8, 0.0, 0.0]);
 
     this._offsetX = 0.0; // horizontal offset (when editing the radius)
+    this._isEditMode = false;
 
     this.init();
   };
@@ -49,6 +51,12 @@ define(function (require, exports, module) {
     },
     getColor: function () {
       return this._color;
+    },
+    setIsEditMode: function (bool) {
+      this._isEditMode = bool;
+    },
+    getIsEditMode: function () {
+      return this._isEditMode;
     },
     setOffsetX: function (offset) {
       this._offsetX = offset;
@@ -91,7 +99,7 @@ define(function (require, exports, module) {
 
       return function (camera, main) {
 
-        var screenRadius = main.getSculpt().getCurrentTool().getScreenRadius();
+        var screenRadius = main.getSculptManager().getCurrentTool().getScreenRadius();
 
         var w = camera._width * 0.5;
         var h = camera._height * 0.5;
@@ -124,7 +132,7 @@ define(function (require, exports, module) {
         var picking = main.getPicking();
         var pickingSym = main.getPickingSymmetry();
         var worldRadius = Math.sqrt(picking.computeWorldRadius2(true));
-        var screenRadius = main.getSculpt().getCurrentTool().getScreenRadius();
+        var screenRadius = main.getSculptManager().getCurrentTool().getScreenRadius();
 
         var mesh = picking.getMesh();
         var constRadius = DOT_RADIUS * (worldRadius / screenRadius);
@@ -158,17 +166,16 @@ define(function (require, exports, module) {
       };
     })(),
     render: function (main) {
-      if (main.getSculpt().getToolName() === 'TRANSFORM')
-        return;
-
       // if there's an offset then it means we are editing the tool radius
-      var pickedMesh = main.getPicking().getMesh() && this._offsetX === 0.0;
+      var pickedMesh = main.getPicking().getMesh() && !this._isEditMode;
       if (pickedMesh) this._updateMatricesMesh(main.getCamera(), main);
       else this._updateMatricesBackground(main.getCamera(), main);
 
-      var drawCircle = main._action === 'NOTHING';
+      var drawCircle = main._action === Enums.Action.NOTHING;
       vec3.set(this._color, 0.8, drawCircle && pickedMesh ? 0.0 : 0.4, 0.0);
-      Shader.SELECTION.getOrCreate(this._gl).draw(this, drawCircle, main.getSculpt().getSymmetry());
+      Shader[Enums.Shader.SELECTION].getOrCreate(this._gl).draw(this, drawCircle, main.getSculptManager().getSymmetry());
+
+      this._isEditMode = false;
     }
   };
 

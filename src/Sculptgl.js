@@ -5,6 +5,7 @@ define(function (require, exports, module) {
   require('misc/Polyfill');
   var glm = require('lib/glMatrix');
   var Hammer = require('lib/Hammer');
+  var Enums = require('misc/Enums');
   var Utils = require('misc/Utils');
   var Scene = require('Scene');
   var Multimesh = require('mesh/multiresolution/Multimesh');
@@ -24,7 +25,7 @@ define(function (require, exports, module) {
     this._lastMouseY = 0;
     this._lastScale = 0;
     // NOTHING, MASK_EDIT, SCULPT_EDIT, CAMERA_ZOOM, CAMERA_ROTATE, CAMERA_PAN, CAMERA_PAN_ZOOM_ALT
-    this._action = 'NOTHING';
+    this._action = Enums.Action.NOTHING;
     this._lastNbPointers = 0;
     this._isWheelingIn = false;
 
@@ -219,7 +220,7 @@ define(function (require, exports, module) {
       if (this._meshes.length > 0) {
         var pivot = [0.0, 0.0, 0.0];
         var box = this.computeBoundingBoxMeshes(this._meshes);
-        var zoom = 0.3 * vec3.dist([box[0], box[1], box[2]], [box[3], box[4], box[5]]);
+        var zoom = 0.4 * vec3.dist([box[0], box[1], box[2]], [box[3], box[4], box[5]]);
         zoom *= this._camera.computeFrustumFit();
         vec3.set(pivot, (box[0] + box[3]) * 0.5, (box[1] + box[4]) * 0.5, (box[2] + box[5]) * 0.5);
         this._camera.setAndFocusOnPivot(pivot, zoom);
@@ -313,20 +314,20 @@ define(function (require, exports, module) {
     onDeviceUp: function () {
       this.setCanvasCursor('default');
       Multimesh.RENDER_HINT = Multimesh.NONE;
-      this._sculpt.end();
+      this._sculptManager.end();
 
-      if (this._action === 'MASK_EDIT' && this._mesh) {
+      if (this._action === Enums.Action.MASK_EDIT && this._mesh) {
 
         if (this._lastMouseX === this._maskX && this._lastMouseY === this._maskY)
-          this.getSculpt().getTool('MASKING').invert();
+          this.getSculptManager().getTool(Enums.Tools.MASKING).invert();
         else
-          this.getSculpt().getTool('MASKING').clear();
+          this.getSculptManager().getTool(Enums.Tools.MASKING).clear();
 
       }
 
-      this._action = 'NOTHING';
+      this._action = Enums.Action.NOTHING;
       this.render();
-      this._states.cleanNoop();
+      this._stateManager.cleanNoop();
     },
     onDeviceWheel: function (dir) {
       if (dir > 0.0 && !this._isWheelingIn) {
@@ -362,27 +363,27 @@ define(function (require, exports, module) {
 
       var canEdit = false;
       if (button === MOUSE_LEFT)
-        canEdit = this._sculpt.start(event.shiftKey);
+        canEdit = this._sculptManager.start(event.shiftKey);
 
       if (button === MOUSE_LEFT && canEdit)
         this.setCanvasCursor('none');
 
       if (button === MOUSE_RIGHT && event.ctrlKey)
-        this._action = 'CAMERA_ZOOM';
+        this._action = Enums.Action.CAMERA_ZOOM;
       else if (button === MOUSE_MIDDLE)
-        this._action = 'CAMERA_PAN';
+        this._action = Enums.Action.CAMERA_PAN;
       else if (!canEdit && event.ctrlKey) {
         this._maskX = mouseX;
         this._maskY = mouseY;
-        this._action = 'MASK_EDIT';
+        this._action = Enums.Action.MASK_EDIT;
       } else if ((!canEdit || button === MOUSE_RIGHT) && event.altKey)
-        this._action = 'CAMERA_PAN_ZOOM_ALT';
+        this._action = Enums.Action.CAMERA_PAN_ZOOM_ALT;
       else if (button === MOUSE_RIGHT || (button === MOUSE_LEFT && !canEdit))
-        this._action = 'CAMERA_ROTATE';
+        this._action = Enums.Action.CAMERA_ROTATE;
       else
-        this._action = 'SCULPT_EDIT';
+        this._action = Enums.Action.SCULPT_EDIT;
 
-      if (this._action === 'CAMERA_ROTATE' || this._action === 'CAMERA_ZOOM')
+      if (this._action === Enums.Action.CAMERA_ROTATE || this._action === Enums.Action.CAMERA_ZOOM)
         this._camera.start(mouseX, mouseY);
 
       this._lastMouseX = mouseX;
@@ -397,19 +398,19 @@ define(function (require, exports, module) {
       var mouseY = this._mouseY;
       var action = this._action;
 
-      if (action === 'CAMERA_ZOOM' || (action === 'CAMERA_PAN_ZOOM_ALT' && !event.altKey)) {
+      if (action === Enums.Action.CAMERA_ZOOM || (action === Enums.Action.CAMERA_PAN_ZOOM_ALT && !event.altKey)) {
 
         Multimesh.RENDER_HINT = Multimesh.CAMERA;
         this._camera.zoom((mouseX - this._lastMouseX + mouseY - this._lastMouseY) / 1000);
         this.render();
 
-      } else if (action === 'CAMERA_PAN_ZOOM_ALT' || action === 'CAMERA_PAN') {
+      } else if (action === Enums.Action.CAMERA_PAN_ZOOM_ALT || action === Enums.Action.CAMERA_PAN) {
 
         Multimesh.RENDER_HINT = Multimesh.CAMERA;
         this._camera.translate((mouseX - this._lastMouseX) / 1000, (mouseY - this._lastMouseY) / 1000);
         this.render();
 
-      } else if (action === 'CAMERA_ROTATE') {
+      } else if (action === Enums.Action.CAMERA_ROTATE) {
 
         Multimesh.RENDER_HINT = Multimesh.CAMERA;
         if (!event.shiftKey)
@@ -419,12 +420,12 @@ define(function (require, exports, module) {
       } else {
 
         Multimesh.RENDER_HINT = Multimesh.PICKING;
-        this._sculpt.preUpdate();
+        this._sculptManager.preUpdate();
 
-        if (action === 'SCULPT_EDIT') {
+        if (action === Enums.Action.SCULPT_EDIT) {
           Multimesh.RENDER_HINT = Multimesh.SCULPT;
-          this._sculpt.update(this);
-          if (this.getMesh().getDynamicTopology)
+          this._sculptManager.update(this);
+          if (this.getMesh().isDynamic)
             this._gui.updateMeshInfo();
         }
       }

@@ -18,7 +18,6 @@ define(function (require, exports, module) {
     this._color = vec3.fromValues(1.0, 0.766, 0.336); // albedo
     this._material = vec3.fromValues(0.3, 0.95, 0.0); // roughness/metallic/masking
     this._pickColor = false; // color picking
-    this._global = false; // global material
     this._pickCallback = null; // callback function after picking a color
     this._idAlpha = 0;
     this._lockPosition = false;
@@ -31,7 +30,7 @@ define(function (require, exports, module) {
     },
     pushState: function (force) {
       if (!this._pickColor || force)
-        this._states.pushStateColorAndMaterial(this.getMesh());
+        this._main.getStateManager().pushStateColorAndMaterial(this.getMesh());
     },
     startSculpt: function () {
       if (this._pickColor)
@@ -50,7 +49,7 @@ define(function (require, exports, module) {
     },
     updateMeshBuffers: function () {
       var mesh = this.getMesh();
-      if (mesh.getDynamicTopology) {
+      if (mesh.isDynamic) {
         mesh.updateBuffers();
       } else {
         mesh.updateColorBuffer();
@@ -79,7 +78,7 @@ define(function (require, exports, module) {
       var intensity = this._intensity * Tablet.getPressureIntensity();
 
       // undo-redo
-      this._states.pushVertices(iVertsInRadius);
+      this._main.getStateManager().pushVertices(iVertsInRadius);
       iVertsInRadius = this.dynamicTopology(picking);
 
       if (this._culling)
@@ -136,7 +135,7 @@ define(function (require, exports, module) {
         return;
 
       this.pushState(true);
-      this._states.pushVertices(iVerts);
+      this._main.getStateManager().pushVertices(iVerts);
 
       var cAr = mesh.getColors();
       var mAr = mesh.getMaterials();

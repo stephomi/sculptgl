@@ -4,6 +4,7 @@ define(function (require, exports, module) {
 
   var TR = require('gui/GuiTR');
   var getOptionsURL = require('misc/getOptionsURL');
+  var Enums = require('misc/Enums');
 
   var GuiCamera = function (guiParent, ctrlGui) {
     this._main = ctrlGui._main; // main application
@@ -28,22 +29,22 @@ define(function (require, exports, module) {
       menu.addDualButton(TR('cameraLeft'), TR('cameraTop'), this.resetLeft.bind(this), this.resetTop.bind(this));
 
       // camera type
-      var optionsType = {};
       this._ctrlProjectionTitle = menu.addTitle(TR('cameraProjection'));
-      optionsType.PERSPECTIVE = TR('cameraPerspective');
-      optionsType.ORTHOGRAPHIC = TR('cameraOrthographic');
+      var optionsType = [];
+      optionsType[Enums.Projection.PERSPECTIVE] = TR('cameraPerspective');
+      optionsType[Enums.Projection.ORTHOGRAPHIC] = TR('cameraOrthographic');
       this._ctrlProjection = menu.addCombobox('', camera.getProjectionType(), this.onCameraTypeChange.bind(this), optionsType);
 
       // camera fov
       this._ctrlFov = menu.addSlider(TR('cameraFov'), camera.getFov(), this.onFovChange.bind(this), 10, 90, 1);
-      this._ctrlFov.setVisibility(camera.getProjectionType() === 'PERSPECTIVE');
+      this._ctrlFov.setVisibility(camera.getProjectionType() === Enums.Projection.PERSPECTIVE);
 
       // camera mode
-      var optionsMode = {};
       menu.addTitle(TR('cameraMode'));
-      optionsMode.ORBIT = TR('cameraOrbit');
-      optionsMode.SPHERICAL = TR('cameraSpherical');
-      optionsMode.PLANE = TR('cameraPlane');
+      var optionsMode = [];
+      optionsMode[Enums.CameraMode.ORBIT] = TR('cameraOrbit');
+      optionsMode[Enums.CameraMode.SPHERICAL] = TR('cameraSpherical');
+      optionsMode[Enums.CameraMode.PLANE] = TR('cameraPlane');
       menu.addCombobox('', camera.getMode(), this.onCameraModeChange.bind(this), optionsMode);
       this._ctrlPivot = menu.addCheckbox(TR('cameraPivot'), camera.getUsePivot(), this.onPivotChange.bind(this));
     },
@@ -53,7 +54,7 @@ define(function (require, exports, module) {
     },
     onCameraTypeChange: function (value) {
       this._camera.setProjectionType(value);
-      this._ctrlFov.setVisibility(value === 'PERSPECTIVE');
+      this._ctrlFov.setVisibility(value === Enums.Projection.PERSPECTIVE);
       this._main.render();
     },
     onFovChange: function (value) {
@@ -72,22 +73,22 @@ define(function (require, exports, module) {
       var main = this._main;
       var camera = main.getCamera();
       event.handled = true;
-      if (event.shiftKey && main._action === 'CAMERA_ROTATE') {
+      if (event.shiftKey && main._action === Enums.Action.CAMERA_ROTATE) {
         camera.snapClosestRotation();
         main.render();
       }
 
       switch (getOptionsURL.getShortKey(event.which)) {
-      case 'STRIFE_LEFT':
+      case Enums.KeyAction.STRIFE_LEFT:
         camera._moveX = -1;
         break;
-      case 'STRIFE_RIGHT':
+      case Enums.KeyAction.STRIFE_RIGHT:
         camera._moveX = 1;
         break;
-      case 'STRIFE_UP':
+      case Enums.KeyAction.STRIFE_UP:
         camera._moveZ = -1;
         break;
-      case 'STRIFE_DOWN':
+      case Enums.KeyAction.STRIFE_DOWN:
         camera._moveZ = 1;
         break;
       default:
@@ -117,24 +118,24 @@ define(function (require, exports, module) {
       var camera = this._camera;
 
       switch (getOptionsURL.getShortKey(event.which)) {
-      case 'STRIFE_LEFT':
-      case 'STRIFE_RIGHT':
+      case Enums.KeyAction.STRIFE_LEFT:
+      case Enums.KeyAction.STRIFE_RIGHT:
         camera._moveX = 0;
         break;
-      case 'STRIFE_UP':
-      case 'STRIFE_DOWN':
+      case Enums.KeyAction.STRIFE_UP:
+      case Enums.KeyAction.STRIFE_DOWN:
         camera._moveZ = 0;
         break;
-      case 'CAMERA_RESET':
+      case Enums.KeyAction.CAMERA_RESET:
         this.resetCamera();
         break;
-      case 'CAMERA_FRONT':
+      case Enums.KeyAction.CAMERA_FRONT:
         this.resetFront();
         break;
-      case 'CAMERA_TOP':
+      case Enums.KeyAction.CAMERA_TOP:
         this.resetTop();
         break;
-      case 'CAMERA_LEFT':
+      case Enums.KeyAction.CAMERA_LEFT:
         this.resetLeft();
         break;
       }

@@ -2,7 +2,8 @@ define(function (require, exports, module) {
 
   'use strict';
 
-  var Mesh = require('mesh/Mesh');
+  var Utils = require('misc/Utils');
+  var MeshStatic = require('mesh/MeshStatic/MeshStatic');
 
   var Import = {};
 
@@ -33,7 +34,7 @@ define(function (require, exports, module) {
           offsetVertices = nbVertices;
           offsetTexCoords = nbTexCoords;
         }
-        meshes.push(new Mesh(gl));
+        meshes.push(new MeshStatic(gl));
       } else if (line.startsWith('v ')) {
         split = line.split(/\s+/);
         vAr.push(parseFloat(split[1]), parseFloat(split[2]), parseFloat(split[3]));
@@ -75,13 +76,13 @@ define(function (require, exports, module) {
           var id4 = nbVerts - j;
           if (id3 === id2) {
             id3 = id4;
-            id4 = -1;
+            id4 = Utils.TRI_INDEX;
           }
 
           var sp1 = split[id1].split('/');
           var sp2 = split[id2].split('/');
           var sp3 = split[id3].split('/');
-          var isQuad = id4 >= 0;
+          var isQuad = id4 !== Utils.TRI_INDEX;
           var sp4;
           if (isQuad) sp4 = split[id4].split('/');
 
@@ -91,13 +92,15 @@ define(function (require, exports, module) {
           var iv4 = isQuad ? parseInt(sp4[0], 10) : undefined;
           if (isQuad && (iv4 === iv1 || iv4 === iv2 || iv4 === iv3))
             continue;
+
           if (iv1 === iv2 || iv1 === iv3 || iv2 === iv3)
             continue;
+
           iv1 = (iv1 < 0 ? iv1 + nbVertices : iv1 - 1) - offsetVertices;
           iv2 = (iv2 < 0 ? iv2 + nbVertices : iv2 - 1) - offsetVertices;
           iv3 = (iv3 < 0 ? iv3 + nbVertices : iv3 - 1) - offsetVertices;
           if (isQuad) iv4 = (iv4 < 0 ? iv4 + nbVertices : iv4 - 1) - offsetVertices;
-          fAr.push(iv1, iv2, iv3, isQuad ? iv4 : -1);
+          fAr.push(iv1, iv2, iv3, isQuad ? iv4 : Utils.TRI_INDEX);
 
           if (sp1[1]) {
             var uv1 = parseInt(sp1[1], 10);
@@ -108,19 +111,19 @@ define(function (require, exports, module) {
             uv2 = (uv2 < 0 ? uv2 + nbTexCoords : uv2 - 1) - offsetTexCoords;
             uv3 = (uv3 < 0 ? uv3 + nbTexCoords : uv3 - 1) - offsetTexCoords;
             if (isQuad) uv4 = (uv4 < 0 ? uv4 + nbTexCoords : uv4 - 1) - offsetTexCoords;
-            uvfAr.push(uv1, uv2, uv3, isQuad ? uv4 : -1);
+            uvfAr.push(uv1, uv2, uv3, isQuad ? uv4 : Utils.TRI_INDEX);
           }
         }
       }
     }
-    if (meshes.length === 0) meshes[0] = new Mesh(gl);
+    if (meshes.length === 0) meshes[0] = new MeshStatic(gl);
     Import.initMeshOBJ(meshes[meshes.length - 1], vAr, fAr, cAr, mAr, texAr, uvfAr, cArMrgb, mArMat);
     return meshes;
   };
 
   Import.initMeshOBJ = function (mesh, vAr, fAr, cAr, mAr, texAr, uvfAr, cArMrgb, mArMat) {
     mesh.setVertices(new Float32Array(vAr));
-    mesh.setFaces(new Int32Array(fAr));
+    mesh.setFaces(new Uint32Array(fAr));
 
     if (cArMrgb.length === vAr.length) mesh.setColors(new Float32Array(cArMrgb));
     else if (cAr.length === vAr.length) mesh.setColors(new Float32Array(cAr));

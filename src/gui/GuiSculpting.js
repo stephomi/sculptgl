@@ -3,14 +3,17 @@ define(function (require, exports, module) {
   'use strict';
 
   var TR = require('gui/GuiTR');
+  var Enums = require('misc/Enums');
   var Tools = require('editing/tools/Tools');
   var getOptionsURL = require('misc/getOptionsURL');
   var GuiSculptingTools = require('gui/GuiSculptingTools');
 
+  var GuiTools = GuiSculptingTools.tools;
+
   var GuiSculpting = function (guiParent, ctrlGui) {
     this._main = ctrlGui._main; // main application
     this._ctrlGui = ctrlGui; // main gui
-    this._sculpt = ctrlGui._main.getSculpt(); // sculpting management
+    this._sculptManager = ctrlGui._main.getSculptManager(); // sculpting management
     this._toolOnRelease = -1; // tool to apply when the mouse or the key is released
     this._invertSign = false; // invert sign of tool (add/sub)
 
@@ -41,28 +44,26 @@ define(function (require, exports, module) {
       menu.addTitle(TR('sculptTool'));
 
       // sculpt tool
-      var optTools = {};
-      var tools = Tools.keys;
-      for (var i = 0, nbTools = tools.length; i < nbTools; ++i) {
-        var tn = tools[i];
-        optTools[tn] = TR(Tools[tn].uiName);
+      var optTools = [];
+      for (var i = 0, nbTools = Tools.length; i < nbTools; ++i) {
+        if (Tools[i]) optTools[i] = TR(Tools[i].uiName);
       }
-      this._ctrlSculpt = menu.addCombobox(TR('sculptTool'), this._sculpt._tool, this.onChangeTool.bind(this), optTools);
+      this._ctrlSculpt = menu.addCombobox(TR('sculptTool'), this._sculptManager.getToolIndex(), this.onChangeTool.bind(this), optTools);
 
-      GuiSculptingTools.initGuiTools(this._sculpt, this._menu, this._main);
+      GuiSculptingTools.initGuiTools(this._sculptManager, this._menu, this._main);
 
       this._ctrlTitleCommon = menu.addTitle(TR('sculptCommon'));
       // symmetry
-      this._ctrlSymmetry = menu.addCheckbox(TR('sculptSymmetry'), this._sculpt._symmetry, this.onSymmetryChange.bind(this));
+      this._ctrlSymmetry = menu.addCheckbox(TR('sculptSymmetry'), this._sculptManager._symmetry, this.onSymmetryChange.bind(this));
       // continuous
-      this._ctrlContinuous = menu.addCheckbox(TR('sculptContinuous'), this._sculpt, '_continuous');
+      this._ctrlContinuous = menu.addCheckbox(TR('sculptContinuous'), this._sculptManager, '_continuous');
 
-      GuiSculptingTools.show(this._sculpt._tool);
+      GuiSculptingTools.show(this._sculptManager.getToolIndex());
       this.addEvents();
-      this.onChangeTool(this._sculpt._tool);
+      this.onChangeTool(this._sculptManager.getToolIndex());
     },
     onSymmetryChange: function (value) {
-      this._sculpt._symmetry = value;
+      this._sculptManager._symmetry = value;
       this._main.render();
     },
     addEvents: function () {
@@ -82,19 +83,19 @@ define(function (require, exports, module) {
       if (!this._invertSign)
         return;
       this._invertSign = false;
-      var tool = GuiSculptingTools[this.getSelectedTool()];
+      var tool = GuiTools[this.getSelectedTool()];
       if (tool.toggleNegative)
         tool.toggleNegative();
     },
     onChangeTool: function (newValue) {
-      GuiSculptingTools.hide(this._sculpt._tool);
-      this._sculpt._tool = newValue;
+      GuiSculptingTools.hide(this._sculptManager.getToolIndex());
+      this._sculptManager.setToolIndex(newValue);
       GuiSculptingTools.show(newValue);
 
-      var showContinuous = this._sculpt.canBeContinuous() === true;
+      var showContinuous = this._sculptManager.canBeContinuous() === true;
       this._ctrlContinuous.setVisibility(showContinuous);
 
-      var showSym = newValue !== 'TRANSFORM';
+      var showSym = newValue !== Enums.Tools.TRANSFORM;
       this._ctrlSymmetry.setVisibility(showSym);
 
       this._ctrlTitleCommon.setVisibility(showContinuous || showSym);
@@ -111,7 +112,7 @@ define(function (require, exports, module) {
 
       var reader = new FileReader();
       var main = this._main;
-      var tool = GuiSculptingTools[main.getSculpt()._tool];
+      var tool = GuiTools[this._sculptManager.getToolIndex()];
 
       reader.onload = function (evt) {
         var img = new Image();
@@ -123,10 +124,9 @@ define(function (require, exports, module) {
       reader.readAsDataURL(file);
     },
     addAlphaOptions: function (opts) {
-      var keys = Tools.keys;
-      for (var i = 0, nb = keys.length; i < nb; ++i) {
-        var t = GuiSculptingTools[keys[i]];
-        if (t && t._ctrlAlpha) t._ctrlAlpha.addOptions(opts);
+      for (var i = 0, nbTools = GuiTools.length; i < nbTools; ++i) {
+        var gTool = GuiTools[i];
+        if (gTool && gTool._ctrlAlpha) gTool._ctrlAlpha.addOptions(opts);
       }
     },
     updateMesh: function () {
@@ -135,30 +135,30 @@ define(function (require, exports, module) {
     _startModalBrushRadius: function (x, y) {
       this._refX = x;
       this._refY = y;
-      var cur = GuiSculptingTools[this.getSelectedTool()];
+      var cur = GuiTools[this.getSelectedTool()];
       if (cur._ctrlRadius) {
         var rad = cur._ctrlRadius.getValue();
         this._refX -= rad;
-        this._main.getSelectionRadius().setOffsetX(-rad * this._main.getPixelRatio());
+        this._main.getSculptManager().getSelection().setOffsetX(-rad * this._main.getPixelRatio());
         this._main.renderSelectOverRtt();
       }
     },
     _checkModifierKey: function (event) {
       var selectedTool = this.getSelectedTool();
 
-      if (this._main._action === 'NOTHING') {
+      if (this._main._action === Enums.Action.NOTHING) {
         if (event.shiftKey && !event.altKey && !event.ctrlKey) {
           // smoothing on shift key
-          if (selectedTool !== 'SMOOTH') {
+          if (selectedTool !== Enums.Tools.SMOOTH) {
             this._toolOnRelease = selectedTool;
-            this._ctrlSculpt.setValue('SMOOTH');
+            this._ctrlSculpt.setValue(Enums.Tools.SMOOTH);
           }
         }
         if (event.ctrlKey && !event.shiftKey && !event.altKey) {
           // masking on ctrl key
-          if (selectedTool !== 'MASKING') {
+          if (selectedTool !== Enums.Tools.MASKING) {
             this._toolOnRelease = selectedTool;
-            this._ctrlSculpt.setValue('MASKING');
+            this._ctrlSculpt.setValue(Enums.Tools.MASKING);
           }
         }
       }
@@ -166,7 +166,7 @@ define(function (require, exports, module) {
         // invert sign on alt key
         if (this._invertSign || event.shiftKey) return true;
         this._invertSign = true;
-        var curTool = GuiSculptingTools[selectedTool];
+        var curTool = GuiTools[selectedTool];
         if (curTool.toggleNegative)
           curTool.toggleNegative();
         return true;
@@ -184,36 +184,36 @@ define(function (require, exports, module) {
       var shk = getOptionsURL.getShortKey(event.which);
       event.stopPropagation();
 
-      if (!main._focusGui || shk === 'RADIUS' || shk === 'INTENSITY')
+      if (!main._focusGui || shk === Enums.KeyAction.RADIUS || shk === Enums.KeyAction.INTENSITY)
         event.preventDefault();
 
       event.handled = true;
       if (this._checkModifierKey(event))
         return;
 
-      if (main._action !== 'NOTHING')
+      if (main._action !== Enums.Action.NOTHING)
         return;
 
-      if (shk && Tools[shk])
+      if (shk !== undefined && Tools[shk])
         return this._ctrlSculpt.setValue(shk);
 
-      var cur = GuiSculptingTools[this.getSelectedTool()];
+      var cur = GuiTools[this.getSelectedTool()];
 
       switch (shk) {
-      case 'DELETE':
+      case Enums.KeyAction.DELETE:
         main.deleteCurrentSelection();
         break;
-      case 'INTENSITY':
+      case Enums.KeyAction.INTENSITY:
         this._modalBrushIntensity = main._focusGui = true;
         break;
-      case 'RADIUS':
+      case Enums.KeyAction.RADIUS:
         if (!this._modalBrushRadius) this._startModalBrushRadius(this._lastPageX, this._lastPageY);
         this._modalBrushRadius = main._focusGui = true;
         break;
-      case 'NEGATIVE':
+      case Enums.KeyAction.NEGATIVE:
         if (cur.toggleNegative) cur.toggleNegative();
         break;
-      case 'PICKER':
+      case Enums.KeyAction.PICKER:
         var ctrlPicker = cur._ctrlPicker;
         if (ctrlPicker && !ctrlPicker.getValue()) ctrlPicker.setValue(true);
         break;
@@ -222,7 +222,7 @@ define(function (require, exports, module) {
       }
     },
     onKeyUp: function (event) {
-      var releaseTool = this._main._action === 'NOTHING' && this._toolOnRelease !== -1 && !event.ctrlKey && !event.shiftKey;
+      var releaseTool = this._main._action === Enums.Action.NOTHING && this._toolOnRelease !== -1 && !event.ctrlKey && !event.shiftKey;
       if (!event.altKey || releaseTool)
         this.releaseInvertSign();
 
@@ -233,21 +233,22 @@ define(function (require, exports, module) {
 
       var main = this._main;
       switch (getOptionsURL.getShortKey(event.which)) {
-      case 'RADIUS':
+      case Enums.KeyAction.RADIUS:
         this._modalBrushRadius = main._focusGui = false;
-        main.getSelectionRadius().setOffsetX(0.0);
+        var selRadius = this._main.getSculptManager().getSelection();
+        selRadius.setOffsetX(0.0);
         event.pageX = this._lastPageX;
         event.pageY = this._lastPageY;
         main.setMousePosition(event);
         main.getPicking().intersectionMouseMeshes();
         main.renderSelectOverRtt();
         break;
-      case 'PICKER':
-        var cur = GuiSculptingTools[this.getSelectedTool()];
+      case Enums.KeyAction.PICKER:
+        var cur = GuiTools[this.getSelectedTool()];
         var ctrlPicker = cur._ctrlPicker;
         if (ctrlPicker && ctrlPicker.getValue()) ctrlPicker.setValue(false);
         break;
-      case 'INTENSITY':
+      case Enums.KeyAction.INTENSITY:
         this._modalBrushIntensity = main._focusGui = false;
         break;
       }
@@ -263,7 +264,7 @@ define(function (require, exports, module) {
       }
     },
     onMouseMove: function (event) {
-      var wid = GuiSculptingTools[this.getSelectedTool()];
+      var wid = GuiTools[this.getSelectedTool()];
 
       if (this._modalBrushRadius && wid._ctrlRadius) {
         var dx = event.pageX - this._refX;
