@@ -14,6 +14,7 @@
     "grunt-preprocess": "^5.0.1"
   },
   "devDependencies": {
+    "grunt-jsbeautifier": "^0.2.10",
     "grunt-nw-builder": "^2.0.0"
   },
   "scripts": {

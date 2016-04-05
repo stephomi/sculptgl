@@ -16,7 +16,7 @@ define(function (require, exports, module) {
   OctreeCell.MAX_DEPTH = 8; // maximum depth
   OctreeCell.MAX_FACES = 100; // maximum faces per cell
   (function () {
-    var nb = OctreeCell.MAX_DEPTH * OctreeCell.MAX_DEPTH + OctreeCell.MAX_DEPTH;
+    var nb = 1 + 7 * OctreeCell.MAX_DEPTH;
     var stack = OctreeCell.STACK = new Array(nb);
     for (var i = 0; i < nb; ++i)
       stack[i] = null;

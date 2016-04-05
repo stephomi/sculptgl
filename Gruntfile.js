@@ -112,6 +112,13 @@ module.exports = function (grunt) {
     }
   };
 
+  var jsbeautifier = {
+    src: ['Gruntfile.js', 'src/**/*.js'],
+    options: {
+      config: './.jsbeautifyrc'
+    }
+  };
+
   // Project configuration.
   grunt.initConfig({
     pkg: grunt.file.readJSON('package.json'),
@@ -122,11 +129,13 @@ module.exports = function (grunt) {
     manifest: manifest,
     nwjs: nwjs,
     uglify: uglify,
-    preprocess: preprocess
+    preprocess: preprocess,
+    jsbeautifier: jsbeautifier
   });
 
   grunt.loadNpmTasks('grunt-manifest');
   grunt.loadNpmTasks('grunt-contrib-requirejs');
+  grunt.loadNpmTasks('grunt-jsbeautifier');
   grunt.loadNpmTasks('grunt-contrib-jshint');
   grunt.loadNpmTasks('grunt-contrib-clean');
   grunt.loadNpmTasks('grunt-contrib-copy');
@@ -136,6 +145,9 @@ module.exports = function (grunt) {
 
   // test
   grunt.registerTask('test', 'jshint');
+
+  // beautify
+  grunt.registerTask('beautify', ['jsbeautifier']);
 
   // builds
   grunt.registerTask('buildall', ['clean', 'jshint', 'copy:main', 'requirejs', 'uglify']);
