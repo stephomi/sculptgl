@@ -8,6 +8,7 @@ define(function (require, exports, module) {
   var japanese = require('gui/tr/japanese');
   var korean = require('gui/tr/korean');
   var russian = require('gui/tr/russian');
+  var turkish = require('gui/tr/turkish');
 
   var GuiTR = function (key) {
     var str = GuiTR.languages[GuiTR.select][key] || GuiTR.languages.english[key];
@@ -24,7 +25,8 @@ define(function (require, exports, module) {
     '日本語': japanese,
     '中文': chinese,
     '한국어': korean,
-    'русский': russian
+    'русский': russian,
+    'turkish': turkish
   };
 
   GuiTR.select = 'english';
@@ -33,7 +35,7 @@ define(function (require, exports, module) {
   if (language === 'ja') GuiTR.select = '日本語';
   else if (language === 'zh') GuiTR.select = '中文';
   else if (language === 'ko') GuiTR.select = '한국어';
-  else if (language === 'ru') GuiTR.select = 'русский';
+  else if (language === 'tr') GuiTR.select = 'turkish';
 
   switch (getOptionsURL().language) {
   case 'english':
@@ -50,6 +52,9 @@ define(function (require, exports, module) {
     break;
   case 'russian':
     GuiTR.select = 'русский';
+    break;
+  case 'turkish':
+    GuiTR.select = 'turkish';
     break;
   }
 
