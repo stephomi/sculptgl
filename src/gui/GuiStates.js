@@ -23,19 +23,19 @@ define(function (require, exports, module) {
     },
     onUndo: function () {
       this._main._action = 'NOTHING';
+      this._main._sculpt.end(); // abort current sculpting operation
       this._main.getStates().undo();
       this._main.render();
       this._ctrlGui.updateMesh();
     },
     onRedo: function () {
-      this._main._action = 'NOTHING';
       this._main.getStates().redo();
       this._main.render();
       this._ctrlGui.updateMesh();
     },
-    ////////////////
+    /////////////
     // KEY EVENTS
-    //////////////// 
+    ///////////// 
     onKeyDown: function (event) {
       if (event.handled === true)
         return;
