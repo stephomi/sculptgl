@@ -86,7 +86,7 @@ define(function (require, exports, module) {
     dynamicActivated: 'Aktifleştirildi (no quads)',
     dynamicSubdivision: 'Altbölüm',
     dynamicDecimation: 'Üstbölüm',
-    dynamicLinear: 'Doğrusal altbölüm',r
+    dynamicLinear: 'Doğrusal altbölüm',
 
     // sculpt
     sculptTitle: 'Oyma & Boyama',
