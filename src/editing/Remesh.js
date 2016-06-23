@@ -6,7 +6,7 @@ define(function (require, exports, module) {
   var HoleFilling = require('editing/HoleFilling');
   var SurfaceNets = require('editing/SurfaceNets');
   var Geometry = require('math3d/Geometry');
-  var MeshStatic = require('mesh/MeshStatic/MeshStatic');
+  var MeshStatic = require('mesh/meshStatic/MeshStatic');
   var Utils = require('misc/Utils');
   var Enums = require('misc/Enums');
 

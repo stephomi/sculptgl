@@ -3,7 +3,7 @@ define(function (require, exports, module) {
   'use strict';
 
   var Utils = require('misc/Utils');
-  var MeshStatic = require('mesh/MeshStatic/MeshStatic');
+  var MeshStatic = require('mesh/meshStatic/MeshStatic');
 
   var Edge = function (v1, v2) {
     this.previous = null;

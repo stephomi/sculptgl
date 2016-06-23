@@ -4,7 +4,7 @@ define(function (require, exports, module) {
 
   var TR = require('gui/GuiTR');
   var Remesh = require('editing/Remesh');
-  var MeshStatic = require('mesh/MeshStatic/MeshStatic');
+  var MeshStatic = require('mesh/meshStatic/MeshStatic');
   var Multimesh = require('mesh/multiresolution/Multimesh');
   var MeshDynamic = require('mesh/dynamic/MeshDynamic');
   var StateMultiresolution = require('states/StateMultiresolution');

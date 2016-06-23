@@ -7,7 +7,7 @@ define(function (require, exports, module) {
   var SculptBase = require('editing/tools/SculptBase');
   var Paint = require('editing/tools/Paint');
   var Smooth = require('editing/tools/Smooth');
-  var MeshStatic = require('mesh/MeshStatic/MeshStatic');
+  var MeshStatic = require('mesh/meshStatic/MeshStatic');
 
   var vec3 = glm.vec3;
   var mat3 = glm.mat3;
