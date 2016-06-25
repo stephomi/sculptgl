@@ -120,7 +120,7 @@ define(function (require, exports, module) {
     var params = readUrlParameters();
 
     // misc
-    options.language = params.language; // english/chinese/korean/japanese/russian/turkish
+    options.language = params.language; // english/chinese/korean/japanese/russian/turkish/swedish
     options.scalecenter = queryBool(params.scalecenter, true);
     options.wacom = queryBool(params.wacom, false); // try using deprecated npapi plugin
 
