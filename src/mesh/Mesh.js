@@ -1710,8 +1710,11 @@ define(function (require, exports, module) {
     },
     setShaderType: function (shaderName) {
       var hasUV = this.hasUV();
-      if (shaderName === Enums.Shader.UV && !hasUV)
-        return;
+      if (shaderName === Enums.Shader.UV && !hasUV) {
+        if (this._renderData._shaderType !== Enums.Shader.UV)
+          return;
+        shaderName = Enums.Shader.MATCAP;
+      }
 
       this._renderData._shaderType = shaderName;
       if (hasUV) {
@@ -1811,3 +1814,4 @@ define(function (require, exports, module) {
 
   module.exports = Mesh;
 });
+
