@@ -41,7 +41,7 @@ define(function (require, exports, module) {
     '    vec3 x = max(vec3(0.0), color - vec3(0.004));',
     '    gl_FragColor = vec4((x*(6.2*x+0.5))/(x*(6.2*x+1.7)+0.06), 1.0);',
     '  }else{',
-    '    gl_FragColor = vec4(lineartoSRGB(color), 1.0);',
+    '    gl_FragColor = vec4(linearTosRGB(color), 1.0);',
     '  }',
     '}'
   ].join('\n');

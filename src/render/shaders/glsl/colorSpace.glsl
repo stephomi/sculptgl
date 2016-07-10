@@ -1,38 +1,29 @@
 // reference
 // https://www.khronos.org/registry/gles/extensions/EXT/EXT_sRGB.txt
 
-// approximation
-// http://chilliant.blogspot.fr/2012/08/srgb-approximations-for-hlsl.html
-float lineartoSRGB(const in float c) {
-    float S1 = sqrt(c);
-    float S2 = sqrt(S1);
-    float S3 = sqrt(S2);
-    return 0.662002687 * S1 + 0.684122060 * S2 - 0.323583601 * S3 - 0.0225411470 * c;
+#define LIN_SRGB(x) x < 0.0031308 ? x * 12.92 : 1.055 * pow(x, 1.0/2.4) - 0.055
+float linearTosRGB(const in float c) {
+    return LIN_SRGB(c);
 }
-vec3 lineartoSRGB(const in vec3 c) {
-    vec3 S1 = sqrt(c);
-    vec3 S2 = sqrt(S1);
-    vec3 S3 = sqrt(S2);
-    return 0.662002687 * S1 + 0.684122060 * S2 - 0.323583601 * S3 - 0.0225411470 * c;
+vec3 linearTosRGB(const in vec3 c) {
+    return vec3(LIN_SRGB(c.r), LIN_SRGB(c.g), LIN_SRGB(c.b));
 }
-vec4 lineartoSRGB(const in vec4 c) {
-    vec3 S1 = sqrt(c.rgb);
-    vec3 S2 = sqrt(S1);
-    vec3 S3 = sqrt(S2);
-    return vec4(0.662002687 * S1 + 0.684122060 * S2 - 0.323583601 * S3 - 0.0225411470 * c.rgb, c.a);
+vec4 linearTosRGB(const in vec4 c) {
+    return vec4(LIN_SRGB(c.r), LIN_SRGB(c.g), LIN_SRGB(c.b), c.a);
 }
 
+#define SRGB_LIN(x) x < 0.04045 ? x * (1.0 / 12.92) : pow((x + 0.055) * (1.0 / 1.055), 2.4)
 float sRGBToLinear(const in float c) {
-    return c * (c * (c * 0.305306011 + 0.682171111) + 0.012522878);
+    return SRGB_LIN(c);
 }
 vec3 sRGBToLinear(const in vec3 c) {
-    return c * (c * (c * 0.305306011 + 0.682171111) + 0.012522878);
+    return vec3(SRGB_LIN(c.r), SRGB_LIN(c.g), SRGB_LIN(c.b));
 }
 vec4 sRGBToLinear(const in vec4 c) {
-    return vec4(c.rgb * (c.rgb * (c.rgb * 0.305306011 + 0.682171111) + 0.012522878), c.a);
+    return vec4(SRGB_LIN(c.r), SRGB_LIN(c.g), SRGB_LIN(c.b), c.a);
 }
 
-#define RANGE 1.0
+#define RANGE 5.0
 // http://graphicrants.blogspot.fr/2009/04/rgbm-color-encoding.html
 vec4 encodeRGBM(const in vec3 col) {
     vec4 rgbm;
