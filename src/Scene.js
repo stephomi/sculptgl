@@ -97,7 +97,27 @@ define(function (require, exports, module) {
       this.loadTextures();
       this._gui.initGui();
       this.onCanvasResize();
-      this.addSphere();
+
+      var modelURL = getOptionsURL().modelurl;
+      if (modelURL) this.addModelURL(modelURL);
+      else this.addSphere();
+    },
+    addModelURL: function (url) {
+      var fileType = this.getFileType(url);
+      if (!fileType)
+        return;
+
+      var xhr = new XMLHttpRequest();
+      xhr.open('GET', url, true);
+
+      xhr.responseType = fileType === 'obj' ? 'text' : 'arraybuffer';
+
+      xhr.onload = function () {
+        if (xhr.status === 200)
+          this.loadScene(xhr.response, fileType);
+      }.bind(this);
+
+      xhr.send(null);
     },
     getBackground: function () {
       return this._background;

@@ -147,6 +147,8 @@ define(function (require, exports, module) {
     options.shader = getEnum(Enums.Shader, params.shader, Enums.Shader.MATCAP); // pbr/matcap/normal/uv
     options.filmic = queryBool(params.filmic, false);
 
+    options.modelurl = params.modelurl;
+
     options.shortcuts = readShortcuts(params.shortcuts);
 
     return options;
