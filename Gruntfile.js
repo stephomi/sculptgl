@@ -47,7 +47,7 @@ module.exports = function (grunt) {
       files: [{
         expand: true,
         flatten: true,
-        src: ['package.json'],
+        src: ['package.json', 'tools/winstate.js'],
         dest: 'build/'
       }]
     },
@@ -160,3 +160,4 @@ module.exports = function (grunt) {
 
   grunt.registerTask('default', 'build:manifest');
 };
+
