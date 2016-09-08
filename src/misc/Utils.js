@@ -14,6 +14,14 @@ define(function (require, exports, module) {
   Utils.cursors = {};
   Utils.cursors.dropper = 'url(resources/dropper.png) 5 25, auto';
 
+  Utils.linearToSRGB1 = function (x) {
+    return x < 0.0031308 ? x * 12.92 : 1.055 * Math.pow(x, 1.0 / 2.4) - 0.055;
+  };
+
+  Utils.sRGBToLinear1 = function (x) {
+    return x < 0.04045 ? x * (1.0 / 12.92) : Math.pow((x + 0.055) * (1.0 / 1.055), 2.4);
+  };
+
   Utils.extend = function (dest, src) {
     var keys = Object.keys(src);
     for (var i = 0, l = keys.length; i < l; ++i) {
@@ -229,11 +237,7 @@ define(function (require, exports, module) {
   Utils.convertArrayVec3toSRGB = function (array, out) {
     var arrayOut = out || array;
     for (var i = 0, l = array.length; i < l; ++i) {
-      var c = array[i];
-      var S1 = Math.sqrt(c);
-      var S2 = Math.sqrt(S1);
-      var S3 = Math.sqrt(S2);
-      arrayOut[i] = 0.662002687 * S1 + 0.684122060 * S2 - 0.323583601 * S3 - 0.0225411470 * c;
+      arrayOut[i] = Utils.linearToSRGB1(array[i]);
     }
     return arrayOut;
   };
@@ -241,8 +245,7 @@ define(function (require, exports, module) {
   Utils.convertArrayVec3toLinear = function (array, out) {
     var arrayOut = out || array;
     for (var i = 0, l = array.length; i < l; ++i) {
-      var c = array[i];
-      arrayOut[i] = c * (c * (c * 0.305306011 + 0.682171111) + 0.012522878);
+      arrayOut[i] = Utils.sRGBToLinear1(array[i]);
     }
     return arrayOut;
   };

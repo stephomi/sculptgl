@@ -32,9 +32,8 @@ define(function (require, exports, module) {
   ShaderFlat.fragment = [
     'precision mediump float;',
     'uniform vec3 uColor;',
-    ShaderBase.strings.colorSpaceGLSL,
     'void main() {',
-    '  gl_FragColor = encodeRGBM(uColor);',
+    '  gl_FragColor = vec4(uColor, 1.0);',
     '}'
   ].join('\n');
 

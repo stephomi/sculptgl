@@ -178,7 +178,7 @@ define(function (require, exports, module) {
       var scale = 2.5;
       mat4.scale(gridm, gridm, [scale, scale, scale]);
       this._grid.setShaderType(Enums.Shader.FLAT);
-      grid.setFlatColor([0.2140, 0.2140, 0.2140]);
+      grid.setFlatColor([0.04, 0.04, 0.04]);
     },
     setOrUnsetMesh: function (mesh, multiSelect) {
       if (!mesh) {
@@ -309,7 +309,6 @@ define(function (require, exports, module) {
       // CONTOUR 2/2
       ///////////////
       if (showContour) {
-        gl.bindFramebuffer(gl.FRAMEBUFFER, this._rttOpaque.getFramebuffer());
         this._rttContour.render(this);
       }
 

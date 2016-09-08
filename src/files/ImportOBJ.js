@@ -10,6 +10,7 @@ define(function (require, exports, module) {
   /** Import OBJ file */
   Import.importOBJ = function (data, gl) {
     var meshes = [];
+
     var vAr = [];
     var cAr = [];
     var cArMrgb = [];
@@ -18,51 +19,49 @@ define(function (require, exports, module) {
     var texAr = [];
     var fAr = [];
     var uvfAr = [];
+
     var offsetVertices = 0;
     var offsetTexCoords = 0;
     var nbVertices = 0;
     var nbTexCoords = 0;
+
     var lines = data.split('\n');
     var split = [];
     var inv255 = 1.0 / 255;
     var nbLength = lines.length;
+
     for (var i = 0; i < nbLength; ++i) {
       var line = lines[i].trim();
-      if (line.startsWith('o ')) {
-        if (meshes.length > 0) {
-          Import.initMeshOBJ(meshes[meshes.length - 1], vAr, fAr, cAr, mAr, texAr, uvfAr, cArMrgb, mArMat);
-          offsetVertices = nbVertices;
-          offsetTexCoords = nbTexCoords;
+
+      if (line.length === 0) continue;
+
+      var firstChar = line[0];
+      var secondChar;
+
+      if (firstChar === 'v') {
+
+        secondChar = line[1];
+
+        if (secondChar === ' ') {
+
+          split = line.split(/\s+/);
+          vAr.push(parseFloat(split[1]), parseFloat(split[2]), parseFloat(split[3]));
+          if (split[4])
+            cAr.push(parseFloat(split[4]), parseFloat(split[5]), parseFloat(split[6]));
+          ++nbVertices;
+
+        } else if (secondChar === 't ') {
+
+          split = line.split(/\s+/);
+          texAr.push(parseFloat(split[1]), parseFloat(split[2]));
+          ++nbTexCoords;
+
         }
-        meshes.push(new MeshStatic(gl));
-      } else if (line.startsWith('v ')) {
+
+      } else if (firstChar === 'f') {
+
         split = line.split(/\s+/);
-        vAr.push(parseFloat(split[1]), parseFloat(split[2]), parseFloat(split[3]));
-        if (split[4])
-          cAr.push(parseFloat(split[4]), parseFloat(split[5]), parseFloat(split[6]));
-        ++nbVertices;
-      } else if (line.startsWith('#MRGB ')) {
-        // zbrush-like vertex color
-        split = line.split(/\s+/);
-        var blockMRGB = split[1];
-        for (var m = 2, mlen = blockMRGB.length; m < mlen; m += 8) {
-          var hex = parseInt(blockMRGB.substr(m, 6), 16);
-          cArMrgb.push((hex >> 16) * inv255, (hex >> 8 & 0xff) * inv255, (hex & 0xff) * inv255);
-        }
-      } else if (line.startsWith('#MAT ')) {
-        // zbrush-like vertex material
-        split = line.split(/\s+/);
-        var blockMAT = split[1];
-        for (var n = 0, nlen = blockMAT.length; n < nlen; n += 6) {
-          var hex2 = parseInt(blockMAT.substr(n, 6), 16);
-          mArMat.push((hex2 >> 16) * inv255, (hex2 >> 8 & 0xff) * inv255, (hex2 & 0xff) * inv255);
-        }
-      } else if (line.startsWith('vt ')) {
-        split = line.split(/\s+/);
-        texAr.push(parseFloat(split[1]), parseFloat(split[2]));
-        ++nbTexCoords;
-      } else if (line.startsWith('f ')) {
-        split = line.split(/\s+/);
+
         var nbVerts = split.length - 1;
         if (nbVerts < 3) // at least 3 vertices
           continue;
@@ -114,10 +113,50 @@ define(function (require, exports, module) {
             uvfAr.push(uv1, uv2, uv3, isQuad ? uv4 : Utils.TRI_INDEX);
           }
         }
+
+      } else if (firstChar === '#') {
+
+        if (line[1] !== 'M')
+          continue;
+
+        if (line.startsWith('#MRGB ')) {
+
+          // zbrush-like vertex color
+          split = line.split(/\s+/);
+          var blockMRGB = split[1];
+          for (var m = 2, mlen = blockMRGB.length; m < mlen; m += 8) {
+            var hex = parseInt(blockMRGB.substr(m, 6), 16);
+            cArMrgb.push((hex >> 16) * inv255, (hex >> 8 & 0xff) * inv255, (hex & 0xff) * inv255);
+          }
+
+        } else if (line.startsWith('#MAT ')) {
+
+          // zbrush-like vertex material
+          split = line.split(/\s+/);
+          var blockMAT = split[1];
+          for (var n = 0, nlen = blockMAT.length; n < nlen; n += 6) {
+            var hex2 = parseInt(blockMAT.substr(n, 6), 16);
+            mArMat.push((hex2 >> 16) * inv255, (hex2 >> 8 & 0xff) * inv255, (hex2 & 0xff) * inv255);
+          }
+        }
+
+      } else if (line.startsWith('o ')) {
+
+        if (meshes.length > 0) {
+          Import.initMeshOBJ(meshes[meshes.length - 1], vAr, fAr, cAr, mAr, texAr, uvfAr, cArMrgb, mArMat);
+          offsetVertices = nbVertices;
+          offsetTexCoords = nbTexCoords;
+        }
+
+        meshes.push(new MeshStatic(gl));
+
       }
+
     }
+
     if (meshes.length === 0) meshes[0] = new MeshStatic(gl);
     Import.initMeshOBJ(meshes[meshes.length - 1], vAr, fAr, cAr, mAr, texAr, uvfAr, cArMrgb, mArMat);
+
     return meshes;
   };
 
@@ -142,3 +181,4 @@ define(function (require, exports, module) {
 
   module.exports = Import;
 });
+

@@ -33,10 +33,11 @@ define(function (require, exports, module) {
     'varying vec2 vTexCoord;',
     'uniform vec2 uInvSize;',
     outlineGLSL,
+    ShaderBase.strings.colorSpaceGLSL,
     'void main() {',
     '  float mag = outlineDistance(vTexCoord, uTexture0, uInvSize);',
     '  if (mag < 1.5) discard;',
-    '  gl_FragColor = vec4(uColor.rgb * uColor.a, uColor.a);',
+    '  gl_FragColor = vec4(sRGBToLinear(uColor.rgb) * uColor.a, uColor.a);',
     '}'
   ].join('\n');
 
