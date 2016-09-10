@@ -466,27 +466,29 @@ define(function (require, exports, module) {
         var vrfStart = vrfStartCount[i * 2];
         var vrfEnd = vrfStart + vrfStartCount[i * 2 + 1];
         var vrvCount = 0;
+
         for (var j = vrfStart; j < vrfEnd; ++j) {
           var ind = vertRingFace[j] * 4;
           var iVer1 = fAr[ind];
           var iVer2 = fAr[ind + 1];
           var iVer3 = fAr[ind + 2];
           var iVer4 = fAr[ind + 3];
-          if (iVer1 === i)
-            iVer1 = iVer4 !== Utils.TRI_INDEX ? iVer4 : iVer3;
-          else if (iVer2 === i || iVer4 === i)
-            iVer2 = iVer3;
-          else if (iVer3 === i && iVer4 !== Utils.TRI_INDEX)
-            iVer1 = iVer4;
+
+          if (iVer1 === i) iVer1 = iVer4 !== Utils.TRI_INDEX ? iVer4 : iVer3;
+          else if (iVer2 === i || iVer4 === i) iVer2 = iVer3;
+          else if (iVer3 === i && iVer4 !== Utils.TRI_INDEX) iVer1 = iVer4;
+
           if (vertTagFlags[iVer1] !== tagFlag) {
             vertRingVert[vrvStart + (vrvCount++)] = iVer1;
             vertTagFlags[iVer1] = tagFlag;
           }
+
           if (vertTagFlags[iVer2] !== tagFlag) {
             vertRingVert[vrvStart + (vrvCount++)] = iVer2;
             vertTagFlags[iVer2] = tagFlag;
           }
         }
+
         vrvStartCount[i * 2] = vrvStart;
         vrvStartCount[i * 2 + 1] = vrvCount;
         vrvStart += vrvCount;

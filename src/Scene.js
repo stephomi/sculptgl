@@ -288,10 +288,14 @@ define(function (require, exports, module) {
       gl.clear(gl.COLOR_BUFFER_BIT);
 
       gl.enable(gl.BLEND);
+
+      // wireframe for dynamic mesh has duplicate edges
+      gl.depthFunc(gl.LESS);
       for (i = 0; i < nbMeshes; ++i) {
         if (meshes[i].getShowWireframe())
           meshes[i].renderWireframe(this);
       }
+      gl.depthFunc(gl.LEQUAL);
 
       gl.depthMask(false);
       gl.enable(gl.CULL_FACE);

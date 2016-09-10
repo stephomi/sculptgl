@@ -5,7 +5,6 @@ define(function (require, exports, module) {
   var Utils = require('misc/Utils');
   var Tablet = require('misc/Tablet');
   var SculptBase = require('editing/tools/SculptBase');
-  var Smooth = require('editing/tools/Smooth');
 
   var Inflate = function (main) {
     SculptBase.call(this, main);
@@ -34,7 +33,6 @@ define(function (require, exports, module) {
       picking.updateAlpha(this._lockPosition);
       picking.setIdAlpha(this._idAlpha);
       this.inflate(iVertsInRadius, picking.getIntersectionPoint(), picking.getLocalRadius2(), intensity, picking);
-      Smooth.prototype.smoothTangent.call(this, iVertsInRadius, 1.0, picking);
 
       var mesh = this.getMesh();
       mesh.updateGeometry(mesh.getFacesFromVertices(iVertsInRadius), iVertsInRadius);

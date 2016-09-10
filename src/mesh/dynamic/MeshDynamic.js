@@ -91,19 +91,17 @@ define(function (require, exports, module) {
       this.allocateArrays();
 
       this.initTriangles(mesh);
-      this.initRenderTriangles();
-      this.initVerticesTopology();
+      this.initVerticesTopology(mesh);
 
       this.updateFacesAabbAndNormal();
       this.updateVerticesNormal();
       this.updateOctree();
     },
-    updateTopology: function (iFaces) {
+    updateTopology: function (iFaces, iVerts) {
       this.updateRenderTriangles(iFaces);
-      if (this.getShowWireframe())
-        this.updateWireframe(iFaces);
-      if (this.isUsingDrawArrays())
-        this.updateDrawArrays(iFaces);
+      this.updateVerticesOnEdge(iVerts);
+      if (this.getShowWireframe()) this.updateWireframe(iFaces);
+      if (this.isUsingDrawArrays()) this.updateDrawArrays(iFaces);
     },
     getWireframe: function () {
       if (!this._wireframe) {
@@ -149,6 +147,18 @@ define(function (require, exports, module) {
         tAr[idt] = fAr[idf];
         tAr[idt + 1] = fAr[idf + 1];
         tAr[idt + 2] = fAr[idf + 2];
+      }
+    },
+    updateVerticesOnEdge: function (iVerts) {
+      var vOnEdge = this.getVerticesOnEdge();
+      var vrings = this.getVerticesRingVert();
+      var frings = this.getVerticesRingFace();
+      var full = iVerts === undefined;
+      var nbVerts = full ? this.getNbVertices() : iVerts.length;
+
+      for (var i = 0; i < nbVerts; ++i) {
+        var id = full ? i : iVerts[i];
+        vOnEdge[id] = vrings[id].length !== frings[id].length ? 1 : 0;
       }
     },
     resizeArray: function (orig, targetSize) {
@@ -223,6 +233,8 @@ define(function (require, exports, module) {
       var iArMesh = mesh.getTriangles();
       var nbTriangles = this.getNbTriangles();
       var fAr = this.getFaces();
+      this._meshData._trianglesABC = new Uint32Array(iArMesh.subarray(0, nbTriangles * 3));
+
       this._facesStateFlags = new Int32Array(nbTriangles);
       for (var i = 0; i < nbTriangles; ++i) {
         var id3 = i * 3;
@@ -233,9 +245,9 @@ define(function (require, exports, module) {
         fAr[id4 + 3] = Utils.TRI_INDEX;
       }
     },
-    initVerticesTopology: function () {
-      var vrings = this._meshData._vertRingVert;
-      var frings = this._meshData._vertRingFace;
+    initVerticesTopology: function (mesh) {
+      var vrings = this.getVerticesRingVert();
+      var frings = this.getVerticesRingFace();
       var i = 0;
       var nbVertices = this.getNbVertices();
       vrings.length = frings.length = nbVertices;
@@ -253,8 +265,11 @@ define(function (require, exports, module) {
         frings[iAr[j + 2]].push(i);
       }
 
-      for (i = 0; i < nbVertices; ++i)
+      for (i = 0; i < nbVertices; ++i) {
         this.computeRingVertices(i);
+      }
+
+      this.getVerticesOnEdge().set(mesh.getVerticesOnEdge().subarray(0, nbVertices));
     },
     /** Compute the vertices around a vertex */
     computeRingVertices: function (iVert) {
@@ -271,18 +286,18 @@ define(function (require, exports, module) {
         var ind = fring[i] * 4;
         var iVer1 = fAr[ind];
         var iVer2 = fAr[ind + 1];
-        var iVer3 = fAr[ind + 2];
-        if (iVer1 !== iVert && vflags[iVer1] !== tagFlag) {
-          vring.push(iVer1);
+
+        if (iVer1 === iVert) iVer1 = fAr[ind + 2];
+        else if (iVer2 === iVert) iVer2 = fAr[ind + 2];
+
+        if (vflags[iVer1] !== tagFlag) {
           vflags[iVer1] = tagFlag;
+          vring.push(iVer1);
         }
-        if (iVer2 !== iVert && vflags[iVer2] !== tagFlag) {
-          vring.push(iVer2);
+
+        if (vflags[iVer2] !== tagFlag) {
           vflags[iVer2] = tagFlag;
-        }
-        if (iVer3 !== iVert && vflags[iVer3] !== tagFlag) {
-          vring.push(iVer3);
-          vflags[iVer3] = tagFlag;
+          vring.push(iVer2);
         }
       }
     }

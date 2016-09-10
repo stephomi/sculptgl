@@ -39,8 +39,8 @@ define(function (require, exports, module) {
       mesh.setNbVertices(this._nbVerticesState);
       mesh.setNbFaces(this._nbFacesState);
 
+      mesh.updateTopology( /*this._idFaceState, this._idVertState*/ ); // TODO local update ?
       mesh.updateGeometry( /*this._idFaceState, this._idVertState*/ ); // TODO local update ?
-      mesh.updateTopology( /*this._idFaceState*/ ); // TODO local update ?
       mesh.updateDuplicateColorsAndMaterials();
       mesh.updateDrawArrays();
       mesh.updateColorBuffer();

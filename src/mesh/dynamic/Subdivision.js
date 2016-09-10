@@ -422,7 +422,6 @@ define(function (require, exports, module) {
       var smo = new Smooth();
       smo.setToolMesh(mesh);
       smo.smoothTangent(expV, 1.0);
-      mesh.updateTopology(mesh.getFacesFromVertices(expV));
     }
 
     var vAr = mesh.getVertices();

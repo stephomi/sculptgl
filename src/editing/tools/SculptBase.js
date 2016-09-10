@@ -277,9 +277,11 @@ define(function (require, exports, module) {
       var vertOnEdge = mesh.getVerticesOnEdge();
       var vAr = vField || mesh.getVertices();
       var nbVerts = iVerts.length;
+
       for (var i = 0; i < nbVerts; ++i) {
         var i3 = i * 3;
         var id = iVerts[i];
+
         var start, end;
         if (ringVerts) {
           vertRingVert = ringVerts[id];
@@ -289,24 +291,36 @@ define(function (require, exports, module) {
           start = vrvStartCount[id * 2];
           end = start + vrvStartCount[id * 2 + 1];
         }
+
+        var idv = 0;
+        var vcount = end - start;
+        if (vcount <= 2) {
+          idv = id * 3;
+          smoothVerts[i3] = vAr[idv];
+          smoothVerts[i3 + 1] = vAr[idv + 1];
+          smoothVerts[i3 + 2] = vAr[idv + 2];
+          continue;
+        }
+
         var avx = 0.0;
         var avy = 0.0;
         var avz = 0.0;
         var j = 0;
-        var ind = 0;
+
         if (vertOnEdge[id] === 1) {
           var nbVertEdge = 0;
           for (j = start; j < end; ++j) {
-            ind = vertRingVert[j];
+            idv = vertRingVert[j];
             // we average only with vertices that are also on the edge
-            if (vertOnEdge[ind] === 1) {
-              ind *= 3;
-              avx += vAr[ind];
-              avy += vAr[ind + 1];
-              avz += vAr[ind + 2];
+            if (vertOnEdge[idv] === 1) {
+              idv *= 3;
+              avx += vAr[idv];
+              avy += vAr[idv + 1];
+              avz += vAr[idv + 2];
               ++nbVertEdge;
             }
           }
+
           if (nbVertEdge >= 2) {
             smoothVerts[i3] = avx / nbVertEdge;
             smoothVerts[i3 + 1] = avy / nbVertEdge;
@@ -315,16 +329,17 @@ define(function (require, exports, module) {
           }
           avx = avy = avz = 0.0;
         }
+
         for (j = start; j < end; ++j) {
-          ind = vertRingVert[j] * 3;
-          avx += vAr[ind];
-          avy += vAr[ind + 1];
-          avz += vAr[ind + 2];
+          idv = vertRingVert[j] * 3;
+          avx += vAr[idv];
+          avy += vAr[idv + 1];
+          avz += vAr[idv + 2];
         }
-        j = end - start;
-        smoothVerts[i3] = avx / j;
-        smoothVerts[i3 + 1] = avy / j;
-        smoothVerts[i3 + 2] = avz / j;
+
+        smoothVerts[i3] = avx / vcount;
+        smoothVerts[i3 + 1] = avy / vcount;
+        smoothVerts[i3 + 2] = avz / vcount;
       }
     },
     dynamicTopology: function (picking) {
@@ -371,8 +386,9 @@ define(function (require, exports, module) {
       }
 
       iVertsInRadius = new Uint32Array(iVertsInRadius.subarray(0, acc));
-      mesh.updateTopology(iFaces);
-      mesh.updateGeometry(iFaces, iVertsInRadius);
+      mesh.updateTopology(iFaces, iVerts);
+      mesh.updateGeometry(iFaces, iVerts);
+
       return iVertsInRadius;
     },
     getUnmaskedVertices: function () {

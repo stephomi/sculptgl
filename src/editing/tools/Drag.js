@@ -6,7 +6,6 @@ define(function (require, exports, module) {
   var Utils = require('misc/Utils');
   var Geometry = require('math3d/Geometry');
   var SculptBase = require('editing/tools/SculptBase');
-  var Smooth = require('editing/tools/Smooth');
 
   var vec3 = glm.vec3;
   var mat4 = glm.mat4;
@@ -89,7 +88,6 @@ define(function (require, exports, module) {
       picking.updateAlpha(this._lockPosition);
       picking.setIdAlpha(this._idAlpha);
       this.drag(iVertsInRadius, picking.getIntersectionPoint(), picking.getLocalRadius2(), sym, picking);
-      Smooth.prototype.smoothTangent.call(this, iVertsInRadius, 1.0, picking);
 
       var mesh = this.getMesh();
       mesh.updateGeometry(mesh.getFacesFromVertices(iVertsInRadius), iVertsInRadius);
