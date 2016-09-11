@@ -250,43 +250,5 @@ define(function (require, exports, module) {
     return arrayOut;
   };
 
-  // /** Compute ACMR and ATVR (vertex post transform ratio) */
-  Utils.outputsACMRandATVR = function (mesh) {
-    // ATVR optimimum : 1
-    // ACMR optimimum : 0.5
-    var iAr = mesh.getTriangles();
-    var sizeCache = 32;
-    var cache = [];
-    cache.length = sizeCache;
-    var isCacheMiss = function (id) {
-      for (var k = 0; k < sizeCache; ++k) {
-        if (cache[k] === undefined) {
-          cache[k] = id;
-          return 1;
-        } else if (cache[k] === id) {
-          // not sure about that one...
-          // Does a cache HIT moves the vert
-          // up in the FIFO ?
-          // cache.splice(k,1)
-          // cache.push(id)
-          return 0;
-        }
-      }
-      cache.shift();
-      cache.push(id);
-      return 1;
-    };
-    var nbTriangles = mesh.getNbTriangles();
-    var cacheMiss = 0;
-    for (var i = 0; i < nbTriangles; ++i) {
-      var id = i * 3;
-      cacheMiss += isCacheMiss(iAr[id]);
-      cacheMiss += isCacheMiss(iAr[id + 1]);
-      cacheMiss += isCacheMiss(iAr[id + 2]);
-    }
-    console.log('ACMR : ' + cacheMiss / nbTriangles);
-    console.log('ATVR : ' + cacheMiss / mesh.getNbVertices());
-  };
-
   module.exports = Utils;
 });

@@ -23,6 +23,7 @@ define(function (require, exports, module) {
   };
 
   MeshResolution.prototype = {
+    optimize: function () {},
     getEvenMapping: function () {
       return this._evenMapping;
     },

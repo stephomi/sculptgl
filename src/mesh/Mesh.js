@@ -13,18 +13,20 @@ define(function (require, exports, module) {
   var mat3 = glm.mat3;
   var mat4 = glm.mat4;
 
-  // Basic usage:
-  // var mesh = new Mesh(gl); // provide gl only if we need to render the mesh
-  // mesh.setVertices(vertices); // vec3 xyz
-  // mesh.setFaces(faces); // ivec4 abcd (d=Utils.TRI_INDEX if tri)
+  /*
+  Basic usage:
+  var mesh = new Mesh(gl); // provide gl only if we need to render the mesh
+  mesh.setVertices(vertices); // vec3 xyz
+  mesh.setFaces(faces); // ivec4 abcd (d=Utils.TRI_INDEX if tri)
 
-  // // these are optional
-  // mesh.setColors(colors); // vec3 rgb
-  // mesh.setMaterials(materials); // vec3 roughness/metalness/masking
-  // mesh.initTexCoordsDataFromOBJData(UV, facesUV); // vec2, ivec4
+  // these are optional
+  mesh.setColors(colors); // vec3 rgb
+  mesh.setMaterials(materials); // vec3 roughness/metalness/masking
+  mesh.initTexCoordsDataFromOBJData(UV, facesUV); // vec2, ivec4
 
-  // mesh.init(); // compute octree/topo/UV, etc...
-  // mesh.initRender(); // only if gl has been provided
+  mesh.init(); // compute octree/topo/UV, etc...
+  mesh.initRender(); // only if gl has been provided
+  */
 
   var Mesh = function () {
     this._id = Mesh.ID++; // useful id to retrieve a mesh (dynamic mesh, multires mesh, voxel mesh)
@@ -55,14 +57,15 @@ define(function (require, exports, module) {
       this._meshData._facesABCD = fAr;
       this._meshData._nbFaces = fAr.length / 4;
     },
+    setTexCoords: function (tAr) {
+      this._meshData._texCoordsST = tAr;
+      this._meshData._nbTexCoords = tAr.length / 2;
+    },
     setColors: function (cAr) {
       this._meshData._colorsRGB = cAr;
     },
     setMaterials: function (mAr) {
       this._meshData._materialsPBR = mAr;
-    },
-    setTexCoords: function (tAr) {
-      this._meshData._texCoordsST = tAr;
     },
     setVerticesDuplicateStartCount: function (startCount) {
       this._meshData._duplicateStartCount = startCount;
@@ -108,6 +111,9 @@ define(function (require, exports, module) {
     },
     getNbTriangles: function () {
       return this._meshData._trianglesABC.length / 3;
+    },
+    getNbTexCoords: function () {
+      return this._meshData._nbTexCoords;
     },
     hasUV: function () {
       return this._meshData._texCoordsST !== null;
@@ -199,9 +205,6 @@ define(function (require, exports, module) {
     getFacesTexCoord: function () {
       return this._meshData._UVfacesABCD;
     },
-    getNbTexCoords: function () {
-      return this._meshData._texCoordsST ? this._meshData._texCoordsST.length / 2 : 0;
-    },
     getVerticesDrawArrays: function () {
       if (!this._meshData._DAverticesXYZ) this.updateDrawArrays();
       return this._meshData._DAverticesXYZ;
@@ -284,6 +287,7 @@ define(function (require, exports, module) {
     },
     initTopology: function () {
       this.initFaceRings();
+      this.optimize();
       this.initEdges();
       this.initVertexRings();
       this.initRenderTriangles();
@@ -1811,6 +1815,292 @@ define(function (require, exports, module) {
       this.setTexture0(mesh.getTexture0());
       this.setCurvature(mesh.getCurvature());
       this.setOpacity(mesh.getOpacity());
+    },
+    optimize: function () {
+      if (this.getNbFaces() === 0)
+        return;
+
+      // lower is better :
+      // ACTVR : ~1 is optimal (soup or not)
+      // ACMR : ~0.5 optimal ratio, 3 for triangle soup
+      // var data = this.computeCacheScore();
+
+      this.optimizePostTransform();
+      this.optimizePreTransform();
+      this.initFaceRings();
+
+      // console.log('\nbefore ACMR ' + data.ACMR);
+      // console.log('before ACTVR ' + data.ACTVR);
+      // data = this.computeCacheScore();
+      // console.log('after ACMR ' + data.ACMR);
+      // console.log('after ACTVR ' + data.ACTVR);
+    },
+    computeCacheScore: function () {
+      var fAr = this.getFaces();
+      var nbFaces = this.getNbFaces();
+
+      var sizeCache = 32;
+      var cache = [];
+      cache.length = sizeCache;
+
+      var cacheMiss = 0;
+      var k = 0;
+      for (var i = 0; i < nbFaces; ++i) {
+        var id = i * 3;
+        var nbPoly = fAr[id + 3] !== Utils.TRI_INDEX ? 4 : 3;
+        // check in cache
+        for (var j = 0; j < nbPoly; ++j) {
+
+          var idFace = fAr[id + j];
+          // check in cache
+          for (k = 0; k < sizeCache; ++k) {
+            if (cache[k] === undefined) {
+              cache[k] = idFace;
+              cacheMiss++;
+              break;
+            } else if (cache[k] === idFace) {
+              break;
+            }
+          }
+
+          if (k === sizeCache) {
+            cacheMiss++;
+            cache.shift();
+            cache.push(idFace);
+          }
+        }
+      }
+
+      return {
+        ACMR: cacheMiss / nbFaces,
+        ACTVR: cacheMiss / this.getNbVertices()
+      };
+    },
+
+    optimizePostTransform: function () {
+      // post transform optimization (index buffer re-index), it implements tipsy
+      // http://gfx.cs.princeton.edu/pubs/Sander_2007_%3ETR/tipsy.pdf
+
+      var cacheSize = 32;
+      var hasUV = this.hasUV();
+      var fAr = this.getFaces();
+      var fArUV = hasUV ? this.getFacesTexCoord() : fAr;
+
+      var nbFaces = this.getNbFaces();
+      var nbVertices = this.getNbVertices();
+
+      var fringsStartCount = this.getVerticesRingFaceStartCount();
+      var frings = this.getVerticesRingFace();
+
+      var livesTriangles = new Int32Array(nbVertices);
+      var i = 0;
+      for (i = 0; i < nbVertices; ++i) {
+        livesTriangles[i] = fringsStartCount[i * 2 + 1];
+      }
+
+      var vTimeStamp = new Uint32Array(nbVertices);
+      var timeStamp = cacheSize + 1;
+      var cursor = 0;
+
+      var deadEndStack = new Uint32Array(Utils.getMemory(4 * nbFaces * 4), 0, nbFaces * 4);
+      var deadEndCount = 0;
+      var emittedFaces = new Uint8Array(nbFaces);
+
+      var fArUVNew = new Uint32Array(nbFaces * 4);
+      var fArNew = hasUV ? new Uint32Array(nbFaces * 4) : fArNew;
+      var fcount = 0;
+
+      var fanningVertex = 0;
+      while (fanningVertex >= 0) {
+
+        var ringCandidates = [];
+
+        var start = fringsStartCount[fanningVertex * 2];
+        var end = start + fringsStartCount[fanningVertex * 2 + 1];
+
+        for (i = start; i < end; ++i) {
+          var idFace = frings[i];
+          if (emittedFaces[idFace]) continue;
+          emittedFaces[idFace] = 1;
+
+          var idf = idFace * 4;
+
+          var idv1 = deadEndStack[deadEndCount++] = fArUVNew[fcount++] = fArUV[idf];
+          var idv2 = deadEndStack[deadEndCount++] = fArUVNew[fcount++] = fArUV[idf + 1];
+          var idv3 = deadEndStack[deadEndCount++] = fArUVNew[fcount++] = fArUV[idf + 2];
+          var idv4 = fArUVNew[fcount++] = fArUV[idf + 3];
+          var isQuad = idv4 !== Utils.TRI_INDEX;
+
+          if (hasUV) {
+            fArNew[fcount - 4] = fAr[idf];
+            fArNew[fcount - 3] = fAr[idf + 1];
+            fArNew[fcount - 2] = fAr[idf + 2];
+            fArNew[fcount - 1] = fAr[idf + 3];
+          }
+
+          ringCandidates.push(idv1, idv2, idv3);
+
+          --livesTriangles[idv1];
+          --livesTriangles[idv2];
+          --livesTriangles[idv3];
+
+          if (timeStamp - vTimeStamp[idv1] > cacheSize) vTimeStamp[idv1] = timeStamp++;
+          if (timeStamp - vTimeStamp[idv2] > cacheSize) vTimeStamp[idv2] = timeStamp++;
+          if (timeStamp - vTimeStamp[idv3] > cacheSize) vTimeStamp[idv3] = timeStamp++;
+
+          if (isQuad) {
+            deadEndStack[deadEndCount++] = idv4;
+            ringCandidates.push(idv4);
+            --livesTriangles[idv4];
+            if (timeStamp - vTimeStamp[idv4] > cacheSize) vTimeStamp[idv4] = timeStamp++;
+          }
+
+        }
+
+        // get emitted next vertex
+        fanningVertex = -1;
+        var bestPriority = -1;
+        var nbCandidates = ringCandidates.length;
+        for (i = 0; i < nbCandidates; ++i) {
+          var idc = ringCandidates[i];
+          var liveCount = livesTriangles[idc];
+          if (liveCount <= 0) continue;
+
+          var priority = 0;
+          var posCache = timeStamp - vTimeStamp[idc];
+          if (posCache + 2 * liveCount <= cacheSize) {
+            priority = posCache;
+          }
+
+          if (priority > bestPriority) {
+            bestPriority = priority;
+            fanningVertex = idc;
+          }
+        }
+
+        if (fanningVertex !== -1) continue;
+
+        while (deadEndCount > 0) {
+          var vEnd = deadEndStack[--deadEndCount];
+          if (livesTriangles[vEnd] > 0) {
+            fanningVertex = vEnd;
+            break;
+          }
+        }
+
+        while (cursor < nbVertices) {
+          if (livesTriangles[cursor++] > 0) {
+            fanningVertex = cursor;
+            break;
+          }
+        }
+
+      }
+
+      fArUV.set(fArUVNew.subarray(0, nbFaces * 4));
+      if (hasUV) fAr.set(fArNew.subarray(0, nbFaces * 4));
+
+    },
+
+    optimizePreTransform: function () {
+      // pre transform optimization (not as important as post transform though)
+      // it also removes unused vertices
+
+      var vArOld = this.getVertices();
+      var cArOld = this.getColors();
+      var mArOld = this.getMaterials();
+      var nbVertices = this.getNbVertices();
+
+      var fAr = this.getFaces();
+      var fArCount = this.getNbFaces() * 4;
+
+      var vArNew = new Float32Array(nbVertices * 3);
+      var cArNew = new Float32Array(nbVertices * 3);
+      var mArNew = new Float32Array(nbVertices * 3);
+
+      var idvPos = new Uint32Array(nbVertices);
+      var acc = 0;
+      var i = 0;
+      for (i = 0; i < fArCount; ++i) {
+        var iv = fAr[i];
+        if (iv === Utils.TRI_INDEX) continue;
+
+        var tag = idvPos[iv] - 1;
+        if (tag === -1) {
+          var idNew = acc * 3;
+          var idOld = iv * 3;
+          vArNew[idNew] = vArOld[idOld];
+          vArNew[idNew + 1] = vArOld[idOld + 1];
+          vArNew[idNew + 2] = vArOld[idOld + 2];
+
+          cArNew[idNew] = cArOld[idOld];
+          cArNew[idNew + 1] = cArOld[idOld + 1];
+          cArNew[idNew + 2] = cArOld[idOld + 2];
+
+          mArNew[idNew] = mArOld[idOld];
+          mArNew[idNew + 1] = mArOld[idOld + 1];
+          mArNew[idNew + 2] = mArOld[idOld + 2];
+
+          tag = acc++;
+          idvPos[iv] = tag + 1;
+        }
+
+        fAr[i] = tag;
+      }
+
+      var nbUnusedVertex = nbVertices - acc;
+      if (nbUnusedVertex > 0)
+        this.setNbVertices(acc);
+
+      // Only the unique "positoned" vertices are pre transform, because sculptgl 
+      // requires the duplicate vertices to be after the uniques positioned vertices
+      if (this.hasUV()) {
+        var fArUV = this.getFacesTexCoord();
+        // remap unique vertex i
+        for (i = 0; i < fArCount; ++i) {
+          var iduv = fArUV[i];
+          if (iduv < nbVertices) fArUV[i] = idvPos[iduv] - 1;
+          else if (iduv !== Utils.TRI_INDEX) fArUV[i] -= nbUnusedVertex;
+        }
+
+        var nbUV = this.getNbTexCoords();
+        var nbUVNew = this.getNbTexCoords() - nbUnusedVertex;
+
+        var tAr = this.getTexCoords();
+        var tArNew = new Float32Array(nbUVNew * 2);
+        var dupUVNew = new Uint32Array(acc * 2);
+        var dupUV = this.getVerticesDuplicateStartCount();
+
+        for (i = 0; i < nbVertices; ++i) {
+          var i2 = i * 2;
+          var start = dupUV[i2];
+          var newiv = (idvPos[i] - 1) * 2;
+          if (newiv < 0) continue;
+
+          if (start > 0) {
+            dupUVNew[newiv] = start - nbUnusedVertex;
+            dupUVNew[newiv + 1] = dupUV[i2 + 1];
+          }
+
+          tArNew[newiv] = tAr[i2];
+          tArNew[newiv + 1] = tAr[i2 + 1];
+        }
+
+        for (i = nbVertices; i < nbUV; ++i) {
+          var ivd = i * 2;
+          var ivdnew = (i - nbUnusedVertex) * 2;
+          tArNew[ivdnew] = tAr[ivd];
+          tArNew[ivdnew + 1] = tAr[ivd + 1];
+        }
+
+        this.setVerticesDuplicateStartCount(dupUVNew);
+        this.setTexCoords(tArNew);
+      }
+
+      vArOld.set(vArNew);
+      cArOld.set(cArNew);
+      mArOld.set(mArNew);
+
     }
   };
 

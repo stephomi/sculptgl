@@ -50,7 +50,7 @@ define(function (require, exports, module) {
             cAr.push(parseFloat(split[4]), parseFloat(split[5]), parseFloat(split[6]));
           ++nbVertices;
 
-        } else if (secondChar === 't ') {
+        } else if (secondChar === 't') {
 
           split = line.split(/\s+/);
           texAr.push(parseFloat(split[1]), parseFloat(split[2]));
