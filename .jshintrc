@@ -30,7 +30,7 @@
   //  true     : all variables, last function parameter
   //  "vars"   : all variables only
   //  "strict" : all variables, all function parameters
-  "strict": true, // true: Requires all functions run in ES5 Strict Mode
+  "strict": "implied", // true: Requires all functions run in ES5 Strict Mode
   "maxparams": false, // {int} Max number of formal params allowed per function
   "maxdepth": false, // {int} Max depth of nested blocks (within functions)
   "maxstatements": false, // {int} Max number statements per function
@@ -43,8 +43,7 @@
   "boss": false, // true: Tolerate assignments where comparisons would be expected
   "debug": false, // true: Allow debugger statements e.g. browser breakpoints.
   "eqnull": false, // true: Tolerate use of `== null`
-  "es5": false, // true: Allow ES5 syntax (ex: getters and setters)
-  "esnext": false, // true: Allow ES.next (ES6) syntax (ex: `const`)
+  "esnext": true, // true: Allow ES.next (ES6) syntax (ex: `const`)
   "moz": false, // true: Allow Mozilla specific syntax (extends and overrides esnext features)
   // (ex: `for each`, multiple try/catch, function expression…)
   "evil": false, // true: Tolerate use of `eval` and `new Function()`

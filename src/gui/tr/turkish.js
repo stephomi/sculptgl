@@ -1,216 +1,211 @@
-define(function (require, exports, module) {
+var TR = {
+  // background
+  backgroundTitle: 'Arka plan',
+  backgroundReset: 'Temizle',
+  backgroundImport: 'İçe Aktar (jpg, png...)',
+  backgroundFill: 'Doldur',
 
-  'use strict';
+  // camera
+  cameraTitle: 'Kamera',
+  cameraReset: 'Görünüm',
+  cameraCenter: 'Temizle (boşluk)',
+  cameraFront: 'Ön (F)',
+  cameraLeft: 'Sol (L)',
+  cameraTop: 'Üst (T)',
+  cameraMode: 'Mod',
+  cameraOrbit: 'Eksen (Döner Tabla)',
+  cameraSpherical: 'Küresel (Trackball)',
+  cameraPlane: 'Düzlem (Trackball)',
+  cameraProjection: 'İz Düşüm',
+  cameraPerspective: 'Perspektif',
+  cameraOrthographic: 'Orthografik',
+  cameraFov: 'Görüş Alanı',
+  cameraPivot: 'Eksen',
 
-  var TR = {
-    // background
-    backgroundTitle: 'Arka plan',
-    backgroundReset: 'Temizle',
-    backgroundImport: 'İçe Aktar (jpg, png...)',
-    backgroundFill: 'Doldur',
+  // file
+  fileTitle: 'Dosyalar (içeri/dışarı)',
+  fileImportTitle: 'İçe Aktar',
+  fileAdd: 'Aktar (obj, sgl, ply, stl)',
+  fileAutoMatrix: 'Ölçekle ve ortala',
+  fileVertexSRGB: 'sRGB verteks renk',
+  fileExportMeshTitle: 'Nesneyi Dışa Aktar',
+  fileExportSceneTitle: 'Sahneyi Dışa Aktar',
+  fileExportSGL: 'Kaydet .sgl (SculptGL)',
+  fileExportOBJ: 'Kaydet .obj',
+  fileExportPLY: 'Kaydet .ply',
+  fileExportSTL: 'Kaydet .stl',
 
-    // camera
-    cameraTitle: 'Kamera',
-    cameraReset: 'Görünüm',
-    cameraCenter: 'Temizle (boşluk)',
-    cameraFront: 'Ön (F)',
-    cameraLeft: 'Sol (L)',
-    cameraTop: 'Üst (T)',
-    cameraMode: 'Mod',
-    cameraOrbit: 'Eksen (Döner Tabla)',
-    cameraSpherical: 'Küresel (Trackball)',
-    cameraPlane: 'Düzlem (Trackball)',
-    cameraProjection: 'İz Düşüm',
-    cameraPerspective: 'Perspektif',
-    cameraOrthographic: 'Orthografik',
-    cameraFov: 'Görüş Alanı',
-    cameraPivot: 'Eksen',
+  // scene
+  sceneTitle: 'Sahne',
+  sceneReset: 'Sahneyi temizle',
+  sceneAddSphere: 'Küre ekle',
+  sceneAddCube: 'Küp ekle',
+  sceneAddCylinder: 'Silindir ekle',
+  sceneAddTorus: 'Halka ekle',
+  sceneSelection: 'Seçim',
+  sceneMerge: 'Seçimi birleştir',
 
-    // file
-    fileTitle: 'Dosyalar (içeri/dışarı)',
-    fileImportTitle: 'İçe Aktar',
-    fileAdd: 'Aktar (obj, sgl, ply, stl)',
-    fileAutoMatrix: 'Ölçekle ve ortala',
-    fileVertexSRGB: 'sRGB verteks renk',
-    fileExportMeshTitle: 'Nesneyi Dışa Aktar',
-    fileExportSceneTitle: 'Sahneyi Dışa Aktar',
-    fileExportSGL: 'Kaydet .sgl (SculptGL)',
-    fileExportOBJ: 'Kaydet .obj',
-    fileExportPLY: 'Kaydet .ply',
-    fileExportSTL: 'Kaydet .stl',
+  // mesh
+  meshTitle: 'Nesne',
+  meshNbVertices: 'Verteks : ',
+  meshNbFaces: 'Cephe : ',
 
-    // scene
-    sceneTitle: 'Sahne',
-    sceneReset: 'Sahneyi temizle',
-    sceneAddSphere: 'Küre ekle',
-    sceneAddCube: 'Küp ekle',
-    sceneAddCylinder: 'Silindir ekle',
-    sceneAddTorus: 'Halka ekle',
-    sceneSelection: 'Seçim',
-    sceneMerge: 'Seçimi birleştir',
+  // topology
+  topologyTitle: 'Topoloji',
 
-    // mesh
-    meshTitle: 'Nesne',
-    meshNbVertices: 'Verteks : ',
-    meshNbFaces: 'Cephe : ',
+  //multires
+  multiresTitle: 'Çoklu çözünürlük',
+  multiresSubdivide: 'Böl',
+  multiresReverse: 'Ters',
+  multiresResolution: 'Çözünürlük',
+  multiresNoLower: 'Daha düşük çözünürlük yok.',
+  multiresNoHigher: 'Daha yüksek çözünürlük yok.',
+  multiresDelHigher: 'Üst çözünürlüğü sil',
+  multiresDelLower: 'Alt çözünürlüğü sil',
+  multiresSelectLowest: 'Tersine çevirmeden önce en düşük çözünürlüğü seç.',
+  multiresSelectHighest: 'Tesine çevirmeden önce en yüksek çözünürlüğü seç.',
+  multiresWarnBigMesh: function (nbFacesNext) {
+    return 'Sonraki çözünürlük ' + nbFacesNext + ' cepheden oluşacak.\n' +
+      'Eğer devam etmek istiyorsanız, tekrar "böl" butonuna basın.';
+  },
+  multiresNotReversible: 'Malesef bu nesneyi tersine çevirmek mümkün değil.\n' +
+    'The mesh is not a product of a (loop-catmull) subdivision surface on a manifold mesh.',
 
-    // topology
-    topologyTitle: 'Topoloji',
+  // remesh
+  remeshTitle: 'Voksel Remeshing',
+  remeshRemesh: 'Remesh',
+  remeshResolution: 'Çözünürlük',
+  remeshBlock: 'Engelle',
 
-    //multires
-    multiresTitle: 'Çoklu çözünürlük',
-    multiresSubdivide: 'Böl',
-    multiresReverse: 'Ters',
-    multiresResolution: 'Çözünürlük',
-    multiresNoLower: 'Daha düşük çözünürlük yok.',
-    multiresNoHigher: 'Daha yüksek çözünürlük yok.',
-    multiresDelHigher: 'Üst çözünürlüğü sil',
-    multiresDelLower: 'Alt çözünürlüğü sil',
-    multiresSelectLowest: 'Tersine çevirmeden önce en düşük çözünürlüğü seç.',
-    multiresSelectHighest: 'Tesine çevirmeden önce en yüksek çözünürlüğü seç.',
-    multiresWarnBigMesh: function (nbFacesNext) {
-      return 'Sonraki çözünürlük ' + nbFacesNext + ' cepheden oluşacak.\n' +
-        'Eğer devam etmek istiyorsanız, tekrar "böl" butonuna basın.';
-    },
-    multiresNotReversible: 'Malesef bu nesneyi tersine çevirmek mümkün değil.\n' +
-      'The mesh is not a product of a (loop-catmull) subdivision surface on a manifold mesh.',
+  // dynamic
+  dynamicTitle: 'Dinamik Topoloji',
+  dynamicActivated: 'Aktifleştirildi (no quads)',
+  dynamicSubdivision: 'Altbölüm',
+  dynamicDecimation: 'Üstbölüm',
+  dynamicLinear: 'Doğrusal altbölüm',
 
-    // remesh
-    remeshTitle: 'Voksel Remeshing',
-    remeshRemesh: 'Remesh',
-    remeshResolution: 'Çözünürlük',
-    remeshBlock: 'Engelle',
+  // sculpt
+  sculptTitle: 'Oyma & Boyama',
+  sculptBrush: 'Fırça',
+  sculptInflate: 'Şişir',
+  sculptTwist: 'Bükülme',
+  sculptSmooth: 'Yumuşat (-Shift)',
+  sculptFlatten: 'Düzleştir',
+  sculptPinch: 'Çimdik',
+  sculptCrease: 'Kıvrım',
+  sculptDrag: 'Sürükle',
+  sculptPaint: 'Boya',
+  sculptMasking: 'Maskeleme (-Ctrl)',
+  sculptMove: 'Taşı',
+  sculptLocalScale: 'Yerel ölçek',
+  sculptTransform: 'Transform (E)',
 
-    // dynamic
-    dynamicTitle: 'Dinamik Topoloji',
-    dynamicActivated: 'Aktifleştirildi (no quads)',
-    dynamicSubdivision: 'Altbölüm',
-    dynamicDecimation: 'Üstbölüm',
-    dynamicLinear: 'Doğrusal altbölüm',
+  sculptCommon: 'Genel',
+  sculptTool: 'Araç',
+  sculptSymmetry: 'Simetri',
+  sculptContinuous: 'Sürekli',
+  sculptRadius: 'Yarıçağ (-X)',
+  sculptIntensity: 'Yoğunluk (-C)',
+  sculptHardness: 'Sertlik',
+  sculptCulling: 'İnce yüzey (front vertex only)',
+  sculptAlphaTitle: 'Alfa',
+  sculptLockPositon: 'Pozisyonu kilitle',
+  sculptAlphaTex: 'Kaplama',
+  sculptImportAlpha: 'Alfa kaplama yükle (jpg, png...)',
+  sculptNegative: 'Negatif (N or -Alt)',
+  sculptColor: 'Aklık',
+  sculptRoughness: 'Pürüzlülük',
+  sculptMetallic: 'Metalik',
+  sculptClay: 'Kil',
+  sculptAccumulate: 'Biriktir (limitsiz)',
+  sculptColorGlobal: 'Evrensel',
+  sculptPickColor: 'Materyal / Renk seçici (-S)',
+  sculptTangentialSmoothing: 'Rahatlat',
+  sculptTopologicalCheck: 'Topoloji kontrol',
+  sculptMoveAlongNormal: 'Normal boyunca taşı (N or -Alt)',
+  sculptMaskingClear: 'Temizle (-Ctrl + Drag)',
+  sculptMaskingInvert: 'Tersine çevir (-Ctrl + Click)',
+  sculptMaskingBlur: 'Bulanıklaştır',
+  sculptMaskingSharpen: 'Keskinleştir',
+  sculptPBRTitle: 'PBR materyali',
+  sculptPaintAll: 'Tümünü boya',
+  sculptExtractTitle: 'Çıkar',
+  sculptExtractThickness: 'Kalınlık',
+  sculptExtractAction: 'Çıkar !',
 
-    // sculpt
-    sculptTitle: 'Oyma & Boyama',
-    sculptBrush: 'Fırça',
-    sculptInflate: 'Şişir',
-    sculptTwist: 'Bükülme',
-    sculptSmooth: 'Yumuşat (-Shift)',
-    sculptFlatten: 'Düzleştir',
-    sculptPinch: 'Çimdik',
-    sculptCrease: 'Kıvrım',
-    sculptDrag: 'Sürükle',
-    sculptPaint: 'Boya',
-    sculptMasking: 'Maskeleme (-Ctrl)',
-    sculptMove: 'Taşı',
-    sculptLocalScale: 'Yerel ölçek',
-    sculptTransform: 'Transform (E)',
+  // states
+  stateTitle: 'Geçmiş',
+  stateUndo: 'Geri Al',
+  stateRedo: 'İleri Al',
+  stateMaxStack: 'Maksimum Yığın',
 
-    sculptCommon: 'Genel',
-    sculptTool: 'Araç',
-    sculptSymmetry: 'Simetri',
-    sculptContinuous: 'Sürekli',
-    sculptRadius: 'Yarıçağ (-X)',
-    sculptIntensity: 'Yoğunluk (-C)',
-    sculptHardness: 'Sertlik',
-    sculptCulling: 'İnce yüzey (front vertex only)',
-    sculptAlphaTitle: 'Alfa',
-    sculptLockPositon: 'Pozisyonu kilitle',
-    sculptAlphaTex: 'Kaplama',
-    sculptImportAlpha: 'Alfa kaplama yükle (jpg, png...)',
-    sculptNegative: 'Negatif (N or -Alt)',
-    sculptColor: 'Aklık',
-    sculptRoughness: 'Pürüzlülük',
-    sculptMetallic: 'Metalik',
-    sculptClay: 'Kil',
-    sculptAccumulate: 'Biriktir (limitsiz)',
-    sculptColorGlobal: 'Evrensel',
-    sculptPickColor: 'Materyal / Renk seçici (-S)',
-    sculptTangentialSmoothing: 'Rahatlat',
-    sculptTopologicalCheck: 'Topoloji kontrol',
-    sculptMoveAlongNormal: 'Normal boyunca taşı (N or -Alt)',
-    sculptMaskingClear: 'Temizle (-Ctrl + Drag)',
-    sculptMaskingInvert: 'Tersine çevir (-Ctrl + Click)',
-    sculptMaskingBlur: 'Bulanıklaştır',
-    sculptMaskingSharpen: 'Keskinleştir',
-    sculptPBRTitle: 'PBR materyali',
-    sculptPaintAll: 'Tümünü boya',
-    sculptExtractTitle: 'Çıkar',
-    sculptExtractThickness: 'Kalınlık',
-    sculptExtractAction: 'Çıkar !',
+  // wacom
+  wacomTitle: 'Wacom tablet',
+  wacomRadius: 'Basınç çapı',
+  wacomIntensity: 'Basınç hassasiyeti',
 
-    // states
-    stateTitle: 'Geçmiş',
-    stateUndo: 'Geri Al',
-    stateRedo: 'İleri Al',
-    stateMaxStack: 'Maksimum Yığın',
+  // rendering
+  renderingTitle: 'Sahneleme',
+  renderingGrid: 'Izgarayı göster',
+  renderingSymmetryLine: 'aynalama çizgisini göster',
+  renderingMatcap: 'Matcap',
+  renderingCurvature: 'Eğrilik',
+  renderingPBR: 'PBR',
+  renderingTransparency: 'Transparanlık',
+  renderingNormal: 'Normal shader',
+  renderingUV: 'UV shader',
+  renderingShader: 'Shader',
+  renderingMaterial: 'Materyal',
+  renderingImportUV: 'İçe AKtar (jpg, png...)',
+  renderingImportMatcap: 'İçe AKtar (jpg, png...)',
+  renderingExtra: 'Ekstra',
+  renderingFlat: 'Düz gölgeleme',
+  renderingWireframe: 'Tel kafes (W)',
+  renderingExposure: 'Teşir',
+  renderingEnvironment: 'Ortam',
+  renderingIsolate: 'İzole/Göster (I)',
+  renderingFilmic: 'Film Ton Eşleşmesi',
 
-    // wacom
-    wacomTitle: 'Wacom tablet',
-    wacomRadius: 'Basınç çapı',
-    wacomIntensity: 'Basınç hassasiyeti',
+  // contour
+  contour: 'Kontür',
+  contourShow: 'Kontürü göster',
+  contourColor: 'Renk',
+  darkenUnselected: 'Seçilmeyenleri koyu yap',
 
-    // rendering
-    renderingTitle: 'Sahneleme',
-    renderingGrid: 'Izgarayı göster',
-    renderingSymmetryLine: 'aynalama çizgisini göster',
-    renderingMatcap: 'Matcap',
-    renderingCurvature: 'Eğrilik',
-    renderingPBR: 'PBR',
-    renderingTransparency: 'Transparanlık',
-    renderingNormal: 'Normal shader',
-    renderingUV: 'UV shader',
-    renderingShader: 'Shader',
-    renderingMaterial: 'Materyal',
-    renderingImportUV: 'İçe AKtar (jpg, png...)',
-    renderingImportMatcap: 'İçe AKtar (jpg, png...)',
-    renderingExtra: 'Ekstra',
-    renderingFlat: 'Düz gölgeleme',
-    renderingWireframe: 'Tel kafes (W)',
-    renderingExposure: 'Teşir',
-    renderingEnvironment: 'Ortam',
-    renderingIsolate: 'İzole/Göster (I)',
-    renderingFilmic: 'Film Ton Eşleşmesi',
+  // pixel ratio
+  resolution: 'Çözünürlük',
 
-    // contour
-    contour: 'Kontür',
-    contourShow: 'Kontürü göster',
-    contourColor: 'Renk',
-    darkenUnselected: 'Seçilmeyenleri koyu yap',
+  // matcaps
+  matcapPearl: 'İnci',
+  matcapClay: 'Kil',
+  matcapSkin: 'Deri',
+  matcapGreen: 'Yeşil',
+  matcapWhite: 'Beyaz',
 
-    // pixel ratio
-    resolution: 'Çözünürlük',
+  // sketchfab
+  sketchfabTitle: 'Sketchfab\'a git !',
+  sketchfabUpload: 'Yükle',
+  sketchfabUploadMessage: 'Lütfen sketchfab entegrasyon anahtarını giriniz.\n' +
+    'Anonim olarak kullanmak için "guest" olarak bırakınız.\n' +
+    '(İşleme ve yükleme tamamlandığında yeni bir pencere açılacak)',
+  sketchfabUploadError: function (error) {
+    return 'Sketchfab yükleme hatası :\n' + error;
+  },
+  sketchfabUploadSuccess: 'Yükleme başarılı !\nAdresiniz burada :',
+  sketchfabAbort: 'Son yüklemeyi iptal et ?',
+  sketchfabUploadProcessing: 'Hesaplanıyor...\nModeliniz şu adreste olacak :',
 
-    // matcaps
-    matcapPearl: 'İnci',
-    matcapClay: 'Kil',
-    matcapSkin: 'Deri',
-    matcapGreen: 'Yeşil',
-    matcapWhite: 'Beyaz',
+  about: 'Hakkında & Yardım',
 
-    // sketchfab
-    sketchfabTitle: 'Sketchfab\'a git !',
-    sketchfabUpload: 'Yükle',
-    sketchfabUploadMessage: 'Lütfen sketchfab entegrasyon anahtarını giriniz.\n' +
-      'Anonim olarak kullanmak için "guest" olarak bırakınız.\n' +
-      '(İşleme ve yükleme tamamlandığında yeni bir pencere açılacak)',
-    sketchfabUploadError: function (error) {
-      return 'Sketchfab yükleme hatası :\n' + error;
-    },
-    sketchfabUploadSuccess: 'Yükleme başarılı !\nAdresiniz burada :',
-    sketchfabAbort: 'Son yüklemeyi iptal et ?',
-    sketchfabUploadProcessing: 'Hesaplanıyor...\nModeliniz şu adreste olacak :',
+  alphaNone: 'Hiç Biri',
+  alphaSquare: 'Kare',
+  alphaSkin: 'Deri',
 
-    about: 'Hakkında & Yardım',
+  envFootPrint: 'Foot Print',
+  envGlazedPatio: 'Glazed Patio',
+  envNicolausChurch: 'St Nicolaus church',
+  envTerrace: 'Terrace',
+  envBryantPark: 'BryantPark'
+};
 
-    alphaNone: 'Hiç Biri',
-    alphaSquare: 'Kare',
-    alphaSkin: 'Deri',
-
-    envFootPrint: 'Foot Print',
-    envGlazedPatio: 'Glazed Patio',
-    envNicolausChurch: 'St Nicolaus church',
-    envTerrace: 'Terrace',
-    envBryantPark: 'BryantPark'
-  };
-
-  module.exports = TR;
-});
+export default TR;

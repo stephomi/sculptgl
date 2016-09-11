@@ -1,46 +1,29 @@
 {
   "name": "SculptGL",
+  "homepage": "https://github.com/stephomi/sculptgl",
   "version": "0.9.0",
   "description": "A WebGL digital sculpting app",
-  "main": "index.html",
-  "dependencies": {
-    "grunt": "^1.0.1",
-    "grunt-contrib-clean": "^1.0.0",
-    "grunt-contrib-compress": "^1.3.0",
-    "grunt-contrib-copy": "^1.0.0",
-    "grunt-contrib-jshint": "^1.0.0",
-    "grunt-contrib-requirejs": "^1.0.0",
-    "grunt-contrib-uglify": "^2.0.0",
-    "grunt-jsbeautifier": "^0.2.13",
-    "grunt-manifest": "^0.4.4",
-    "grunt-nw-builder": "^3.0.0",
-    "grunt-preprocess": "^5.1.0",
-    "load-grunt-tasks": "^3.5.2"
+  "author": "Stéphane GINIER",
+  "license": "MIT",
+  "main": "main.js",
+  "devDependencies": {
+    "electron": "^1.3.5",
+    "electron-packager": "^8.0.0",
+    "rollup": "^0.35.7",
+    "rollup-plugin-uglify": "^1.0.1",
+    "rollup-watch": "^2.5.0"
   },
   "scripts": {
-    "test": "no test"
+    "dev": "cp tools/index.dev.html app/index.html && rollup -cwm",
+    "release": "rm -f app/sculptgl.js.map && cp tools/index.release.html app/index.html && rollup -c --environment release",
+    "buildElectron": "npm run release && cp -R app/ standalone/ && cp package.json standalone",
+    "standalone": "npm run buildElectron && cd standalone && node buildStandalone.js"
   },
   "repository": {
     "type": "git",
     "url": "https://github.com/stephomi/sculptgl.git"
   },
-  "author": "Stéphane GINIER",
-  "license": "MIT",
   "bugs": {
     "url": "https://github.com/stephomi/sculptgl/issues"
-  },
-  "homepage": "https://github.com/stephomi/sculptgl",
-  "single-instance": false,
-  "window": {
-    "title": "SculptGL",
-    "toolbar": false,
-    "frame": true,
-    "width": 1366,
-    "height": 768,
-    "position": "center"
-  },
-  "nodejs": true,
-  "webkit": {
-    "plugin": true
   }
 }

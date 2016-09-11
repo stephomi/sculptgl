@@ -1,6 +1,5 @@
-define(function (require, exports, module) {
+import '../../lib/yagui';
 
-  'use strict';
+var yagui = window.yagui;
 
-  module.exports = window.yagui;
-});
+export default yagui;

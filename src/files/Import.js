@@ -1,18 +1,13 @@
-define(function (require, exports, module) {
+import ImportOBJ from '../files/ImportOBJ';
+import ImportSGL from '../files/ImportSGL';
+import ImportPLY from '../files/ImportPLY';
+import ImportSTL from '../files/ImportSTL';
 
-  'use strict';
+var Import = {
+  importOBJ: ImportOBJ.importOBJ,
+  importSGL: ImportSGL.importSGL,
+  importPLY: ImportPLY.importPLY,
+  importSTL: ImportSTL.importSTL
+};
 
-  var ImportOBJ = require('files/ImportOBJ');
-  var ImportSGL = require('files/ImportSGL');
-  var ImportPLY = require('files/ImportPLY');
-  var ImportSTL = require('files/ImportSTL');
-
-  var Import = {
-    importOBJ: ImportOBJ.importOBJ,
-    importSGL: ImportSGL.importSGL,
-    importPLY: ImportPLY.importPLY,
-    importSTL: ImportSTL.importSTL
-  };
-
-  module.exports = Import;
-});
+export default Import;

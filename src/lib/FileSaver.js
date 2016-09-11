@@ -1,6 +1,5 @@
-define(function (require, exports, module) {
+import '../../lib/FileSaver';
 
-  'use strict';
+var saveAs = window.saveAs;
 
-  module.exports = window.saveAs;
-});
+export default saveAs;

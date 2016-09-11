@@ -1,18 +1,16 @@
 <!doctype html>
-<!-- @ifndef MANIFEST -->
 <html lang='en'>
-<!-- @endif -->
-<!-- @ifdef MANIFEST !>
-<html manifest='manifest.appcache' lang='en'>
-<!-- @endif -->
 
 <head>
   <meta charset='utf-8' />
   <meta name='description' content='SculptGL is a small sculpting application powered by JavaScript and webGL.'>
   <meta name='author' content='stéphane GINIER'>
+
   <title> SculptGL - A WebGL sculpting app </title>
+
   <link href='http://fonts.googleapis.com/css?family=Open+Sans:400,600' rel='stylesheet' type='text/css'>
   <link rel='stylesheet' href='css/yagui.css' type='text/css' />
+
   <script type='text/javascript'>
   (function(i, s, o, g, r, a, m) {
     i['GoogleAnalyticsObject'] = r;
@@ -28,22 +26,13 @@
   ga('create', 'UA-42431392-1', 'auto');
   ga('send', 'pageview');
   </script>
+
   <script>
   'use strict';
-  window.addEventListener('load', function(e) {
-    // start the app
-    var SculptGL = require('Sculptgl');
-    window.sculptgl = new SculptGL();
-    window.sculptgl.start();
-    if ('<!-- @echo MANIFEST !>' === 'true') { // check if manifest
-      // Check if a new cache is available on page load.
-      window.applicationCache.addEventListener('updateready', function(e) {
-        if (window.applicationCache.status === window.applicationCache.UPDATEREADY) {
-          window.location.reload();
-        }
-      }, false);
-    }
-  }, false);
+  window.addEventListener('load', function () {
+    var app = new window.SculptGL();
+    app.start();
+  });
   </script>
 </head>
 
@@ -58,9 +47,7 @@
     <canvas id='canvas'></canvas>
   </div>
 
-  <!-- minified sculptgl -->
-  <script src='winstate.js'></script>
-  <script src='sculptgl.min.js'></script>
+  <script src='sculptgl.js'></script>
   <script src='//cdn.webglstats.com/stat.js' defer='defer' async='async'></script>
 </body>
 

@@ -1,216 +1,211 @@
-define(function (require, exports, module) {
+var TR = {
+  // background
+  backgroundTitle: 'Bakgrund',
+  backgroundReset: 'Återställ',
+  backgroundImport: 'Importera (jpg, png...)',
+  backgroundFill: 'Fyll',
 
-  'use strict';
+  // camera
+  cameraTitle: 'Kamera',
+  cameraReset: 'Vy',
+  cameraCenter: 'Återställ (bar)',
+  cameraFront: 'Fram (F)',
+  cameraLeft: 'Vänster (L)',
+  cameraTop: 'Över (T)',
+  cameraMode: 'Läge',
+  cameraOrbit: 'Omloppsbana (skivtallrik)',
+  cameraSpherical: 'Sfärisk (trackball)',
+  cameraPlane: 'Plan (trackball)',
+  cameraProjection: 'Projektion',
+  cameraPerspective: 'Perspektiv',
+  cameraOrthographic: 'Ortografisk',
+  cameraFov: 'Fov',
+  cameraPivot: 'Plocka pivot',
 
-  var TR = {
-    // background
-    backgroundTitle: 'Bakgrund',
-    backgroundReset: 'Återställ',
-    backgroundImport: 'Importera (jpg, png...)',
-    backgroundFill: 'Fyll',
+  // file
+  fileTitle: 'Filer (import/export)',
+  fileImportTitle: 'Importera',
+  fileAdd: 'Lägg till (obj, sgl, ply, stl)',
+  fileAutoMatrix: 'Skala och centrera',
+  fileVertexSRGB: 'sRGB vertexfärg',
+  fileExportMeshTitle: 'Exportera Mesh',
+  fileExportSceneTitle: 'Exportera Scen',
+  fileExportSGL: 'Spara .sgl (SculptGL)',
+  fileExportOBJ: 'Spara .obj',
+  fileExportPLY: 'Spara .ply',
+  fileExportSTL: 'Spara .stl',
 
-    // camera
-    cameraTitle: 'Kamera',
-    cameraReset: 'Vy',
-    cameraCenter: 'Återställ (bar)',
-    cameraFront: 'Fram (F)',
-    cameraLeft: 'Vänster (L)',
-    cameraTop: 'Över (T)',
-    cameraMode: 'Läge',
-    cameraOrbit: 'Omloppsbana (skivtallrik)',
-    cameraSpherical: 'Sfärisk (trackball)',
-    cameraPlane: 'Plan (trackball)',
-    cameraProjection: 'Projektion',
-    cameraPerspective: 'Perspektiv',
-    cameraOrthographic: 'Ortografisk',
-    cameraFov: 'Fov',
-    cameraPivot: 'Plocka pivot',
+  // scene
+  sceneTitle: 'Scen',
+  sceneReset: 'Rensa scen',
+  sceneAddSphere: 'Lägg till sfär',
+  sceneAddCube: 'Lägg till kub',
+  sceneAddCylinder: 'Lägg till cylinder',
+  sceneAddTorus: 'Lägg till torus',
+  sceneSelection: 'Urval',
+  sceneMerge: 'Sammanfoga urval',
 
-    // file
-    fileTitle: 'Filer (import/export)',
-    fileImportTitle: 'Importera',
-    fileAdd: 'Lägg till (obj, sgl, ply, stl)',
-    fileAutoMatrix: 'Skala och centrera',
-    fileVertexSRGB: 'sRGB vertexfärg',
-    fileExportMeshTitle: 'Exportera Mesh',
-    fileExportSceneTitle: 'Exportera Scen',
-    fileExportSGL: 'Spara .sgl (SculptGL)',
-    fileExportOBJ: 'Spara .obj',
-    fileExportPLY: 'Spara .ply',
-    fileExportSTL: 'Spara .stl',
+  // mesh
+  meshTitle: 'Mesh',
+  meshNbVertices: 'Vertex : ',
+  meshNbFaces: 'Faces : ',
 
-    // scene
-    sceneTitle: 'Scen',
-    sceneReset: 'Rensa scen',
-    sceneAddSphere: 'Lägg till sfär',
-    sceneAddCube: 'Lägg till kub',
-    sceneAddCylinder: 'Lägg till cylinder',
-    sceneAddTorus: 'Lägg till torus',
-    sceneSelection: 'Urval',
-    sceneMerge: 'Sammanfoga urval',
+  // topology
+  topologyTitle: 'Topologi',
 
-    // mesh
-    meshTitle: 'Mesh',
-    meshNbVertices: 'Vertex : ',
-    meshNbFaces: 'Faces : ',
+  //multires
+  multiresTitle: 'Upplösningar',
+  multiresSubdivide: 'Dela upp yta',
+  multiresReverse: 'Omvänd',
+  multiresResolution: 'Upplösning',
+  multiresNoLower: 'Det finns ingen lägre upplösningsnivå.',
+  multiresNoHigher: 'Det finns ingen högre upplösningsnivå.',
+  multiresDelHigher: 'Ta bort högre',
+  multiresDelLower: 'Ta bort lägre',
+  multiresSelectLowest: 'Välj den lägsta upplösningen innan omvändning.',
+  multiresSelectHighest: 'Välj den högsta upplösningen innan uppdelning.',
+  multiresWarnBigMesh: function (nbFacesNext) {
+    return 'Nästa underavdelning nivå kommer att ha ' + nbFacesNext + ' faces.\n' +
+      'Om du vet vad du gör, klicka igen på "dela upp yta".';
+  },
+  multiresNotReversible: 'Tyvärr, det går inte att omvända denna mesh.\n' +
+    'Meshen är inte en produkt av en (loop-calmull) mångfaldsytindelning.',
 
-    // topology
-    topologyTitle: 'Topologi',
+  // remesh
+  remeshTitle: 'Voxel Meshombyggnation',
+  remeshRemesh: 'Bygg om mesh',
+  remeshResolution: 'Upplösning',
+  remeshBlock: 'Kuber',
 
-    //multires
-    multiresTitle: 'Upplösningar',
-    multiresSubdivide: 'Dela upp yta',
-    multiresReverse: 'Omvänd',
-    multiresResolution: 'Upplösning',
-    multiresNoLower: 'Det finns ingen lägre upplösningsnivå.',
-    multiresNoHigher: 'Det finns ingen högre upplösningsnivå.',
-    multiresDelHigher: 'Ta bort högre',
-    multiresDelLower: 'Ta bort lägre',
-    multiresSelectLowest: 'Välj den lägsta upplösningen innan omvändning.',
-    multiresSelectHighest: 'Välj den högsta upplösningen innan uppdelning.',
-    multiresWarnBigMesh: function (nbFacesNext) {
-      return 'Nästa underavdelning nivå kommer att ha ' + nbFacesNext + ' faces.\n' +
-        'Om du vet vad du gör, klicka igen på "dela upp yta".';
-    },
-    multiresNotReversible: 'Tyvärr, det går inte att omvända denna mesh.\n' +
-      'Meshen är inte en produkt av en (loop-calmull) mångfaldsytindelning.',
+  // dynamic
+  dynamicTitle: 'Dynamisk Topologi',
+  dynamicActivated: 'Aktiverad (inga quads)',
+  dynamicSubdivision: 'Ytindelning',
+  dynamicDecimation: 'Decimering',
+  dynamicLinear: 'Linjär ytindelning',
 
-    // remesh
-    remeshTitle: 'Voxel Meshombyggnation',
-    remeshRemesh: 'Bygg om mesh',
-    remeshResolution: 'Upplösning',
-    remeshBlock: 'Kuber',
+  // sculpt
+  sculptTitle: 'Skulptering & Måleri',
+  sculptBrush: 'Pensel',
+  sculptInflate: 'Blås upp',
+  sculptTwist: 'Tvista',
+  sculptSmooth: 'Jämna ut (-Shift)',
+  sculptFlatten: 'Platta till',
+  sculptPinch: 'Nyp',
+  sculptCrease: 'Vecka',
+  sculptDrag: 'Dra',
+  sculptPaint: 'Måla',
+  sculptMasking: 'Maskera (-Ctrl)',
+  sculptMove: 'Flytta',
+  sculptLocalScale: 'Skala lokalt',
+  sculptTransform: 'Transformera (E)',
 
-    // dynamic
-    dynamicTitle: 'Dynamisk Topologi',
-    dynamicActivated: 'Aktiverad (inga quads)',
-    dynamicSubdivision: 'Ytindelning',
-    dynamicDecimation: 'Decimering',
-    dynamicLinear: 'Linjär ytindelning',
+  sculptCommon: 'Generellt',
+  sculptTool: 'Verktyg',
+  sculptSymmetry: 'Symmetri',
+  sculptContinuous: 'Kontinuerlig',
+  sculptRadius: 'Radie (-X)',
+  sculptIntensity: 'Intensitet (-C)',
+  sculptHardness: 'Hårdhet',
+  sculptCulling: 'Tunn yta (endast främre vertex)',
+  sculptAlphaTitle: 'Alfa',
+  sculptLockPositon: 'Lås position',
+  sculptAlphaTex: 'Textur',
+  sculptImportAlpha: 'Importera alfatextur (jpg, png...)',
+  sculptNegative: 'Negativ (N or -Alt)',
+  sculptColor: 'Albedo',
+  sculptRoughness: 'Ytjämnhet',
+  sculptMetallic: 'Metallisk',
+  sculptClay: 'Lera',
+  sculptAccumulate: 'Ackumulera (ingen gräns per strykning)',
+  sculptColorGlobal: 'Global',
+  sculptPickColor: 'Material / Färgvälgare (-S)',
+  sculptTangentialSmoothing: 'Tangentiell utjämning',
+  sculptTopologicalCheck: 'Topologisk check',
+  sculptMoveAlongNormal: 'Flytta längsmed normal (N or -Alt)',
+  sculptMaskingClear: 'Rensa (-Ctrl + Drag)',
+  sculptMaskingInvert: 'Invertera (-Ctrl + Click)',
+  sculptMaskingBlur: 'Gör suddig',
+  sculptMaskingSharpen: 'Gör skarp',
+  sculptPBRTitle: 'PBR-material',
+  sculptPaintAll: 'Måla allt',
+  sculptExtractTitle: 'Extrahera',
+  sculptExtractThickness: 'Tjocklek',
+  sculptExtractAction: 'Extrahera!',
 
-    // sculpt
-    sculptTitle: 'Skulptering & Måleri',
-    sculptBrush: 'Pensel',
-    sculptInflate: 'Blås upp',
-    sculptTwist: 'Tvista',
-    sculptSmooth: 'Jämna ut (-Shift)',
-    sculptFlatten: 'Platta till',
-    sculptPinch: 'Nyp',
-    sculptCrease: 'Vecka',
-    sculptDrag: 'Dra',
-    sculptPaint: 'Måla',
-    sculptMasking: 'Maskera (-Ctrl)',
-    sculptMove: 'Flytta',
-    sculptLocalScale: 'Skala lokalt',
-    sculptTransform: 'Transformera (E)',
+  // states
+  stateTitle: 'Historia',
+  stateUndo: 'Ångra',
+  stateRedo: 'Gör om',
+  stateMaxStack: 'Ågra antal steg',
 
-    sculptCommon: 'Generellt',
-    sculptTool: 'Verktyg',
-    sculptSymmetry: 'Symmetri',
-    sculptContinuous: 'Kontinuerlig',
-    sculptRadius: 'Radie (-X)',
-    sculptIntensity: 'Intensitet (-C)',
-    sculptHardness: 'Hårdhet',
-    sculptCulling: 'Tunn yta (endast främre vertex)',
-    sculptAlphaTitle: 'Alfa',
-    sculptLockPositon: 'Lås position',
-    sculptAlphaTex: 'Textur',
-    sculptImportAlpha: 'Importera alfatextur (jpg, png...)',
-    sculptNegative: 'Negativ (N or -Alt)',
-    sculptColor: 'Albedo',
-    sculptRoughness: 'Ytjämnhet',
-    sculptMetallic: 'Metallisk',
-    sculptClay: 'Lera',
-    sculptAccumulate: 'Ackumulera (ingen gräns per strykning)',
-    sculptColorGlobal: 'Global',
-    sculptPickColor: 'Material / Färgvälgare (-S)',
-    sculptTangentialSmoothing: 'Tangentiell utjämning',
-    sculptTopologicalCheck: 'Topologisk check',
-    sculptMoveAlongNormal: 'Flytta längsmed normal (N or -Alt)',
-    sculptMaskingClear: 'Rensa (-Ctrl + Drag)',
-    sculptMaskingInvert: 'Invertera (-Ctrl + Click)',
-    sculptMaskingBlur: 'Gör suddig',
-    sculptMaskingSharpen: 'Gör skarp',
-    sculptPBRTitle: 'PBR-material',
-    sculptPaintAll: 'Måla allt',
-    sculptExtractTitle: 'Extrahera',
-    sculptExtractThickness: 'Tjocklek',
-    sculptExtractAction: 'Extrahera!',
+  // wacom
+  wacomTitle: 'Wacomplatta',
+  wacomRadius: 'Tryckradie',
+  wacomIntensity: 'Tryckintensitet',
 
-    // states
-    stateTitle: 'Historia',
-    stateUndo: 'Ångra',
-    stateRedo: 'Gör om',
-    stateMaxStack: 'Ågra antal steg',
+  // rendering
+  renderingTitle: 'Rendering',
+  renderingGrid: 'Visa rutnät',
+  renderingSymmetryLine: 'Visa speglingslinje',
+  renderingMatcap: 'MatCap',
+  renderingCurvature: 'Kurvatur',
+  renderingPBR: 'PBR',
+  renderingTransparency: 'Genomskinlighet',
+  renderingNormal: 'Normal shader',
+  renderingUV: 'UV-shader',
+  renderingShader: 'Shader',
+  renderingMaterial: 'Material',
+  renderingImportUV: 'Importera (jpg, png...)',
+  renderingImportMatcap: 'Importera (jpg, png...)',
+  renderingExtra: 'Extra',
+  renderingFlat: 'Platt shading',
+  renderingWireframe: 'Wireframe (W)',
+  renderingExposure: 'Exponering',
+  renderingEnvironment: 'Miljö',
+  renderingIsolate: 'Isolera/Visa (I)',
+  renderingFilmic: 'Filmiska färgtoner',
 
-    // wacom
-    wacomTitle: 'Wacomplatta',
-    wacomRadius: 'Tryckradie',
-    wacomIntensity: 'Tryckintensitet',
+  // contour
+  contour: 'Kontur',
+  contourShow: 'Visa kontur',
+  contourColor: 'Färg',
+  darkenUnselected: 'Skym ej valda',
 
-    // rendering
-    renderingTitle: 'Rendering',
-    renderingGrid: 'Visa rutnät',
-    renderingSymmetryLine: 'Visa speglingslinje',
-    renderingMatcap: 'MatCap',
-    renderingCurvature: 'Kurvatur',
-    renderingPBR: 'PBR',
-    renderingTransparency: 'Genomskinlighet',
-    renderingNormal: 'Normal shader',
-    renderingUV: 'UV-shader',
-    renderingShader: 'Shader',
-    renderingMaterial: 'Material',
-    renderingImportUV: 'Importera (jpg, png...)',
-    renderingImportMatcap: 'Importera (jpg, png...)',
-    renderingExtra: 'Extra',
-    renderingFlat: 'Platt shading',
-    renderingWireframe: 'Wireframe (W)',
-    renderingExposure: 'Exponering',
-    renderingEnvironment: 'Miljö',
-    renderingIsolate: 'Isolera/Visa (I)',
-    renderingFilmic: 'Filmiska färgtoner',
+  // pixel ratio
+  resolution: 'Upplösning',
 
-    // contour
-    contour: 'Kontur',
-    contourShow: 'Visa kontur',
-    contourColor: 'Färg',
-    darkenUnselected: 'Skym ej valda',
+  // matcaps
+  matcapPearl: 'Pärla',
+  matcapClay: 'Lera',
+  matcapSkin: 'Hud',
+  matcapGreen: 'Grön',
+  matcapWhite: 'Vit',
 
-    // pixel ratio
-    resolution: 'Upplösning',
+  // sketchfab
+  sketchfabTitle: 'Gå till Sketchfab!',
+  sketchfabUpload: 'Ladda upp',
+  sketchfabUploadMessage: 'Vänligen fyll i din sketchfab API-nyckel.\n' +
+    'Du kan även ange "guest" för att ladda upp anonymt.\n' +
+    '(ett nytt fönster kommer att öppnas när uppladdning och bearbetning är klar)',
+  sketchfabUploadError: function (error) {
+    return 'Sketchfab uppladdningsfel:\n' + error;
+  },
+  sketchfabUploadSuccess: 'Uppladdning lyckades!\nHär är din länk:',
+  sketchfabAbort: 'Avbryta senaste uppladdningen?',
+  sketchfabUploadProcessing: 'Bearbetar...\nDin modell kommer bli tillgänglig här:',
 
-    // matcaps
-    matcapPearl: 'Pärla',
-    matcapClay: 'Lera',
-    matcapSkin: 'Hud',
-    matcapGreen: 'Grön',
-    matcapWhite: 'Vit',
+  about: 'Om & Hjälp',
 
-    // sketchfab
-    sketchfabTitle: 'Gå till Sketchfab!',
-    sketchfabUpload: 'Ladda upp',
-    sketchfabUploadMessage: 'Vänligen fyll i din sketchfab API-nyckel.\n' +
-      'Du kan även ange "guest" för att ladda upp anonymt.\n' +
-      '(ett nytt fönster kommer att öppnas när uppladdning och bearbetning är klar)',
-    sketchfabUploadError: function (error) {
-      return 'Sketchfab uppladdningsfel:\n' + error;
-    },
-    sketchfabUploadSuccess: 'Uppladdning lyckades!\nHär är din länk:',
-    sketchfabAbort: 'Avbryta senaste uppladdningen?',
-    sketchfabUploadProcessing: 'Bearbetar...\nDin modell kommer bli tillgänglig här:',
+  alphaNone: 'Ingen',
+  alphaSquare: 'Fyrkant',
+  alphaSkin: 'Hud',
 
-    about: 'Om & Hjälp',
+  envFootPrint: 'Fotavtryck',
+  envGlazedPatio: 'Inglasad uteplats',
+  envNicolausChurch: 'S:t Nikolauskyrkan',
+  envTerrace: 'Terrass',
+  envBryantPark: 'Bryant Park'
+};
 
-    alphaNone: 'Ingen',
-    alphaSquare: 'Fyrkant',
-    alphaSkin: 'Hud',
-
-    envFootPrint: 'Fotavtryck',
-    envGlazedPatio: 'Inglasad uteplats',
-    envNicolausChurch: 'S:t Nikolauskyrkan',
-    envTerrace: 'Terrass',
-    envBryantPark: 'Bryant Park'
-  };
-
-  module.exports = TR;
-});
+export default TR;

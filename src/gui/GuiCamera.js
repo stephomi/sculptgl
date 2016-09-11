@@ -1,171 +1,166 @@
-define(function (require, exports, module) {
+import TR from '../gui/GuiTR';
+import getOptionsURL from '../misc/getOptionsURL';
+import Enums from '../misc/Enums';
 
-  'use strict';
+var GuiCamera = function (guiParent, ctrlGui) {
+  this._main = ctrlGui._main; // main application
+  this._menu = null; // ui menu
+  this._camera = this._main.getCamera(); // the camera
+  this._cameraTimer = -1; // interval id (used for zqsd/wasd/arrow moves)
+  this._cbTranslation = this.cbOnTranslation.bind(this);
+  this.init(guiParent);
+};
 
-  var TR = require('gui/GuiTR');
-  var getOptionsURL = require('misc/getOptionsURL');
-  var Enums = require('misc/Enums');
+GuiCamera.prototype = {
+  /** Initialize */
+  init: function (guiParent) {
+    var camera = this._camera;
 
-  var GuiCamera = function (guiParent, ctrlGui) {
-    this._main = ctrlGui._main; // main application
-    this._menu = null; // ui menu
-    this._camera = this._main.getCamera(); // the camera
-    this._cameraTimer = -1; // interval id (used for zqsd/wasd/arrow moves)
-    this._cbTranslation = this.cbOnTranslation.bind(this);
-    this.init(guiParent);
-  };
+    // Camera fold
+    var menu = this._menu = guiParent.addMenu(TR('cameraTitle'));
 
-  GuiCamera.prototype = {
-    /** Initialize */
-    init: function (guiParent) {
-      var camera = this._camera;
+    // reset camera
+    menu.addTitle(TR('cameraReset'));
+    menu.addDualButton(TR('cameraCenter'), TR('cameraFront'), this.resetCamera.bind(this), this.resetFront.bind(this));
+    menu.addDualButton(TR('cameraLeft'), TR('cameraTop'), this.resetLeft.bind(this), this.resetTop.bind(this));
 
-      // Camera fold
-      var menu = this._menu = guiParent.addMenu(TR('cameraTitle'));
+    // camera type
+    this._ctrlProjectionTitle = menu.addTitle(TR('cameraProjection'));
+    var optionsType = [];
+    optionsType[Enums.Projection.PERSPECTIVE] = TR('cameraPerspective');
+    optionsType[Enums.Projection.ORTHOGRAPHIC] = TR('cameraOrthographic');
+    this._ctrlProjection = menu.addCombobox('', camera.getProjectionType(), this.onCameraTypeChange.bind(this), optionsType);
 
-      // reset camera
-      menu.addTitle(TR('cameraReset'));
-      menu.addDualButton(TR('cameraCenter'), TR('cameraFront'), this.resetCamera.bind(this), this.resetFront.bind(this));
-      menu.addDualButton(TR('cameraLeft'), TR('cameraTop'), this.resetLeft.bind(this), this.resetTop.bind(this));
+    // camera fov
+    this._ctrlFov = menu.addSlider(TR('cameraFov'), camera.getFov(), this.onFovChange.bind(this), 10, 90, 1);
+    this._ctrlFov.setVisibility(camera.getProjectionType() === Enums.Projection.PERSPECTIVE);
 
-      // camera type
-      this._ctrlProjectionTitle = menu.addTitle(TR('cameraProjection'));
-      var optionsType = [];
-      optionsType[Enums.Projection.PERSPECTIVE] = TR('cameraPerspective');
-      optionsType[Enums.Projection.ORTHOGRAPHIC] = TR('cameraOrthographic');
-      this._ctrlProjection = menu.addCombobox('', camera.getProjectionType(), this.onCameraTypeChange.bind(this), optionsType);
+    // camera mode
+    menu.addTitle(TR('cameraMode'));
+    var optionsMode = [];
+    optionsMode[Enums.CameraMode.ORBIT] = TR('cameraOrbit');
+    optionsMode[Enums.CameraMode.SPHERICAL] = TR('cameraSpherical');
+    optionsMode[Enums.CameraMode.PLANE] = TR('cameraPlane');
+    menu.addCombobox('', camera.getMode(), this.onCameraModeChange.bind(this), optionsMode);
+    this._ctrlPivot = menu.addCheckbox(TR('cameraPivot'), camera.getUsePivot(), this.onPivotChange.bind(this));
+  },
+  onCameraModeChange: function (value) {
+    this._camera.setMode(value);
+    this._main.render();
+  },
+  onCameraTypeChange: function (value) {
+    this._camera.setProjectionType(value);
+    this._ctrlFov.setVisibility(value === Enums.Projection.PERSPECTIVE);
+    this._main.render();
+  },
+  onFovChange: function (value) {
+    this._camera.setFov(value);
+    this._main.render();
+  },
+  onKeyDown: function (event) {
+    if (event.handled === true)
+      return;
 
-      // camera fov
-      this._ctrlFov = menu.addSlider(TR('cameraFov'), camera.getFov(), this.onFovChange.bind(this), 10, 90, 1);
-      this._ctrlFov.setVisibility(camera.getProjectionType() === Enums.Projection.PERSPECTIVE);
+    event.stopPropagation();
+    if (this._main._focusGui)
+      return;
 
-      // camera mode
-      menu.addTitle(TR('cameraMode'));
-      var optionsMode = [];
-      optionsMode[Enums.CameraMode.ORBIT] = TR('cameraOrbit');
-      optionsMode[Enums.CameraMode.SPHERICAL] = TR('cameraSpherical');
-      optionsMode[Enums.CameraMode.PLANE] = TR('cameraPlane');
-      menu.addCombobox('', camera.getMode(), this.onCameraModeChange.bind(this), optionsMode);
-      this._ctrlPivot = menu.addCheckbox(TR('cameraPivot'), camera.getUsePivot(), this.onPivotChange.bind(this));
-    },
-    onCameraModeChange: function (value) {
-      this._camera.setMode(value);
-      this._main.render();
-    },
-    onCameraTypeChange: function (value) {
-      this._camera.setProjectionType(value);
-      this._ctrlFov.setVisibility(value === Enums.Projection.PERSPECTIVE);
-      this._main.render();
-    },
-    onFovChange: function (value) {
-      this._camera.setFov(value);
-      this._main.render();
-    },
-    onKeyDown: function (event) {
-      if (event.handled === true)
-        return;
-
-      event.stopPropagation();
-      if (this._main._focusGui)
-        return;
-
-      event.preventDefault();
-      var main = this._main;
-      var camera = main.getCamera();
-      event.handled = true;
-      if (event.shiftKey && main._action === Enums.Action.CAMERA_ROTATE) {
-        camera.snapClosestRotation();
-        main.render();
-      }
-
-      switch (getOptionsURL.getShortKey(event.which)) {
-      case Enums.KeyAction.STRIFE_LEFT:
-        camera._moveX = -1;
-        break;
-      case Enums.KeyAction.STRIFE_RIGHT:
-        camera._moveX = 1;
-        break;
-      case Enums.KeyAction.STRIFE_UP:
-        camera._moveZ = -1;
-        break;
-      case Enums.KeyAction.STRIFE_DOWN:
-        camera._moveZ = 1;
-        break;
-      default:
-        event.handled = false;
-      }
-
-      if (event.handled === true && this._cameraTimer === -1) {
-        this._cameraTimer = window.setInterval(this._cbTranslation, 16.6);
-      }
-    },
-    cbOnTranslation: function () {
-      var main = this._main;
-      main.getCamera().updateTranslation();
+    event.preventDefault();
+    var main = this._main;
+    var camera = main.getCamera();
+    event.handled = true;
+    if (event.shiftKey && main._action === Enums.Action.CAMERA_ROTATE) {
+      camera.snapClosestRotation();
       main.render();
-    },
-    /** Key released event */
-    onKeyUp: function (event) {
-      if (event.handled === true)
-        return;
-
-      event.stopPropagation();
-      if (this._main._focusGui)
-        return;
-
-      event.preventDefault();
-      event.handled = true;
-      var camera = this._camera;
-
-      switch (getOptionsURL.getShortKey(event.which)) {
-      case Enums.KeyAction.STRIFE_LEFT:
-      case Enums.KeyAction.STRIFE_RIGHT:
-        camera._moveX = 0;
-        break;
-      case Enums.KeyAction.STRIFE_UP:
-      case Enums.KeyAction.STRIFE_DOWN:
-        camera._moveZ = 0;
-        break;
-      case Enums.KeyAction.CAMERA_RESET:
-        this.resetCamera();
-        break;
-      case Enums.KeyAction.CAMERA_FRONT:
-        this.resetFront();
-        break;
-      case Enums.KeyAction.CAMERA_TOP:
-        this.resetTop();
-        break;
-      case Enums.KeyAction.CAMERA_LEFT:
-        this.resetLeft();
-        break;
-      }
-
-      if (this._cameraTimer !== -1 && camera._moveX === 0 && camera._moveZ === 0) {
-        clearInterval(this._cameraTimer);
-        this._cameraTimer = -1;
-      }
-    },
-    resetCamera: function () {
-      this._camera.resetView();
-      this._main.render();
-    },
-    resetFront: function () {
-      this._camera.toggleViewFront();
-      this._main.render();
-    },
-    resetLeft: function () {
-      this._camera.toggleViewLeft();
-      this._main.render();
-    },
-    resetTop: function () {
-      this._camera.toggleViewTop();
-      this._main.render();
-    },
-    onPivotChange: function () {
-      this._camera.toggleUsePivot();
-      this._main.render();
     }
-  };
 
-  module.exports = GuiCamera;
-});
+    switch (getOptionsURL.getShortKey(event.which)) {
+    case Enums.KeyAction.STRIFE_LEFT:
+      camera._moveX = -1;
+      break;
+    case Enums.KeyAction.STRIFE_RIGHT:
+      camera._moveX = 1;
+      break;
+    case Enums.KeyAction.STRIFE_UP:
+      camera._moveZ = -1;
+      break;
+    case Enums.KeyAction.STRIFE_DOWN:
+      camera._moveZ = 1;
+      break;
+    default:
+      event.handled = false;
+    }
+
+    if (event.handled === true && this._cameraTimer === -1) {
+      this._cameraTimer = window.setInterval(this._cbTranslation, 16.6);
+    }
+  },
+  cbOnTranslation: function () {
+    var main = this._main;
+    main.getCamera().updateTranslation();
+    main.render();
+  },
+  /** Key released event */
+  onKeyUp: function (event) {
+    if (event.handled === true)
+      return;
+
+    event.stopPropagation();
+    if (this._main._focusGui)
+      return;
+
+    event.preventDefault();
+    event.handled = true;
+    var camera = this._camera;
+
+    switch (getOptionsURL.getShortKey(event.which)) {
+    case Enums.KeyAction.STRIFE_LEFT:
+    case Enums.KeyAction.STRIFE_RIGHT:
+      camera._moveX = 0;
+      break;
+    case Enums.KeyAction.STRIFE_UP:
+    case Enums.KeyAction.STRIFE_DOWN:
+      camera._moveZ = 0;
+      break;
+    case Enums.KeyAction.CAMERA_RESET:
+      this.resetCamera();
+      break;
+    case Enums.KeyAction.CAMERA_FRONT:
+      this.resetFront();
+      break;
+    case Enums.KeyAction.CAMERA_TOP:
+      this.resetTop();
+      break;
+    case Enums.KeyAction.CAMERA_LEFT:
+      this.resetLeft();
+      break;
+    }
+
+    if (this._cameraTimer !== -1 && camera._moveX === 0 && camera._moveZ === 0) {
+      clearInterval(this._cameraTimer);
+      this._cameraTimer = -1;
+    }
+  },
+  resetCamera: function () {
+    this._camera.resetView();
+    this._main.render();
+  },
+  resetFront: function () {
+    this._camera.toggleViewFront();
+    this._main.render();
+  },
+  resetLeft: function () {
+    this._camera.toggleViewLeft();
+    this._main.render();
+  },
+  resetTop: function () {
+    this._camera.toggleViewTop();
+    this._main.render();
+  },
+  onPivotChange: function () {
+    this._camera.toggleUsePivot();
+    this._main.render();
+  }
+};
+
+export default GuiCamera;

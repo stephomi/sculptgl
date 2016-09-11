@@ -1,8 +1,10 @@
 .DS_Store
-build/*
-nodewebkit/*
+app/sculptgl.js
+app/index.html
+standalone/*
 cache/*
 node_modules
 *~
 .idea/*
 *.log
+*.map

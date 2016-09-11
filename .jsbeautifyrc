@@ -1,10 +1,10 @@
 {
   "js": {
     "allowed_file_extensions": ["js", "json", "jshintrc", "jsbeautifyrc"],
-    "brace_style": "collapse",
+    "brace_style": "collapse-preserve-inline",
     "break_chained_methods": false,
     "e4x": false,
-    "end_with_newline": true,
+    "end_with_newline": false,
     "indent_char": " ",
     "indent_level": 0,
     "indent_size": 2,

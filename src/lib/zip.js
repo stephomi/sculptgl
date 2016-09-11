@@ -1,6 +1,5 @@
-define(function (require, exports, module) {
+import '../../lib/zip';
 
-  'use strict';
+var zip = window.zip;
 
-  module.exports = window.zip;
-});
+export default zip;

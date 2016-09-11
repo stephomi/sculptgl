@@ -1,26 +1,21 @@
-define(function (require, exports, module) {
+var StateCustom = function (undocb, redocb) {
+  this._undocb = undocb;
+  this._redocb = redocb ? redocb : undocb;
+};
 
-  'use strict';
+StateCustom.prototype = {
+  isNoop: function () {
+    return !this._undocb;
+  },
+  undo: function () {
+    this._undocb();
+  },
+  redo: function () {
+    this._redocb();
+  },
+  createRedo: function () {
+    return new StateCustom(this._undocb, this._redocb);
+  }
+};
 
-  var StateCustom = function (undocb, redocb) {
-    this._undocb = undocb;
-    this._redocb = redocb ? redocb : undocb;
-  };
-
-  StateCustom.prototype = {
-    isNoop: function () {
-      return !this._undocb;
-    },
-    undo: function () {
-      this._undocb();
-    },
-    redo: function () {
-      this._redocb();
-    },
-    createRedo: function () {
-      return new StateCustom(this._undocb, this._redocb);
-    }
-  };
-
-  module.exports = StateCustom;
-});
+export default StateCustom;

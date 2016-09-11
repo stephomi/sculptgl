@@ -1,24 +1,19 @@
-define(function (require, exports, module) {
+import TR from '../gui/GuiTR';
+import Tablet from '../misc/Tablet';
 
-  'use strict';
+var GuiTablet = function (guiParent) {
+  this._menu = null; // ui menu
+  this.init(guiParent);
+};
 
-  var TR = require('gui/GuiTR');
-  var Tablet = require('misc/Tablet');
+GuiTablet.prototype = {
+  /** Initialize */
+  init: function (guiParent) {
+    // Pen tablet ui stuffs
+    var menu = this._menu = guiParent.addMenu(TR('wacomTitle'));
+    menu.addCheckbox(TR('wacomRadius'), Tablet, 'useOnRadius');
+    menu.addCheckbox(TR('wacomIntensity'), Tablet, 'useOnIntensity');
+  }
+};
 
-  var GuiTablet = function (guiParent) {
-    this._menu = null; // ui menu
-    this.init(guiParent);
-  };
-
-  GuiTablet.prototype = {
-    /** Initialize */
-    init: function (guiParent) {
-      // Pen tablet ui stuffs
-      var menu = this._menu = guiParent.addMenu(TR('wacomTitle'));
-      menu.addCheckbox(TR('wacomRadius'), Tablet, 'useOnRadius');
-      menu.addCheckbox(TR('wacomIntensity'), Tablet, 'useOnIntensity');
-    }
-  };
-
-  module.exports = GuiTablet;
-});
+export default GuiTablet;

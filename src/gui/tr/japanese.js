@@ -1,216 +1,211 @@
-define(function (require, exports, module) {
+var TR = {
+  // background
+  backgroundTitle: 'バックグラウンド',
+  backgroundReset: 'リセット',
+  backgroundImport: 'インポート  (jpg, png...)',
+  backgroundFill: null,
 
-  'use strict';
+  // camera
+  cameraTitle: 'カメラ',
+  cameraReset: 'View',
+  cameraCenter: null,
+  cameraFront: null,
+  cameraLeft: null,
+  cameraTop: null,
+  cameraMode: 'モード',
+  cameraOrbit: null,
+  cameraSpherical: '球体 (Trackball)',
+  cameraPlane: '平面 (Trackball)',
+  cameraProjection: 'タイプ',
+  cameraPerspective: '透視投影',
+  cameraOrthographic: '平行投影',
+  cameraFov: '視野',
+  cameraPivot: 'ピボット選択',
 
-  var TR = {
-    // background
-    backgroundTitle: 'バックグラウンド',
-    backgroundReset: 'リセット',
-    backgroundImport: 'インポート  (jpg, png...)',
-    backgroundFill: null,
+  // file
+  fileTitle: 'ファイル (インポート/エクスポート)',
+  fileImportTitle: null,
+  fileAdd: 'Add (obj, sgl, ply, stl)',
+  fileAutoMatrix: null,
+  fileVertexSRGB: null,
+  fileExportMeshTitle: null,
+  fileExportSceneTitle: null,
+  fileExportSGL: null,
+  fileExportOBJ: null,
+  fileExportPLY: null,
+  fileExportSTL: null,
 
-    // camera
-    cameraTitle: 'カメラ',
-    cameraReset: 'View',
-    cameraCenter: null,
-    cameraFront: null,
-    cameraLeft: null,
-    cameraTop: null,
-    cameraMode: 'モード',
-    cameraOrbit: null,
-    cameraSpherical: '球体 (Trackball)',
-    cameraPlane: '平面 (Trackball)',
-    cameraProjection: 'タイプ',
-    cameraPerspective: '透視投影',
-    cameraOrthographic: '平行投影',
-    cameraFov: '視野',
-    cameraPivot: 'ピボット選択',
+  // scene
+  sceneTitle: null,
+  sceneReset: null,
+  sceneAddSphere: null,
+  sceneAddCube: null,
+  sceneAddCylinder: null,
+  sceneAddTorus: null,
+  sceneSelection: null,
+  sceneMerge: null,
 
-    // file
-    fileTitle: 'ファイル (インポート/エクスポート)',
-    fileImportTitle: null,
-    fileAdd: 'Add (obj, sgl, ply, stl)',
-    fileAutoMatrix: null,
-    fileVertexSRGB: null,
-    fileExportMeshTitle: null,
-    fileExportSceneTitle: null,
-    fileExportSGL: null,
-    fileExportOBJ: null,
-    fileExportPLY: null,
-    fileExportSTL: null,
+  // mesh
+  meshTitle: 'メッシュ',
+  meshNbVertices: null,
+  meshNbFaces: null,
 
-    // scene
-    sceneTitle: null,
-    sceneReset: null,
-    sceneAddSphere: null,
-    sceneAddCube: null,
-    sceneAddCylinder: null,
-    sceneAddTorus: null,
-    sceneSelection: null,
-    sceneMerge: null,
+  // topology
+  topologyTitle: null,
 
-    // mesh
-    meshTitle: 'メッシュ',
-    meshNbVertices: null,
-    meshNbFaces: null,
+  // multires
+  multiresTitle: null,
+  multiresSubdivide: null,
+  multiresReverse: null,
+  multiresResolution: null,
+  multiresNoLower: null,
+  multiresNoHigher: null,
+  multiresDelHigher: null,
+  multiresDelLower: null,
+  multiresSelectLowest: null,
+  multiresSelectHighest: null,
+  multiresWarnBigMesh: null,
+  // 
+  // 
+  //
+  multiresNotReversible: null,
+  // 
 
-    // topology
-    topologyTitle: null,
+  // remesh
+  remeshTitle: null,
+  remeshRemesh: null,
+  remeshResolution: null,
+  remeshBlock: null,
 
-    // multires
-    multiresTitle: null,
-    multiresSubdivide: null,
-    multiresReverse: null,
-    multiresResolution: null,
-    multiresNoLower: null,
-    multiresNoHigher: null,
-    multiresDelHigher: null,
-    multiresDelLower: null,
-    multiresSelectLowest: null,
-    multiresSelectHighest: null,
-    multiresWarnBigMesh: null,
-    // 
-    // 
-    //
-    multiresNotReversible: null,
-    // 
+  // dynamic
+  dynamicTitle: null,
+  dynamicActivated: null,
+  dynamicSubdivision: null,
+  dynamicDecimation: null,
+  dynamicLinear: null,
 
-    // remesh
-    remeshTitle: null,
-    remeshRemesh: null,
-    remeshResolution: null,
-    remeshBlock: null,
+  // sculpt
+  sculptTitle: null,
+  sculptBrush: 'ブラシ',
+  sculptInflate: '膨張',
+  sculptTwist: '回転',
+  sculptSmooth: 'スムーズ化 (-Shift)',
+  sculptFlatten: 'フラット化',
+  sculptPinch: 'つまむ',
+  sculptCrease: 'しわ',
+  sculptDrag: 'ドラッグ',
+  sculptPaint: 'ペイント',
+  sculptMasking: null,
+  sculptMove: null,
+  sculptLocalScale: null,
+  sculptTransform: null,
 
-    // dynamic
-    dynamicTitle: null,
-    dynamicActivated: null,
-    dynamicSubdivision: null,
-    dynamicDecimation: null,
-    dynamicLinear: null,
+  sculptCommon: null,
+  sculptTool: 'ツール',
+  sculptSymmetry: '対称加工',
+  sculptContinuous: '連続加工',
+  sculptRadius: '半径 (-X)',
+  sculptIntensity: '明るさ (-C)',
+  sculptHardness: null,
+  sculptCulling: null,
+  sculptAlphaTitle: null,
+  sculptLockPositon: null,
+  sculptAlphaTex: null,
+  sculptImportAlpha: null,
+  sculptNegative: 'ネガティブ (N or -Alt)',
+  sculptColor: null,
+  sculptRoughness: null,
+  sculptMetallic: null,
+  sculptClay: 'クレイ',
+  sculptAccumulate: null,
+  sculptColorGlobal: null,
+  sculptPickColor: null,
+  sculptTangentialSmoothing: null,
+  sculptTopologicalCheck: null,
+  sculptMoveAlongNormal: null,
+  sculptMaskingClear: null,
+  sculptMaskingInvert: null,
+  sculptMaskingBlur: null,
+  sculptMaskingSharpen: null,
+  sculptPBRTitle: null,
+  sculptPaintAll: null,
+  sculptExtractTitle: null,
+  sculptExtractThickness: null,
+  sculptExtractAction: null,
 
-    // sculpt
-    sculptTitle: null,
-    sculptBrush: 'ブラシ',
-    sculptInflate: '膨張',
-    sculptTwist: '回転',
-    sculptSmooth: 'スムーズ化 (-Shift)',
-    sculptFlatten: 'フラット化',
-    sculptPinch: 'つまむ',
-    sculptCrease: 'しわ',
-    sculptDrag: 'ドラッグ',
-    sculptPaint: 'ペイント',
-    sculptMasking: null,
-    sculptMove: null,
-    sculptLocalScale: null,
-    sculptTransform: null,
+  // states
+  stateTitle: '履歴',
+  stateUndo: 'アンドゥ',
+  stateRedo: 'リドゥ',
+  stateMaxStack: null,
 
-    sculptCommon: null,
-    sculptTool: 'ツール',
-    sculptSymmetry: '対称加工',
-    sculptContinuous: '連続加工',
-    sculptRadius: '半径 (-X)',
-    sculptIntensity: '明るさ (-C)',
-    sculptHardness: null,
-    sculptCulling: null,
-    sculptAlphaTitle: null,
-    sculptLockPositon: null,
-    sculptAlphaTex: null,
-    sculptImportAlpha: null,
-    sculptNegative: 'ネガティブ (N or -Alt)',
-    sculptColor: null,
-    sculptRoughness: null,
-    sculptMetallic: null,
-    sculptClay: 'クレイ',
-    sculptAccumulate: null,
-    sculptColorGlobal: null,
-    sculptPickColor: null,
-    sculptTangentialSmoothing: null,
-    sculptTopologicalCheck: null,
-    sculptMoveAlongNormal: null,
-    sculptMaskingClear: null,
-    sculptMaskingInvert: null,
-    sculptMaskingBlur: null,
-    sculptMaskingSharpen: null,
-    sculptPBRTitle: null,
-    sculptPaintAll: null,
-    sculptExtractTitle: null,
-    sculptExtractThickness: null,
-    sculptExtractAction: null,
+  // wacom
+  wacomTitle: 'ワコムタブレット',
+  wacomRadius: '圧力半径？',
+  wacomIntensity: '圧力の強さ？',
 
-    // states
-    stateTitle: '履歴',
-    stateUndo: 'アンドゥ',
-    stateRedo: 'リドゥ',
-    stateMaxStack: null,
+  // rendering
+  renderingTitle: null,
+  renderingGrid: null,
+  renderingSymmetryLine: null,
+  renderingMatcap: null,
+  renderingCurvature: null,
+  renderingPBR: null,
+  renderingTransparency: '透過',
+  renderingNormal: 'ノーマル',
+  renderingUV: null,
+  renderingShader: 'シェーダー',
+  renderingMaterial: null,
+  renderingImportUV: null,
+  renderingImportMatcap: null,
+  renderingExtra: null,
+  renderingFlat: 'フラットシェーディング',
+  renderingWireframe: 'ワイヤーフレーム (W)',
+  renderingExposure: null,
+  renderingEnvironment: null,
+  renderingIsolate: null,
+  renderingFilmic: null,
 
-    // wacom
-    wacomTitle: 'ワコムタブレット',
-    wacomRadius: '圧力半径？',
-    wacomIntensity: '圧力の強さ？',
+  // contour
+  contour: null,
+  contourShow: null,
+  contourColor: null,
+  darkenUnselected: null,
 
-    // rendering
-    renderingTitle: null,
-    renderingGrid: null,
-    renderingSymmetryLine: null,
-    renderingMatcap: null,
-    renderingCurvature: null,
-    renderingPBR: null,
-    renderingTransparency: '透過',
-    renderingNormal: 'ノーマル',
-    renderingUV: null,
-    renderingShader: 'シェーダー',
-    renderingMaterial: null,
-    renderingImportUV: null,
-    renderingImportMatcap: null,
-    renderingExtra: null,
-    renderingFlat: 'フラットシェーディング',
-    renderingWireframe: 'ワイヤーフレーム (W)',
-    renderingExposure: null,
-    renderingEnvironment: null,
-    renderingIsolate: null,
-    renderingFilmic: null,
+  // pixel ratio
+  resolution: null,
 
-    // contour
-    contour: null,
-    contourShow: null,
-    contourColor: null,
-    darkenUnselected: null,
+  // matcaps
+  matcapPearl: null,
+  matcapClay: 'クレイ',
+  matcapSkin: 'スキン',
+  matcapGreen: null,
+  matcapWhite: null,
 
-    // pixel ratio
-    resolution: null,
+  // sketchfab
+  sketchfabTitle: 'Sketchfabへ移動',
+  sketchfabUpload: 'アップロード',
+  sketchfabUploadMessage: null,
+  // 
 
-    // matcaps
-    matcapPearl: null,
-    matcapClay: 'クレイ',
-    matcapSkin: 'スキン',
-    matcapGreen: null,
-    matcapWhite: null,
+  sketchfabUploadError: null,
+  // 
 
-    // sketchfab
-    sketchfabTitle: 'Sketchfabへ移動',
-    sketchfabUpload: 'アップロード',
-    sketchfabUploadMessage: null,
-    // 
+  sketchfabUploadSuccess: null,
+  sketchfabAbort: null,
+  sketchfabUploadProcessing: null,
 
-    sketchfabUploadError: null,
-    // 
+  about: null,
 
-    sketchfabUploadSuccess: null,
-    sketchfabAbort: null,
-    sketchfabUploadProcessing: null,
+  alphaNone: null,
+  alphaSquare: null,
+  alphaSkin: null,
 
-    about: null,
+  envFootPrint: null,
+  envGlazedPatio: null,
+  envNicolausChurch: null,
+  envTerrace: null,
+  envBryantPark: null
+};
 
-    alphaNone: null,
-    alphaSquare: null,
-    alphaSkin: null,
-
-    envFootPrint: null,
-    envGlazedPatio: null,
-    envNicolausChurch: null,
-    envTerrace: null,
-    envBryantPark: null
-  };
-
-  module.exports = TR;
-});
+export default TR;

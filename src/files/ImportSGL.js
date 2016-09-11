@@ -1,127 +1,122 @@
-define(function (require, exports, module) {
+import Utils from '../misc/Utils';
+import MeshStatic from '../mesh/meshStatic/MeshStatic';
+import ExportSGL from '../files/ExportSGL';
+import ShaderBase from '../render/shaders/ShaderBase';
 
-  'use strict';
+var Import = {};
 
-  var Utils = require('misc/Utils');
-  var MeshStatic = require('mesh/meshStatic/MeshStatic');
-  var ExportSGL = require('files/ExportSGL');
-  var ShaderBase = require('render/shaders/ShaderBase');
+var handleNegativeIndexFace = function (i32) {
+  var u32 = new Uint32Array(i32);
+  var nbFaces = u32.length / 4;
+  for (var i = 0; i < nbFaces; ++i) {
+    var idd = i * 4 + 3;
+    if (i32[idd] < 0)
+      u32[idd] = Utils.TRI_INDEX;
+  }
 
-  var Import = {};
+  return u32;
+};
 
-  var handleNegativeIndexFace = function (i32) {
-    var u32 = new Uint32Array(i32);
-    var nbFaces = u32.length / 4;
-    for (var i = 0; i < nbFaces; ++i) {
-      var idd = i * 4 + 3;
-      if (i32[idd] < 0)
-        u32[idd] = Utils.TRI_INDEX;
-    }
+// see ExportSGL for file description
+//
+/** Import SGL file */
+Import.importSGL = function (buffer, gl, main) {
+  var f32a = new Float32Array(buffer);
+  var u32a = new Uint32Array(buffer);
+  var i32a = new Int32Array(buffer);
 
-    return u32;
-  };
+  var off = 0;
+  var version = u32a[off++];
+  if (version > ExportSGL.VERSION)
+    return [];
 
-  // see ExportSGL for file description
-  //
-  /** Import SGL file */
-  Import.importSGL = function (buffer, gl, main) {
-    var f32a = new Float32Array(buffer);
-    var u32a = new Uint32Array(buffer);
-    var i32a = new Int32Array(buffer);
+  // camera stuffs
+  if (version >= 2) {
+    main._showGrid = u32a[off++];
+    ShaderBase.showSymmetryLine = u32a[off++];
+    main._showContour = u32a[off++];
 
-    var off = 0;
-    var version = u32a[off++];
-    if (version > ExportSGL.VERSION)
-      return [];
+    var cam = main.getCamera();
+    cam.setProjectionType(u32a[off++]);
+    cam.setMode(u32a[off++]);
+    cam.setFov(f32a[off++]);
+    cam.setUsePivot(u32a[off++]);
+  }
 
-    // camera stuffs
+  var nbMeshes = u32a[off++];
+  var meshes = new Array(nbMeshes);
+  for (var i = 0; i < nbMeshes; ++i) {
+    var mesh = meshes[i] = new MeshStatic(gl);
+
+    // shader + matcap + wire + alpha + flat 
     if (version >= 2) {
-      main._showGrid = u32a[off++];
-      ShaderBase.showSymmetryLine = u32a[off++];
-      main._showContour = u32a[off++];
-
-      var cam = main.getCamera();
-      cam.setProjectionType(u32a[off++]);
-      cam.setMode(u32a[off++]);
-      cam.setFov(f32a[off++]);
-      cam.setUsePivot(u32a[off++]);
+      var render = mesh.getRenderData();
+      // we don't have the geometry buffer and data yet so
+      // we don't want to call updateBuffers (so no call to )
+      render._shaderType = u32a[off++];
+      render._matcap = u32a[off++];
+      render._showWireframe = u32a[off++];
+      render._flatShading = u32a[off++];
+      render._alpha = f32a[off++];
     }
 
-    var nbMeshes = u32a[off++];
-    var meshes = new Array(nbMeshes);
-    for (var i = 0; i < nbMeshes; ++i) {
-      var mesh = meshes[i] = new MeshStatic(gl);
+    // center matrix and scale
+    mesh.getCenter().set(f32a.subarray(off, off + 3));
+    off += 3;
+    mesh.getMatrix().set(f32a.subarray(off, off + 16));
+    off += 16;
+    off++; // scale
 
-      // shader + matcap + wire + alpha + flat 
-      if (version >= 2) {
-        var render = mesh.getRenderData();
-        // we don't have the geometry buffer and data yet so
-        // we don't want to call updateBuffers (so no call to )
-        render._shaderType = u32a[off++];
-        render._matcap = u32a[off++];
-        render._showWireframe = u32a[off++];
-        render._flatShading = u32a[off++];
-        render._alpha = f32a[off++];
-      }
+    // vertices
+    var nbElts = u32a[off++];
+    mesh.setVertices(f32a.subarray(off, off + nbElts * 3));
+    off += nbElts * 3;
 
-      // center matrix and scale
-      mesh.getCenter().set(f32a.subarray(off, off + 3));
-      off += 3;
-      mesh.getMatrix().set(f32a.subarray(off, off + 16));
-      off += 16;
-      off++; // scale
+    // colors
+    nbElts = u32a[off++];
+    if (nbElts > 0)
+      mesh.setColors(f32a.subarray(off, off + nbElts * 3));
+    off += nbElts * 3;
 
-      // vertices
-      var nbElts = u32a[off++];
-      mesh.setVertices(f32a.subarray(off, off + nbElts * 3));
-      off += nbElts * 3;
+    // materials
+    nbElts = u32a[off++];
+    if (nbElts > 0)
+      mesh.setMaterials(f32a.subarray(off, off + nbElts * 3));
+    off += nbElts * 3;
 
-      // colors
-      nbElts = u32a[off++];
-      if (nbElts > 0)
-        mesh.setColors(f32a.subarray(off, off + nbElts * 3));
-      off += nbElts * 3;
+    // faces
+    nbElts = u32a[off++];
+    if (version <= 2) {
+      mesh.setFaces(handleNegativeIndexFace(i32a.subarray(off, off + nbElts * 4)));
+    } else {
+      mesh.setFaces(u32a.subarray(off, off + nbElts * 4));
+    }
+    off += nbElts * 4;
 
-      // materials
-      nbElts = u32a[off++];
-      if (nbElts > 0)
-        mesh.setMaterials(f32a.subarray(off, off + nbElts * 3));
-      off += nbElts * 3;
+    // uvs
+    nbElts = u32a[off++];
+    var uv = null;
+    if (nbElts)
+      uv = f32a.subarray(off, off + nbElts * 2);
+    off += nbElts * 2;
 
-      // faces
-      nbElts = u32a[off++];
+    // face uvs
+    nbElts = u32a[off++];
+    var fuv = null;
+    if (nbElts) {
       if (version <= 2) {
-        mesh.setFaces(handleNegativeIndexFace(i32a.subarray(off, off + nbElts * 4)));
+        fuv = handleNegativeIndexFace(i32a.subarray(off, off + nbElts * 4));
       } else {
-        mesh.setFaces(u32a.subarray(off, off + nbElts * 4));
+        fuv = u32a.subarray(off, off + nbElts * 4);
       }
-      off += nbElts * 4;
-
-      // uvs
-      nbElts = u32a[off++];
-      var uv = null;
-      if (nbElts)
-        uv = f32a.subarray(off, off + nbElts * 2);
-      off += nbElts * 2;
-
-      // face uvs
-      nbElts = u32a[off++];
-      var fuv = null;
-      if (nbElts) {
-        if (version <= 2) {
-          fuv = handleNegativeIndexFace(i32a.subarray(off, off + nbElts * 4));
-        } else {
-          fuv = u32a.subarray(off, off + nbElts * 4);
-        }
-      }
-      off += nbElts * 4;
-
-      if (uv && fuv)
-        mesh.initTexCoordsDataFromOBJData(uv, fuv);
     }
+    off += nbElts * 4;
 
-    return meshes;
-  };
+    if (uv && fuv)
+      mesh.initTexCoordsDataFromOBJData(uv, fuv);
+  }
 
-  module.exports = Import;
-});
+  return meshes;
+};
+
+export default Import;

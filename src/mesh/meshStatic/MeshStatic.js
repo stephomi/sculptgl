@@ -1,24 +1,19 @@
-define(function (require, exports, module) {
+import Utils from '../../misc/Utils';
+import Mesh from '../../mesh/Mesh';
+import createTransformData from '../../mesh/TransformData';
+import createMeshData from '../../mesh/MeshData';
+import RenderData from '../../mesh/RenderData';
 
-  'use strict';
+var MeshStatic = function (gl) {
+  Mesh.call(this);
 
-  var Utils = require('misc/Utils');
-  var Mesh = require('mesh/Mesh');
-  var createTransformData = require('mesh/TransformData');
-  var createMeshData = require('mesh/MeshData');
-  var RenderData = require('mesh/RenderData');
+  this._id = Mesh.ID++; // useful id to retrieve a mesh (dynamic mesh, multires mesh, voxel mesh)
 
-  var MeshStatic = function (gl) {
-    Mesh.call(this);
+  if (gl) this._renderData = new RenderData(gl, this);
+  this._meshData = createMeshData();
+  this._transformData = createTransformData();
+};
 
-    this._id = Mesh.ID++; // useful id to retrieve a mesh (dynamic mesh, multires mesh, voxel mesh)
+Utils.makeProxy(Mesh, MeshStatic);
 
-    if (gl) this._renderData = new RenderData(gl, this);
-    this._meshData = createMeshData();
-    this._transformData = createTransformData();
-  };
-
-  Utils.makeProxy(Mesh, MeshStatic);
-
-  module.exports = MeshStatic;
-});
+export default MeshStatic;

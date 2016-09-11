@@ -1,16 +1,5 @@
-require.config({
-  paths: {
-    'text': '../tools/text'
-  },
-  baseUrl: 'src'
-});
+'use strict';
 
-require([
-  'Sculptgl'
-], function (SculptGL) {
+import SculptGL from './src/SculptGL';
 
-  'use strict';
-
-  var sculptgl = new SculptGL();
-  sculptgl.start();
-});
+window.SculptGL = SculptGL;

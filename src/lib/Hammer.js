@@ -1,6 +1,5 @@
-define(function (require, exports, module) {
+import '../../lib/hammer';
 
-  'use strict';
+var hammer = window.Hammer;
 
-  module.exports = window.Hammer;
-});
+export default hammer;

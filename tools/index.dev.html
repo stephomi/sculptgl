@@ -5,24 +5,19 @@
   <meta charset='utf-8' />
   <meta name='description' content='SculptGL is a small sculpting application powered by JavaScript and webGL.'>
   <meta name='author' content='stéphane GINIER'>
+
   <title> SculptGL - A WebGL sculpting app </title>
+
   <link href='http://fonts.googleapis.com/css?family=Open+Sans:400,600' rel='stylesheet' type='text/css'>
   <link rel='stylesheet' href='css/yagui.css' type='text/css' />
-  <script>
-  window.requireNode = window.require;
-  window.require = undefined;
-  // to debug nodewebkit : (somewhere in the js code once everything is loaded)
-  // window.require = window.requireNode;
-  // require('nw.gui').Window.get().showDevTools();
-  </script>
-  <!-- 3rd party libraries -->
-  <script src='lib/FileSaver.js'></script>
-  <script src='lib/gl-matrix.js'></script>
-  <script src='lib/yagui.js'></script>
-  <script src='lib/zip.js'></script>
-  <script src='lib/hammer.js'></script>
 
-  <script data-main='main' src='tools/require.js'></script>
+  <script>
+  'use strict';
+  window.addEventListener('load', function () {
+    var app = new window.SculptGL();
+    app.start();
+  });
+  </script>
 </head>
 
 <body oncontextmenu='return false;'>
@@ -35,6 +30,8 @@
   <div id='viewport'>
     <canvas id='canvas'></canvas>
   </div>
+
+  <script src='sculptgl.js'></script>
 </body>
 
 </html>
