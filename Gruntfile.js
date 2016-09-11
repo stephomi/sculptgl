@@ -2,18 +2,22 @@
 module.exports = function (grunt) {
   'use strict';
 
-  var clean = {
+  var config = {};
+
+  config.pkg = grunt.file.readJSON('package.json');
+
+  config.clean = {
     main: ['build']
   };
 
-  var jshint = {
+  config.jshint = {
     options: {
       jshintrc: true,
     },
     files: ['Gruntfile.js', 'src/**/*.js']
   };
 
-  var uglify = {
+  config.uglify = {
     my_target: {
       files: [{
         'build/sculptgl.min.js': ['lib/*.js', 'build/sculptgl.min.js']
@@ -26,7 +30,7 @@ module.exports = function (grunt) {
     }
   };
 
-  var requirejs = {
+  config.requirejs = {
     compile: {
       options: {
         preserveLicenseComments: false,
@@ -36,13 +40,13 @@ module.exports = function (grunt) {
         optimize: 'none',
         baseUrl: 'src',
         name: '../tools/almond',
-        include: 'Sculptgl',
+        include: 'Sculptgl.js',
         out: 'build/sculptgl.min.js'
       }
     }
   };
 
-  var copy = {
+  config.copy = {
     standalone: {
       files: [{
         expand: true,
@@ -61,7 +65,7 @@ module.exports = function (grunt) {
     }
   };
 
-  var manifest = {
+  config.manifest = {
     generate: {
       options: {
         basePath: '.',
@@ -88,16 +92,34 @@ module.exports = function (grunt) {
     }
   };
 
-  var nwjs = {
+  var platforms = ['win32', 'win64', 'linux32', 'linux64', 'osx64'];
+
+  config.nwjs = {
     options: {
-      version: '0.12.2',
-      platforms: ['win', 'osx', 'linux32', 'linux64'],
-      buildDir: './nodewebkit' // Where the build version of my node-webkit app is saved
+      platforms: platforms,
+      buildDir: './nodewebkit', // Where the build version of my node-webkit app is saved
+      zip: true
     },
     src: ['build/**/*'] // Your node-webkit app
   };
 
-  var preprocess = {
+  config.compress = {};
+  for (var i = 0; i < platforms.length; ++i) {
+    var platform = platforms[i];
+    config.compress[platform] = {
+      options: {
+        archive: 'nodewebkit/' + platform + '.zip'
+      },
+      files: [{
+        expand: true,
+        cwd: 'nodewebkit/SculptGL/' + platform + '/',
+        src: ['**'],
+        dest: '../SculptGL'
+      }]
+    };
+  }
+
+  config.preprocess = {
     manifest: {
       options: {
         context: {
@@ -113,7 +135,7 @@ module.exports = function (grunt) {
     }
   };
 
-  var jsbeautifier = {
+  config.jsbeautifier = {
     src: ['Gruntfile.js', 'src/**/*.js'],
     options: {
       config: './.jsbeautifyrc'
@@ -121,28 +143,9 @@ module.exports = function (grunt) {
   };
 
   // Project configuration.
-  grunt.initConfig({
-    pkg: grunt.file.readJSON('package.json'),
-    clean: clean,
-    jshint: jshint,
-    copy: copy,
-    requirejs: requirejs,
-    manifest: manifest,
-    nwjs: nwjs,
-    uglify: uglify,
-    preprocess: preprocess,
-    jsbeautifier: jsbeautifier
-  });
+  grunt.initConfig(config);
 
-  grunt.loadNpmTasks('grunt-manifest');
-  grunt.loadNpmTasks('grunt-contrib-requirejs');
-  grunt.loadNpmTasks('grunt-jsbeautifier');
-  grunt.loadNpmTasks('grunt-contrib-jshint');
-  grunt.loadNpmTasks('grunt-contrib-clean');
-  grunt.loadNpmTasks('grunt-contrib-copy');
-  grunt.loadNpmTasks('grunt-contrib-uglify');
-  grunt.loadNpmTasks('grunt-nw-builder');
-  grunt.loadNpmTasks('grunt-preprocess');
+  require('load-grunt-tasks')(grunt);
 
   // test
   grunt.registerTask('test', 'jshint');
@@ -156,7 +159,8 @@ module.exports = function (grunt) {
   grunt.registerTask('build:manifest', ['buildall', 'manifest', 'preprocess:manifest']);
 
   // standalone
-  grunt.registerTask('standalone', ['build:nomanifest', 'copy:standalone', 'nwjs']);
+  grunt.registerTask('standalone', ['build:nomanifest', 'copy:standalone', 'nwjs', 'compress']);
 
   grunt.registerTask('default', 'build:manifest');
 };
+
