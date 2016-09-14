@@ -28,7 +28,7 @@ var SculptGL = function () {
   // masking
   this._maskX = 0;
   this._maskY = 0;
-  this._hammer = new Hammer.Manager(this._canvas);
+  this._hammer = new hammer.Manager(this._canvas);
 
   this._eventProxy = {};
 
@@ -76,7 +76,7 @@ SculptGL.prototype = {
   _initHammerRecognizers: function () {
     var hm = this._hammer;
     // double tap
-    hm.add(new Hammer.Tap({
+    hm.add(new hammer.Tap({
       event: 'doubletap',
       pointers: 1,
       taps: 2,
@@ -87,7 +87,7 @@ SculptGL.prototype = {
     }));
 
     // double tap 2 fingers
-    hm.add(new Hammer.Tap({
+    hm.add(new hammer.Tap({
       event: 'doubletap2fingers',
       pointers: 2,
       taps: 2,
@@ -98,14 +98,14 @@ SculptGL.prototype = {
     }));
 
     // pan
-    hm.add(new Hammer.Pan({
+    hm.add(new hammer.Pan({
       event: 'pan',
       pointers: 0,
       threshold: 0,
     }));
 
     // pinch
-    hm.add(new Hammer.Pinch({
+    hm.add(new hammer.Pinch({
       event: 'pinch',
       pointers: 2,
       threshold: 0.1 // Set a minimal thresold on pinch event, to be detected after pan
