@@ -8,23 +8,13 @@ Additional information can be found on the [website](http://stephaneginier.com/)
 Tools
 =====
 
-#### Dev
+Install [nodejs](http://nodejs.org/).
 
-Nothing to do.
-Simply go to `index.html` (on your local server).
+Then use rollup :
 
-#### Release
-
-If it's not already done, install [nodejs](http://nodejs.org/).
-Then use grunt :
-
-    git clone git://github.com/stephomi/sculptgl.git
-    cd sculptgl
-    npm install -g grunt-cli # if not already done
+    npm install -g rollup # if not already done
     npm install
-
-    grunt # web version
-    grunt standalone # desktop webkit version
+    npm run dev # and visit app/index.html
 
 Credits
 =======
