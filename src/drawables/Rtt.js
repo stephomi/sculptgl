@@ -4,44 +4,51 @@ import WebGLCaps from '../render/WebGLCaps';
 
 var singletonBuffer;
 
-var Rtt = function (gl, shaderName, depth, halfFloat) {
-  this._gl = gl; // webgl context
+class Rtt {
 
-  this._texture = gl.createTexture();
-  this._depth = depth === undefined ? gl.createRenderbuffer() : depth;
-  this._framebuffer = gl.createFramebuffer();
+  constructor(gl, shaderName, depth, halfFloat) {
+    this._gl = gl; // webgl context
 
-  this._shaderType = shaderName || null;
-  this._invSize = new Float32Array(2);
-  this._vertexBuffer = null;
+    this._texture = gl.createTexture();
+    this._depth = depth === undefined ? gl.createRenderbuffer() : depth;
+    this._framebuffer = gl.createFramebuffer();
 
-  if (halfFloat && WebGLCaps.hasRTTHalfFloat()) this._type = WebGLCaps.HALF_FLOAT_OES;
-  else if (halfFloat && WebGLCaps.hasRTTFloat()) this._type = gl.FLOAT;
-  else this._type = gl.UNSIGNED_BYTE;
+    this._shaderType = shaderName || null;
+    this._invSize = new Float32Array(2);
+    this._vertexBuffer = null;
 
-  this.init();
-};
+    if (halfFloat && WebGLCaps.hasRTTHalfFloat()) this._type = WebGLCaps.HALF_FLOAT_OES;
+    else if (halfFloat && WebGLCaps.hasRTTFloat()) this._type = gl.FLOAT;
+    else this._type = gl.UNSIGNED_BYTE;
 
-Rtt.prototype = {
-  getGL: function () {
+    this.init();
+  }
+
+  getGL() {
     return this._gl;
-  },
-  getVertexBuffer: function () {
+  }
+
+  getVertexBuffer() {
     return this._vertexBuffer;
-  },
-  getFramebuffer: function () {
+  }
+
+  getFramebuffer() {
     return this._framebuffer;
-  },
-  getTexture: function () {
+  }
+
+  getTexture() {
     return this._texture;
-  },
-  getDepth: function () {
+  }
+
+  getDepth() {
     return this._depth;
-  },
-  getInverseSize: function () {
+  }
+
+  getInverseSize() {
     return this._invSize;
-  },
-  init: function () {
+  }
+
+  init() {
     var gl = this._gl;
 
     if (!singletonBuffer) {
@@ -50,8 +57,9 @@ Rtt.prototype = {
     }
 
     this._vertexBuffer = singletonBuffer;
-  },
-  onResize: function (width, height) {
+  }
+
+  onResize(width, height) {
     var gl = this._gl;
 
     this._invSize[0] = 1.0 / width;
@@ -74,14 +82,16 @@ Rtt.prototype = {
     gl.framebufferRenderbuffer(gl.FRAMEBUFFER, gl.DEPTH_ATTACHMENT, gl.RENDERBUFFER, this._depth);
 
     gl.bindTexture(gl.TEXTURE_2D, null);
-  },
-  release: function () {
+  }
+
+  release() {
     if (this._texture) this._gl.deleteTexture(this._texture);
     this.getVertexBuffer().release();
-  },
-  render: function (main) {
+  }
+
+  render(main) {
     Shader[this._shaderType].getOrCreate(this._gl).draw(this, main);
   }
-};
+}
 
 export default Rtt;

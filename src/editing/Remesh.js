@@ -8,8 +8,6 @@ import Enums from '../misc/Enums';
 
 var vec3 = glm.vec3;
 
-var console = window.console;
-
 var Remesh = {};
 Remesh.RESOLUTION = 150;
 Remesh.BLOCK = false;
@@ -322,9 +320,8 @@ Remesh.mergeArrays = function (meshes, arr) {
   var nbTriangles = 0;
 
   var nbMeshes = meshes.length;
-  var i = 0;
   var k = 0;
-  for (i = 0; i < nbMeshes; ++i) {
+  for (var i = 0; i < nbMeshes; ++i) {
     nbVertices += meshes[i].getNbVertices();
     nbFaces += meshes[i].getNbFaces();
     nbQuads += meshes[i].getNbQuads();
@@ -340,7 +337,7 @@ Remesh.mergeArrays = function (meshes, arr) {
   var offsetVerts = 0;
   var offsetFaces = 0;
   var offsetIndex = 0;
-  for (i = 0; i < nbMeshes; ++i) {
+  for (var i = 0; i < nbMeshes; ++i) {
     var mesh = meshes[i];
     var mVerts = mesh.getVertices();
     var mCols = mesh.getColors();
@@ -369,14 +366,16 @@ Remesh.mergeArrays = function (meshes, arr) {
         mAr[offsetVerts + k + 2] = mMats[k + 2];
       }
     }
+
     offsetVerts += mNbVertices * 3;
-    for (j = 0; j < mNbFaces; ++j) {
+    for (var j = 0; j < mNbFaces; ++j) {
       k = j * 4;
       fAr[offsetFaces + k] = mFaces[k] + offsetIndex;
       fAr[offsetFaces + k + 1] = mFaces[k + 1] + offsetIndex;
       fAr[offsetFaces + k + 2] = mFaces[k + 2] + offsetIndex;
       fAr[offsetFaces + k + 3] = mFaces[k + 3] === Utils.TRI_INDEX ? Utils.TRI_INDEX : mFaces[k + 3] + offsetIndex;
     }
+
     offsetIndex += mNbVertices;
     offsetFaces += mNbFaces * 4;
   }

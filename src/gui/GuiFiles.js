@@ -2,17 +2,17 @@ import TR from '../gui/GuiTR';
 import saveAs from '../lib/FileSaver';
 import Export from '../files/Export';
 
-var GuiFiles = function (guiParent, ctrlGui) {
-  this._main = ctrlGui._main; // main application
-  this._ctrlGui = ctrlGui;
-  this._menu = null; // ui menu
-  this._parent = guiParent;
-  this.init(guiParent);
-};
+class GuiFiles {
 
-GuiFiles.prototype = {
-  /** Initialize */
-  init: function (guiParent) {
+  constructor(guiParent, ctrlGui) {
+    this._main = ctrlGui._main; // main application
+    this._ctrlGui = ctrlGui;
+    this._menu = null; // ui menu
+    this._parent = guiParent;
+    this.init(guiParent);
+  }
+
+  init(guiParent) {
     var menu = this._menu = guiParent.addMenu(TR('fileTitle'));
 
     // import
@@ -29,16 +29,19 @@ GuiFiles.prototype = {
     menu.addTitle(TR('fileExportMeshTitle'));
     menu.addButton(TR('fileExportPLY'), this, 'saveFileAsPLY');
     menu.addButton(TR('fileExportSTL'), this, 'saveFileAsSTL');
-  },
-  addFile: function () {
+  }
+
+  addFile() {
     document.getElementById('fileopen').click();
-  },
-  saveFileAsSGL: function () {
+  }
+
+  saveFileAsSGL() {
     if (this._main.getMeshes().length === 0) return;
     var blob = Export.exportSGL(this._main.getMeshes(), this._main);
     saveAs(blob, 'yourMesh.sgl');
-  },
-  saveFileAsOBJ: function (selection) {
+  }
+
+  saveFileAsOBJ(selection) {
     var meshes = this._main.getMeshes();
     if (meshes.length === 0) return;
     if (selection) {
@@ -47,20 +50,23 @@ GuiFiles.prototype = {
     }
     var blob = Export.exportOBJ(meshes);
     saveAs(blob, 'yourMesh.obj');
-  },
-  saveFileAsPLY: function () {
+  }
+
+  saveFileAsPLY() {
     var mesh = this._main.getMesh();
     if (!mesh) return;
     var blob = Export.exportBinaryPLY(mesh);
     saveAs(blob, 'yourMesh.ply');
-  },
-  saveFileAsSTL: function () {
+  }
+
+  saveFileAsSTL() {
     var mesh = this._main.getMesh();
     if (!mesh) return;
     var blob = Export.exportBinarySTL(mesh);
     saveAs(blob, 'yourMesh.stl');
-  },
-  exportSketchfab: function () {
+  }
+
+  exportSketchfab() {
     var mesh = this._main.getMesh();
     if (!mesh)
       return;
@@ -79,11 +85,12 @@ GuiFiles.prototype = {
 
     var key = api === 'guest' ? 'babc9a5cd4f343f9be0c7bd9cf93600c' : api;
     this._sketchfabXhr = Export.exportSketchfab(this._main, key, ctrlNotif);
-  },
+  }
+
   ////////////////
   // KEY EVENTS
   //////////////// 
-  onKeyDown: function (event) {
+  onKeyDown(event) {
     if (event.handled === true)
       return;
 
@@ -105,6 +112,6 @@ GuiFiles.prototype = {
       event.handled = true;
     }
   }
-};
+}
 
 export default GuiFiles;

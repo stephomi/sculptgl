@@ -3,30 +3,32 @@ import Utils from '../misc/Utils';
 
 var vec3 = glm.vec3;
 
-var StateDynamic = function (main, mesh) {
-  this._main = main; // main application
-  this._mesh = mesh; // the mesh
-  this._center = vec3.copy([0.0, 0.0, 0.0], mesh.getCenter());
+class StateDynamic {
 
-  this._nbFacesState = mesh.getNbFaces(); // number of faces
-  this._nbVerticesState = mesh.getNbVertices(); // number of vertices
+  constructor(main, mesh) {
+    this._main = main; // main application
+    this._mesh = mesh; // the mesh
+    this._center = vec3.copy([0.0, 0.0, 0.0], mesh.getCenter());
 
-  this._idVertState = []; // ids of vertices
-  this._fRingState = []; // ring of faces around vertices
-  this._vRingState = []; // ring of faces around vertices
-  this._vArState = []; // copies of vertices coordinates
-  this._cArState = []; // copies of color vertices
-  this._mArState = []; // copies of material vertices
+    this._nbFacesState = mesh.getNbFaces(); // number of faces
+    this._nbVerticesState = mesh.getNbVertices(); // number of vertices
 
-  this._idFaceState = []; // ids of faces
-  this._fArState = []; // copies of face indices
-};
+    this._idVertState = []; // ids of vertices
+    this._fRingState = []; // ring of faces around vertices
+    this._vRingState = []; // ring of faces around vertices
+    this._vArState = []; // copies of vertices coordinates
+    this._cArState = []; // copies of color vertices
+    this._mArState = []; // copies of material vertices
 
-StateDynamic.prototype = {
-  isNoop: function () {
+    this._idFaceState = []; // ids of faces
+    this._fArState = []; // copies of face indices
+  }
+
+  isNoop() {
     return this._idVertState.length === 0 && this._idFaceState.length === 0;
-  },
-  undo: function () {
+  }
+
+  undo() {
     this.pullVertices();
     this.pullFaces();
     var mesh = this._mesh;
@@ -44,17 +46,20 @@ StateDynamic.prototype = {
     mesh.updateBuffers();
     vec3.copy(mesh.getCenter(), this._center);
     this._main.setMesh(mesh);
-  },
-  redo: function () {
+  }
+
+  redo() {
     this.undo();
-  },
-  createRedo: function () {
+  }
+
+  createRedo() {
     var redo = new StateDynamic(this._main, this._mesh);
     this.pushRedoVertices(redo);
     this.pushRedoFaces(redo);
     return redo;
-  },
-  pushVertices: function (iVerts) {
+  }
+
+  pushVertices(iVerts) {
     var idVertState = this._idVertState;
     var fRingState = this._fRingState;
     var vRingState = this._vRingState;
@@ -85,8 +90,9 @@ StateDynamic.prototype = {
       cArState.push(cAr[id], cAr[id + 1], cAr[id + 2]);
       mArState.push(mAr[id], mAr[id + 1], mAr[id + 2]);
     }
-  },
-  pushFaces: function (iFaces) {
+  }
+
+  pushFaces(iFaces) {
     var idFaceState = this._idFaceState;
     var fArState = this._fArState;
 
@@ -105,8 +111,9 @@ StateDynamic.prototype = {
       id *= 4;
       fArState.push(fAr[id], fAr[id + 1], fAr[id + 2], fAr[id + 3]);
     }
-  },
-  pushRedoVertices: function (redoState) {
+  }
+
+  pushRedoVertices(redoState) {
     var mesh = redoState._mesh;
     var nbMeshVertices = mesh.getNbVertices();
     var fRing = mesh.getVerticesRingFace();
@@ -155,8 +162,9 @@ StateDynamic.prototype = {
       mArRedoState[j + 1] = mAr[id + 1];
       mArRedoState[j + 2] = mAr[id + 2];
     }
-  },
-  pushRedoFaces: function (redoState) {
+  }
+
+  pushRedoFaces(redoState) {
     var mesh = redoState._mesh;
     var nbMeshFaces = mesh.getNbFaces();
     var fAr = mesh.getFaces();
@@ -190,8 +198,9 @@ StateDynamic.prototype = {
       fArRedoState[j + 2] = fAr[id + 2];
       fArRedoState[j + 3] = fAr[id + 3];
     }
-  },
-  pullVertices: function () {
+  }
+
+  pullVertices() {
     var nbMeshVertices = this._nbVerticesState;
     var fRingState = this._fRingState;
     var vRingState = this._vRingState;
@@ -225,8 +234,9 @@ StateDynamic.prototype = {
       mAr[id + 1] = mArState[j + 1];
       mAr[id + 2] = mArState[j + 2];
     }
-  },
-  pullFaces: function () {
+  }
+
+  pullFaces() {
     var nbMeshFaces = this._nbFacesState;
     var fArState = this._fArState;
     var idFaceState = this._idFaceState;
@@ -246,6 +256,6 @@ StateDynamic.prototype = {
       fAr[id + 3] = fArState[j + 3];
     }
   }
-};
+}
 
 export default StateDynamic;

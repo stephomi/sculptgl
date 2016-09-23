@@ -6,34 +6,34 @@ import GuiSculptingTools from '../gui/GuiSculptingTools';
 
 var GuiTools = GuiSculptingTools.tools;
 
-var GuiSculpting = function (guiParent, ctrlGui) {
-  this._main = ctrlGui._main; // main application
-  this._ctrlGui = ctrlGui; // main gui
-  this._sculptManager = ctrlGui._main.getSculptManager(); // sculpting management
-  this._toolOnRelease = -1; // tool to apply when the mouse or the key is released
-  this._invertSign = false; // invert sign of tool (add/sub)
+class GuiSculpting {
 
-  this._modalBrushRadius = false; // modal brush radius change
-  this._modalBrushIntensity = false; // modal brush intensity change
+  constructor(guiParent, ctrlGui) {
+    this._main = ctrlGui._main; // main application
+    this._ctrlGui = ctrlGui; // main gui
+    this._sculptManager = ctrlGui._main.getSculptManager(); // sculpting management
+    this._toolOnRelease = -1; // tool to apply when the mouse or the key is released
+    this._invertSign = false; // invert sign of tool (add/sub)
 
-  // modal stuffs (not canvas based, because no 3D picking involved)
-  this._lastPageX = 0;
-  this._lastPageY = 0;
-  // for modal radius
-  this._refX = 0;
-  this._refY = 0;
+    this._modalBrushRadius = false; // modal brush radius change
+    this._modalBrushIntensity = false; // modal brush intensity change
 
-  this._menu = null;
-  this._ctrlSculpt = null;
-  this._ctrlSymmetry = null;
-  this._ctrlContinuous = null;
-  this._ctrlTitleCommon = null;
-  this.init(guiParent);
-};
+    // modal stuffs (not canvas based, because no 3D picking involved)
+    this._lastPageX = 0;
+    this._lastPageY = 0;
+    // for modal radius
+    this._refX = 0;
+    this._refY = 0;
 
-GuiSculpting.prototype = {
-  /** Initialisculze */
-  init: function (guiParent) {
+    this._menu = null;
+    this._ctrlSculpt = null;
+    this._ctrlSymmetry = null;
+    this._ctrlContinuous = null;
+    this._ctrlTitleCommon = null;
+    this.init(guiParent);
+  }
+
+  init(guiParent) {
     var menu = this._menu = guiParent.addMenu(TR('sculptTitle'));
     menu.open();
 
@@ -57,33 +57,39 @@ GuiSculpting.prototype = {
     GuiSculptingTools.show(this._sculptManager.getToolIndex());
     this.addEvents();
     this.onChangeTool(this._sculptManager.getToolIndex());
-  },
-  onSymmetryChange: function (value) {
+  }
+
+  onSymmetryChange(value) {
     this._sculptManager._symmetry = value;
     this._main.render();
-  },
-  addEvents: function () {
+  }
+
+  addEvents() {
     var cbLoadAlpha = this.loadAlpha.bind(this);
     document.getElementById('alphaopen').addEventListener('change', cbLoadAlpha, false);
     this.removeCallback = function () {
       document.getElementById('alphaopen').removeEventListener('change', cbLoadAlpha, false);
     };
-  },
-  removeEvents: function () {
+  }
+
+  removeEvents() {
     if (this.removeCallback) this.removeCallback();
-  },
-  getSelectedTool: function () {
+  }
+
+  getSelectedTool() {
     return this._ctrlSculpt.getValue();
-  },
-  releaseInvertSign: function () {
+  }
+
+  releaseInvertSign() {
     if (!this._invertSign)
       return;
     this._invertSign = false;
     var tool = GuiTools[this.getSelectedTool()];
     if (tool.toggleNegative)
       tool.toggleNegative();
-  },
-  onChangeTool: function (newValue) {
+  }
+
+  onChangeTool(newValue) {
     GuiSculptingTools.hide(this._sculptManager.getToolIndex());
     this._sculptManager.setToolIndex(newValue);
     GuiSculptingTools.show(newValue);
@@ -97,8 +103,9 @@ GuiSculpting.prototype = {
     this._ctrlTitleCommon.setVisibility(showContinuous || showSym);
 
     this._main.getPicking().updateLocalAndWorldRadius2();
-  },
-  loadAlpha: function (event) {
+  }
+
+  loadAlpha(event) {
     if (event.target.files.length === 0)
       return;
 
@@ -118,17 +125,20 @@ GuiSculpting.prototype = {
 
     document.getElementById('alphaopen').value = '';
     reader.readAsDataURL(file);
-  },
-  addAlphaOptions: function (opts) {
+  }
+
+  addAlphaOptions(opts) {
     for (var i = 0, nbTools = GuiTools.length; i < nbTools; ++i) {
       var gTool = GuiTools[i];
       if (gTool && gTool._ctrlAlpha) gTool._ctrlAlpha.addOptions(opts);
     }
-  },
-  updateMesh: function () {
+  }
+
+  updateMesh() {
     this._menu.setVisibility(!!this._main.getMesh());
-  },
-  _startModalBrushRadius: function (x, y) {
+  }
+
+  _startModalBrushRadius(x, y) {
     this._refX = x;
     this._refY = y;
     var cur = GuiTools[this.getSelectedTool()];
@@ -138,8 +148,9 @@ GuiSculpting.prototype = {
       this._main.getSculptManager().getSelection().setOffsetX(-rad * this._main.getPixelRatio());
       this._main.renderSelectOverRtt();
     }
-  },
-  _checkModifierKey: function (event) {
+  }
+
+  _checkModifierKey(event) {
     var selectedTool = this.getSelectedTool();
 
     if (this._main._action === Enums.Action.NOTHING) {
@@ -168,11 +179,12 @@ GuiSculpting.prototype = {
       return true;
     }
     return false;
-  },
+  }
+
   ////////////////
   // KEY EVENTS
   //////////////// 
-  onKeyDown: function (event) {
+  onKeyDown(event) {
     if (event.handled === true)
       return;
 
@@ -216,8 +228,9 @@ GuiSculpting.prototype = {
     default:
       event.handled = false;
     }
-  },
-  onKeyUp: function (event) {
+  }
+
+  onKeyUp(event) {
     var releaseTool = this._main._action === Enums.Action.NOTHING && this._toolOnRelease !== -1 && !event.ctrlKey && !event.shiftKey;
     if (!event.altKey || releaseTool)
       this.releaseInvertSign();
@@ -248,18 +261,20 @@ GuiSculpting.prototype = {
       this._modalBrushIntensity = main._focusGui = false;
       break;
     }
-  },
+  }
+
   ////////////////
   // MOUSE EVENTS
   ////////////////
-  onMouseUp: function (event) {
+  onMouseUp(event) {
     if (this._toolOnRelease !== -1 && !event.ctrlKey && !event.shiftKey) {
       this.releaseInvertSign();
       this._ctrlSculpt.setValue(this._toolOnRelease);
       this._toolOnRelease = -1;
     }
-  },
-  onMouseMove: function (event) {
+  }
+
+  onMouseMove(event) {
     var wid = GuiTools[this.getSelectedTool()];
 
     if (this._modalBrushRadius && wid._ctrlRadius) {
@@ -275,11 +290,12 @@ GuiSculpting.prototype = {
 
     this._lastPageX = event.pageX;
     this._lastPageY = event.pageY;
-  },
-  onMouseOver: function (event) {
+  }
+
+  onMouseOver(event) {
     if (this._modalBrushRadius)
       this._startModalBrushRadius(event.pageX, event.pageY);
   }
-};
+}
 
 export default GuiSculpting;

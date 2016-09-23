@@ -2,19 +2,20 @@ import Utils from '../../misc/Utils';
 import Tablet from '../../misc/Tablet';
 import SculptBase from '../../editing/tools/SculptBase';
 
-var Smooth = function (main) {
-  SculptBase.call(this, main);
-  this._radius = 50;
-  this._intensity = 0.75;
-  this._culling = false;
-  this._tangent = false;
-  this._idAlpha = 0;
-  this._lockPosition = false;
-};
+class Smooth extends SculptBase {
 
-Smooth.prototype = {
-  /** On stroke */
-  stroke: function (picking) {
+  constructor(main) {
+    super(main);
+
+    this._radius = 50;
+    this._intensity = 0.75;
+    this._culling = false;
+    this._tangent = false;
+    this._idAlpha = 0;
+    this._lockPosition = false;
+  }
+
+  stroke(picking) {
     var iVertsInRadius = picking.getPickedVertices();
     var intensity = this._intensity * Tablet.getPressureIntensity();
 
@@ -31,9 +32,10 @@ Smooth.prototype = {
 
     var mesh = this.getMesh();
     mesh.updateGeometry(mesh.getFacesFromVertices(iVertsInRadius), iVertsInRadius);
-  },
+  }
+
   /** Smooth a group of vertices. New position is given by simple averaging */
-  smooth: function (iVerts, intensity, picking) {
+  smooth(iVerts, intensity, picking) {
     var mesh = this.getMesh();
     var vAr = mesh.getVertices();
     var mAr = mesh.getMaterials();
@@ -56,9 +58,10 @@ Smooth.prototype = {
       vAr[ind + 1] = vy * intComp + smoothVerts[i3 + 1] * mIntensity;
       vAr[ind + 2] = vz * intComp + smoothVerts[i3 + 2] * mIntensity;
     }
-  },
+  }
+
   /** Smooth a group of vertices. Reproject the position on each vertex normals plane */
-  smoothTangent: function (iVerts, intensity, picking) {
+  smoothTangent(iVerts, intensity, picking) {
     var mesh = this.getMesh();
     var vAr = mesh.getVertices();
     var mAr = mesh.getMaterials();
@@ -95,9 +98,10 @@ Smooth.prototype = {
       vAr[ind + 1] = vy + (smy - ny * dot - vy) * mIntensity;
       vAr[ind + 2] = vz + (smz - nz * dot - vz) * mIntensity;
     }
-  },
+  }
+
   /** Smooth a group of vertices along their normals */
-  smoothAlongNormals: function (iVerts, intensity, picking) {
+  smoothAlongNormals(iVerts, intensity, picking) {
     var mesh = this.getMesh();
     var vAr = mesh.getVertices();
     var mAr = mesh.getMaterials();
@@ -125,9 +129,7 @@ Smooth.prototype = {
       vAr[ind + 1] = vy + ny * dot;
       vAr[ind + 2] = vz + nz * dot;
     }
-  },
-};
-
-Utils.makeProxy(SculptBase, Smooth);
+  }
+}
 
 export default Smooth;

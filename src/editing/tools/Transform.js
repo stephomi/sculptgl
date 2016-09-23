@@ -1,25 +1,27 @@
 import glm from '../../lib/gl-matrix';
-import Utils from '../../misc/Utils';
 import Gizmo from '../../editing/Gizmo';
 import SculptBase from '../../editing/tools/SculptBase';
 
 var vec3 = glm.vec3;
 var mat4 = glm.mat4;
 
-var Transform = function (main) {
-  SculptBase.call(this, main);
-  this._gizmo = new Gizmo(main);
-};
+class Transform extends SculptBase{
 
-Transform.prototype = {
-  isIdentity: function (m) {
+  constructor(main) {
+    super(main);
+    
+    this._gizmo = new Gizmo(main);
+  }
+
+  isIdentity(m) {
     if (m[0] !== 1.0 || m[5] !== 1.0 || m[10] !== 1.0 || m[15] !== 1.0) return false;
     if (m[1] !== 0.0 || m[2] !== 0.0 || m[3] !== 0.0 || m[4] !== 0.0) return false;
     if (m[6] !== 0.0 || m[7] !== 0.0 || m[8] !== 0.0 || m[9] !== 0.0) return false;
     if (m[11] !== 0.0 || m[12] !== 0.0 || m[13] !== 0.0 || m[14] !== 0.0) return false;
     return true;
-  },
-  preUpdate: function () {
+  }
+
+  preUpdate() {
     var picking = this._main.getPicking();
 
     var mesh = picking.getMesh();
@@ -27,8 +29,9 @@ Transform.prototype = {
     picking._mesh = mesh;
 
     this._main.setCanvasCursor('default');
-  },
-  start: function (ctrl) {
+  }
+
+  start(ctrl) {
     var main = this._main;
     var mesh = this.getMesh();
     var picking = main.getPicking();
@@ -48,8 +51,9 @@ Transform.prototype = {
     this._lastMouseX = main._mouseX;
     this._lastMouseY = main._mouseY;
     return false;
-  },
-  end: function () {
+  }
+
+  end() {
     this._gizmo.onMouseUp();
 
     var mesh = this.getMesh();
@@ -65,8 +69,9 @@ Transform.prototype = {
     this.applyEditMatrix(iVerts);
     if (iVerts.length === 0) return;
     this.updateMeshBuffers();
-  },
-  applyEditMatrix: function (iVerts) {
+  }
+
+  applyEditMatrix(iVerts) {
     var mesh = this.getMesh();
     var em = mesh.getEditMatrix();
     var mAr = mesh.getMaterials();
@@ -88,18 +93,19 @@ Transform.prototype = {
     mat4.identity(em);
     if (iVerts.length === mesh.getNbVertices()) mesh.updateGeometry();
     else mesh.updateGeometry(mesh.getFacesFromVertices(iVerts), iVerts);
-  },
-  update: function () {},
-  postRender: function () {
+  }
+
+  update() {}
+
+  postRender() {
     if (this.getMesh())
       this._gizmo.render();
-  },
-  addSculptToScene: function (scene) {
+  }
+
+  addSculptToScene(scene) {
     if (this.getMesh())
       this._gizmo.addGizmoToScene(scene);
   }
-};
-
-Utils.makeProxy(SculptBase, Transform);
+}
 
 export default Transform;

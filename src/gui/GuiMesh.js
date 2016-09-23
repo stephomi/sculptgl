@@ -1,17 +1,17 @@
 import TR from '../gui/GuiTR';
 
-var GuiMesh = function (guiParent, ctrlGui) {
-  this._main = ctrlGui._main; // main application
+class GuiMesh {
 
-  this.domVerts = null; // ctrl nb vertices
-  this.domFaces = null; // ctrl nb faces
-  this.domUl = null;
-  this.init(guiParent);
-};
+  constructor(guiParent, ctrlGui) {
+    this._main = ctrlGui._main; // main application
 
-GuiMesh.prototype = {
-  /** Initialize */
-  init: function (guiParent) {
+    this.domVerts = null; // ctrl nb vertices
+    this.domFaces = null; // ctrl nb faces
+    this.domUl = null;
+    this.init(guiParent);
+  }
+
+  init(guiParent) {
     this.domVerts = document.createElement('ul');
     this.domVerts.innerHTML = TR('meshNbVertices');
 
@@ -27,13 +27,13 @@ GuiMesh.prototype = {
     else style.float = 'right';
 
     guiParent.domTopbar.appendChild(this.domUl);
-  },
-  /** Update number of vertices and faces */
-  updateMeshInfo: function () {
+  }
+
+  updateMeshInfo() {
     var mesh = this._main.getMesh();
     this.domVerts.innerHTML = TR('meshNbVertices') + (mesh ? mesh.getNbVertices() : 0);
     this.domFaces.innerHTML = TR('meshNbFaces') + (mesh ? mesh.getNbFaces() : 0);
   }
-};
+}
 
 export default GuiMesh;

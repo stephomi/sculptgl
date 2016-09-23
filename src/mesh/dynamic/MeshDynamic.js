@@ -14,62 +14,70 @@ import createMeshData from '../../mesh/MeshData';
 // The wireframe is directly computed from the triangles (it's as stupid as 1 tri => 3 lines)
 // Basically... "quick and dirty" (the edges will be drawn twice)
 
-var MeshDynamic = function (mesh) {
-  Mesh.call(this);
-  this.setID(mesh.getID());
+class MeshDynamic extends Mesh {
 
-  this._meshData = createMeshData();
-  this.setRenderData(mesh.getRenderData());
-  this.setTransformData(mesh.getTransformData());
+  constructor(mesh) {
+    super();
 
-  this._facesStateFlags = null; // state flags (<= Utils.STATE_FLAG) (Int32Array)
-  this._wireframe = null; // Uint32Array
+    this.setID(mesh.getID());
 
-  this.init(mesh);
+    this._meshData = createMeshData();
+    this.setRenderData(mesh.getRenderData());
+    this.setTransformData(mesh.getTransformData());
 
-  if (mesh.isUsingTexCoords())
-    this.setShaderType(Enums.Shader.MATCAP);
+    this._facesStateFlags = null; // state flags (<= Utils.STATE_FLAG) (Int32Array)
+    this._wireframe = null; // Uint32Array
 
-  this.initRender();
-  this.isDynamic = true;
-};
+    this.init(mesh);
 
-MeshDynamic.SUBDIVISION_FACTOR = 75; // subdivision factor
-MeshDynamic.DECIMATION_FACTOR = 0; // decimation factor
-MeshDynamic.LINEAR = false; // linear subdivision
+    if (mesh.isUsingTexCoords())
+      this.setShaderType(Enums.Shader.MATCAP);
 
-MeshDynamic.prototype = {
-  subdivide: function (iTris, center, radius2, detail2, states) {
+    this.initRender();
+    this.isDynamic = true;
+  }
+
+  subdivide(iTris, center, radius2, detail2, states) {
     return Subdivision.subdivision(this, iTris, center, radius2, detail2, states, MeshDynamic.LINEAR);
-  },
-  decimate: function (iTris, center, radius2, detail2, states) {
+  }
+
+  decimate(iTris, center, radius2, detail2, states) {
     return Decimation.decimation(this, iTris, center, radius2, detail2, states);
-  },
-  getSubdivisionFactor: function () {
+  }
+
+  getSubdivisionFactor() {
     return MeshDynamic.SUBDIVISION_FACTOR * 0.01;
-  },
-  getDecimationFactor: function () {
+  }
+
+  getDecimationFactor() {
     return MeshDynamic.DECIMATION_FACTOR * 0.01;
-  },
-  getVerticesProxy: function () {
+  }
+
+  getVerticesProxy() {
     return this.getVertices(); // for now no proxy sculpting for dynamic meshes
-  },
-  addNbVertice: function (nb) {
+  }
+
+  addNbVertice(nb) {
     this._meshData._nbVertices += nb;
-  },
-  getNbTriangles: function () {
+  }
+
+  getNbTriangles() {
     return this.getNbFaces();
-  },
-  addNbFace: function (nb) {
+  }
+
+  addNbFace(nb) {
     this._meshData._nbFaces += nb;
-  },
-  getNbEdges: function () {
+  }
+
+  getNbEdges() {
     return this.getNbTriangles() * 3;
-  },
-  getFacesStateFlags: function () {
+  }
+
+  getFacesStateFlags() {
     return this._facesStateFlags;
-  },
-  init: function (mesh) {
+  }
+
+  init(mesh) {
     this._meshData._vertRingVert = []; // vertex ring
     this._meshData._vertRingFace = []; // face ring
 
@@ -92,25 +100,29 @@ MeshDynamic.prototype = {
     this.updateFacesAabbAndNormal();
     this.updateVerticesNormal();
     this.updateOctree();
-  },
-  updateTopology: function (iFaces, iVerts) {
+  }
+
+  updateTopology(iFaces, iVerts) {
     this.updateRenderTriangles(iFaces);
     this.updateVerticesOnEdge(iVerts);
     if (this.getShowWireframe()) this.updateWireframe(iFaces);
     if (this.isUsingDrawArrays()) this.updateDrawArrays(iFaces);
-  },
-  getWireframe: function () {
+  }
+
+  getWireframe() {
     if (!this._wireframe) {
       this._wireframe = new Uint32Array(this.getTriangles().length * 2);
       this.updateWireframe();
     }
     return this._wireframe;
-  },
-  setShowWireframe: function (showWireframe) {
+  }
+
+  setShowWireframe(showWireframe) {
     this._wireframe = null;
-    Mesh.prototype.setShowWireframe.call(this, showWireframe);
-  },
-  updateWireframe: function (iFaces) {
+    super.setShowWireframe(showWireframe);
+  }
+
+  updateWireframe(iFaces) {
     var wire = this._wireframe;
     var tris = this.getTriangles();
     var full = iFaces === undefined;
@@ -130,8 +142,9 @@ MeshDynamic.prototype = {
         wire[idw + 3] = wire[idw + 4] = tris[idt + 2];
       }
     }
-  },
-  updateRenderTriangles: function (iFaces) {
+  }
+
+  updateRenderTriangles(iFaces) {
     var tAr = this.getTriangles();
     var fAr = this.getFaces();
     var full = iFaces === undefined;
@@ -144,8 +157,9 @@ MeshDynamic.prototype = {
       tAr[idt + 1] = fAr[idf + 1];
       tAr[idt + 2] = fAr[idf + 2];
     }
-  },
-  updateVerticesOnEdge: function (iVerts) {
+  }
+
+  updateVerticesOnEdge(iVerts) {
     var vOnEdge = this.getVerticesOnEdge();
     var vrings = this.getVerticesRingVert();
     var frings = this.getVerticesRingFace();
@@ -156,8 +170,9 @@ MeshDynamic.prototype = {
       var id = full ? i : iVerts[i];
       vOnEdge[id] = vrings[id].length !== frings[id].length ? 1 : 0;
     }
-  },
-  resizeArray: function (orig, targetSize) {
+  }
+
+  resizeArray(orig, targetSize) {
     if (!orig) return null;
 
     // shrink size
@@ -168,9 +183,10 @@ MeshDynamic.prototype = {
     tmp.set(orig);
 
     return tmp;
-  },
+  }
+
   /** Reallocate mesh resources */
-  reAllocateArrays: function (nbAddElements) {
+  reAllocateArrays(nbAddElements) {
     var mdata = this._meshData;
 
     var nbDyna = this._facesStateFlags.length;
@@ -224,8 +240,9 @@ MeshDynamic.prototype = {
         mdata._materialsPBR = this.resizeArray(mdata._materialsPBR, len * 9);
       }
     }
-  },
-  initTriangles: function (mesh) {
+  }
+
+  initTriangles(mesh) {
     var iArMesh = mesh.getTriangles();
     var nbTriangles = this.getNbTriangles();
     var fAr = this.getFaces();
@@ -240,8 +257,9 @@ MeshDynamic.prototype = {
       fAr[id4 + 2] = iArMesh[id3 + 2];
       fAr[id4 + 3] = Utils.TRI_INDEX;
     }
-  },
-  initVerticesTopology: function (mesh) {
+  }
+
+  initVerticesTopology(mesh) {
     var vrings = this.getVerticesRingVert();
     var frings = this.getVerticesRingFace();
     var i = 0;
@@ -266,9 +284,10 @@ MeshDynamic.prototype = {
     }
 
     this.getVerticesOnEdge().set(mesh.getVerticesOnEdge().subarray(0, nbVertices));
-  },
+  }
+
   /** Compute the vertices around a vertex */
-  computeRingVertices: function (iVert) {
+  computeRingVertices(iVert) {
     var tagFlag = ++Utils.TAG_FLAG;
     var fAr = this.getFaces();
     var vflags = this.getVerticesTagFlags();
@@ -297,8 +316,10 @@ MeshDynamic.prototype = {
       }
     }
   }
-};
+}
 
-Utils.makeProxy(Mesh, MeshDynamic);
+MeshDynamic.SUBDIVISION_FACTOR = 75; // subdivision factor
+MeshDynamic.DECIMATION_FACTOR = 0; // decimation factor
+MeshDynamic.LINEAR = false; // linear subdivision
 
 export default MeshDynamic;

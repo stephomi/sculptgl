@@ -1,15 +1,17 @@
-var StateAddRemove = function (main, addedMeshes, removedMeshes) {
-  this._main = main; // main application
-  this._addedMeshes = addedMeshes.length !== undefined ? addedMeshes : [addedMeshes]; // the added meshes
-  this._removedMeshes = removedMeshes.length !== undefined ? removedMeshes : [removedMeshes]; // the deleted meshes
-  this._selectMeshes = main.getSelectedMeshes().slice();
-};
+class StateAddRemove {
 
-StateAddRemove.prototype = {
-  isNoop: function () {
+  constructor(main, addedMeshes, removedMeshes) {
+    this._main = main; // main application
+    this._addedMeshes = addedMeshes.length !== undefined ? addedMeshes : [addedMeshes]; // the added meshes
+    this._removedMeshes = removedMeshes.length !== undefined ? removedMeshes : [removedMeshes]; // the deleted meshes
+    this._selectMeshes = main.getSelectedMeshes().slice();
+  }
+
+  isNoop() {
     return this._addedMeshes.length === 0 && this._removedMeshes.length === 0;
-  },
-  undo: function () {
+  }
+
+  undo() {
     var main = this._main;
     var meshesMain = main.getMeshes();
     var addMeshes = this._addedMeshes;
@@ -31,13 +33,15 @@ StateAddRemove.prototype = {
     sMeshes.length = 0;
     for (i = 0, l = sel.length; i < l; ++i)
       sMeshes.push(sel[i]);
-  },
-  redo: function () {
+  }
+
+  redo() {
     this.undo();
-  },
-  createRedo: function () {
+  }
+
+  createRedo() {
     return new StateAddRemove(this._main, this._removedMeshes, this._addedMeshes);
   }
-};
+}
 
 export default StateAddRemove;

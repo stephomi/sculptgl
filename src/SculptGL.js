@@ -1,6 +1,6 @@
 import './misc/Polyfill';
 import glm from './lib/gl-matrix';
-import hammer from './lib/hammer';
+import hammer from './lib/Hammer';
 import Enums from './misc/Enums';
 import Utils from './misc/Utils';
 import Scene from './Scene';
@@ -8,40 +8,41 @@ import Multimesh from './mesh/multiresolution/Multimesh';
 
 var vec3 = glm.vec3;
 
-// // Manage events
-var SculptGL = function () {
-  Scene.call(this);
-
-  // all x and y position are canvas based
-
-  // controllers stuffs
-  this._mouseX = 0;
-  this._mouseY = 0;
-  this._lastMouseX = 0;
-  this._lastMouseY = 0;
-  this._lastScale = 0;
-  // NOTHING, MASK_EDIT, SCULPT_EDIT, CAMERA_ZOOM, CAMERA_ROTATE, CAMERA_PAN, CAMERA_PAN_ZOOM_ALT
-  this._action = Enums.Action.NOTHING;
-  this._lastNbPointers = 0;
-  this._isWheelingIn = false;
-
-  // masking
-  this._maskX = 0;
-  this._maskY = 0;
-  this._hammer = new hammer.Manager(this._canvas);
-
-  this._eventProxy = {};
-
-  this.initHammer();
-  this.addEvents();
-};
-
 var MOUSE_LEFT = 1;
 var MOUSE_MIDDLE = 2;
 var MOUSE_RIGHT = 3;
 
-SculptGL.prototype = {
-  addEvents: function () {
+// Manage events
+class SculptGL extends Scene {
+
+  constructor() {
+    super();
+
+    // all x and y position are canvas based
+
+    // controllers stuffs
+    this._mouseX = 0;
+    this._mouseY = 0;
+    this._lastMouseX = 0;
+    this._lastMouseY = 0;
+    this._lastScale = 0;
+    // NOTHING, MASK_EDIT, SCULPT_EDIT, CAMERA_ZOOM, CAMERA_ROTATE, CAMERA_PAN, CAMERA_PAN_ZOOM_ALT
+    this._action = Enums.Action.NOTHING;
+    this._lastNbPointers = 0;
+    this._isWheelingIn = false;
+
+    // masking
+    this._maskX = 0;
+    this._maskY = 0;
+    this._hammer = new hammer.Manager(this._canvas);
+
+    this._eventProxy = {};
+
+    this.initHammer();
+    this.addEvents();
+  }
+
+  addEvents() {
     var canvas = this._canvas;
 
     var cbMouseWheel = this.onMouseWheel.bind(this);
@@ -67,13 +68,15 @@ SculptGL.prototype = {
     window.addEventListener('dragover', cbStopAndPrevent, false);
     window.addEventListener('drop', cbLoadFiles, false);
     document.getElementById('fileopen').addEventListener('change', cbLoadFiles, false);
-  },
-  initHammer: function () {
+  }
+
+  initHammer() {
     this._hammer.options.enable = true;
     this._initHammerRecognizers();
     this._initHammerEvents();
-  },
-  _initHammerRecognizers: function () {
+  }
+
+  _initHammerRecognizers() {
     var hm = this._hammer;
     // double tap
     hm.add(new hammer.Tap({
@@ -101,7 +104,7 @@ SculptGL.prototype = {
     hm.add(new hammer.Pan({
       event: 'pan',
       pointers: 0,
-      threshold: 0,
+      threshold: 0
     }));
 
     // pinch
@@ -111,8 +114,9 @@ SculptGL.prototype = {
       threshold: 0.1 // Set a minimal thresold on pinch event, to be detected after pan
     }));
     hm.get('pinch').recognizeWith(hm.get('pan'));
-  },
-  _initHammerEvents: function () {
+  }
+
+  _initHammerEvents() {
     var hm = this._hammer;
     hm.on('panstart', this.onPanStart.bind(this));
     hm.on('panmove', this.onPanMove.bind(this));
@@ -122,30 +126,36 @@ SculptGL.prototype = {
     hm.on('doubletap2fingers', this.onDoubleTap2Fingers.bind(this));
     hm.on('pinchstart', this.onPinchStart.bind(this));
     hm.on('pinchin pinchout', this.onPinchInOut.bind(this));
-  },
-  stopAndPrevent: function (event) {
+  }
+
+  stopAndPrevent(event) {
     event.stopPropagation();
     event.preventDefault();
-  },
-  onContextLost: function () {
+  }
+
+  onContextLost() {
     window.alert('Oops... WebGL context lost.');
-  },
-  onContextRestored: function () {
+  }
+
+  onContextRestored() {
     window.alert('Wow... Context is restored.');
-  },
+  }
+
   ////////////////
   // KEY EVENTS
   ////////////////
-  onKeyDown: function (e) {
+  onKeyDown(e) {
     this._gui.callFunc('onKeyDown', e);
-  },
-  onKeyUp: function (e) {
+  }
+
+  onKeyUp(e) {
     this._gui.callFunc('onKeyUp', e);
-  },
+  }
+
   ////////////////
   // MOBILE EVENTS
   ////////////////
-  onPanStart: function (e) {
+  onPanStart(e) {
     if (e.pointerType === 'mouse')
       return;
     this._focusGui = false;
@@ -154,8 +164,9 @@ SculptGL.prototype = {
     evProxy.pageY = e.center.y;
     this._lastNbPointers = evProxy.which = Math.min(2, e.pointers.length);
     this.onDeviceDown(evProxy);
-  },
-  onPanMove: function (e) {
+  }
+
+  onPanMove(e) {
     if (e.pointerType === 'mouse')
       return;
     var evProxy = this._eventProxy;
@@ -169,13 +180,15 @@ SculptGL.prototype = {
       this._lastNbPointers = nbPointers;
     }
     this.onDeviceMove(evProxy);
-  },
-  onPanEnd: function (e) {
+  }
+
+  onPanEnd(e) {
     if (e.pointerType === 'mouse')
       return;
     this.onDeviceUp();
-  },
-  onDoubleTap: function (e) {
+  }
+
+  onDoubleTap(e) {
     if (this._focusGui)
       return;
     var evProxy = this._eventProxy;
@@ -197,22 +210,26 @@ SculptGL.prototype = {
 
     cam.setAndFocusOnPivot(pivot, zoom);
     this.render();
-  },
-  onDoubleTap2Fingers: function () {
+  }
+
+  onDoubleTap2Fingers() {
     if (this._focusGui)
       return;
     this.resetCameraScene();
-  },
-  onPinchStart: function (e) {
+  }
+
+  onPinchStart(e) {
     this._focusGui = false;
     this._lastScale = e.scale;
-  },
-  onPinchInOut: function (e) {
+  }
+
+  onPinchInOut(e) {
     var dir = (e.scale - this._lastScale) * 25;
     this._lastScale = e.scale;
     this.onDeviceWheel(dir);
-  },
-  resetCameraScene: function () {
+  }
+
+  resetCameraScene() {
     if (this._meshes.length > 0) {
       var pivot = [0.0, 0.0, 0.0];
       var box = this.computeBoundingBoxMeshes(this._meshes);
@@ -225,19 +242,21 @@ SculptGL.prototype = {
     }
 
     this.render();
-  },
+  }
+
   ////////////////
   // LOAD FILES
   ////////////////
-  getFileType: function (name) {
+  getFileType(name) {
     var lower = name.toLowerCase();
     if (lower.endsWith('.obj')) return 'obj';
     if (lower.endsWith('.sgl')) return 'sgl';
     if (lower.endsWith('.stl')) return 'stl';
     if (lower.endsWith('.ply')) return 'ply';
     return;
-  },
-  loadFiles: function (event) {
+  }
+
+  loadFiles(event) {
     event.stopPropagation();
     event.preventDefault();
     var files = event.dataTransfer ? event.dataTransfer.files : event.target.files;
@@ -246,8 +265,9 @@ SculptGL.prototype = {
       var fileType = this.getFileType(file.name);
       this.readFile(file, fileType);
     }
-  },
-  readFile: function (file, ftype) {
+  }
+
+  readFile(file, ftype) {
     var fileType = ftype || this.getFileType(file.name);
     if (!fileType)
       return;
@@ -263,51 +283,58 @@ SculptGL.prototype = {
       reader.readAsText(file);
     else
       reader.readAsArrayBuffer(file);
-  },
+  }
+
   ////////////////
   // MOUSE EVENTS
   ////////////////
-  onMouseDown: function (event) {
+  onMouseDown(event) {
     event.stopPropagation();
     event.preventDefault();
 
     this._gui.callFunc('onMouseDown', event);
     this.onDeviceDown(event);
-  },
-  onMouseMove: function (event) {
+  }
+
+  onMouseMove(event) {
     event.stopPropagation();
     event.preventDefault();
 
     this._gui.callFunc('onMouseMove', event);
     this.onDeviceMove(event);
-  },
-  onMouseOver: function (event) {
+  }
+
+  onMouseOver(event) {
     this._focusGui = false;
     this._gui.callFunc('onMouseOver', event);
-  },
-  onMouseOut: function (event) {
+  }
+
+  onMouseOut(event) {
     this._focusGui = true;
     this._gui.callFunc('onMouseOut', event);
     this.onMouseUp(event);
-  },
-  onMouseUp: function (event) {
+  }
+
+  onMouseUp(event) {
     event.preventDefault();
 
     this._gui.callFunc('onMouseUp', event);
     this.onDeviceUp();
-  },
-  onMouseWheel: function (event) {
+  }
+
+  onMouseWheel(event) {
     event.stopPropagation();
     event.preventDefault();
 
     this._gui.callFunc('onMouseWheel', event);
     var dir = event.wheelDelta === undefined ? -event.detail : event.wheelDelta;
     this.onDeviceWheel(dir > 0 ? 1 : -1);
-  },
+  }
+
   ////////////////
   // HANDLES EVENTS
   ////////////////
-  onDeviceUp: function () {
+  onDeviceUp() {
     this.setCanvasCursor('default');
     Multimesh.RENDER_HINT = Multimesh.NONE;
     this._sculptManager.end();
@@ -324,8 +351,9 @@ SculptGL.prototype = {
     this._action = Enums.Action.NOTHING;
     this.render();
     this._stateManager.cleanNoop();
-  },
-  onDeviceWheel: function (dir) {
+  }
+
+  onDeviceWheel(dir) {
     if (dir > 0.0 && !this._isWheelingIn) {
       this._isWheelingIn = true;
       this._camera.start(this._mouseX, this._mouseY);
@@ -337,17 +365,20 @@ SculptGL.prototype = {
     if (this._timerEndWheel)
       window.clearTimeout(this._timerEndWheel);
     this._timerEndWheel = window.setTimeout(this._endWheel.bind(this), 300);
-  },
-  _endWheel: function () {
+  }
+
+  _endWheel() {
     Multimesh.RENDER_HINT = Multimesh.NONE;
     this._isWheelingIn = false;
     this.render();
-  },
-  setMousePosition: function (event) {
+  }
+
+  setMousePosition(event) {
     this._mouseX = this._pixelRatio * (event.pageX - this._canvasOffsetLeft);
     this._mouseY = this._pixelRatio * (event.pageY - this._canvasOffsetTop);
-  },
-  onDeviceDown: function (event) {
+  }
+
+  onDeviceDown(event) {
     if (this._focusGui)
       return;
 
@@ -384,8 +415,9 @@ SculptGL.prototype = {
 
     this._lastMouseX = mouseX;
     this._lastMouseY = mouseY;
-  },
-  onDeviceMove: function (event) {
+  }
+
+  onDeviceMove(event) {
     if (this._focusGui)
       return;
     this.setMousePosition(event);
@@ -430,8 +462,6 @@ SculptGL.prototype = {
     this._lastMouseY = mouseY;
     this.renderSelectOverRtt();
   }
-};
-
-Utils.makeProxy(Scene, SculptGL);
+}
 
 export default SculptGL;

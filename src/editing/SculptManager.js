@@ -2,51 +2,59 @@ import Selection from '../drawables/Selection';
 import Tools from '../editing/tools/Tools';
 import Enums from '../misc/Enums';
 
-var SculptManager = function (main) {
-  this._main = main;
+class SculptManager {
 
-  this._toolIndex = Enums.Tools.BRUSH; // sculpting mode
-  this._tools = []; // the sculpting tools
+  constructor(main) {
+    this._main = main;
 
-  // symmetry stuffs
-  this._symmetry = true; // if symmetric sculpting is enabled  
+    this._toolIndex = Enums.Tools.BRUSH; // sculpting mode
+    this._tools = []; // the sculpting tools
 
-  // continuous stuffs
-  this._continuous = false; // continuous sculpting
-  this._sculptTimer = -1; // continuous interval timer
+    // symmetry stuffs
+    this._symmetry = true; // if symmetric sculpting is enabled  
 
-  this._selection = new Selection(main._gl); // the selection geometry (red hover circle)
+    // continuous stuffs
+    this._continuous = false; // continuous sculpting
+    this._sculptTimer = -1; // continuous interval timer
 
-  this.init();
-};
+    this._selection = new Selection(main._gl); // the selection geometry (red hover circle)
 
-SculptManager.prototype = {
-  setToolIndex: function (id) {
+    this.init();
+  }
+
+  setToolIndex(id) {
     this._toolIndex = id;
-  },
-  getToolIndex: function () {
+  }
+
+  getToolIndex() {
     return this._toolIndex;
-  },
-  getCurrentTool: function () {
+  }
+
+  getCurrentTool() {
     return this._tools[this._toolIndex];
-  },
-  getSymmetry: function () {
+  }
+
+  getSymmetry() {
     return this._symmetry;
-  },
-  getTool: function (index) {
+  }
+
+  getTool(index) {
     return this._tools[index];
-  },
-  getSelection: function () {
+  }
+
+  getSelection() {
     return this._selection;
-  },
-  init: function () {
+  }
+
+  init() {
     var main = this._main;
     var tools = this._tools;
     for (var i = 0, nb = Tools.length; i < nb; ++i) {
       if (Tools[i]) tools[i] = new Tools[i](main);
     }
-  },
-  canBeContinuous: function () {
+  }
+
+  canBeContinuous() {
     switch (this._toolIndex) {
     case Enums.Tools.TWIST:
     case Enums.Tools.MOVE:
@@ -57,38 +65,45 @@ SculptManager.prototype = {
     default:
       return true;
     }
-  },
-  isUsingContinuous: function () {
+  }
+
+  isUsingContinuous() {
     return this._continuous && this.canBeContinuous();
-  },
-  start: function (ctrl) {
+  }
+
+  start(ctrl) {
     var tool = this.getCurrentTool();
     var canEdit = tool.start(ctrl);
     if (this._main.getPicking().getMesh() && this.isUsingContinuous())
       this._sculptTimer = window.setInterval(tool._cbContinuous, 16.6);
     return canEdit;
-  },
-  end: function () {
+  }
+
+  end() {
     this.getCurrentTool().end();
     if (this._sculptTimer !== -1) {
       clearInterval(this._sculptTimer);
       this._sculptTimer = -1;
     }
-  },
-  preUpdate: function () {
+  }
+
+  preUpdate() {
     this.getCurrentTool().preUpdate(this.canBeContinuous());
-  },
-  update: function () {
+  }
+
+  update() {
     if (this.isUsingContinuous())
       return;
     this.getCurrentTool().update();
-  },
-  postRender: function () {
+  }
+
+  postRender() {
     this.getCurrentTool().postRender(this._selection);
-  },
-  addSculptToScene: function (scene) {
+  }
+
+  addSculptToScene(scene) {
     return this.getCurrentTool().addSculptToScene(scene);
   }
-};
+}
 
 export default SculptManager;

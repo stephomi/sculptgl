@@ -5,18 +5,18 @@ import Multimesh from '../mesh/multiresolution/Multimesh';
 import MeshDynamic from '../mesh/dynamic/MeshDynamic';
 import StateMultiresolution from '../states/StateMultiresolution';
 
-var GuiMultiresolution = function (guiParent, ctrlGui) {
-  this._ctrlGui = ctrlGui;
-  this._main = ctrlGui._main; // main application
-  this._menu = null; // ui menu
-  this._ctrlResolution = null; // multiresolution controller
-  this._ctrlDynamic = null; // dynamic topology controller
-  this.init(guiParent);
-};
+class GuiMultiresolution {
 
-GuiMultiresolution.prototype = {
-  /** Initialize */
-  init: function (guiParent) {
+  constructor(guiParent, ctrlGui) {
+    this._ctrlGui = ctrlGui;
+    this._main = ctrlGui._main; // main application
+    this._menu = null; // ui menu
+    this._ctrlResolution = null; // multiresolution controller
+    this._ctrlDynamic = null; // dynamic topology controller
+    this.init(guiParent);
+  }
+
+  init(guiParent) {
     var menu = this._menu = guiParent.addMenu(TR('topologyTitle'));
     menu.close();
 
@@ -44,13 +44,15 @@ GuiMultiresolution.prototype = {
     this._ctrlDynDec = menu.addSlider(TR('dynamicDecimation'), MeshDynamic, 'DECIMATION_FACTOR', 0, 100, 1);
     this._ctrlDynLin = menu.addCheckbox(TR('dynamicLinear'), MeshDynamic, 'LINEAR');
     this.updateDynamicVisibility(false);
-  },
-  updateDynamicVisibility: function (bool) {
+  }
+
+  updateDynamicVisibility(bool) {
     this._ctrlDynSubd.setVisibility(bool);
     this._ctrlDynDec.setVisibility(bool);
     this._ctrlDynLin.setVisibility(bool);
-  },
-  dynamicToggleActivate: function () {
+  }
+
+  dynamicToggleActivate() {
     var main = this._main;
     var mesh = main.getMesh();
     if (!mesh)
@@ -61,8 +63,9 @@ GuiMultiresolution.prototype = {
 
     main.replaceMesh(mesh, newMesh);
     main.getStateManager().pushStateAddRemove(newMesh, mesh);
-  },
-  remesh: function () {
+  }
+
+  remesh() {
     var main = this._main;
     var mesh = main.getMesh();
     if (!mesh)
@@ -81,12 +84,14 @@ GuiMultiresolution.prototype = {
     main.getStateManager().pushStateAddRemove(newMesh, main.getSelectedMeshes().slice());
     main.getMeshes().push(newMesh);
     main.setMesh(newMesh);
-  },
+  }
+
   /** Check if the mesh is a multiresolution one */
-  isMultimesh: function (mesh) {
+  isMultimesh(mesh) {
     return !!(mesh && mesh._meshes);
-  },
-  convertToStaticMesh: function (mesh) {
+  }
+
+  convertToStaticMesh(mesh) {
     if (!mesh.isDynamic) // already static
       return mesh;
 
@@ -102,16 +107,18 @@ GuiMultiresolution.prototype = {
     newMesh.setRenderData(mesh.getRenderData());
     newMesh.initRender();
     return newMesh;
-  },
+  }
+
   /** Convert a mesh into a multiresolution one */
-  convertToMultimesh: function (mesh) {
+  convertToMultimesh(mesh) {
     if (this.isMultimesh(mesh))
       return mesh;
     var multimesh = new Multimesh(this.convertToStaticMesh(mesh));
     return multimesh;
-  },
+  }
+
   /** Subdivide the mesh */
-  subdivide: function () {
+  subdivide() {
     var main = this._main;
     var mesh = main.getMesh();
     if (!mesh)
@@ -138,9 +145,10 @@ GuiMultiresolution.prototype = {
     mul.addLevel();
     main.setMesh(mul);
     main.render();
-  },
+  }
+
   /** Inverse subdivision */
-  reverse: function () {
+  reverse() {
     var main = this._main;
     var mesh = main.getMesh();
     if (!mesh)
@@ -167,9 +175,10 @@ GuiMultiresolution.prototype = {
     main.getStateManager().pushState(stateRes);
     main.setMesh(mul);
     main.render();
-  },
+  }
+
   /** Delete the lower meshes */
-  deleteLower: function () {
+  deleteLower() {
     var main = this._main;
     var mul = main._mesh;
     if (!this.isMultimesh(mul) || mul._sel === 0) {
@@ -180,9 +189,10 @@ GuiMultiresolution.prototype = {
     main.getStateManager().pushState(new StateMultiresolution(main, mul, StateMultiresolution.DELETE_LOWER));
     mul.deleteLower();
     this.updateMeshResolution();
-  },
+  }
+
   /** Delete the higher meshes */
-  deleteHigher: function () {
+  deleteHigher() {
     var main = this._main;
     var mul = main.getMesh();
     if (!this.isMultimesh(mul) || mul._sel === mul._meshes.length - 1) {
@@ -193,9 +203,10 @@ GuiMultiresolution.prototype = {
     main.getStateManager().pushState(new StateMultiresolution(main, mul, StateMultiresolution.DELETE_HIGHER));
     mul.deleteHigher();
     this.updateMeshResolution();
-  },
+  }
+
   /** Change resoltuion */
-  onResolutionChanged: function (value) {
+  onResolutionChanged(value) {
     var uiRes = value - 1;
     var main = this._main;
     var multimesh = main.getMesh();
@@ -215,9 +226,10 @@ GuiMultiresolution.prototype = {
     multimesh.selectResolution(uiRes);
     this._ctrlGui.updateMeshInfo();
     main.render();
-  },
+  }
+
   /** Update the mesh resolution slider */
-  updateMeshResolution: function () {
+  updateMeshResolution() {
     var multimesh = this._main.getMesh();
     if (!multimesh || !this.isMultimesh(multimesh)) {
       this._ctrlResolution.setMax(1);
@@ -226,9 +238,10 @@ GuiMultiresolution.prototype = {
     }
     this._ctrlResolution.setMax(multimesh._meshes.length);
     this._ctrlResolution.setValue(multimesh._sel + 1);
-  },
+  }
+
   /** Update topology information */
-  updateMesh: function () {
+  updateMesh() {
     if (!this._main.getMesh()) {
       this._menu.setVisibility(false);
       return;
@@ -239,6 +252,6 @@ GuiMultiresolution.prototype = {
     this.updateDynamicVisibility(bool);
     this._ctrlDynamic.setValue(bool, true);
   }
-};
+}
 
 export default GuiMultiresolution;

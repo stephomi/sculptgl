@@ -1,49 +1,55 @@
 import glm from '../../lib/gl-matrix';
-import Utils from '../../misc/Utils';
 import Tablet from '../../misc/Tablet';
 import SculptBase from '../../editing/tools/SculptBase';
 
 var vec3 = glm.vec3;
 
-var Paint = function (main) {
-  SculptBase.call(this, main);
-  this._radius = 50;
-  this._hardness = 0.75;
-  this._intensity = 0.75;
-  this._culling = false;
-  this._color = vec3.fromValues(1.0, 0.766, 0.336); // albedo
-  this._material = vec3.fromValues(0.3, 0.95, 0.0); // roughness/metallic/masking
-  this._pickColor = false; // color picking
-  this._pickCallback = null; // callback function after picking a color
-  this._idAlpha = 0;
-  this._lockPosition = false;
-};
+class Paint extends SculptBase {
 
-Paint.prototype = {
-  end: function () {
+  constructor(main) {
+    super(main);
+
+    this._radius = 50;
+    this._hardness = 0.75;
+    this._intensity = 0.75;
+    this._culling = false;
+    this._color = vec3.fromValues(1.0, 0.766, 0.336); // albedo
+    this._material = vec3.fromValues(0.3, 0.95, 0.0); // roughness/metallic/masking
+    this._pickColor = false; // color picking
+    this._pickCallback = null; // callback function after picking a color
+    this._idAlpha = 0;
+    this._lockPosition = false;
+  }
+
+  end() {
     this._pickColor = false;
-    SculptBase.prototype.end.call(this);
-  },
-  pushState: function (force) {
+    super.end();
+  }
+
+  pushState(force) {
     if (!this._pickColor || force)
       this._main.getStateManager().pushStateColorAndMaterial(this.getMesh());
-  },
-  startSculpt: function () {
+  }
+
+  startSculpt() {
     if (this._pickColor)
       return this.pickColor(this._main.getPicking());
-    SculptBase.prototype.startSculpt.call(this);
-  },
-  update: function () {
+    super.startSculpt();
+  }
+
+  update(contin) {
     if (this._pickColor === true)
       return this.updatePickColor();
-    SculptBase.prototype.update.apply(this, arguments);
-  },
-  updateContinuous: function () {
+    super.update(contin);
+  }
+
+  updateContinuous() {
     if (this._pickColor === true)
       return this.updatePickColor();
-    SculptBase.prototype.updateContinuous.call(this);
-  },
-  updateMeshBuffers: function () {
+    super.updateContinuous();
+  }
+
+  updateMeshBuffers() {
     var mesh = this.getMesh();
     if (mesh.isDynamic) {
       mesh.updateBuffers();
@@ -51,16 +57,19 @@ Paint.prototype = {
       mesh.updateColorBuffer();
       mesh.updateMaterialBuffer();
     }
-  },
-  updatePickColor: function () {
+  }
+
+  updatePickColor() {
     var picking = this._main.getPicking();
     if (picking.intersectionMouseMesh())
       this.pickColor(picking);
-  },
-  setPickCallback: function (cb) {
+  }
+
+  setPickCallback(cb) {
     this._pickCallback = cb;
-  },
-  pickColor: function (picking) {
+  }
+
+  pickColor(picking) {
     var mesh = this.getMesh();
     var color = this._color;
     picking.polyLerp(mesh.getMaterials(), color);
@@ -68,8 +77,9 @@ Paint.prototype = {
     var metallic = color[1];
     picking.polyLerp(mesh.getColors(), color);
     this._pickCallback(color, roughness, metallic);
-  },
-  stroke: function (picking) {
+  }
+
+  stroke(picking) {
     var iVertsInRadius = picking.getPickedVertices();
     var intensity = this._intensity * Tablet.getPressureIntensity();
 
@@ -88,8 +98,9 @@ Paint.prototype = {
     mesh.updateDuplicateColorsAndMaterials(iVertsInRadius);
     if (mesh.isUsingDrawArrays())
       mesh.updateDrawArrays(mesh.getFacesFromVertices(iVertsInRadius));
-  },
-  paint: function (iVerts, center, radiusSquared, intensity, hardness, picking) {
+  }
+
+  paint(iVerts, center, radiusSquared, intensity, hardness, picking) {
     var mesh = this.getMesh();
     var vAr = mesh.getVertices();
     var cAr = mesh.getColors();
@@ -123,8 +134,9 @@ Paint.prototype = {
       mAr[ind] = mAr[ind] * fallOffCompl + roughness * fallOff;
       mAr[ind + 1] = mAr[ind + 1] * fallOffCompl + metallic * fallOff;
     }
-  },
-  paintAll: function () {
+  }
+
+  paintAll() {
     var mesh = this.getMesh();
     var iVerts = this.getUnmaskedVertices();
     if (iVerts.length === 0)
@@ -156,8 +168,6 @@ Paint.prototype = {
     mesh.updateDrawArrays();
     this.updateRender();
   }
-};
-
-Utils.makeProxy(SculptBase, Paint);
+}
 
 export default Paint;

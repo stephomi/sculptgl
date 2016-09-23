@@ -1,18 +1,20 @@
 import Utils from '../misc/Utils';
 
-var StateColorAndMaterial = function (main, mesh) {
-  this._main = main; // main application
-  this._mesh = mesh; // the mesh
-  this._idVertState = []; // ids of vertices
-  this._cArState = []; // copies of color vertices
-  this._mArState = []; // copies of material vertices
-};
+class StateColorAndMaterial {
 
-StateColorAndMaterial.prototype = {
-  isNoop: function () {
+  constructor(main, mesh) {
+    this._main = main; // main application
+    this._mesh = mesh; // the mesh
+    this._idVertState = []; // ids of vertices
+    this._cArState = []; // copies of color vertices
+    this._mArState = []; // copies of material vertices
+  }
+
+  isNoop() {
     return this._idVertState.length === 0;
-  },
-  undo: function () {
+  }
+
+  undo() {
     this.pullVertices();
     var mesh = this._mesh;
     mesh.updateDuplicateColorsAndMaterials();
@@ -20,16 +22,19 @@ StateColorAndMaterial.prototype = {
     mesh.updateColorBuffer();
     mesh.updateMaterialBuffer();
     this._main.setMesh(mesh);
-  },
-  redo: function () {
+  }
+
+  redo() {
     this.undo();
-  },
-  createRedo: function () {
+  }
+
+  createRedo() {
     var redo = new StateColorAndMaterial(this._main, this._mesh);
     this.pushRedoVertices(redo);
     return redo;
-  },
-  pushVertices: function (iVerts) {
+  }
+
+  pushVertices(iVerts) {
     var idVertState = this._idVertState;
     var cArState = this._cArState;
     var mArState = this._mArState;
@@ -51,8 +56,9 @@ StateColorAndMaterial.prototype = {
       cArState.push(cAr[id], cAr[id + 1], cAr[id + 2]);
       mArState.push(mAr[id], mAr[id + 1], mAr[id + 2]);
     }
-  },
-  pushRedoVertices: function (redoState) {
+  }
+
+  pushRedoVertices(redoState) {
     var mesh = redoState._mesh;
     var cAr = mesh.getColors();
     var mAr = mesh.getMaterials();
@@ -74,8 +80,9 @@ StateColorAndMaterial.prototype = {
       mArRedoState[j + 1] = mAr[id + 1];
       mArRedoState[j + 2] = mAr[id + 2];
     }
-  },
-  pullVertices: function () {
+  }
+
+  pullVertices() {
     var cArState = this._cArState;
     var mArState = this._mArState;
     var idVertState = this._idVertState;
@@ -95,6 +102,6 @@ StateColorAndMaterial.prototype = {
       mAr[id + 2] = mArState[j + 2];
     }
   }
-};
+}
 
 export default StateColorAndMaterial;

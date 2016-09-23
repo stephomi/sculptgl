@@ -1,25 +1,26 @@
-import Utils from '../../misc/Utils';
 import SculptBase from '../../editing/tools/SculptBase';
 
-var LocalScale = function (main) {
-  SculptBase.call(this, main);
-  this._radius = 50;
-  this._culling = false;
-  this._idAlpha = 0;
-};
+class LocalScale extends SculptBase {
 
-LocalScale.prototype = {
-  /** Start a sculpt sculpt stroke */
-  startSculpt: function () {
+  constructor(main) {
+    super(main);
+
+    this._radius = 50;
+    this._culling = false;
+    this._idAlpha = 0;
+  }
+
+  startSculpt() {
     var main = this._main;
     if (main.getSculptManager().getSymmetry()) {
       var pickingSym = main.getPickingSymmetry();
       pickingSym.intersectionMouseMesh();
       pickingSym.setLocalRadius2(main.getPicking().getLocalRadius2());
     }
-  },
+  }
+
   /** Make a brush scale stroke */
-  sculptStroke: function () {
+  sculptStroke() {
     var main = this._main;
     var delta = main._mouseX - main._lastMouseX;
     var picking = main.getPicking();
@@ -35,9 +36,10 @@ LocalScale.prototype = {
       }
     }
     this.updateRender();
-  },
+  }
+
   /** On stroke */
-  stroke: function (picking, delta) {
+  stroke(picking, delta) {
     var iVertsInRadius = picking.getPickedVertices();
 
     // undo-redo
@@ -53,9 +55,10 @@ LocalScale.prototype = {
 
     var mesh = this.getMesh();
     mesh.updateGeometry(mesh.getFacesFromVertices(iVertsInRadius), iVertsInRadius);
-  },
+  }
+
   /** Scale the vertices around the mouse point intersection */
-  scale: function (iVerts, center, radiusSquared, intensity, picking) {
+  scale(iVerts, center, radiusSquared, intensity, picking) {
     var mesh = this.getMesh();
     var vAr = mesh.getVertices();
     var mAr = mesh.getMaterials();
@@ -81,8 +84,6 @@ LocalScale.prototype = {
       vAr[ind + 2] = vz + dz * fallOff;
     }
   }
-};
-
-Utils.makeProxy(SculptBase, LocalScale);
+}
 
 export default LocalScale;

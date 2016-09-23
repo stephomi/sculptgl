@@ -1,20 +1,20 @@
-import Utils from '../../misc/Utils';
 import Tablet from '../../misc/Tablet';
 import SculptBase from '../../editing/tools/SculptBase';
 
-var Inflate = function (main) {
-  SculptBase.call(this, main);
-  this._radius = 50;
-  this._intensity = 0.3;
-  this._negative = false;
-  this._culling = false;
-  this._idAlpha = 0;
-  this._lockPosition = false;
-};
+class Inflate extends SculptBase {
 
-Inflate.prototype = {
-  /** On stroke */
-  stroke: function (picking) {
+  constructor(main) {
+    super(main);
+
+    this._radius = 50;
+    this._intensity = 0.3;
+    this._negative = false;
+    this._culling = false;
+    this._idAlpha = 0;
+    this._lockPosition = false;
+  }
+
+  stroke(picking) {
     var iVertsInRadius = picking.getPickedVertices();
     var intensity = this._intensity * Tablet.getPressureIntensity();
 
@@ -32,9 +32,10 @@ Inflate.prototype = {
 
     var mesh = this.getMesh();
     mesh.updateGeometry(mesh.getFacesFromVertices(iVertsInRadius), iVertsInRadius);
-  },
+  }
+
   /** Inflate a group of vertices */
-  inflate: function (iVerts, center, radiusSquared, intensity, picking) {
+  inflate(iVerts, center, radiusSquared, intensity, picking) {
     var mesh = this.getMesh();
     var vAr = mesh.getVertices();
     var mAr = mesh.getMaterials();
@@ -71,8 +72,6 @@ Inflate.prototype = {
       vAr[ind + 2] = vz + nz * fallOff;
     }
   }
-};
-
-Utils.makeProxy(SculptBase, Inflate);
+}
 
 export default Inflate;

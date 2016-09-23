@@ -9,22 +9,23 @@ var ShaderUV = Shader[Enums.Shader.UV];
 var ShaderPBR = Shader[Enums.Shader.PBR];
 var ShaderMatcap = Shader[Enums.Shader.MATCAP];
 
-var GuiRendering = function (guiParent, ctrlGui) {
-  this._main = ctrlGui._main; // main application
+class GuiRendering {
 
-  // ui rendering
-  this._menu = null; // ui menu
-  this._ctrlFlatShadizfng = null; // flat shading controller
-  this._ctrlShowWireframe = null; // wireframe controller
-  this._ctrlShaders = null; // shaders controller
-  this._ctrlMatcap = null; // matcap texzfture controller
-  this._ctrlUV = null; // upload a texture
+  constructor(guiParent, ctrlGui) {
+    this._main = ctrlGui._main; // main application
 
-  this.init(guiParent);
-};
+    // ui rendering
+    this._menu = null; // ui menu
+    this._ctrlFlatShadizfng = null; // flat shading controller
+    this._ctrlShowWireframe = null; // wireframe controller
+    this._ctrlShaders = null; // shaders controller
+    this._ctrlMatcap = null; // matcap texzfture controller
+    this._ctrlUV = null; // upload a texture
 
-GuiRendering.prototype = {
-  init: function (guiParent) {
+    this.init(guiParent);
+  }
+
+  init(guiParent) {
     var menu = this._menu = guiParent.addMenu(TR('renderingTitle'));
     menu.close();
 
@@ -77,32 +78,38 @@ GuiRendering.prototype = {
       this._ctrlShowWireframe.setVisibility(false);
 
     this.addEvents();
-  },
-  onFilmic: function (val) {
+  }
+
+  onFilmic(val) {
     ShaderMERGE.FILMIC = val;
     this._main.render();
-  },
-  onCurvatureChanged: function (val) {
+  }
+
+  onCurvatureChanged(val) {
     if (!this._main.getMesh()) return;
     this._main.getMesh().setCurvature(val / 20.0);
     this._main.render();
-  },
-  onEnvironmentChanged: function (val) {
+  }
+
+  onEnvironmentChanged(val) {
     ShaderPBR.idEnv = val;
     this._main.render();
-  },
-  onExposureChanged: function (val) {
+  }
+
+  onExposureChanged(val) {
     ShaderPBR.exposure = val / 20;
     this._main.render();
-  },
-  onTransparencyChanged: function (val) {
+  }
+
+  onTransparencyChanged(val) {
     var meshes = this._main.getSelectedMeshes();
     for (var i = 0, nb = meshes.length; i < nb; ++i) {
       meshes[i].setOpacity(1.0 - val / 100.0);
     }
     this._main.render();
-  },
-  onShaderChanged: function (val) {
+  }
+
+  onShaderChanged(val) {
     var main = this._main;
 
     var warning = false;
@@ -125,8 +132,9 @@ GuiRendering.prototype = {
     }
 
     this.updateVisibility();
-  },
-  onMatcapChanged: function (value) {
+  }
+
+  onMatcapChanged(value) {
     var meshes = this._main.getSelectedMeshes();
     for (var i = 0, nb = meshes.length; i < nb; ++i) {
       var mesh = meshes[i];
@@ -135,22 +143,25 @@ GuiRendering.prototype = {
       mesh.setMatcap(value);
     }
     this._main.render();
-  },
-  onFlatShading: function (bool) {
+  }
+
+  onFlatShading(bool) {
     var meshes = this._main.getSelectedMeshes();
     for (var i = 0, nb = meshes.length; i < nb; ++i) {
       meshes[i].setFlatShading(bool);
     }
     this._main.render();
-  },
-  onShowWireframe: function (bool) {
+  }
+
+  onShowWireframe(bool) {
     var meshes = this._main.getSelectedMeshes();
     for (var i = 0, nb = meshes.length; i < nb; ++i) {
       meshes[i].setShowWireframe(bool);
     }
     this._main.render();
-  },
-  addEvents: function () {
+  }
+
+  addEvents() {
     var cbLoadTex = this.loadTextureUV.bind(this);
     var cbLoadMatcap = this.loadMatcap.bind(this);
     document.getElementById('textureopen').addEventListener('change', cbLoadTex, false);
@@ -160,11 +171,13 @@ GuiRendering.prototype = {
       document.getElementById('textureopen').removeEventListener('change', cbLoadTex, false);
       document.getElementById('matcapopen').removeEventListener('change', cbLoadMatcap, false);
     };
-  },
-  removeEvents: function () {
+  }
+
+  removeEvents() {
     if (this.removeCallback) this.removeCallback();
-  },
-  updateMesh: function () {
+  }
+
+  updateMesh() {
     var mesh = this._main.getMesh();
     if (!mesh) {
       this._menu.setVisibility(false);
@@ -179,8 +192,9 @@ GuiRendering.prototype = {
     this._ctrlTransparency.setValue(100 - 100 * mesh.getOpacity(), true);
     this._ctrlCurvature.setValue(20 * mesh.getCurvature(), true);
     this.updateVisibility();
-  },
-  updateVisibility: function () {
+  }
+
+  updateVisibility() {
     var mesh = this._main.getMesh();
     if (!mesh) return;
     var val = mesh.getShaderType();
@@ -193,20 +207,25 @@ GuiRendering.prototype = {
     this._ctrlEnv.setVisibility(val === Enums.Shader.PBR);
 
     this._ctrlUV.setVisibility(val === Enums.Shader.UV);
-  },
-  getFlatShading: function () {
+  }
+
+  getFlatShading() {
     return this._ctrlFlatShading.getValue();
-  },
-  getWireframe: function () {
+  }
+
+  getWireframe() {
     return this._ctrlShowWireframe.getValue();
-  },
-  getShaderName: function () {
+  }
+
+  getShaderName() {
     return this._ctrlShaders.getValue();
-  },
-  importTexture: function () {
+  }
+
+  importTexture() {
     document.getElementById('textureopen').click();
-  },
-  loadTextureUV: function (event) {
+  }
+
+  loadTextureUV(event) {
     if (event.target.files.length === 0)
       return;
 
@@ -225,8 +244,9 @@ GuiRendering.prototype = {
 
     document.getElementById('textureopen').value = '';
     reader.readAsDataURL(file);
-  },
-  loadMatcap: function (event) {
+  }
+
+  loadMatcap(event) {
     if (event.target.files.length === 0)
       return;
 
@@ -261,17 +281,19 @@ GuiRendering.prototype = {
 
     document.getElementById('matcapopen').value = '';
     reader.readAsDataURL(file);
-  },
-  importMatcap: function () {
+  }
+
+  importMatcap() {
     document.getElementById('matcapopen').click();
-  },
+  }
+
   ////////////////
   // KEY EVENTS
   ////////////////
-  onKeyUp: function (event) {
+  onKeyUp(event) {
     if (getOptionsURL.getShortKey(event.which) === Enums.KeyAction.WIREFRAME && !event.ctrlKey)
       this._ctrlShowWireframe.setValue(!this._ctrlShowWireframe.getValue());
   }
-};
+}
 
 export default GuiRendering;

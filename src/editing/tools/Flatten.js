@@ -1,20 +1,20 @@
-import Utils from '../../misc/Utils';
 import Tablet from '../../misc/Tablet';
 import SculptBase from '../../editing/tools/SculptBase';
 
-var Flatten = function (main) {
-  SculptBase.call(this, main);
-  this._radius = 50;
-  this._intensity = 0.75;
-  this._negative = true;
-  this._culling = false;
-  this._idAlpha = 0;
-  this._lockPosition = false;
-};
+class Flatten extends SculptBase {
 
-Flatten.prototype = {
-  /** On stroke */
-  stroke: function (picking) {
+  constructor(main) {
+    super(main);
+
+    this._radius = 50;
+    this._intensity = 0.75;
+    this._negative = true;
+    this._culling = false;
+    this._idAlpha = 0;
+    this._lockPosition = false;
+  }
+
+  stroke(picking) {
     var iVertsInRadius = picking.getPickedVertices();
     var intensity = this._intensity * Tablet.getPressureIntensity();
 
@@ -36,9 +36,10 @@ Flatten.prototype = {
 
     var mesh = this.getMesh();
     mesh.updateGeometry(mesh.getFacesFromVertices(iVertsInRadius), iVertsInRadius);
-  },
+  }
+
   /** Flatten, projection of the sculpting vertex onto a plane defined by the barycenter and normals of all the sculpting vertices */
-  flatten: function (iVertsInRadius, aNormal, aCenter, center, radiusSquared, intensity, picking) {
+  flatten(iVertsInRadius, aNormal, aCenter, center, radiusSquared, intensity, picking) {
     var mesh = this.getMesh();
     var vAr = mesh.getVertices();
     var mAr = mesh.getMaterials();
@@ -75,9 +76,7 @@ Flatten.prototype = {
       vAr[ind + 1] -= any * fallOff;
       vAr[ind + 2] -= anz * fallOff;
     }
-  },
-};
-
-Utils.makeProxy(SculptBase, Flatten);
+  }
+}
 
 export default Flatten;

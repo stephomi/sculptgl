@@ -1,30 +1,34 @@
 import TR from '../gui/GuiTR';
 
-var GuiBackground = function (guiParent, ctrlGui) {
-  this._main = ctrlGui._main; // main application
-  this._menu = null; // ui menu
-  this.init(guiParent);
-};
+class GuiBackground {
 
-GuiBackground.prototype = {
-  init: function (guiParent) {
+  constructor(guiParent, ctrlGui) {
+    this._main = ctrlGui._main; // main application
+    this._menu = null; // ui menu
+    this.init(guiParent);
+  }
+
+  init(guiParent) {
     // background fold
     var menu = this._menu = guiParent.addMenu(TR('backgroundTitle'));
     menu.addButton(TR('backgroundReset'), this, 'resetBackground');
     menu.addButton(TR('backgroundImport'), this, 'importBackground');
     menu.addCheckbox(TR('backgroundFill'), this._main.getBackground()._fill, this.updateFill.bind(this));
-  },
-  updateFill: function (val) {
+  }
+
+  updateFill(val) {
     this._main.getBackground()._fill = val;
     this._main.onCanvasResize();
-  },
-  resetBackground: function () {
+  }
+
+  resetBackground() {
     this._main.getBackground().deleteTexture();
     this._main.render();
-  },
-  importBackground: function () {
+  }
+
+  importBackground() {
     document.getElementById('backgroundopen').click();
   }
-};
+}
 
 export default GuiBackground;

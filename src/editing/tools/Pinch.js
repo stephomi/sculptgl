@@ -1,20 +1,20 @@
-import Utils from '../../misc/Utils';
 import Tablet from '../../misc/Tablet';
 import SculptBase from '../../editing/tools/SculptBase';
 
-var Pinch = function (main) {
-  SculptBase.call(this, main);
-  this._radius = 50;
-  this._intensity = 0.75;
-  this._negative = false;
-  this._culling = false;
-  this._idAlpha = 0;
-  this._lockPosition = false;
-};
+class Pinch extends SculptBase {
 
-Pinch.prototype = {
-  /** On stroke */
-  stroke: function (picking) {
+  constructor(main) {
+    super(main);
+
+    this._radius = 50;
+    this._intensity = 0.75;
+    this._negative = false;
+    this._culling = false;
+    this._idAlpha = 0;
+    this._lockPosition = false;
+  }
+
+  stroke(picking) {
     var iVertsInRadius = picking.getPickedVertices();
     var intensity = this._intensity * Tablet.getPressureIntensity();
 
@@ -31,9 +31,10 @@ Pinch.prototype = {
 
     var mesh = this.getMesh();
     mesh.updateGeometry(mesh.getFacesFromVertices(iVertsInRadius), iVertsInRadius);
-  },
+  }
+
   /** Pinch, vertices gather around intersection point */
-  pinch: function (iVertsInRadius, center, radiusSquared, intensity, picking) {
+  pinch(iVertsInRadius, center, radiusSquared, intensity, picking) {
     var mesh = this.getMesh();
     var vAr = mesh.getVertices();
     var mAr = mesh.getMaterials();
@@ -61,8 +62,6 @@ Pinch.prototype = {
       vAr[ind + 2] = vz + dz * fallOff;
     }
   }
-};
-
-Utils.makeProxy(SculptBase, Pinch);
+}
 
 export default Pinch;

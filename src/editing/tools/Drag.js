@@ -1,22 +1,22 @@
 import glm from '../../lib/gl-matrix';
-import Utils from '../../misc/Utils';
 import Geometry from '../../math3d/Geometry';
 import SculptBase from '../../editing/tools/SculptBase';
 
 var vec3 = glm.vec3;
 var mat4 = glm.mat4;
 
-var Drag = function (main) {
-  SculptBase.call(this, main);
-  this._radius = 150;
-  this._dragDir = [0.0, 0.0, 0.0];
-  this._dragDirSym = [0.0, 0.0, 0.0];
-  this._idAlpha = 0;
-};
+class Drag extends SculptBase {
 
-Drag.prototype = {
-  /** Make a brush stroke */
-  sculptStroke: function () {
+  constructor(main) {
+    super(main);
+
+    this._radius = 150;
+    this._dragDir = [0.0, 0.0, 0.0];
+    this._dragDirSym = [0.0, 0.0, 0.0];
+    this._idAlpha = 0;
+  }
+
+  sculptStroke() {
     var main = this._main;
     var mesh = this.getMesh();
     var picking = main.getPicking();
@@ -53,8 +53,9 @@ Drag.prototype = {
 
     this._lastMouseX = main._mouseX;
     this._lastMouseY = main._mouseY;
-  },
-  makeStroke: function (mouseX, mouseY, picking, pickingSym) {
+  }
+
+  makeStroke(mouseX, mouseY, picking, pickingSym) {
     var mesh = this.getMesh();
     this.updateDragDir(picking, mouseX, mouseY);
     picking.pickVerticesInSphere(picking.getLocalRadius2());
@@ -72,9 +73,10 @@ Drag.prototype = {
     if (!mesh.isDynamic) this.stroke(picking, false);
     if (pickingSym) this.stroke(pickingSym, true);
     return true;
-  },
+  }
+
   /** On stroke */
-  stroke: function (picking, sym) {
+  stroke(picking, sym) {
     var iVertsInRadius = picking.getPickedVertices();
 
     // undo-redo
@@ -87,9 +89,10 @@ Drag.prototype = {
 
     var mesh = this.getMesh();
     mesh.updateGeometry(mesh.getFacesFromVertices(iVertsInRadius), iVertsInRadius);
-  },
+  }
+
   /** Drag deformation */
-  drag: function (iVerts, center, radiusSquared, sym, picking) {
+  drag(iVerts, center, radiusSquared, sym, picking) {
     var mesh = this.getMesh();
     var vAr = mesh.getVertices();
     var mAr = mesh.getMaterials();
@@ -117,9 +120,10 @@ Drag.prototype = {
       vAr[ind + 1] = vy + diry * fallOff;
       vAr[ind + 2] = vz + dirz * fallOff;
     }
-  },
+  }
+
   /** Set a few infos that will be needed for the drag function afterwards */
-  updateDragDir: function (picking, mouseX, mouseY, useSymmetry) {
+  updateDragDir(picking, mouseX, mouseY, useSymmetry) {
     var mesh = this.getMesh();
     var vNear = picking.unproject(mouseX, mouseY, 0.0);
     var vFar = picking.unproject(mouseX, mouseY, 0.1);
@@ -144,8 +148,6 @@ Drag.prototype = {
     vec3.sub(eyeDir, vFar, vNear);
     vec3.normalize(eyeDir, eyeDir);
   }
-};
-
-Utils.makeProxy(SculptBase, Drag);
+}
 
 export default Drag;

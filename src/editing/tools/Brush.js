@@ -1,25 +1,26 @@
 import glm from '../../lib/gl-matrix';
-import Utils from '../../misc/Utils';
 import Tablet from '../../misc/Tablet';
 import SculptBase from '../../editing/tools/SculptBase';
 import Flatten from '../../editing/tools/Flatten';
 
 var vec3 = glm.vec3;
 
-var Brush = function (main) {
-  SculptBase.call(this, main);
-  this._radius = 50;
-  this._intensity = 0.5;
-  this._negative = false;
-  this._clay = true;
-  this._culling = false;
-  this._accumulate = true; // if we ignore the proxy
-  this._idAlpha = 0;
-  this._lockPosition = false;
-};
+class Brush extends SculptBase {
 
-Brush.prototype = {
-  stroke: function (picking) {
+  constructor(main) {
+    super(main);
+
+    this._radius = 50;
+    this._intensity = 0.5;
+    this._negative = false;
+    this._clay = true;
+    this._culling = false;
+    this._accumulate = true; // if we ignore the proxy
+    this._idAlpha = 0;
+    this._lockPosition = false;
+  }
+
+  stroke(picking) {
     var iVertsInRadius = picking.getPickedVertices();
     var intensity = this._intensity * Tablet.getPressureIntensity();
 
@@ -52,8 +53,9 @@ Brush.prototype = {
 
     var mesh = this.getMesh();
     mesh.updateGeometry(mesh.getFacesFromVertices(iVertsInRadius), iVertsInRadius);
-  },
-  brush: function (iVertsInRadius, aNormal, center, radiusSquared, intensity, picking) {
+  }
+
+  brush(iVertsInRadius, aNormal, center, radiusSquared, intensity, picking) {
     var mesh = this.getMesh();
     var vAr = mesh.getVertices();
     var mAr = mesh.getMaterials();
@@ -87,8 +89,6 @@ Brush.prototype = {
       vAr[ind + 2] = vz + anz * fallOff;
     }
   }
-};
-
-Utils.makeProxy(SculptBase, Brush);
+}
 
 export default Brush;

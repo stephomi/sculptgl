@@ -2,18 +2,18 @@ import TR from '../gui/GuiTR';
 import getOptionsURL from '../misc/getOptionsURL';
 import Enums from '../misc/Enums';
 
-var GuiCamera = function (guiParent, ctrlGui) {
-  this._main = ctrlGui._main; // main application
-  this._menu = null; // ui menu
-  this._camera = this._main.getCamera(); // the camera
-  this._cameraTimer = -1; // interval id (used for zqsd/wasd/arrow moves)
-  this._cbTranslation = this.cbOnTranslation.bind(this);
-  this.init(guiParent);
-};
+class GuiCamera {
 
-GuiCamera.prototype = {
-  /** Initialize */
-  init: function (guiParent) {
+  constructor(guiParent, ctrlGui) {
+    this._main = ctrlGui._main; // main application
+    this._menu = null; // ui menu
+    this._camera = this._main.getCamera(); // the camera
+    this._cameraTimer = -1; // interval id (used for zqsd/wasd/arrow moves)
+    this._cbTranslation = this.cbOnTranslation.bind(this);
+    this.init(guiParent);
+  }
+
+  init(guiParent) {
     var camera = this._camera;
 
     // Camera fold
@@ -43,21 +43,25 @@ GuiCamera.prototype = {
     optionsMode[Enums.CameraMode.PLANE] = TR('cameraPlane');
     menu.addCombobox('', camera.getMode(), this.onCameraModeChange.bind(this), optionsMode);
     this._ctrlPivot = menu.addCheckbox(TR('cameraPivot'), camera.getUsePivot(), this.onPivotChange.bind(this));
-  },
-  onCameraModeChange: function (value) {
+  }
+
+  onCameraModeChange(value) {
     this._camera.setMode(value);
     this._main.render();
-  },
-  onCameraTypeChange: function (value) {
+  }
+
+  onCameraTypeChange(value) {
     this._camera.setProjectionType(value);
     this._ctrlFov.setVisibility(value === Enums.Projection.PERSPECTIVE);
     this._main.render();
-  },
-  onFovChange: function (value) {
+  }
+
+  onFovChange(value) {
     this._camera.setFov(value);
     this._main.render();
-  },
-  onKeyDown: function (event) {
+  }
+
+  onKeyDown(event) {
     if (event.handled === true)
       return;
 
@@ -94,14 +98,16 @@ GuiCamera.prototype = {
     if (event.handled === true && this._cameraTimer === -1) {
       this._cameraTimer = window.setInterval(this._cbTranslation, 16.6);
     }
-  },
-  cbOnTranslation: function () {
+  }
+
+  cbOnTranslation() {
     var main = this._main;
     main.getCamera().updateTranslation();
     main.render();
-  },
+  }
+
   /** Key released event */
-  onKeyUp: function (event) {
+  onKeyUp(event) {
     if (event.handled === true)
       return;
 
@@ -140,27 +146,32 @@ GuiCamera.prototype = {
       clearInterval(this._cameraTimer);
       this._cameraTimer = -1;
     }
-  },
-  resetCamera: function () {
+  }
+
+  resetCamera() {
     this._camera.resetView();
     this._main.render();
-  },
-  resetFront: function () {
+  }
+
+  resetFront() {
     this._camera.toggleViewFront();
     this._main.render();
-  },
-  resetLeft: function () {
+  }
+
+  resetLeft() {
     this._camera.toggleViewLeft();
     this._main.render();
-  },
-  resetTop: function () {
+  }
+
+  resetTop() {
     this._camera.toggleViewTop();
     this._main.render();
-  },
-  onPivotChange: function () {
+  }
+
+  onPivotChange() {
     this._camera.toggleUsePivot();
     this._main.render();
   }
-};
+}
 
 export default GuiCamera;

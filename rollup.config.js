@@ -1,6 +1,5 @@
-'use strict';
-
 import uglify from 'rollup-plugin-uglify';
+import babel from 'rollup-plugin-babel';
 
 function glsl() {
   return {
@@ -15,8 +14,16 @@ function glsl() {
 }
 
 var plugins = [glsl()];
+
 if (process.env.release) {
   plugins.push(uglify());
+  plugins.push(babel({
+    include: 'src/**',
+    presets: [
+      ['es2015', { 'modules': false }]
+    ],
+    plugins: ['external-helpers']
+  }));
 }
 
 export default {

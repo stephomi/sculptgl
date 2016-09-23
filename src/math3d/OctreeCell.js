@@ -1,38 +1,29 @@
-var OctreeCell = function (parent) {
-  this._parent = parent ? parent : null; // parent
-  this._depth = parent ? parent._depth + 1 : 0; // depth of current node
-  this._children = []; // children
+class OctreeCell {
 
-  // extended boundary for intersect test
-  this._aabbLoose = [Infinity, Infinity, Infinity, -Infinity, -Infinity, -Infinity];
+  constructor(parent) {
+    this._parent = parent ? parent : null; // parent
+    this._depth = parent ? parent._depth + 1 : 0; // depth of current node
+    this._children = []; // children
 
-  // boundary in order to store exactly the face according to their center
-  this._aabbSplit = [Infinity, Infinity, Infinity, -Infinity, -Infinity, -Infinity];
-  this._iFaces = []; // faces (if cell is a leaf)
+    // extended boundary for intersect test
+    this._aabbLoose = [Infinity, Infinity, Infinity, -Infinity, -Infinity, -Infinity];
 
-  this._flag = 0; // to track deleted cell
-};
+    // boundary in order to store exactly the face according to their center
+    this._aabbSplit = [Infinity, Infinity, Infinity, -Infinity, -Infinity, -Infinity];
+    this._iFaces = []; // faces (if cell is a leaf)
 
-OctreeCell.FLAG = 0;
+    this._flag = 0; // to track deleted cell
+  }
 
-OctreeCell.MAX_DEPTH = 8; // maximum depth
-OctreeCell.MAX_FACES = 100; // maximum faces per cell
-(function () {
-  var nb = 1 + 7 * OctreeCell.MAX_DEPTH;
-  var stack = OctreeCell.STACK = new Array(nb);
-  for (var i = 0; i < nb; ++i)
-    stack[i] = null;
-})();
-
-OctreeCell.prototype = {
-  resetNbFaces: function (nbFaces) {
+  resetNbFaces(nbFaces) {
     var facesAll = this._iFaces;
     facesAll.length = nbFaces;
     for (var i = 0; i < nbFaces; ++i)
       facesAll[i] = i;
-  },
+  }
+
   /** Subdivide octree, aabbSplit must be already set, and aabbLoose will be expanded if it's a leaf  */
-  build: function (mesh) {
+  build(mesh) {
     var i = 0;
 
     var stack = OctreeCell.STACK;
@@ -56,9 +47,10 @@ OctreeCell.prototype = {
     var nbLeaves = leaves.length;
     for (i = 0; i < nbLeaves; ++i)
       leaves[i].constructLeaf(mesh);
-  },
+  }
+
   /** Construct the leaf  */
-  constructLeaf: function (mesh) {
+  constructLeaf(mesh) {
     var iFaces = this._iFaces;
     var nbFaces = iFaces.length;
     var bxmin = Infinity;
@@ -89,9 +81,10 @@ OctreeCell.prototype = {
       if (zmax > bzmax) bzmax = zmax;
     }
     this.expandsAabbLoose(bxmin, bymin, bzmin, bxmax, bymax, bzmax);
-  },
+  }
+
   /** Construct sub cells of the octree */
-  constructChildren: function (mesh) {
+  constructChildren(mesh) {
     var split = this._aabbSplit;
     var xmin = split[0];
     var ymin = split[1];
@@ -164,8 +157,9 @@ OctreeCell.prototype = {
     this._children.length = 0;
     this._children.push(child0, child1, child2, child3, child4, child5, child6, child7);
     iFaces.length = 0;
-  },
-  setAabbSplit: function (xmin, ymin, zmin, xmax, ymax, zmax) {
+  }
+
+  setAabbSplit(xmin, ymin, zmin, xmax, ymax, zmax) {
     var aabb = this._aabbSplit;
     aabb[0] = xmin;
     aabb[1] = ymin;
@@ -173,8 +167,9 @@ OctreeCell.prototype = {
     aabb[3] = xmax;
     aabb[4] = ymax;
     aabb[5] = zmax;
-  },
-  setAabbLoose: function (xmin, ymin, zmin, xmax, ymax, zmax) {
+  }
+
+  setAabbLoose(xmin, ymin, zmin, xmax, ymax, zmax) {
     var aabb = this._aabbLoose;
     aabb[0] = xmin;
     aabb[1] = ymin;
@@ -182,9 +177,10 @@ OctreeCell.prototype = {
     aabb[3] = xmax;
     aabb[4] = ymax;
     aabb[5] = zmax;
-  },
+  }
+
   /** Collect faces in cells hit by a ray */
-  collectIntersectRay: function (vNear, eyeDir, collectFaces, leavesHit) {
+  collectIntersectRay(vNear, eyeDir, collectFaces, leavesHit) {
     var vx = vNear[0];
     var vy = vNear[1];
     var vz = vNear[2];
@@ -223,9 +219,10 @@ OctreeCell.prototype = {
       }
     }
     return new Uint32Array(collectFaces.subarray(0, acc));
-  },
+  }
+
   /** Collect faces inside a sphere */
-  collectIntersectSphere: function (vert, radiusSquared, collectFaces, leavesHit) {
+  collectIntersectSphere(vert, radiusSquared, collectFaces, leavesHit) {
     var vx = vert[0];
     var vy = vert[1];
     var vz = vert[2];
@@ -269,9 +266,10 @@ OctreeCell.prototype = {
       }
     }
     return new Uint32Array(collectFaces.subarray(0, acc));
-  },
+  }
+
   /** Add a face in the octree, subdivide the cell if necessary */
-  addFace: function (faceId, bxmin, bymin, bzmin, bxmax, bymax, bzmax, cx, cy, cz) {
+  addFace(faceId, bxmin, bymin, bzmin, bxmax, bymax, bzmax, cx, cy, cz) {
     var stack = OctreeCell.STACK;
     stack[0] = this;
     var curStack = 1;
@@ -304,9 +302,10 @@ OctreeCell.prototype = {
         return cell;
       }
     }
-  },
+  }
+
   /** Cut leaves if needed */
-  pruneIfPossible: function () {
+  pruneIfPossible() {
     var cell = this;
     while (cell._parent) {
       var parent = cell._parent;
@@ -327,9 +326,10 @@ OctreeCell.prototype = {
       children.length = 0;
       cell = parent;
     }
-  },
+  }
+
   /** Expand aabb loose */
-  expandsAabbLoose: function (bxmin, bymin, bzmin, bxmax, bymax, bzmax) {
+  expandsAabbLoose(bxmin, bymin, bzmin, bxmax, bymax, bzmax) {
     var parent = this;
     while (parent) {
       var pLoose = parent._aabbLoose;
@@ -361,6 +361,17 @@ OctreeCell.prototype = {
       parent = proceed ? parent._parent : null;
     }
   }
-};
+}
+
+OctreeCell.FLAG = 0;
+
+OctreeCell.MAX_DEPTH = 8;
+OctreeCell.MAX_FACES = 100; // maximum faces per cell
+(function () {
+  var nb = 1 + 7 * OctreeCell.MAX_DEPTH;
+  var stack = OctreeCell.STACK = new Array(nb);
+  for (var i = 0; i < nb; ++i)
+    stack[i] = null;
+})();
 
 export default OctreeCell;

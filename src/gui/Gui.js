@@ -14,31 +14,32 @@ import GuiTablet from '../gui/GuiTablet';
 import ShaderContour from '../render/shaders/ShaderContour';
 import getOptionsURL from '../misc/getOptionsURL';
 
-var Gui = function (main) {
-  this._main = main;
+class Gui {
 
-  this._guiMain = null;
-  this._sidebar = null;
-  this._topbar = null;
+  constructor(main) {
+    this._main = main;
 
-  this._ctrlTablet = null;
-  this._ctrlFiles = null;
-  this._ctrlScene = null;
-  this._ctrlStates = null;
-  this._ctrlCamera = null;
-  this._ctrlBackground = null;
+    this._guiMain = null;
+    this._sidebar = null;
+    this._topbar = null;
 
-  this._ctrlSculpting = null;
-  this._ctrlTopology = null;
-  this._ctrlRendering = null;
+    this._ctrlTablet = null;
+    this._ctrlFiles = null;
+    this._ctrlScene = null;
+    this._ctrlStates = null;
+    this._ctrlCamera = null;
+    this._ctrlBackground = null;
 
-  this._ctrlNotification = null;
+    this._ctrlSculpting = null;
+    this._ctrlTopology = null;
+    this._ctrlRendering = null;
 
-  this._ctrls = []; // list of controllers
-};
+    this._ctrlNotification = null;
 
-Gui.prototype = {
-  initGui: function () {
+    this._ctrls = []; // list of controllers
+  }
+
+  initGui() {
     this.deleteGui();
 
     this._guiMain = new yagui.GuiMain(this._main.getViewport(), this._main.onCanvasResize.bind(this._main));
@@ -78,71 +79,84 @@ Gui.prototype = {
 
     this.updateMesh();
     this.setVisibility(true);
-  },
-  onPixelRatio: function (val) {
+  }
+
+  onPixelRatio(val) {
     this._main._pixelRatio = val;
     this._main.onCanvasResize();
-  },
-  onContourColor: function (col) {
+  }
+
+  onContourColor(col) {
     ShaderContour.color[0] = col[0];
     ShaderContour.color[1] = col[1];
     ShaderContour.color[2] = col[2];
     ShaderContour.color[3] = col[3];
     this._main.render();
-  },
-  addAboutButton: function () {
+  }
+
+  addAboutButton() {
     var ctrlAbout = this._topbar.addMenu();
     ctrlAbout.domContainer.innerHTML = TR('about');
     ctrlAbout.domContainer.addEventListener('mousedown', function () {
       window.open('http://stephaneginier.com', '_blank');
     });
-  },
-  getWidgetNotification: function () {
+  }
+
+  getWidgetNotification() {
     if (!this._ctrlNotification) {
       this._ctrlNotification = this._topbar.addMenu();
       this._ctrlNotification.setVisibility(false);
     }
     return this._ctrlNotification;
-  },
-  updateMesh: function () {
+  }
+
+  updateMesh() {
     this._ctrlRendering.updateMesh();
     this._ctrlTopology.updateMesh();
     this._ctrlSculpting.updateMesh();
     this._ctrlScene.updateMesh();
     this.updateMeshInfo();
-  },
-  updateMeshInfo: function () {
+  }
+
+  updateMeshInfo() {
     this._ctrlMesh.updateMeshInfo();
-  },
-  getFlatShading: function () {
+  }
+
+  getFlatShading() {
     return this._ctrlRendering.getFlatShading();
-  },
-  getWireframe: function () {
+  }
+
+  getWireframe() {
     return this._ctrlRendering.getWireframe();
-  },
-  getShaderType: function () {
+  }
+
+  getShaderType() {
     return this._ctrlRendering.getShaderType();
-  },
-  addAlphaOptions: function (opts) {
+  }
+
+  addAlphaOptions(opts) {
     this._ctrlSculpting.addAlphaOptions(opts);
-  },
-  deleteGui: function () {
+  }
+
+  deleteGui() {
     if (!this._guiMain || !this._guiMain.domMain.parentNode)
       return;
     this.callFunc('removeEvents');
     this.setVisibility(false);
     this._guiMain.domMain.parentNode.removeChild(this._guiMain.domMain);
-  },
-  setVisibility: function (bool) {
+  }
+
+  setVisibility(bool) {
     this._guiMain.setVisibility(bool);
-  },
-  callFunc: function (func, event) {
+  }
+
+  callFunc(func, event) {
     for (var i = 0, ctrls = this._ctrls, nb = ctrls.length; i < nb; ++i) {
       var ct = ctrls[i];
       if (ct && ct[func])
         ct[func](event);
     }
   }
-};
+}
 
 export default Gui;

@@ -1,4 +1,4 @@
-var Utils = {};
+let Utils = {};
 
 Utils.SCALE = 100.0; // scale factor
 Utils.TAG_FLAG = 1; // flag value for comparison (always >= tags values)
@@ -25,10 +25,6 @@ Utils.extend = function (dest, src) {
     if (dest[key] === undefined) dest[key] = src[key];
   }
   return dest;
-};
-
-Utils.makeProxy = function (source, proxy) {
-  Utils.extend(proxy.prototype, source.prototype);
 };
 
 Utils.invert = function (obj) {

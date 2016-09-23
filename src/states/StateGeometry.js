@@ -3,36 +3,41 @@ import Utils from '../misc/Utils';
 
 var vec3 = glm.vec3;
 
-var StateGeometry = function (main, mesh) {
-  this._main = main; // main application
-  this._mesh = mesh; // the mesh
-  this._center = vec3.copy([0.0, 0.0, 0.0], mesh.getCenter());
+class StateGeometry {
 
-  this._idVertState = []; // ids of vertices
-  this._vArState = []; // copies of vertices coordinates
-};
+  constructor(main, mesh) {
+    this._main = main; // main application
+    this._mesh = mesh; // the mesh
+    this._center = vec3.copy([0.0, 0.0, 0.0], mesh.getCenter());
 
-StateGeometry.prototype = {
-  isNoop: function () {
+    this._idVertState = []; // ids of vertices
+    this._vArState = []; // copies of vertices coordinates
+  }
+
+  isNoop() {
     return this._idVertState.length === 0;
-  },
-  undo: function () {
+  }
+
+  undo() {
     this.pullVertices();
     var mesh = this._mesh;
     mesh.updateGeometry(mesh.getFacesFromVertices(this._idVertState), this._idVertState);
     mesh.updateGeometryBuffers();
     vec3.copy(mesh.getCenter(), this._center);
     this._main.setMesh(mesh);
-  },
-  redo: function () {
+  }
+
+  redo() {
     this.undo();
-  },
-  createRedo: function () {
+  }
+
+  createRedo() {
     var redo = new StateGeometry(this._main, this._mesh);
     this.pushRedoVertices(redo);
     return redo;
-  },
-  pushVertices: function (iVerts) {
+  }
+
+  pushVertices(iVerts) {
     var idVertState = this._idVertState;
     var vArState = this._vArState;
 
@@ -51,8 +56,9 @@ StateGeometry.prototype = {
       id *= 3;
       vArState.push(vAr[id], vAr[id + 1], vAr[id + 2]);
     }
-  },
-  pushRedoVertices: function (redoState) {
+  }
+
+  pushRedoVertices(redoState) {
     var mesh = redoState._mesh;
     var vAr = mesh.getVertices();
 
@@ -69,8 +75,9 @@ StateGeometry.prototype = {
       vArRedoState[j + 1] = vAr[id + 1];
       vArRedoState[j + 2] = vAr[id + 2];
     }
-  },
-  pullVertices: function () {
+  }
+
+  pullVertices() {
     var vArState = this._vArState;
     var idVertState = this._idVertState;
     var nbVerts = idVertState.length;
@@ -85,6 +92,6 @@ StateGeometry.prototype = {
       vAr[id + 2] = vArState[j + 2];
     }
   }
-};
+}
 
 export default StateGeometry;

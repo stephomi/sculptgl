@@ -11,23 +11,26 @@ import Utils from '../../misc/Utils';
 
 // update -> sculptStroke
 
-var SculptBase = function (main) {
-  this._main = main;
-  this._cbContinuous = this.updateContinuous.bind(this); // callback continuous
-  this._lastMouseX = 0.0;
-  this._lastMouseY = 0.0;
-};
+class SculptBase {
 
-SculptBase.prototype = {
-  setToolMesh: function (mesh) {
+  constructor(main) {
+    this._main = main;
+    this._cbContinuous = this.updateContinuous.bind(this); // callback continuous
+    this._lastMouseX = 0.0;
+    this._lastMouseY = 0.0;
+  }
+
+  setToolMesh(mesh) {
     // to be called when we create a new instance of a tool operator
     // that is no part of the main application Sculpt container (e.g smooth)
     this._forceToolMesh = mesh;
-  },
-  getMesh: function () {
+  }
+
+  getMesh() {
     return this._forceToolMesh || this._main.getMesh();
-  },
-  start: function (ctrl) {
+  }
+
+  start(ctrl) {
     var main = this._main;
     var picking = main.getPicking();
 
@@ -51,20 +54,24 @@ SculptBase.prototype = {
     this.startSculpt();
 
     return true;
-  },
-  end: function () {
+  }
+
+  end() {
     if (this.getMesh())
       this.getMesh().balanceOctree();
-  },
-  pushState: function () {
+  }
+
+  pushState() {
     this._main.getStateManager().pushStateGeometry(this.getMesh());
-  },
-  startSculpt: function () {
+  }
+
+  startSculpt() {
     if (this._lockPosition === true)
       return;
     this.sculptStroke();
-  },
-  preUpdate: function (canBeContinuous) {
+  }
+
+  preUpdate(canBeContinuous) {
     var main = this._main;
     var picking = main.getPicking();
     var isSculpting = main._action === Enums.Action.SCULPT_EDIT;
@@ -80,14 +87,16 @@ SculptBase.prototype = {
     var mesh = picking.getMesh();
     if (mesh && main.getSculptManager().getSymmetry())
       main.getPickingSymmetry().intersectionMouseMesh(mesh);
-  },
-  update: function (continuous) {
+  }
+
+  update(continuous) {
     if (this._lockPosition === true)
       return this.updateSculptLock(continuous);
     this.sculptStroke();
-  },
+  }
+
   /** Update lock position */
-  updateSculptLock: function (continuous) {
+  updateSculptLock(continuous) {
     var main = this._main;
     if (!continuous)
       this._main.getStateManager().getCurrentState().undo(); // tricky
@@ -108,8 +117,9 @@ SculptBase.prototype = {
 
     this.updateRender();
     main.setCanvasCursor('default');
-  },
-  sculptStroke: function () {
+  }
+
+  sculptStroke() {
     var main = this._main;
     var picking = main.getPicking();
     var pickingSym = main.getSculptManager().getSymmetry() ? main.getPickingSymmetry() : null;
@@ -139,12 +149,14 @@ SculptBase.prototype = {
 
     this._lastMouseX = main._mouseX;
     this._lastMouseY = main._mouseY;
-  },
-  updateRender: function () {
+  }
+
+  updateRender() {
     this.updateMeshBuffers();
     this._main.render();
-  },
-  makeStroke: function (mouseX, mouseY, picking, pickingSym) {
+  }
+
+  makeStroke(mouseX, mouseY, picking, pickingSym) {
     var mesh = this.getMesh();
     picking.intersectionMouseMesh(mesh, mouseX, mouseY);
     var pick1 = picking.getMesh();
@@ -171,24 +183,27 @@ SculptBase.prototype = {
     if (!dynTopo && pick1) this.stroke(picking, false);
     if (pick2) this.stroke(pickingSym, true);
     return pick1 || pick2;
-  },
-  updateMeshBuffers: function () {
+  }
+
+  updateMeshBuffers() {
     var mesh = this.getMesh();
     if (mesh.isDynamic)
       mesh.updateBuffers();
     else
       mesh.updateGeometryBuffers();
-  },
-  updateContinuous: function () {
+  }
+
+  updateContinuous() {
     if (this._lockPosition) return this.update(true);
     var main = this._main;
     var picking = main.getPicking();
     var pickingSym = main.getSculptManager().getSymmetry() ? main.getPickingSymmetry() : null;
     this.makeStroke(main._mouseX, main._mouseY, picking, pickingSym);
     this.updateRender();
-  },
+  }
+
   /** Return the vertices that point toward the camera */
-  getFrontVertices: function (iVertsInRadius, eyeDir) {
+  getFrontVertices(iVertsInRadius, eyeDir) {
     var nbVertsSelected = iVertsInRadius.length;
     var iVertsFront = new Uint32Array(Utils.getMemory(4 * nbVertsSelected), 0, nbVertsSelected);
     var acc = 0;
@@ -203,9 +218,10 @@ SculptBase.prototype = {
         iVertsFront[acc++] = id;
     }
     return new Uint32Array(iVertsFront.subarray(0, acc));
-  },
+  }
+
   /** Compute average normal of a group of vertices with culling */
-  areaNormal: function (iVerts) {
+  areaNormal(iVerts) {
     var mesh = this.getMesh();
     var nAr = mesh.getNormals();
     var mAr = mesh.getMaterials();
@@ -224,9 +240,10 @@ SculptBase.prototype = {
       return;
     len = 1.0 / len;
     return [anx * len, any * len, anz * len];
-  },
+  }
+
   /** Compute average center of a group of vertices (with culling) */
-  areaCenter: function (iVerts) {
+  areaCenter(iVerts) {
     var mesh = this.getMesh();
     var vAr = mesh.getVertices();
     var mAr = mesh.getMaterials();
@@ -244,9 +261,10 @@ SculptBase.prototype = {
       az += vAr[ind + 2] * f;
     }
     return [ax / acc, ay / acc, az / acc];
-  },
+  }
+
   /** Updates the vertices original coords that are sculpted for the first time in this stroke */
-  updateProxy: function (iVerts) {
+  updateProxy(iVerts) {
     var mesh = this.getMesh();
     var vAr = mesh.getVertices();
     var vProxy = mesh.getVerticesProxy();
@@ -263,9 +281,10 @@ SculptBase.prototype = {
         vProxy[ind + 2] = vAr[ind + 2];
       }
     }
-  },
+  }
+
   /** Laplacian smooth. Special rule for vertex on the edge of the mesh. */
-  laplacianSmooth: function (iVerts, smoothVerts, vField) {
+  laplacianSmooth(iVerts, smoothVerts, vField) {
     var mesh = this.getMesh();
     var vrvStartCount = mesh.getVerticesRingVertStartCount();
     var vertRingVert = mesh.getVerticesRingVert();
@@ -337,8 +356,9 @@ SculptBase.prototype = {
       smoothVerts[i3 + 1] = avy / vcount;
       smoothVerts[i3 + 2] = avz / vcount;
     }
-  },
-  dynamicTopology: function (picking) {
+  }
+
+  dynamicTopology(picking) {
     var mesh = this.getMesh();
     var iVerts = picking.getPickedVertices();
     if (!mesh.isDynamic)
@@ -386,14 +406,17 @@ SculptBase.prototype = {
     mesh.updateGeometry(iFaces, iVerts);
 
     return iVertsInRadius;
-  },
-  getUnmaskedVertices: function () {
+  }
+
+  getUnmaskedVertices() {
     return this.filterMaskedVertices(0.0, Infinity);
-  },
-  getMaskedVertices: function () {
+  }
+
+  getMaskedVertices() {
     return this.filterMaskedVertices(-Infinity, 1.0);
-  },
-  filterMaskedVertices: function (lowerBound, upperBound) {
+  }
+
+  filterMaskedVertices(lowerBound, upperBound) {
     var lb = lowerBound === undefined ? -Infinity : lowerBound;
     var ub = upperBound === undefined ? Infinity : upperBound;
     var mesh = this.getMesh();
@@ -407,14 +430,17 @@ SculptBase.prototype = {
         cleaned[acc++] = i;
     }
     return new Uint32Array(cleaned.subarray(0, acc));
-  },
-  postRender: function (selection) {
+  }
+
+  postRender(selection) {
     selection.render(this._main);
-  },
-  addSculptToScene: function () {},
-  getScreenRadius: function () {
+  }
+
+  addSculptToScene() {}
+
+  getScreenRadius() {
     return (this._radius || 1) * this._main.getPixelRatio();
   }
-};
+}
 
 export default SculptBase;

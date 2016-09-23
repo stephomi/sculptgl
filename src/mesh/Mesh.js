@@ -24,256 +24,330 @@ mesh.init(); // compute octree/topo/UV, etc...
 mesh.initRender(); // only if gl has been provided
 */
 
-var Mesh = function () {
-  this._id = Mesh.ID++; // useful id to retrieve a mesh (dynamic mesh, multires mesh, voxel mesh)
-  this._meshData = null;
-  this._transformData = null;
-  this._renderData = null;
-};
+class Mesh {
 
-Mesh.OPTIMIZE = true;
-Mesh.ID = 0;
-Mesh.sortFunction = function (meshA, meshB) {
-  // render transparent (back to front) after opaque (front to back) ones
-  var aTr = meshA.isTransparent();
-  var bTr = meshB.isTransparent();
-  if (aTr && !bTr) return 1;
-  if (!aTr && bTr) return -1;
-  return (meshB.getDepth() - meshA.getDepth()) * (aTr && bTr ? 1.0 : -1.0);
-};
+  constructor() {
+    this._id = Mesh.ID++; // useful id to retrieve a mesh (dynamic mesh, multires mesh, voxel mesh)
+    this._meshData = null;
+    this._transformData = null;
+    this._renderData = null;
+  }
 
-Mesh.prototype = {
-  setID: function (id) {
+  static sortFunction(meshA, meshB) {
+    // render transparent (back to front) after opaque (front to back) ones
+    var aTr = meshA.isTransparent();
+    var bTr = meshB.isTransparent();
+    if (aTr && !bTr) return 1;
+    if (!aTr && bTr) return -1;
+    return (meshB.getDepth() - meshA.getDepth()) * (aTr && bTr ? 1.0 : -1.0);
+  }
+
+  setID(id) {
     this._id = id;
-  },
-  setVertices: function (vAr) {
+  }
+
+  setVertices(vAr) {
     this._meshData._verticesXYZ = vAr;
     this._meshData._nbVertices = vAr.length / 3;
-  },
-  setFaces: function (fAr) {
+  }
+
+  setFaces(fAr) {
     this._meshData._facesABCD = fAr;
     this._meshData._nbFaces = fAr.length / 4;
-  },
-  setTexCoords: function (tAr) {
+  }
+
+  setTexCoords(tAr) {
     this._meshData._texCoordsST = tAr;
     this._meshData._nbTexCoords = tAr.length / 2;
-  },
-  setColors: function (cAr) {
+  }
+
+  setColors(cAr) {
     this._meshData._colorsRGB = cAr;
-  },
-  setMaterials: function (mAr) {
+  }
+
+  setMaterials(mAr) {
     this._meshData._materialsPBR = mAr;
-  },
-  setVerticesDuplicateStartCount: function (startCount) {
+  }
+
+  setVerticesDuplicateStartCount(startCount) {
     this._meshData._duplicateStartCount = startCount;
-  },
-  setFacesTexCoord: function (fuAr) {
+  }
+
+  setFacesTexCoord(fuAr) {
     this._meshData._UVfacesABCD = fuAr;
-  },
-  setMeshData: function (mdata) {
+  }
+
+  setMeshData(mdata) {
     this._meshData = mdata;
-  },
-  setRenderData: function (rdata) {
+  }
+
+  setRenderData(rdata) {
     this._renderData = rdata;
-  },
-  setTransformData: function (tdata) {
+  }
+
+  setTransformData(tdata) {
     this._transformData = tdata;
-  },
-  setNbVertices: function (nbVertices) {
+  }
+
+  setNbVertices(nbVertices) {
     this._meshData._nbVertices = nbVertices;
-  },
-  setNbFaces: function (nbFaces) {
+  }
+
+  setNbFaces(nbFaces) {
     this._meshData._nbFaces = nbFaces;
-  },
-  getID: function () {
+  }
+
+  getID() {
     return this._id;
-  },
-  getRenderData: function () {
+  }
+
+  getRenderData() {
     return this._renderData;
-  },
-  getMeshData: function () {
+  }
+
+  getMeshData() {
     return this._meshData;
-  },
-  getTransformData: function () {
+  }
+
+  getTransformData() {
     return this._transformData;
-  },
-  getNbVertices: function () {
+  }
+
+  getNbVertices() {
     return this._meshData._nbVertices;
-  },
-  getNbFaces: function () {
+  }
+
+  getNbFaces() {
     return this._meshData._nbFaces;
-  },
-  getNbQuads: function () {
+  }
+
+  getNbQuads() {
     return this.getNbTriangles() - this.getNbFaces();
-  },
-  getNbTriangles: function () {
+  }
+
+  getNbTriangles() {
     return this._meshData._trianglesABC.length / 3;
-  },
-  getNbTexCoords: function () {
+  }
+
+  getNbTexCoords() {
     return this._meshData._nbTexCoords;
-  },
-  hasUV: function () {
+  }
+
+  hasUV() {
     return this._meshData._texCoordsST !== null;
-  },
-  getVertices: function () {
+  }
+
+  getVertices() {
     return this._meshData._verticesXYZ;
-  },
-  getColors: function () {
+  }
+
+  getColors() {
     return this._meshData._colorsRGB;
-  },
-  getNormals: function () {
+  }
+
+  getNormals() {
     return this._meshData._normalsXYZ;
-  },
-  getMaterials: function () {
+  }
+
+  getMaterials() {
     return this._meshData._materialsPBR;
-  },
-  getVerticesTagFlags: function () {
+  }
+
+  getVerticesTagFlags() {
     return this._meshData._vertTagFlags;
-  },
-  getVerticesSculptFlags: function () {
+  }
+
+  getVerticesSculptFlags() {
     return this._meshData._vertSculptFlags;
-  },
-  getVerticesStateFlags: function () {
+  }
+
+  getVerticesStateFlags() {
     return this._meshData._vertStateFlags;
-  },
-  getVerticesRingVertStartCount: function () {
+  }
+
+  getVerticesRingVertStartCount() {
     return this._meshData._vrvStartCount;
-  },
-  getVerticesRingVert: function () {
+  }
+
+  getVerticesRingVert() {
     return this._meshData._vertRingVert;
-  },
-  getVerticesRingFaceStartCount: function () {
+  }
+
+  getVerticesRingFaceStartCount() {
     return this._meshData._vrfStartCount;
-  },
-  getVerticesRingFace: function () {
+  }
+
+  getVerticesRingFace() {
     return this._meshData._vertRingFace;
-  },
-  getVerticesOnEdge: function () {
+  }
+
+  getVerticesOnEdge() {
     return this._meshData._vertOnEdge;
-  },
-  getVerticesProxy: function () {
+  }
+
+  getVerticesProxy() {
     return this._meshData._vertProxy;
-  },
-  getFaces: function () {
+  }
+
+  getFaces() {
     return this._meshData._facesABCD;
-  },
-  hasOnlyTriangles: function () {
+  }
+
+  hasOnlyTriangles() {
     return this.getNbTriangles() === this.getNbFaces();
-  },
-  hasOnlyQuads: function () {
+  }
+
+  hasOnlyQuads() {
     return this.getNbTriangles() === this.getNbFaces() * 2;
-  },
-  getFaceNormals: function () {
+  }
+
+  getFaceNormals() {
     return this._meshData._faceNormalsXYZ;
-  },
-  getFaceBoxes: function () {
+  }
+
+  getFaceBoxes() {
     return this._meshData._faceBoxes;
-  },
-  getFaceCenters: function () {
+  }
+
+  getFaceCenters() {
     return this._meshData._faceCentersXYZ;
-  },
-  getFacesTagFlags: function () {
+  }
+
+  getFacesTagFlags() {
     return this._meshData._facesTagFlags;
-  },
-  getFaceEdges: function () {
+  }
+
+  getFaceEdges() {
     return this._meshData._faceEdges;
-  },
-  getFacesToTriangles: function () {
+  }
+
+  getFacesToTriangles() {
     return this._meshData._facesToTriangles;
-  },
-  getTrianglesTexCoord: function () {
+  }
+
+  getTrianglesTexCoord() {
     return this._meshData._UVtrianglesABC;
-  },
-  getTriangles: function () {
+  }
+
+  getTriangles() {
     return this._meshData._trianglesABC;
-  },
-  getEdges: function () {
+  }
+
+  getEdges() {
     return this._meshData._edges;
-  },
-  getNbEdges: function () {
+  }
+
+  getNbEdges() {
     return this._meshData._edges.length;
-  },
-  getTexCoords: function () {
+  }
+
+  getTexCoords() {
     return this._meshData._texCoordsST;
-  },
-  getVerticesDuplicateStartCount: function () {
+  }
+
+  getVerticesDuplicateStartCount() {
     return this._meshData._duplicateStartCount;
-  },
-  getFacesTexCoord: function () {
+  }
+
+  getFacesTexCoord() {
     return this._meshData._UVfacesABCD;
-  },
-  getVerticesDrawArrays: function () {
+  }
+
+  getVerticesDrawArrays() {
     if (!this._meshData._DAverticesXYZ) this.updateDrawArrays();
     return this._meshData._DAverticesXYZ;
-  },
-  getNormalsDrawArrays: function () {
+  }
+
+  getNormalsDrawArrays() {
     return this._meshData._DAnormalsXYZ;
-  },
-  getColorsDrawArrays: function () {
+  }
+
+  getColorsDrawArrays() {
     return this._meshData._DAcolorsRGB;
-  },
-  getMaterialsDrawArrays: function () {
+  }
+
+  getMaterialsDrawArrays() {
     return this._meshData._DAmaterialsPBR;
-  },
-  getTexCoordsDrawArrays: function () {
+  }
+
+  getTexCoordsDrawArrays() {
     return this._meshData._DAtexCoordsST;
-  },
-  getOctree: function () {
+  }
+
+  getOctree() {
     return this._meshData._octree;
-  },
-  getCenter: function () {
+  }
+
+  getCenter() {
     return this._transformData._center;
-  },
-  getMV: function () {
+  }
+
+  getMV() {
     return this._transformData._lastComputedMV;
-  },
-  getMVP: function () {
+  }
+
+  getMVP() {
     return this._transformData._lastComputedMVP;
-  },
-  getN: function () {
+  }
+
+  getN() {
     return this._transformData._lastComputedN;
-  },
-  getEN: function () {
+  }
+
+  getEN() {
     return this._transformData._lastComputedEN;
-  },
-  getDepth: function () {
+  }
+
+  getDepth() {
     return this._transformData._lastComputedDepth;
-  },
-  getMatrix: function () {
+  }
+
+  getMatrix() {
     return this._transformData._matrix;
-  },
-  getEditMatrix: function () {
+  }
+
+  getEditMatrix() {
     return this._transformData._editMatrix;
-  },
-  getScale2: function () {
+  }
+
+  getScale2() {
     var m = this._transformData._matrix;
     return m[0] * m[0] + m[4] * m[4] + m[8] * m[8];
-  },
-  getScale: function () {
+  }
+
+  getScale() {
     return Math.sqrt(this.getScale2());
-  },
-  getSymmetryOrigin: function () {
+  }
+
+  getSymmetryOrigin() {
     return this._transformData._center;
-  },
-  getSymmetryNormal: function () {
+  }
+
+  getSymmetryNormal() {
     return this._transformData._symmetryNormal;
-  },
-  getFacePosInLeaf: function () {
+  }
+
+  getFacePosInLeaf() {
     return this._meshData._facePosInLeaf;
-  },
-  getFaceLeaf: function () {
+  }
+
+  getFaceLeaf() {
     return this._meshData._faceLeaf;
-  },
-  getLeavesToUpdate: function () {
+  }
+
+  getLeavesToUpdate() {
     return this._meshData._leavesToUpdate;
-  },
-  getLocalBound: function () {
+  }
+
+  getLocalBound() {
     return this._meshData._octree._aabbLoose;
-  },
-  getRenderNbEdges: function () {
+  }
+
+  getRenderNbEdges() {
     return this.getNbEdges();
-  },
-  init: function () {
+  }
+
+  init() {
     this.initColorsAndMaterials();
     this.allocateArrays();
     this.initTopology();
@@ -281,15 +355,17 @@ Mesh.prototype = {
     if (this._renderData)
       this.updateDuplicateColorsAndMaterials();
     this.updateCenter();
-  },
-  initTopology: function () {
+  }
+
+  initTopology() {
     this.initFaceRings();
     this.optimize();
     this.initEdges();
     this.initVertexRings();
     this.initRenderTriangles();
-  },
-  updateGeometry: function (iFaces, iVerts) {
+  }
+
+  updateGeometry(iFaces, iVerts) {
     this.updateFacesAabbAndNormal(iFaces);
     this.updateVerticesNormal(iVerts);
     this.updateOctree(iFaces);
@@ -297,8 +373,9 @@ Mesh.prototype = {
       this.updateDuplicateGeometry(iVerts);
       this.updateDrawArrays(iFaces);
     }
-  },
-  allocateArrays: function () {
+  }
+
+  allocateArrays() {
     var nbVertices = this.getNbVertices();
 
     if (this.hasUV()) {
@@ -345,10 +422,10 @@ Mesh.prototype = {
     faceLeaf.length = nbFaces;
     for (var i = 0; i < nbFaces; ++i)
       faceLeaf[i] = null;
-  },
+  }
 
   /** Init color and material array */
-  initColorsAndMaterials: function () {
+  initColorsAndMaterials() {
     var nbVertices = this.getNbVertices();
     var i = 0;
     var len = nbVertices * 3;
@@ -366,9 +443,10 @@ Mesh.prototype = {
         mAr[j + 2] = 1.0;
       }
     }
-  },
+  }
+
   /** Computes faces ring around vertices */
-  initFaceRings: function () {
+  initFaceRings() {
     var fAr = this.getFaces();
     var nbVertices = this.getNbVertices();
     var nbFaces = this.getNbFaces();
@@ -412,9 +490,10 @@ Mesh.prototype = {
     }
 
     this._meshData._vertRingFace = new Uint32Array(vrf.subarray(0, nbFaces * 3 + acc));
-  },
+  }
+
   /** Update a group of vertices' normal */
-  updateVerticesNormal: function (iVerts) {
+  updateVerticesNormal(iVerts) {
     var vrfStartCount = this.getVerticesRingFaceStartCount();
     var vertRingFace = this.getVerticesRingFace();
     var ringFaces = vertRingFace instanceof Array ? vertRingFace : null;
@@ -450,9 +529,10 @@ Mesh.prototype = {
       nAr[ind + 1] = ny * len;
       nAr[ind + 2] = nz * len;
     }
-  },
+  }
+
   /** Computes vertex ring around vertices */
-  initVertexRings: function () {
+  initVertexRings() {
     var vrvStartCount = this.getVerticesRingVertStartCount();
     var vertRingVert = this._meshData._vertRingVert = new Uint32Array(this.getNbEdges() * 2);
     var vrfStartCount = this.getVerticesRingFaceStartCount();
@@ -496,9 +576,10 @@ Mesh.prototype = {
       if ((vrfEnd - vrfStart) !== vrvCount)
         vertOnEdge[i] = 1;
     }
-  },
+  }
+
   /** Get more vertices (n-ring) */
-  expandsVertices: function (iVerts, nRing) {
+  expandsVertices(iVerts, nRing) {
     var tagFlag = ++Utils.TAG_FLAG;
     var nbVerts = iVerts.length;
     var vrvStartCount = this.getVerticesRingVertStartCount();
@@ -543,9 +624,10 @@ Mesh.prototype = {
     }
 
     return new Uint32Array(iVertsExpanded.subarray(0, acc));
-  },
+  }
+
   /** Return all the vertices linked to a group of faces */
-  getVerticesFromFaces: function (iFaces) {
+  getVerticesFromFaces(iFaces) {
     var tagFlag = ++Utils.TAG_FLAG;
     var nbFaces = iFaces.length;
     var vertTagFlags = this.getVerticesTagFlags();
@@ -578,9 +660,10 @@ Mesh.prototype = {
       }
     }
     return new Uint32Array(verts.subarray(0, acc));
-  },
+  }
+
   /** Update a group of faces normal and aabb */
-  updateFacesAabbAndNormal: function (iFaces) {
+  updateFacesAabbAndNormal(iFaces) {
     var faceNormals = this.getFaceNormals();
     var faceBoxes = this.getFaceBoxes();
     var faceCenters = this.getFaceCenters();
@@ -665,9 +748,10 @@ Mesh.prototype = {
       faceCenters[idTri + 1] = (ymin + ymax) * 0.5;
       faceCenters[idTri + 2] = (zmin + zmax) * 0.5;
     }
-  },
+  }
+
   /** Get more faces (n-ring) */
-  expandsFaces: function (iFaces, nRing) {
+  expandsFaces(iFaces, nRing) {
     var tagFlag = ++Utils.TAG_FLAG;
     var nbFaces = iFaces.length;
     var vrfStartCount = this.getVerticesRingFaceStartCount();
@@ -714,9 +798,10 @@ Mesh.prototype = {
       nbFaces = acc;
     }
     return new Uint32Array(iFacesExpanded.subarray(0, acc));
-  },
+  }
+
   /** Return all the faces linked to a group of vertices */
-  getFacesFromVertices: function (iVerts) {
+  getFacesFromVertices(iVerts) {
     var tagFlag = ++Utils.TAG_FLAG;
     var nbVerts = iVerts.length;
     var vrfStartCount = this.getVerticesRingFaceStartCount();
@@ -745,15 +830,17 @@ Mesh.prototype = {
       }
     }
     return new Uint32Array(iFaces.subarray(0, acc));
-  },
+  }
+
   /** Computes triangles */
-  initRenderTriangles: function () {
+  initRenderTriangles() {
     if (this.hasUV())
       this._meshData._UVtrianglesABC = this.computeTrianglesFromFaces(this.getFacesTexCoord());
     this._meshData._trianglesABC = this.computeTrianglesFromFaces(this.getFaces());
-  },
+  }
+
   /** Computes triangles from faces */
-  computeTrianglesFromFaces: function (faces) {
+  computeTrianglesFromFaces(faces) {
     var nbFaces = this.getNbFaces();
     var facesToTris = this.getFacesToTriangles();
     var iAr = new Uint32Array(Utils.getMemory(4 * nbFaces * 6), 0, nbFaces * 6);
@@ -779,8 +866,9 @@ Mesh.prototype = {
       }
     }
     return new Uint32Array(iAr.subarray(0, acc * 3));
-  },
-  initEdges: function () {
+  }
+
+  initEdges() {
     var fAr = this.getFaces();
     var feAr = this.getFaceEdges();
     var nbEdges = 0;
@@ -885,9 +973,10 @@ Mesh.prototype = {
       if (i4 !== Utils.TRI_INDEX)
         eAr[i4]++;
     }
-  },
+  }
+
   /** Return wireframe array (or compute it if not up to date) */
-  getWireframe: function () {
+  getWireframe() {
     var nbEdges = this.getNbEdges();
     var cdw;
     var useDrawArrays = this.isUsingDrawArrays();
@@ -961,8 +1050,9 @@ Mesh.prototype = {
       }
     }
     return useDrawArrays ? this._meshData._drawArraysWireframe : this._meshData._drawElementsWireframe;
-  },
-  updateDuplicateGeometry: function (iVerts) {
+  }
+
+  updateDuplicateGeometry(iVerts) {
     if (!this.isUsingTexCoords() || !this.hasUV())
       return;
 
@@ -1010,8 +1100,9 @@ Mesh.prototype = {
         mAr[idDup + 2] = mz;
       }
     }
-  },
-  updateDuplicateColorsAndMaterials: function (iVerts) {
+  }
+
+  updateDuplicateColorsAndMaterials(iVerts) {
     if (!this.isUsingTexCoords() || !this.hasUV())
       return;
 
@@ -1045,8 +1136,9 @@ Mesh.prototype = {
         mAr[idDup + 2] = mz;
       }
     }
-  },
-  initTexCoordsDataFromOBJData: function (uvAr, uvfArOrig) {
+  }
+
+  initTexCoordsDataFromOBJData(uvAr, uvfArOrig) {
     var fAr = this.getFaces();
     var nbVertices = this.getNbVertices();
     var i = 0;
@@ -1149,16 +1241,18 @@ Mesh.prototype = {
 
     this.setTexCoords(tAr);
     this.setFacesTexCoord(uvfAr);
-  },
-  setAlreadyDrawArrays: function () {
+  }
+
+  setAlreadyDrawArrays() {
     // kind of a hack, to be used if the main arrays are already draw arrays
     this._meshData._DAverticesXYZ = this.getVertices();
     this._meshData._DAnormalsXYZ = this.getNormals();
     this._meshData._DAcolorsRGB = this.getColors();
     this._meshData._DAmaterialsPBR = this.getMaterials();
-  },
+  }
+
   /** Updates the arrays that are going to be used by webgl */
-  updateDrawArrays: function (iFaces) {
+  updateDrawArrays(iFaces) {
     if (!this.isUsingDrawArrays())
       return;
 
@@ -1293,9 +1387,10 @@ Mesh.prototype = {
 
     if (this.isUsingTexCoords())
       this.updateDrawArraysTexCoord(iFaces);
-  },
+  }
+
   /** Updates the UV array data for drawArrays */
-  updateDrawArraysTexCoord: function (iFaces) {
+  updateDrawArraysTexCoord(iFaces) {
     var nbTriangles = this.getNbTriangles();
     var facesToTris = this.getFacesToTriangles();
 
@@ -1338,16 +1433,18 @@ Mesh.prototype = {
       cdt[vIduv + 4] = tAr[id4uv];
       cdt[vIduv + 5] = tAr[id4uv + 1];
     }
-  },
+  }
+
   /////////////////
   // TRANSFORM DATA
   /////////////////
-  updateCenter: function () {
+  updateCenter() {
     var box = this.getLocalBound();
     vec3.set(this._transformData._center, (box[0] + box[3]) * 0.5, (box[1] + box[4]) * 0.5, (box[2] + box[5]) * 0.5);
-  },
+  }
+
   /** Pre compute mv and mvp matrices as well as the depth center */
-  updateMatrices: function (camera) {
+  updateMatrices(camera) {
     mat3.normalFromMat4(this._transformData._lastComputedEN, this._transformData._editMatrix);
     mat4.mul(this._transformData._lastComputedMV, camera.getView(), this._transformData._matrix);
     mat3.normalFromMat4(this._transformData._lastComputedN, this._transformData._lastComputedMV);
@@ -1355,14 +1452,16 @@ Mesh.prototype = {
     var cen = this._transformData._center;
     var m = this._transformData._lastComputedMVP;
     this._transformData._lastComputedDepth = m[2] * cen[0] + m[6] * cen[1] + m[10] * cen[2] + m[14];
-  },
-  normalizeSize: function () {
+  }
+
+  normalizeSize() {
     var box = this.getLocalBound();
     var diag = vec3.dist([box[0], box[1], box[2]], [box[3], box[4], box[5]]);
     var scale = Utils.SCALE / diag;
     mat4.scale(this._transformData._matrix, this._transformData._matrix, [scale, scale, scale]);
-  },
-  computeWorldBound: function () {
+  }
+
+  computeWorldBound() {
     var worldb = this._meshData._worldBound;
     var localb = this.getLocalBound();
     var mat = this.getMatrix();
@@ -1392,36 +1491,40 @@ Mesh.prototype = {
     }
 
     return worldb;
-  },
+  }
+
   /////////
   // OCTREE
   /////////
 
   /** Return faces intersected by a ray */
-  intersectRay: function (vNear, eyeDir, collectLeaves) {
+  intersectRay(vNear, eyeDir, collectLeaves) {
     var nbFaces = this.getNbFaces();
     var collectFaces = new Uint32Array(Utils.getMemory(nbFaces * 4), 0, nbFaces);
     return this._meshData._octree.collectIntersectRay(vNear, eyeDir, collectFaces, collectLeaves ? this._meshData._leavesToUpdate : undefined);
-  },
+  }
+
   /** Return faces inside a sphere */
-  intersectSphere: function (vert, radiusSquared, collectLeaves) {
+  intersectSphere(vert, radiusSquared, collectLeaves) {
     var nbFaces = this.getNbFaces();
     var collectFaces = new Uint32Array(Utils.getMemory(nbFaces * 4), 0, nbFaces);
     return this._meshData._octree.collectIntersectSphere(vert, radiusSquared, collectFaces, collectLeaves ? this._meshData._leavesToUpdate : undefined);
-  },
+  }
+
   /**
    * Update Octree
    * For each faces we check if its position inside the octree has changed
    * if so... we mark this face and we remove it from its former cells
    * We push back the marked faces into the octree
    */
-  updateOctree: function (iFaces) {
+  updateOctree(iFaces) {
     if (iFaces)
       this.updateOctreeAdd(this.updateOctreeRemove(iFaces));
     else
       this.computeOctree();
-  },
-  computeAabb: function () {
+  }
+
+  computeAabb() {
     var nbVertices = this.getNbVertices();
     var vAr = this.getVertices();
     var xmin = Infinity;
@@ -1443,9 +1546,10 @@ Mesh.prototype = {
       if (vz > zmax) zmax = vz;
     }
     return [xmin, ymin, zmin, xmax, ymax, zmax];
-  },
+  }
+
   /** Compute the octree */
-  computeOctree: function () {
+  computeOctree() {
     var abRoot = this.computeAabb();
     var xmin = abRoot[0];
     var ymin = abRoot[1];
@@ -1490,8 +1594,9 @@ Mesh.prototype = {
     octree.setAabbLoose(xmin, ymin, zmin, xmax, ymax, zmax);
     octree.setAabbSplit(xmin2, ymin2, zmin2, xmax2, ymax2, zmax2);
     octree.build(this);
-  },
-  updateOctreeRemove: function (iFaces) {
+  }
+
+  updateOctreeRemove(iFaces) {
     var faceCenters = this.getFaceCenters();
     var fboxes = this.getFaceBoxes();
     var facePosInLeaf = this._meshData._facePosInLeaf;
@@ -1527,8 +1632,9 @@ Mesh.prototype = {
       }
     }
     return new Uint32Array(facesToMove.subarray(0, acc));
-  },
-  updateOctreeAdd: function (facesToMove) {
+  }
+
+  updateOctreeAdd(facesToMove) {
     var fc = this.getFaceCenters();
     var fb = this.getFaceBoxes();
     var facePosInLeaf = this._meshData._facePosInLeaf;
@@ -1572,9 +1678,10 @@ Mesh.prototype = {
         facesInLeaf.push(facesToMove[i]);
       }
     }
-  },
+  }
+
   /** balance octree (cut empty leaves or go deeper if needed) */
-  balanceOctree: function () {
+  balanceOctree() {
     ++OctreeCell.FLAG;
     var leavesToUpdate = this._meshData._leavesToUpdate;
     var nbLeaves = leavesToUpdate.length;
@@ -1593,125 +1700,160 @@ Mesh.prototype = {
     }
 
     leavesToUpdate.length = 0;
-  },
+  }
 
   //////////////
   // RENDER DATA
   //////////////
-  setFlatColor: function (val) {
+  setFlatColor(val) {
     this.getFlatColor().set(val);
-  },
-  setAlbedo: function (val) {
+  }
+
+  setAlbedo(val) {
     this.getAlbedo().set(val);
-  },
-  setMode: function (mode) {
+  }
+
+  setMode(mode) {
     this._renderData._mode = mode;
-  },
-  setRoughness: function (val) {
+  }
+
+  setRoughness(val) {
     this._renderData._roughness = val;
-  },
-  setMetallic: function (val) {
+  }
+
+  setMetallic(val) {
     this._renderData._metallic = val;
-  },
-  setOpacity: function (alpha) {
+  }
+
+  setOpacity(alpha) {
     this._renderData._alpha = alpha;
-  },
-  setTexture0: function (tex) {
+  }
+
+  setTexture0(tex) {
     this._renderData._texture0 = tex;
-  },
-  setMatcap: function (idMat) {
+  }
+
+  setMatcap(idMat) {
     this._renderData._matcap = idMat;
-  },
-  setCurvature: function (cur) {
+  }
+
+  setCurvature(cur) {
     this._renderData._curvature = cur;
-  },
-  setFlatShading: function (flatShading) {
+  }
+
+  setFlatShading(flatShading) {
     this._renderData._flatShading = flatShading;
-  },
-  setShowWireframe: function (showWireframe) {
+  }
+
+  setShowWireframe(showWireframe) {
     this._renderData._showWireframe = RenderData.ONLY_DRAW_ARRAYS ? false : showWireframe;
     this.updateWireframeBuffer();
-  },
-  setUseDrawArrays: function (bool) {
+  }
+
+  setUseDrawArrays(bool) {
     this._renderData._useDrawArrays = bool;
-  },
-  getGL: function () {
+  }
+
+  getGL() {
     return this._renderData._gl;
-  },
-  getCount: function () {
+  }
+
+  getCount() {
     var gl = this.getGL();
     if (this.getMode() === gl.TRIANGLES) return this.getNbTriangles() * 3;
     if (this.getMode() === gl.LINES) return this.getNbVertices();
     return 0;
-  },
-  getVertexBuffer: function () {
-    return this._renderData._vertexBuffer;
-  },
-  getNormalBuffer: function () {
-    return this._renderData._normalBuffer;
-  },
-  getColorBuffer: function () {
-    return this._renderData._colorBuffer;
-  },
-  getMaterialBuffer: function () {
-    return this._renderData._materialBuffer;
-  },
-  getTexCoordBuffer: function () {
-    return this._renderData._texCoordBuffer;
-  },
-  getIndexBuffer: function () {
-    return this._renderData._indexBuffer;
-  },
-  getWireframeBuffer: function () {
-    return this._renderData._wireframeBuffer;
-  },
-  getRoughness: function () {
-    return this._renderData._roughness;
-  },
-  getMetallic: function () {
-    return this._renderData._metallic;
-  },
-  getOpacity: function () {
-    return this._renderData._alpha;
-  },
-  getFlatColor: function () {
-    return this._renderData._flatColor;
-  },
-  getMode: function () {
-    return this._renderData._mode;
-  },
-  getAlbedo: function () {
-    return this._renderData._albedo;
-  },
-  getTexture0: function () {
-    return this._renderData._texture0;
-  },
-  getMatcap: function () {
-    return this._renderData._matcap;
-  },
-  getCurvature: function () {
-    return this._renderData._curvature;
-  },
-  getFlatShading: function () {
-    return this._renderData._flatShading;
-  },
-  getShowWireframe: function () {
-    return this._renderData._showWireframe;
-  },
+  }
 
-  isUsingDrawArrays: function () {
+  getVertexBuffer() {
+    return this._renderData._vertexBuffer;
+  }
+
+  getNormalBuffer() {
+    return this._renderData._normalBuffer;
+  }
+
+  getColorBuffer() {
+    return this._renderData._colorBuffer;
+  }
+
+  getMaterialBuffer() {
+    return this._renderData._materialBuffer;
+  }
+
+  getTexCoordBuffer() {
+    return this._renderData._texCoordBuffer;
+  }
+
+  getIndexBuffer() {
+    return this._renderData._indexBuffer;
+  }
+
+  getWireframeBuffer() {
+    return this._renderData._wireframeBuffer;
+  }
+
+  getRoughness() {
+    return this._renderData._roughness;
+  }
+
+  getMetallic() {
+    return this._renderData._metallic;
+  }
+
+  getOpacity() {
+    return this._renderData._alpha;
+  }
+
+  getFlatColor() {
+    return this._renderData._flatColor;
+  }
+
+  getMode() {
+    return this._renderData._mode;
+  }
+
+  getAlbedo() {
+    return this._renderData._albedo;
+  }
+
+  getTexture0() {
+    return this._renderData._texture0;
+  }
+
+  getMatcap() {
+    return this._renderData._matcap;
+  }
+
+  getCurvature() {
+    return this._renderData._curvature;
+  }
+
+  getFlatShading() {
+    return this._renderData._flatShading;
+  }
+
+  getShowWireframe() {
+    return this._renderData._showWireframe;
+  }
+
+  isUsingDrawArrays() {
     return this._renderData._useDrawArrays || RenderData.ONLY_DRAW_ARRAYS;
-  },
-  isUsingTexCoords: function () {
+  }
+
+  isUsingTexCoords() {
     return this._renderData._shaderType === Enums.Shader.UV;
-  },
-  isTransparent: function () {
+  }
+
+  isTransparent() {
     return this._renderData._alpha < 0.99;
-  },
-  getShaderType: function () {
+  }
+
+  getShaderType() {
     return this._renderData._shaderType;
-  },
-  setShaderType: function (shaderName) {
+  }
+
+  setShaderType(shaderName) {
     var hasUV = this.hasUV();
     if (shaderName === Enums.Shader.UV && !hasUV) {
       if (this._renderData._shaderType !== Enums.Shader.UV)
@@ -1725,76 +1867,90 @@ Mesh.prototype = {
       this.updateDrawArrays();
     }
     this.updateBuffers();
-  },
-  initRender: function () {
+  }
+
+  initRender() {
     this.setShaderType(this._renderData._shaderType);
     this.setShowWireframe(this.getShowWireframe());
-  },
+  }
+
   /////////
   // RENDER
   /////////
-  render: function (main) {
+  render(main) {
     Shader[this.getShaderType()].getOrCreate(this.getGL()).draw(this, main);
-  },
-  renderWireframe: function (main) {
+  }
+
+  renderWireframe(main) {
     Shader[Enums.Shader.WIREFRAME].getOrCreate(this.getGL()).draw(this, main);
-  },
-  renderFlatColor: function (main) {
+  }
+
+  renderFlatColor(main) {
     Shader[Enums.Shader.FLAT].getOrCreate(this.getGL()).draw(this, main);
-  },
+  }
 
   /////////////////
   // UPDATE BUFFERS
   /////////////////
-  getRenderNbVertices: function () {
+  getRenderNbVertices() {
     if (this.isUsingDrawArrays()) return this.getCount();
     return this.isUsingTexCoords() ? this.getNbTexCoords() : this.getNbVertices();
-  },
-  updateVertexBuffer: function () {
+  }
+
+  updateVertexBuffer() {
     var vertices = this.isUsingDrawArrays() ? this.getVerticesDrawArrays() : this.getVertices();
     this.getVertexBuffer().update(vertices, this.getRenderNbVertices() * 3);
-  },
-  updateNormalBuffer: function () {
+  }
+
+  updateNormalBuffer() {
     var normals = this.isUsingDrawArrays() ? this.getNormalsDrawArrays() : this.getNormals();
     this.getNormalBuffer().update(normals, this.getRenderNbVertices() * 3);
-  },
-  updateColorBuffer: function () {
+  }
+
+  updateColorBuffer() {
     var colors = this.isUsingDrawArrays() ? this.getColorsDrawArrays() : this.getColors();
     this.getColorBuffer().update(colors, this.getRenderNbVertices() * 3);
-  },
-  updateMaterialBuffer: function () {
+  }
+
+  updateMaterialBuffer() {
     var materials = this.isUsingDrawArrays() ? this.getMaterialsDrawArrays() : this.getMaterials();
     this.getMaterialBuffer().update(materials, this.getRenderNbVertices() * 3);
-  },
-  updateTexCoordBuffer: function () {
+  }
+
+  updateTexCoordBuffer() {
     if (this.isUsingTexCoords()) {
       var texCoords = this.isUsingDrawArrays() ? this.getTexCoordsDrawArrays() : this.getTexCoords();
       this.getTexCoordBuffer().update(texCoords, this.getRenderNbVertices() * 2);
     }
-  },
-  updateIndexBuffer: function () {
+  }
+
+  updateIndexBuffer() {
     if (!this.isUsingDrawArrays()) {
       var triangles = this.isUsingTexCoords() ? this.getTrianglesTexCoord() : this.getTriangles();
       this.getIndexBuffer().update(triangles, this.getNbTriangles() * 3);
     }
-  },
-  updateWireframeBuffer: function () {
+  }
+
+  updateWireframeBuffer() {
     if (this.getShowWireframe())
       this.getWireframeBuffer().update(this.getWireframe(), this.getNbEdges() * 2);
-  },
-  updateGeometryBuffers: function () {
+  }
+
+  updateGeometryBuffers() {
     this.updateVertexBuffer();
     this.updateNormalBuffer();
-  },
-  updateBuffers: function () {
+  }
+
+  updateBuffers() {
     this.updateGeometryBuffers();
     this.updateColorBuffer();
     this.updateMaterialBuffer();
     this.updateTexCoordBuffer();
     this.updateIndexBuffer();
     this.updateWireframeBuffer();
-  },
-  release: function () {
+  }
+
+  release() {
     if (this.getTexture0())
       this.getGL().deleteTexture(this.getTexture0());
     this.getVertexBuffer().release();
@@ -1803,8 +1959,9 @@ Mesh.prototype = {
     this.getMaterialBuffer().release();
     this.getIndexBuffer().release();
     this.getWireframeBuffer().release();
-  },
-  copyRenderConfig: function (mesh) {
+  }
+
+  copyRenderConfig(mesh) {
     this.setFlatShading(mesh.getFlatShading());
     this.setShowWireframe(mesh.getShowWireframe());
     this.setShaderType(mesh.getShaderType());
@@ -1812,8 +1969,9 @@ Mesh.prototype = {
     this.setTexture0(mesh.getTexture0());
     this.setCurvature(mesh.getCurvature());
     this.setOpacity(mesh.getOpacity());
-  },
-  optimize: function () {
+  }
+
+  optimize() {
     if (this.getNbFaces() === 0 || !Mesh.OPTIMIZE)
       return;
 
@@ -1831,8 +1989,9 @@ Mesh.prototype = {
     // data = this.computeCacheScore();
     // console.log('after ACMR ' + data.ACMR);
     // console.log('after ACTVR ' + data.ACTVR);
-  },
-  computeCacheScore: function () {
+  }
+
+  computeCacheScore() {
     var fAr = this.getFaces();
     var nbFaces = this.getNbFaces();
 
@@ -1872,9 +2031,9 @@ Mesh.prototype = {
       ACMR: cacheMiss / nbFaces,
       ACTVR: cacheMiss / this.getNbVertices()
     };
-  },
+  }
 
-  optimizePostTransform: function () {
+  optimizePostTransform() {
     // post transform optimization (index buffer re-index), it implements tipsy
     // http://gfx.cs.princeton.edu/pubs/Sander_2007_%3ETR/tipsy.pdf
 
@@ -1904,7 +2063,7 @@ Mesh.prototype = {
     var emittedFaces = new Uint8Array(nbFaces);
 
     var fArUVNew = new Uint32Array(nbFaces * 4);
-    var fArNew = hasUV ? new Uint32Array(nbFaces * 4) : fArNew;
+    var fArNew = hasUV ? new Uint32Array(nbFaces * 4) : fArUVNew;
     var fcount = 0;
 
     var fanningVertex = 0;
@@ -1997,9 +2156,9 @@ Mesh.prototype = {
     fArUV.set(fArUVNew.subarray(0, nbFaces * 4));
     if (hasUV) fAr.set(fArNew.subarray(0, nbFaces * 4));
 
-  },
+  }
 
-  optimizePreTransform: function () {
+  optimizePreTransform() {
     // pre transform optimization (not as important as post transform though)
     // it also removes unused vertices
 
@@ -2099,6 +2258,9 @@ Mesh.prototype = {
     mArOld.set(mArNew);
 
   }
-};
+}
+
+Mesh.OPTIMIZE = true;
+Mesh.ID = 0;
 
 export default Mesh;

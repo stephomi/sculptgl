@@ -1,5 +1,4 @@
 import glm from '../../lib/gl-matrix';
-import Utils from '../../misc/Utils';
 import Geometry from '../../math3d/Geometry';
 import SculptBase from '../../editing/tools/SculptBase';
 
@@ -7,24 +6,25 @@ var vec2 = glm.vec2;
 var vec3 = glm.vec3;
 var quat = glm.quat;
 
-var Twist = function (main) {
-  SculptBase.call(this, main);
-  this._radius = 75;
-  this._culling = false;
-  this._twistData = {
-    normal: [0.0, 0.0, 0.0], // normal of rotation plane
-    center: [0.0, 0.0] // 2D center of rotation 
-  };
-  this._twistDataSym = {
-    normal: [0.0, 0.0, 0.0], // normal of rotation plane
-    center: [0.0, 0.0] // 2D center of rotation 
-  };
-  this._idAlpha = 0;
-};
+class Twist extends SculptBase {
 
-Twist.prototype = {
-  /** Start a twist sculpt stroke */
-  startSculpt: function () {
+  constructor(main) {
+    super(main);
+
+    this._radius = 75;
+    this._culling = false;
+    this._twistData = {
+      normal: [0.0, 0.0, 0.0], // normal of rotation plane
+      center: [0.0, 0.0] // 2D center of rotation 
+    };
+    this._twistDataSym = {
+      normal: [0.0, 0.0, 0.0], // normal of rotation plane
+      center: [0.0, 0.0] // 2D center of rotation 
+    };
+    this._idAlpha = 0;
+  }
+
+  startSculpt() {
     var main = this._main;
     var mouseX = main._mouseX;
     var mouseY = main._mouseY;
@@ -37,15 +37,17 @@ Twist.prototype = {
       if (pickingSym.getMesh())
         this.initTwistData(pickingSym, mouseX, mouseY, this._twistDataSym);
     }
-  },
+  }
+
   /** Set a few infos that will be needed for the twist function afterwards */
-  initTwistData: function (picking, mouseX, mouseY, twistData) {
+  initTwistData(picking, mouseX, mouseY, twistData) {
     picking.pickVerticesInSphere(picking.getLocalRadius2());
     vec3.negate(twistData.normal, picking.getEyeDirection());
     vec2.set(twistData.center, mouseX, mouseY);
-  },
+  }
+
   /** Make a brush twist stroke */
-  sculptStroke: function () {
+  sculptStroke() {
     var main = this._main;
     var mx = main._mouseX;
     var my = main._mouseY;
@@ -65,9 +67,10 @@ Twist.prototype = {
     }
     this.updateRender();
     main.setCanvasCursor('default');
-  },
+  }
+
   /** On stroke */
-  stroke: function (picking, mx, my, lx, ly, twistData) {
+  stroke(picking, mx, my, lx, ly, twistData) {
     var iVertsInRadius = picking.getPickedVertices();
 
     // undo-redo
@@ -83,9 +86,10 @@ Twist.prototype = {
 
     var mesh = this.getMesh();
     mesh.updateGeometry(mesh.getFacesFromVertices(iVertsInRadius), iVertsInRadius);
-  },
+  }
+
   /** Twist the vertices around the mouse point intersection */
-  twist: function (iVerts, center, radiusSquared, mouseX, mouseY, lastMouseX, lastMouseY, twistData, picking) {
+  twist(iVerts, center, radiusSquared, mouseX, mouseY, lastMouseX, lastMouseY, twistData, picking) {
     var mesh = this.getMesh();
     var mouseCenter = twistData.center;
     var vecMouse = [mouseX - mouseCenter[0], mouseY - mouseCenter[1]];
@@ -126,8 +130,6 @@ Twist.prototype = {
       vAr[ind + 2] = coord[2];
     }
   }
-};
-
-Utils.makeProxy(SculptBase, Twist);
+}
 
 export default Twist;

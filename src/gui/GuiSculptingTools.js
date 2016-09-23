@@ -7,8 +7,6 @@ import Utils from '../misc/Utils';
 
 var vec3 = glm.vec3;
 
-var console = window.console;
-
 var GuiSculptingTools = {};
 GuiSculptingTools.tools = [];
 var GuiTools = GuiSculptingTools.tools;

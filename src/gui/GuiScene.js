@@ -2,17 +2,17 @@ import TR from '../gui/GuiTR';
 import Remesh from '../editing/Remesh';
 import ShaderBase from '../render/shaders/ShaderBase';
 
-var GuiScene = function (guiParent, ctrlGui) {
-  this._main = ctrlGui._main; // main application
-  this._menu = null;
-  this._hideMeshes = [];
-  this._cbToggleShowHide = this.toggleShowHide.bind(this, true);
-  this.init(guiParent);
-};
+class GuiScene {
 
-GuiScene.prototype = {
-  /** Initialize */
-  init: function (guiParent) {
+  constructor(guiParent, ctrlGui) {
+    this._main = ctrlGui._main; // main application
+    this._menu = null;
+    this._hideMeshes = [];
+    this._cbToggleShowHide = this.toggleShowHide.bind(this, true);
+    this.init(guiParent);
+  }
+
+  init(guiParent) {
     var menu = this._menu = guiParent.addMenu(TR('sceneTitle'));
 
     // scene
@@ -47,8 +47,9 @@ GuiScene.prototype = {
     menu.addCheckbox(TR('contourShow'), this._main._showContour, this.onShowContour.bind(this));
     menu.addCheckbox(TR('renderingGrid'), this._main._showGrid, this.onShowGrid.bind(this));
     menu.addCheckbox(TR('renderingSymmetryLine'), ShaderBase.showSymmetryLine, this.onShowSymmetryLine.bind(this));
-  },
-  validatePreview: function () {
+  }
+
+  validatePreview() {
     if (!this._main._meshPreview)
       this._main.addTorus(true);
 
@@ -59,54 +60,63 @@ GuiScene.prototype = {
     this.ctrlDiscard.setVisibility(false);
     this.ctrlValidate.setVisibility(false);
     this._main.render();
-  },
-  discardPreview: function () {
+  }
+
+  discardPreview() {
     this._main._meshPreview = null;
     this.ctrlDiscard.setVisibility(false);
     this.ctrlValidate.setVisibility(false);
     this._main.render();
-  },
-  updateTorusRadius: function (val) {
+  }
+
+  updateTorusRadius(val) {
     this._main._torusRadius = val;
     this.updateTorus();
-  },
-  updateTorusRadial: function (val) {
+  }
+
+  updateTorusRadial(val) {
     this._main._torusRadial = val;
     this.updateTorus();
-  },
-  updateTorusTubular: function (val) {
+  }
+
+  updateTorusTubular(val) {
     this._main._torusTubular = val;
     this.updateTorus();
-  },
-  updateTorusWidth: function (val) {
+  }
+
+  updateTorusWidth(val) {
     this._main._torusWidth = val;
     if (this._main._torusLength < this._main._torusWidth) {
       this.ctrlLE.setValue(val);
       return;
     }
     this.updateTorus();
-  },
-  updateTorusLength: function (val) {
+  }
+
+  updateTorusLength(val) {
     this._main._torusLength = val;
     if (this._main._torusLength < this._main._torusWidth) {
       this.ctrlWI.setValue(val);
       return;
     }
     this.updateTorus();
-  },
-  updateTorus: function () {
+  }
+
+  updateTorus() {
     this._main.addTorus(true);
     this.ctrlDiscard.setVisibility(true);
     this.ctrlValidate.setVisibility(true);
     this._main.render();
-  },
-  updateMesh: function () {
+  }
+
+  updateMesh() {
     var nbMeshes = this._main.getMeshes().length;
     var nbSelected = this._main.getSelectedMeshes().length;
     this._ctrlIsolate.setVisibility(this._hideMeshes.length > 0 || (nbMeshes !== nbSelected && nbSelected >= 1));
     this._ctrlMerge.setVisibility(nbSelected > 1);
-  },
-  merge: function () {
+  }
+
+  merge() {
     var main = this._main;
     var selMeshes = main.getSelectedMeshes();
     if (selMeshes.length < 2) return;
@@ -116,16 +126,19 @@ GuiScene.prototype = {
     main.getStateManager().pushStateAddRemove(newMesh, selMeshes.slice());
     main.getMeshes().push(newMesh);
     main.setMesh(newMesh);
-  },
-  toggleShowHide: function (ignoreCB) {
+  }
+
+  toggleShowHide(ignoreCB) {
     this._ctrlIsolate.setValue(!this._ctrlIsolate.getValue(), !!ignoreCB);
-  },
-  showHide: function (bool) {
+  }
+
+  showHide(bool) {
     if (bool) this.isolate();
     else this.showAll();
     this.updateMesh();
-  },
-  isolate: function () {
+  }
+
+  isolate() {
     var main = this._main;
     var selMeshes = main.getSelectedMeshes();
     var meshes = main.getMeshes();
@@ -147,8 +160,9 @@ GuiScene.prototype = {
     main.getStateManager().pushStateRemove(hMeshes.slice());
     main.getStateManager().pushStateCustom(this._cbToggleShowHide, this._cbToggleShowHide, true);
     main.render();
-  },
-  showAll: function () {
+  }
+
+  showAll() {
     var main = this._main;
     var meshes = main.getMeshes();
     var hMeshes = this._hideMeshes;
@@ -159,29 +173,34 @@ GuiScene.prototype = {
     main.getStateManager().pushStateCustom(this._cbToggleShowHide, this._cbToggleShowHide, true);
     hMeshes.length = 0;
     main.render();
-  },
-  onDarkenUnselected: function (val) {
+  }
+
+  onDarkenUnselected(val) {
     ShaderBase.darkenUnselected = val;
     this._main.render();
-  },
-  onShowSymmetryLine: function (val) {
+  }
+
+  onShowSymmetryLine(val) {
     ShaderBase.showSymmetryLine = val;
     this._main.render();
-  },
-  onShowGrid: function (bool) {
+  }
+
+  onShowGrid(bool) {
     var main = this._main;
     main._showGrid = bool;
     main.render();
-  },
-  onShowContour: function (bool) {
+  }
+
+  onShowContour(bool) {
     var main = this._main;
     main._showContour = bool;
     main.render();
-  },
+  }
+
   ////////////////
   // KEY EVENTS
   ////////////////
-  onKeyDown: function (event) {
+  onKeyDown(event) {
     if (event.handled === true)
       return;
 
@@ -194,6 +213,6 @@ GuiScene.prototype = {
       event.handled = true;
     }
   }
-};
+}
 
 export default GuiScene;

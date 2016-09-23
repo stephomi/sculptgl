@@ -8,36 +8,41 @@ import MeshStatic from '../../mesh/meshStatic/MeshStatic';
 var vec3 = glm.vec3;
 var mat3 = glm.mat3;
 
-var Masking = function (main) {
-  SculptBase.call(this, main);
-  this._radius = 50;
-  this._hardness = 0.25;
-  this._intensity = 1.0;
-  this._negative = true;
-  this._culling = false;
-  this._idAlpha = 0;
-  this._lockPosition = false;
+class Masking extends SculptBase {
 
-  this._thickness = 1.0;
-};
+  constructor(main) {
+    super(main);
 
-Masking.prototype = {
-  pushState: function () {
+    this._radius = 50;
+    this._hardness = 0.25;
+    this._intensity = 1.0;
+    this._negative = true;
+    this._culling = false;
+    this._idAlpha = 0;
+    this._lockPosition = false;
+
+    this._thickness = 1.0;
+  }
+
+  pushState() {
     // too lazy to add a pushStateMaterial
     this._main.getStateManager().pushStateColorAndMaterial(this.getMesh());
-  },
-  updateMeshBuffers: function () {
+  }
+
+  updateMeshBuffers() {
     var mesh = this.getMesh();
     if (mesh.isDynamic)
       mesh.updateBuffers();
     else
       mesh.updateMaterialBuffer();
-  },
-  stroke: function (picking) {
+  }
+
+  stroke(picking) {
     Paint.prototype.stroke.call(this, picking);
-  },
+  }
+
   /** Paint color vertices */
-  paint: function (iVerts, center, radiusSquared, intensity, hardness, picking) {
+  paint(iVerts, center, radiusSquared, intensity, hardness, picking) {
     var mesh = this.getMesh();
     var vAr = mesh.getVertices();
     var mAr = mesh.getMaterials();
@@ -60,14 +65,16 @@ Masking.prototype = {
       fallOff *= maskIntensity * picking.getAlpha(vx, vy, vz);
       mAr[ind + 2] = Math.min(Math.max(mAr[ind + 2] + fallOff, 0.0), 1.0);
     }
-  },
-  updateAndRenderMask: function () {
+  }
+
+  updateAndRenderMask() {
     var mesh = this.getMesh();
     mesh.updateDuplicateColorsAndMaterials();
     mesh.updateDrawArrays();
     this.updateRender();
-  },
-  blur: function () {
+  }
+
+  blur() {
     var mesh = this.getMesh();
     var iVerts = this.getMaskedVertices();
     if (iVerts.length === 0)
@@ -84,8 +91,9 @@ Masking.prototype = {
     for (var i = 0; i < nbVerts; ++i)
       mAr[iVerts[i] * 3 + 2] = smoothVerts[i * 3 + 2];
     this.updateAndRenderMask();
-  },
-  sharpen: function () {
+  }
+
+  sharpen() {
     var mesh = this.getMesh();
     var iVerts = this.getMaskedVertices();
     if (iVerts.length === 0)
@@ -102,8 +110,9 @@ Masking.prototype = {
       mAr[idm] = val > 0.5 ? Math.min(val + 0.1, 1.0) : Math.max(val - 1.0, 0.0);
     }
     this.updateAndRenderMask();
-  },
-  clear: function () {
+  }
+
+  clear() {
     var mesh = this.getMesh();
     var iVerts = this.getMaskedVertices();
     if (iVerts.length === 0)
@@ -117,8 +126,9 @@ Masking.prototype = {
       mAr[iVerts[i] * 3 + 2] = 1.0;
 
     this.updateAndRenderMask();
-  },
-  invert: function (isState, meshState) {
+  }
+
+  invert(isState, meshState) {
     var mesh = meshState;
     if (!mesh) mesh = this.getMesh();
     if (!isState)
@@ -129,8 +139,9 @@ Masking.prototype = {
       mAr[i * 3 + 2] = 1.0 - mAr[i * 3 + 2];
 
     this.updateAndRenderMask();
-  },
-  remapAndMirrorIndices: function (fAr, nbFaces, iVerts) {
+  }
+
+  remapAndMirrorIndices(fAr, nbFaces, iVerts) {
     var nbVertices = this.getMesh().getNbVertices();
     var iTag = new Uint32Array(Utils.getMemory(nbVertices * 4), 0, nbVertices);
     var i = 0;
@@ -158,16 +169,18 @@ Masking.prototype = {
       fAr[j + 2] = iTag[fAr[j + 2]] + nbVerts;
       fAr[j + 3] = iTag[fAr[j + 3]] + nbVerts;
     }
-  },
-  invertFaces: function (fAr) {
+  }
+
+  invertFaces(fAr) {
     for (var i = 0, nb = fAr.length / 4; i < nb; ++i) {
       var id = i * 4;
       var temp = fAr[id];
       fAr[id] = fAr[id + 2];
       fAr[id + 2] = temp;
     }
-  },
-  extractFaces: function (iFaces, iVerts, maskClamp) {
+  }
+
+  extractFaces(iFaces, iVerts, maskClamp) {
     var mesh = this.getMesh();
     var fAr = mesh.getFaces();
     var mAr = mesh.getMaterials();
@@ -248,8 +261,9 @@ Masking.prototype = {
     if (this._thickness > 0)
       this.invertFaces(fArNew);
     return fArNew;
-  },
-  extractVertices: function (iVerts) {
+  }
+
+  extractVertices(iVerts) {
     var mesh = this.getMesh();
 
     var vAr = mesh.getVertices();
@@ -289,8 +303,9 @@ Masking.prototype = {
       vArNew[idv + 2] = vTemp[2];
     }
     return vArNew;
-  },
-  smoothBorder: function (mesh, iFaces) {
+  }
+
+  smoothBorder(mesh, iFaces) {
     var startBridge = iFaces.length * 2;
     var fBridge = new Uint32Array(mesh.getNbFaces() - startBridge);
     for (var i = 0, nbBridge = fBridge.length; i < nbBridge; ++i)
@@ -301,8 +316,9 @@ Masking.prototype = {
     smo.smooth(vBridge, 1.0);
     smo.smooth(vBridge, 1.0);
     smo.smooth(vBridge, 1.0);
-  },
-  extract: function () {
+  }
+
+  extract() {
     var mesh = this.getMesh();
     var maskClamp = 0.5;
 
@@ -336,8 +352,6 @@ Masking.prototype = {
     main.addNewMesh(newMesh);
     main.setMesh(mesh);
   }
-};
-
-Utils.makeProxy(SculptBase, Masking);
+}
 
 export default Masking;

@@ -1,41 +1,43 @@
-var StateMultiresolution = function (main, multimesh, type, isRedo) {
-  this._main = main; // main application
-  this._multimesh = multimesh; // the multires mesh
-  this._mesh = multimesh.getCurrentMesh(); // the sub multimesh
-  this._type = type; // the type of action
-  this._sel = multimesh._sel; // the selected mesh
+class StateMultiresolution {
 
-  switch (type) {
-  case StateMultiresolution.DELETE_LOWER:
-    this._deletedMeshes = multimesh._meshes.slice(0, multimesh._sel); // deleted meshes
-    break;
-  case StateMultiresolution.DELETE_HIGHER:
-    this._deletedMeshes = multimesh._meshes.slice(multimesh._sel + 1); // deleted meshes
-    if (!isRedo)
-      this._vMappingState = this._mesh.getVerticesMapping(); // vertex mapping low to high res
-    break;
-  case StateMultiresolution.SUBDIVISION:
-  case StateMultiresolution.REVERSION:
-    if (!isRedo) {
-      this._vArState = new Float32Array(this._mesh.getVertices()); // copies of vertices coordinates
-      this._cArState = new Float32Array(this._mesh.getColors()); // copies of colors
-      this._mArState = new Float32Array(this._mesh.getMaterials()); // copies of materials
+  static get SUBDIVISION() { return 0; } // subdivision of the mesh
+  static get REVERSION() { return 1; } // reversion of the mesh
+  static get SELECTION() { return 2; } // change selection of resolution
+  static get DELETE_LOWER() { return 3; } // deletes lower resolution
+  static get DELETE_HIGHER() { return 4; } // deletes higher resolution
+
+  constructor(main, multimesh, type, isRedo) {
+    this._main = main; // main application
+    this._multimesh = multimesh; // the multires mesh
+    this._mesh = multimesh.getCurrentMesh(); // the sub multimesh
+    this._type = type; // the type of action
+    this._sel = multimesh._sel; // the selected mesh
+
+    switch (type) {
+    case StateMultiresolution.DELETE_LOWER:
+      this._deletedMeshes = multimesh._meshes.slice(0, multimesh._sel); // deleted meshes
+      break;
+    case StateMultiresolution.DELETE_HIGHER:
+      this._deletedMeshes = multimesh._meshes.slice(multimesh._sel + 1); // deleted meshes
+      if (!isRedo)
+        this._vMappingState = this._mesh.getVerticesMapping(); // vertex mapping low to high res
+      break;
+    case StateMultiresolution.SUBDIVISION:
+    case StateMultiresolution.REVERSION:
+      if (!isRedo) {
+        this._vArState = new Float32Array(this._mesh.getVertices()); // copies of vertices coordinates
+        this._cArState = new Float32Array(this._mesh.getColors()); // copies of colors
+        this._mArState = new Float32Array(this._mesh.getMaterials()); // copies of materials
+      }
+      break;
     }
-    break;
   }
-};
 
-StateMultiresolution.SUBDIVISION = 0; // subdivision of the mesh
-StateMultiresolution.REVERSION = 1; // reversion of the mesh
-StateMultiresolution.SELECTION = 2; // change selection of resolution
-StateMultiresolution.DELETE_LOWER = 3; // deletes lower resolution
-StateMultiresolution.DELETE_HIGHER = 4; // deletes higher resolution
-
-StateMultiresolution.prototype = {
-  isNoop: function () {
+  isNoop() {
     return false;
-  },
-  undo: function () {
+  }
+
+  undo() {
     var mul = this._multimesh;
     switch (this._type) {
     case StateMultiresolution.SELECTION:
@@ -62,8 +64,9 @@ StateMultiresolution.prototype = {
       break;
     }
     this._main.setMesh(mul);
-  },
-  redo: function () {
+  }
+
+  redo() {
     var mul = this._multimesh;
     switch (this._type) {
     case StateMultiresolution.SELECTION:
@@ -83,10 +86,11 @@ StateMultiresolution.prototype = {
       break;
     }
     this._main.setMesh(mul);
-  },
-  createRedo: function () {
+  }
+
+  createRedo() {
     return new StateMultiresolution(this._main, this._multimesh, this._type, true);
   }
-};
+}
 
 export default StateMultiresolution;

@@ -6,48 +6,54 @@ import StDynamic from '../states/StateDynamic';
 import StMultiresolution from '../states/StateMultiresolution';
 import StCustom from '../states/StateCustom';
 
-var StateManager = function (main) {
-  this._main = main; // main
-  this._undos = []; // undo actions
-  this._redos = []; // redo actions
-  this._curUndoIndex = -1; // current index in undo
-};
+class StateManager {
 
-StateManager.STACK_LENGTH = 15;
+  constructor(main) {
+    this._main = main; // main
+    this._undos = []; // undo actions
+    this._redos = []; // redo actions
+    this._curUndoIndex = -1; // current index in undo
+  }
 
-StateManager.prototype = {
-  pushStateCustom: function (undocb, redocb, squash) {
+  pushStateCustom(undocb, redocb, squash) {
     var st = new StCustom(undocb, redocb);
     st.squash = squash;
     this.pushState(st);
-  },
-  pushStateAddRemove: function (addMesh, remMesh, squash) {
+  }
+
+  pushStateAddRemove(addMesh, remMesh, squash) {
     var st = new StAddRemove(this._main, addMesh, remMesh);
     st.squash = squash;
     this.pushState(st);
-  },
-  pushStateRemove: function (remMesh) {
+  }
+
+  pushStateRemove(remMesh) {
     this.pushState(new StAddRemove(this._main, [], remMesh));
-  },
-  pushStateAdd: function (addMesh) {
+  }
+
+  pushStateAdd(addMesh) {
     this.pushState(new StAddRemove(this._main, addMesh, []));
-  },
-  pushStateColorAndMaterial: function (mesh) {
+  }
+
+  pushStateColorAndMaterial(mesh) {
     if (mesh.isDynamic)
       this.pushState(new StDynamic(this._main, mesh));
     else
       this.pushState(new StColorAndMaterial(this._main, mesh));
-  },
-  pushStateGeometry: function (mesh) {
+  }
+
+  pushStateGeometry(mesh) {
     if (mesh.isDynamic)
       this.pushState(new StDynamic(this._main, mesh));
     else
       this.pushState(new StGeometry(this._main, mesh));
-  },
-  pushStateMultiresolution: function (multimesh, type) {
+  }
+
+  pushStateMultiresolution(multimesh, type) {
     this.pushState(new StMultiresolution(this._main, multimesh, type));
-  },
-  setNewMaxStack: function (maxStack) {
+  }
+
+  setNewMaxStack(maxStack) {
     StateManager.STACK_LENGTH = maxStack;
     var undos = this._undos;
     var redos = this._redos;
@@ -59,8 +65,9 @@ StateManager.prototype = {
       undos.pop();
       redos.shift();
     }
-  },
-  pushState: function (state) {
+  }
+
+  pushState(state) {
     ++Utils.STATE_FLAG;
     var undos = this._undos;
     if (this._curUndoIndex === -1) undos.length = 0;
@@ -73,19 +80,23 @@ StateManager.prototype = {
     if (undos.length > 0)
       undos.length = this._curUndoIndex;
     undos.push(state);
-  },
-  getCurrentState: function () {
+  }
+
+  getCurrentState() {
     return this._undos[this._curUndoIndex];
-  },
-  pushVertices: function (iVerts) {
+  }
+
+  pushVertices(iVerts) {
     if (iVerts && iVerts.length > 0)
       this.getCurrentState().pushVertices(iVerts);
-  },
-  pushFaces: function (iFaces) {
+  }
+
+  pushFaces(iFaces) {
     if (iFaces && iFaces.length > 0)
       this.getCurrentState().pushFaces(iFaces);
-  },
-  undo: function () {
+  }
+
+  undo() {
     if (!this._undos.length || this._curUndoIndex < 0)
       return;
 
@@ -98,8 +109,9 @@ StateManager.prototype = {
     this._curUndoIndex--;
     if (state.squash === true)
       this.undo();
-  },
-  redo: function () {
+  }
+
+  redo() {
     if (!this._redos.length)
       return;
 
@@ -109,19 +121,23 @@ StateManager.prototype = {
     this._redos.pop();
     if (state.squash === true)
       this.redo();
-  },
-  reset: function () {
+  }
+
+  reset() {
     this._undos.length = 0;
     this._redos.length = 0;
     this._curUndoIndex = -1;
-  },
-  cleanNoop: function () {
+  }
+
+  cleanNoop() {
     while (this._curUndoIndex >= 0 && this.getCurrentState().isNoop()) {
       this._undos.length--;
       this._curUndoIndex--;
       this._redos.length = 0;
     }
   }
-};
+}
+
+StateManager.STACK_LENGTH = 15;
 
 export default StateManager;

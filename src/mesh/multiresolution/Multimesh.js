@@ -1,40 +1,41 @@
-import Utils from '../../misc/Utils';
 import MeshResolution from '../../mesh/multiresolution/MeshResolution';
 import Mesh from '../../mesh/Mesh';
 import Buffer from '../../render/Buffer';
 import Subdivision from '../../editing/Subdivision';
 import Reversion from '../../editing/Reversion';
 
-var Multimesh = function (mesh) {
-  Mesh.call(this);
+class Multimesh extends Mesh {
 
-  this.setID(mesh.getID());
-  this.setRenderData(mesh.getRenderData());
-  this.setTransformData(mesh.getTransformData());
+  static get NONE() { return 0; }
+  static get SCULPT() { return 1; }
+  static get CAMERA() { return 2; }
+  static get PICKING() { return 3; }
 
-  this._meshes = [new MeshResolution(mesh, true)];
-  this.setSelection(0);
+  constructor(mesh) {
+    super();
 
-  var gl = mesh.getGL();
-  this._indexBuffer = new Buffer(gl, gl.ELEMENT_ARRAY_BUFFER, gl.STATIC_DRAW);
-  this._wireframeBuffer = new Buffer(gl, gl.ELEMENT_ARRAY_BUFFER, gl.STATIC_DRAW);
-};
+    this.setID(mesh.getID());
+    this.setRenderData(mesh.getRenderData());
+    this.setTransformData(mesh.getTransformData());
 
-Multimesh.RENDER_HINT = 0;
-Multimesh.NONE = 0;
-Multimesh.SCULPT = 1;
-Multimesh.CAMERA = 2;
-Multimesh.PICKING = 3;
+    this._meshes = [new MeshResolution(mesh, true)];
+    this.setSelection(0);
 
-Multimesh.prototype = {
-  getCurrentMesh: function () {
+    var gl = mesh.getGL();
+    this._indexBuffer = new Buffer(gl, gl.ELEMENT_ARRAY_BUFFER, gl.STATIC_DRAW);
+    this._wireframeBuffer = new Buffer(gl, gl.ELEMENT_ARRAY_BUFFER, gl.STATIC_DRAW);
+  }
+
+  getCurrentMesh() {
     return this._meshes[this._sel];
-  },
-  setSelection: function (sel) {
+  }
+
+  setSelection(sel) {
     this._sel = sel;
     this.setMeshData(this.getCurrentMesh().getMeshData());
-  },
-  addLevel: function () {
+  }
+
+  addLevel() {
     if ((this._meshes.length - 1) !== this._sel)
       return this.getCurrentMesh();
 
@@ -48,8 +49,9 @@ Multimesh.prototype = {
     this.pushMesh(newMesh);
     this.initRender();
     return newMesh;
-  },
-  computeReverse: function () {
+  }
+
+  computeReverse() {
     if (this._sel !== 0)
       return this.getCurrentMesh();
 
@@ -65,8 +67,9 @@ Multimesh.prototype = {
     this.unshiftMesh(newMesh);
     this.initRender();
     return newMesh;
-  },
-  lowerLevel: function () {
+  }
+
+  lowerLevel() {
     if (this._sel === 0)
       return this._meshes[0];
 
@@ -75,8 +78,9 @@ Multimesh.prototype = {
     this.updateResolution();
 
     return this.getCurrentMesh();
-  },
-  higherLevel: function () {
+  }
+
+  higherLevel() {
     if (this._sel === this._meshes.length - 1)
       return this.getCurrentMesh();
 
@@ -85,8 +89,9 @@ Multimesh.prototype = {
     this.updateResolution();
 
     return this.getCurrentMesh();
-  },
-  updateResolution: function () {
+  }
+
+  updateResolution() {
     this.updateGeometry();
     this.updateDuplicateColorsAndMaterials();
     this.updateBuffers();
@@ -94,54 +99,64 @@ Multimesh.prototype = {
     var mesh = this._meshes[this.getLowIndexRender()];
     this._indexBuffer.update(mesh.getTriangles());
     this._wireframeBuffer.update(mesh.getWireframe());
-  },
-  selectResolution: function (sel) {
+  }
+
+  selectResolution(sel) {
     while (this._sel > sel) {
       this.lowerLevel();
     }
     while (this._sel < sel) {
       this.higherLevel();
     }
-  },
-  findIndexFromMesh: function (mesh) {
+  }
+
+  findIndexFromMesh(mesh) {
     var meshes = this._meshes;
     for (var i = 0, l = meshes.length; i < l; ++i) {
       if (mesh === meshes[i])
         return i;
     }
-  },
-  selectMesh: function (mesh) {
+  }
+
+  selectMesh(mesh) {
     var val = this.findIndexFromMesh(mesh);
     this.selectResolution(val);
-  },
-  pushMesh: function (mesh) {
+  }
+
+  pushMesh(mesh) {
     this._meshes.push(mesh);
     this.setSelection(this._meshes.length - 1);
     this.updateResolution();
-  },
-  unshiftMesh: function (mesh) {
+  }
+
+  unshiftMesh(mesh) {
     this._meshes.unshift(mesh);
     this.setSelection(1);
     this.lowerLevel();
-  },
-  popMesh: function () {
+  }
+
+  popMesh() {
     this._meshes.pop();
     this.setSelection(this._meshes.length - 1);
     this.updateResolution();
-  },
-  shiftMesh: function () {
+  }
+
+  shiftMesh() {
     this._meshes.shift();
     this.setSelection(0);
     this.updateResolution();
-  },
-  deleteLower: function () {
+  }
+
+  deleteLower() {
     this._meshes.splice(0, this._sel);
     this.setSelection(0);
-  },
-  deleteHigher: function () {
+  }
+
+  deleteHigher() {
     this._meshes.splice(this._sel + 1);
-  },
-  getLowIndexRender: function () {
+  }
+
+  getLowIndexRender() {
     var limit = 500000;
     var sel = this._sel;
     while (sel >= 0) {
@@ -155,46 +170,51 @@ Multimesh.prototype = {
       --sel;
     }
     return 0;
-  },
-  _renderLow: function (main) {
+  }
+
+  _renderLow(main) {
     var render = this.getRenderData();
     var tmpSel = this._sel;
     var tmpIndex = this.getIndexBuffer();
     this.setSelection(this.getLowIndexRender());
     render._indexBuffer = this._indexBuffer;
 
-    Mesh.prototype.render.call(this, main);
+    super.render(main);
 
     render._indexBuffer = tmpIndex;
     this.setSelection(tmpSel);
-  },
-  _renderWireframeLow: function (main) {
+  }
+
+  _renderWireframeLow(main) {
     var render = this.getRenderData();
     var tmpSel = this._sel;
     var tmpWire = this.getWireframeBuffer();
     this.setSelection(this.getLowIndexRender());
     render._wireframeBuffer = this._wireframeBuffer;
 
-    Mesh.prototype.renderWireframe.call(this, main);
+    super.renderWireframe(main);
 
     render._wireframeBuffer = tmpWire;
     this.setSelection(tmpSel);
-  },
-  _canUseLowRender: function (main) {
+  }
+
+  _canUseLowRender(main) {
     if (this.isUsingTexCoords() || this.isUsingDrawArrays()) return false;
     if (Multimesh.RENDER_HINT === Multimesh.PICKING || Multimesh.RENDER_HINT === Multimesh.NONE) return false;
     if (main.getMesh() === this && Multimesh.RENDER_HINT !== Multimesh.CAMERA) return false;
     if (this.getLowIndexRender() === this._sel) return false;
     return true;
-  },
-  render: function (main) {
-    return this._canUseLowRender(main) ? this._renderLow(main) : Mesh.prototype.render.call(this, main);
-  },
-  renderWireframe: function (main) {
-    return this._canUseLowRender(main) ? this._renderWireframeLow(main) : Mesh.prototype.renderWireframe.call(this, main);
   }
-};
 
-Utils.makeProxy(Mesh, Multimesh);
+  render(main) {
+    return this._canUseLowRender(main) ? this._renderLow(main) : super.render(main);
+  }
+
+  renderWireframe(main) {
+    return this._canUseLowRender(main) ? this._renderWireframeLow(main) : super.renderWireframe(main);
+  }
+}
+
+Multimesh.RENDER_HINT = 0;
 
 export default Multimesh;

@@ -1,32 +1,33 @@
 import glm from '../../lib/gl-matrix';
-import Utils from '../../misc/Utils';
 import Geometry from '../../math3d/Geometry';
 import SculptBase from '../../editing/tools/SculptBase';
 
 var vec3 = glm.vec3;
 var mat4 = glm.mat4;
 
-var Move = function (main) {
-  SculptBase.call(this, main);
-  this._radius = 150;
-  this._intensity = 1.0;
-  this._topoCheck = true;
-  this._negative = false; // along normal
-  this._moveData = {
-    center: [0.0, 0.0, 0.0],
-    dir: [0.0, 0.0],
-    vProxy: null
-  };
-  this._moveDataSym = {
-    center: [0.0, 0.0, 0.0],
-    dir: [0.0, 0.0],
-    vProxy: null
-  };
-  this._idAlpha = 0;
-};
+class Move extends SculptBase {
 
-Move.prototype = {
-  startSculpt: function () {
+  constructor(main) {
+    super(main);
+
+    this._radius = 150;
+    this._intensity = 1.0;
+    this._topoCheck = true;
+    this._negative = false; // along normal
+    this._moveData = {
+      center: [0.0, 0.0, 0.0],
+      dir: [0.0, 0.0],
+      vProxy: null
+    };
+    this._moveDataSym = {
+      center: [0.0, 0.0, 0.0],
+      dir: [0.0, 0.0],
+      vProxy: null
+    };
+    this._idAlpha = 0;
+  }
+
+  startSculpt() {
     var main = this._main;
     var picking = main.getPicking();
     this.initMoveData(picking, this._moveData);
@@ -39,8 +40,9 @@ Move.prototype = {
       if (pickingSym.getMesh())
         this.initMoveData(pickingSym, this._moveDataSym);
     }
-  },
-  initMoveData: function (picking, moveData) {
+  }
+
+  initMoveData(picking, moveData) {
     if (this._topoCheck)
       picking.pickVerticesInSphereTopological(picking.getLocalRadius2());
     else
@@ -60,8 +62,9 @@ Move.prototype = {
       vProxy[j + 1] = vAr[ind + 1];
       vProxy[j + 2] = vAr[ind + 2];
     }
-  },
-  copyVerticesProxy: function (picking, moveData) {
+  }
+
+  copyVerticesProxy(picking, moveData) {
     var iVerts = picking.getPickedVertices();
     var vAr = this.getMesh().getVertices();
     var vProxy = moveData.vProxy;
@@ -72,8 +75,9 @@ Move.prototype = {
       vAr[ind + 1] = vProxy[j + 1];
       vAr[ind + 2] = vProxy[j + 2];
     }
-  },
-  sculptStroke: function () {
+  }
+
+  sculptStroke() {
     var main = this._main;
     var picking = main.getPicking();
     var pickingSym = main.getPickingSymmetry();
@@ -106,8 +110,9 @@ Move.prototype = {
       mesh.updateGeometry(mesh.getFacesFromVertices(pickingSym.getPickedVertices()), pickingSym.getPickedVertices());
     this.updateRender();
     main.setCanvasCursor('default');
-  },
-  move: function (iVerts, center, radiusSquared, moveData, picking) {
+  }
+
+  move(iVerts, center, radiusSquared, moveData, picking) {
     var mesh = this.getMesh();
     var vAr = mesh.getVertices();
     var mAr = mesh.getMaterials();
@@ -137,8 +142,9 @@ Move.prototype = {
       vAr[ind + 1] += diry * fallOff;
       vAr[ind + 2] += dirz * fallOff;
     }
-  },
-  updateMoveDir: function (picking, mouseX, mouseY, useSymmetry) {
+  }
+
+  updateMoveDir(picking, mouseX, mouseY, useSymmetry) {
     var mesh = this.getMesh();
     var vNear = picking.unproject(mouseX, mouseY, 0.0);
     var vFar = picking.unproject(mouseX, mouseY, 0.1);
@@ -168,8 +174,6 @@ Move.prototype = {
     vec3.sub(eyeDir, vFar, vNear);
     vec3.normalize(eyeDir, eyeDir);
   }
-};
-
-Utils.makeProxy(SculptBase, Move);
+}
 
 export default Move;

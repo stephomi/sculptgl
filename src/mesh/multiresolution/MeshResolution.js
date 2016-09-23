@@ -3,42 +3,49 @@ import Subdivision from '../../editing/Subdivision';
 import Mesh from '../../mesh/Mesh';
 import createMeshData from '../../mesh/MeshData';
 
-var MeshResolution = function (mesh, keepMesh) {
-  Mesh.call(this);
+class MeshResolution extends Mesh {
 
-  this.setID(mesh.getID());
-  this.setMeshData(keepMesh ? mesh.getMeshData() : createMeshData());
-  this.setRenderData(mesh.getRenderData());
-  this.setTransformData(mesh.getTransformData());
+  constructor(mesh, keepMesh) {
+    super();
 
-  this._detailsXYZ = null; // details vectors (Float32Array)
-  this._detailsRGB = null; // details vectors (Float32Array)
-  this._detailsPBR = null; // details vectors (Float32Array)
-  this._vertMapping = null; // vertex mapping to higher res (Uint32Array)
-  this._evenMapping = false; // if the even vertices are not aligned with higher res
-};
+    this.setID(mesh.getID());
+    this.setMeshData(keepMesh ? mesh.getMeshData() : createMeshData());
+    this.setRenderData(mesh.getRenderData());
+    this.setTransformData(mesh.getTransformData());
 
-MeshResolution.prototype = {
-  optimize: function () {},
-  getEvenMapping: function () {
+    this._detailsXYZ = null; // details vectors (Float32Array)
+    this._detailsRGB = null; // details vectors (Float32Array)
+    this._detailsPBR = null; // details vectors (Float32Array)
+    this._vertMapping = null; // vertex mapping to higher res (Uint32Array)
+    this._evenMapping = false; // if the even vertices are not aligned with higher res
+  }
+
+  optimize() {}
+
+  getEvenMapping() {
     return this._evenMapping;
-  },
-  getVerticesMapping: function () {
+  }
+
+  getVerticesMapping() {
     return this._vertMapping;
-  },
-  setVerticesMapping: function (vmAr) {
+  }
+
+  setVerticesMapping(vmAr) {
     this._vertMapping = vmAr;
-  },
-  setEvenMapping: function (bool) {
+  }
+
+  setEvenMapping(bool) {
     this._evenMapping = bool;
-  },
+  }
+
   /** Go to one level above (down to up) */
-  higherSynthesis: function (meshDown) {
+  higherSynthesis(meshDown) {
     meshDown.computePartialSubdivision(this.getVertices(), this.getColors(), this.getMaterials(), this.getNbVertices());
     this.applyDetails();
-  },
+  }
+
   /** Go to one level below (up to down) */
-  lowerAnalysis: function (meshUp) {
+  lowerAnalysis(meshUp) {
     this.copyDataFromHigherRes(meshUp);
     var nbVertices = meshUp.getNbVertices();
     var subdVerts = new Float32Array(nbVertices * 3);
@@ -47,8 +54,9 @@ MeshResolution.prototype = {
 
     this.computePartialSubdivision(subdVerts, subdColors, subdMaterials, nbVertices);
     meshUp.computeDetails(subdVerts, subdColors, subdMaterials, nbVertices);
-  },
-  copyDataFromHigherRes: function (meshUp) {
+  }
+
+  copyDataFromHigherRes(meshUp) {
     var vArDown = this.getVertices();
     var cArDown = this.getColors();
     var mArDown = this.getMaterials();
@@ -77,8 +85,9 @@ MeshResolution.prototype = {
         mArDown[id + 2] = mArUp[idUp + 2];
       }
     }
-  },
-  computePartialSubdivision: function (subdVerts, subdColors, subdMaterials, nbVerticesUp) {
+  }
+
+  computePartialSubdivision(subdVerts, subdColors, subdMaterials, nbVerticesUp) {
     var vertMap = this.getVerticesMapping();
     if (!vertMap) {
       Subdivision.partialSubdivision(this, subdVerts, subdColors, subdMaterials);
@@ -111,9 +120,10 @@ MeshResolution.prototype = {
       subdMaterials[idUp + 1] = materials[id + 1];
       subdMaterials[idUp + 2] = materials[id + 2];
     }
-  },
+  }
+
   /** Apply back the detail vectors */
-  applyDetails: function () {
+  applyDetails() {
     var vrvStartCountUp = this.getVerticesRingVertStartCount();
     var vertRingVertUp = this.getVerticesRingVert();
     var vArUp = this.getVertices();
@@ -199,9 +209,10 @@ MeshResolution.prototype = {
       vArUp[j + 1] = vy + ny * dx + ty * dy + biy * dz;
       vArUp[j + 2] = vz + nz * dx + tz * dy + biz * dz;
     }
-  },
+  }
+
   /** Compute the detail vectors */
-  computeDetails: function (subdVerts, subdColors, subdMaterials, nbVerticesUp) {
+  computeDetails(subdVerts, subdColors, subdMaterials, nbVerticesUp) {
     var vrvStartCountUp = this.getVerticesRingVertStartCount();
     var vertRingVertUp = this.getVerticesRingVert();
     var vArUp = this.getVertices();
@@ -276,8 +287,6 @@ MeshResolution.prototype = {
       dAr[j + 2] = bix * dx + biy * dy + biz * dz;
     }
   }
-};
-
-Utils.makeProxy(Mesh, MeshResolution);
+}
 
 export default MeshResolution;

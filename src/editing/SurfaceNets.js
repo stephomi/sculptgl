@@ -1,4 +1,4 @@
-var SurfaceNets = {};
+let SurfaceNets = {};
 SurfaceNets.BLOCK = false;
 
 /**

@@ -1,19 +1,19 @@
-import Utils from '../../misc/Utils';
 import Mesh from '../../mesh/Mesh';
 import createTransformData from '../../mesh/TransformData';
 import createMeshData from '../../mesh/MeshData';
 import RenderData from '../../mesh/RenderData';
 
-var MeshStatic = function (gl) {
-  Mesh.call(this);
+class MeshStatic extends Mesh {
 
-  this._id = Mesh.ID++; // useful id to retrieve a mesh (dynamic mesh, multires mesh, voxel mesh)
+  constructor(gl) {
+    super();
 
-  if (gl) this._renderData = new RenderData(gl, this);
-  this._meshData = createMeshData();
-  this._transformData = createTransformData();
-};
+    this._id = Mesh.ID++; // useful id to retrieve a mesh (dynamic mesh, multires mesh, voxel mesh)
 
-Utils.makeProxy(Mesh, MeshStatic);
+    if (gl) this._renderData = new RenderData(gl, this);
+    this._meshData = createMeshData();
+    this._transformData = createTransformData();
+  }
+}
 
 export default MeshStatic;

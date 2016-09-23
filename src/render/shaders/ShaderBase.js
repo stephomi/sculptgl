@@ -5,7 +5,6 @@ import Attribute from '../../render/Attribute';
 import colorSpaceGLSL from '../../render/shaders/glsl/colorSpace.glsl';
 import curvatureGLSL from '../../render/shaders/glsl/curvature.glsl';
 
-var console = window.console;
 var vec3 = glm.vec3;
 
 var ShaderBase = {};

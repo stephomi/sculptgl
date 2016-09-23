@@ -1,4 +1,4 @@
-var TR = {
+let TR = {
   // background
   backgroundTitle: '배경',
   backgroundReset: '초기화',

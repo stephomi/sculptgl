@@ -1,21 +1,25 @@
-var StateCustom = function (undocb, redocb) {
-  this._undocb = undocb;
-  this._redocb = redocb ? redocb : undocb;
-};
+class StateCustom {
 
-StateCustom.prototype = {
-  isNoop: function () {
+  constructor(undocb, redocb) {
+    this._undocb = undocb;
+    this._redocb = redocb ? redocb : undocb;
+  }
+
+  isNoop() {
     return !this._undocb;
-  },
-  undo: function () {
+  }
+
+  undo() {
     this._undocb();
-  },
-  redo: function () {
+  }
+
+  redo() {
     this._redocb();
-  },
-  createRedo: function () {
+  }
+
+  createRedo() {
     return new StateCustom(this._undocb, this._redocb);
   }
-};
+}
 
 export default StateCustom;

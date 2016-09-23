@@ -1,4 +1,4 @@
-var MeshData = function () {
+let MeshData = function () {
   return {
     _nbVertices: 0,
     _nbFaces: 0,

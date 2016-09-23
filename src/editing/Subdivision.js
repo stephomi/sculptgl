@@ -22,20 +22,21 @@ Subdivision.LINEAR = false;
 // v1   m1     v2
 
 // Helper class
-var OddVertexComputer = function (mesh, vArOut, cArOut, mArOut) {
-  this._vArOut = vArOut;
-  this._cArOut = cArOut;
-  this._mArOut = mArOut;
-  this._vAr = mesh.getVertices();
-  this._cAr = mesh.getColors();
-  this._mAr = mesh.getMaterials();
-  this._eAr = mesh.getEdges();
-  this._nbVertices = mesh.getNbVertices();
-  this._tagEdges = new Int32Array(mesh.getNbEdges());
-};
+class OddVertexComputer {
 
-OddVertexComputer.prototype = {
-  computeTriangleEdgeVertex: function (iv1, iv2, iv3, ide) {
+  constructor(mesh, vArOut, cArOut, mArOut) {
+    this._vArOut = vArOut;
+    this._cArOut = cArOut;
+    this._mArOut = mArOut;
+    this._vAr = mesh.getVertices();
+    this._cAr = mesh.getColors();
+    this._mAr = mesh.getMaterials();
+    this._eAr = mesh.getEdges();
+    this._nbVertices = mesh.getNbVertices();
+    this._tagEdges = new Int32Array(mesh.getNbEdges());
+  }
+
+  computeTriangleEdgeVertex(iv1, iv2, iv3, ide) {
     var vAr = this._vAr;
     var cAr = this._cAr;
     var mAr = this._mAr;
@@ -93,8 +94,9 @@ OddVertexComputer.prototype = {
       mArOut[idMid + 2] += 0.125 * mAr[idOpp + 2];
     }
     return ivMid;
-  },
-  computeQuadEdgeVertex: function (iv1, iv2, iv3, iv4, ide) {
+  }
+
+  computeQuadEdgeVertex(iv1, iv2, iv3, iv4, ide) {
     var vAr = this._vAr;
     var cAr = this._cAr;
     var mAr = this._mAr;
@@ -153,8 +155,9 @@ OddVertexComputer.prototype = {
       mArOut[idMid + 2] += 0.0625 * (mAr[idOpp + 2] + mAr[idOpp2 + 2]);
     }
     return ivMid;
-  },
-  computeFaceVertex: function (iv1, iv2, iv3, iv4) {
+  }
+
+  computeFaceVertex(iv1, iv2, iv3, iv4) {
     var id1 = iv1 * 3;
     var id2 = iv2 * 3;
     var id3 = iv3 * 3;
@@ -180,7 +183,7 @@ OddVertexComputer.prototype = {
     mArOut[idCen + 2] = 0.25 * (mAr[id1 + 2] + mAr[id2 + 2] + mAr[id3 + 2] + mAr[id4 + 2]);
     return ivCen;
   }
-};
+}
 
 /** Even vertices smoothing */
 var applyEvenSmooth = function (baseMesh, even, colorOut, materialOut) {
