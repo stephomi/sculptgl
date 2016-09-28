@@ -6,14 +6,14 @@ var singletonBuffer;
 
 class Rtt {
 
-  constructor(gl, shaderName, depth, halfFloat) {
+  constructor(gl, shaderName = null, depth = gl.createRenderbuffer(), halfFloat = false) {
     this._gl = gl; // webgl context
 
     this._texture = gl.createTexture();
-    this._depth = depth === undefined ? gl.createRenderbuffer() : depth;
+    this._depth = depth;
     this._framebuffer = gl.createFramebuffer();
 
-    this._shaderType = shaderName || null;
+    this._shaderType = shaderName;
     this._invSize = new Float32Array(2);
     this._vertexBuffer = null;
 

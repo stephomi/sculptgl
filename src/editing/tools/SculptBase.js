@@ -416,9 +416,7 @@ class SculptBase {
     return this.filterMaskedVertices(-Infinity, 1.0);
   }
 
-  filterMaskedVertices(lowerBound, upperBound) {
-    var lb = lowerBound === undefined ? -Infinity : lowerBound;
-    var ub = upperBound === undefined ? Infinity : upperBound;
+  filterMaskedVertices(lowerBound = -Infinity, upperBound = Infinity) {
     var mesh = this.getMesh();
     var mAr = mesh.getMaterials();
     var nbVertices = mesh.getNbVertices();
@@ -426,7 +424,7 @@ class SculptBase {
     var acc = 0;
     for (var i = 0; i < nbVertices; ++i) {
       var mask = mAr[i * 3 + 2];
-      if (mask > lb && mask < ub)
+      if (mask > lowerBound && mask < upperBound)
         cleaned[acc++] = i;
     }
     return new Uint32Array(cleaned.subarray(0, acc));

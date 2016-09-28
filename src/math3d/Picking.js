@@ -156,12 +156,7 @@ class Picking {
   }
 
   /** Intersection between a ray the mouse position for every meshes */
-  intersectionMouseMeshes(meshes, mouseX, mouseY) {
-
-    var main = this._main;
-    if (!meshes) meshes = main.getMeshes();
-    if (mouseX === undefined) mouseX = main._mouseX;
-    if (mouseY === undefined) mouseY = main._mouseY;
+  intersectionMouseMeshes(meshes = this._main.getMeshes(), mouseX = this._main._mouseX, mouseY = this._main._mouseY) {
 
     var vNear = this.unproject(mouseX, mouseY, 0.0);
     var vFar = this.unproject(mouseX, mouseY, 0.1);
@@ -196,12 +191,8 @@ class Picking {
   }
 
   /** Intersection between a ray the mouse position */
-  intersectionMouseMesh(mesh, mouseX, mouseY) {
-    var main = this._main;
-    if (!mesh) mesh = main.getMesh();
-    if (mouseX === undefined) mouseX = main._mouseX;
-    if (mouseY === undefined) mouseY = main._mouseY;
-
+  // intersectionMouseMesh(mesh, mouseX, mouseY) {
+  intersectionMouseMesh(mesh = this._main.getMesh(), mouseX = this._main._mouseX, mouseY = this._main._mouseY) {
     var vNear = this.unproject(mouseX, mouseY, 0.0);
     var vFar = this.unproject(mouseX, mouseY, 0.1);
     var matInverse = mat4.create();

@@ -206,8 +206,7 @@ Utils.throttle = function (func, wait) {
   };
 };
 
-Utils.normalizeArrayVec3 = function (array, out) {
-  var arrayOut = out || array;
+Utils.normalizeArrayVec3 = function (array, arrayOut = array) {
   for (var i = 0, l = array.length / 3; i < l; ++i) {
     var j = i * 3;
     var nx = array[j];
@@ -226,16 +225,14 @@ Utils.normalizeArrayVec3 = function (array, out) {
   return arrayOut;
 };
 
-Utils.convertArrayVec3toSRGB = function (array, out) {
-  var arrayOut = out || array;
+Utils.convertArrayVec3toSRGB = function (array, arrayOut = array) {
   for (var i = 0, l = array.length; i < l; ++i) {
     arrayOut[i] = Utils.linearToSRGB1(array[i]);
   }
   return arrayOut;
 };
 
-Utils.convertArrayVec3toLinear = function (array, out) {
-  var arrayOut = out || array;
+Utils.convertArrayVec3toLinear = function (array, arrayOut = array) {
   for (var i = 0, l = array.length; i < l; ++i) {
     arrayOut[i] = Utils.sRGBToLinear1(array[i]);
   }

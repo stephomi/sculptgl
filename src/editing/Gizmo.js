@@ -32,7 +32,7 @@ var CUBE_SIDE_PICK = CUBE_SIDE * 1.2;
 
 var _TMP_QUAT = quat.create();
 
-var createGizmo = function (type, nbAxis) {
+var createGizmo = function (type, nbAxis = -1) {
   return {
     _finalMatrix: mat4.create(),
     _baseMatrix: mat4.create(),
@@ -42,7 +42,7 @@ var createGizmo = function (type, nbAxis) {
     _pickGeo: null,
     _isSelected: false,
     _type: type,
-    _nbAxis: nbAxis !== undefined ? nbAxis : -1,
+    _nbAxis: nbAxis,
     _lastInter: [0.0, 0.0, 0.0],
     updateMatrix() {
       mat4.copy(this._drawGeo.getMatrix(), this._finalMatrix);
@@ -78,42 +78,60 @@ var SCALE_XYZW = SCALE_X | SCALE_Y | SCALE_Z | SCALE_W;
 class Gizmo {
 
   static get TRANS_X() {
-    return TRANS_X; }
+    return TRANS_X;
+  }
   static get TRANS_Y() {
-    return TRANS_Y; }
+    return TRANS_Y;
+  }
   static get TRANS_Z() {
-    return TRANS_Z; }
+    return TRANS_Z;
+  }
   static get ROT_X() {
-    return ROT_X; }
+    return ROT_X;
+  }
   static get ROT_Y() {
-    return ROT_Y; }
+    return ROT_Y;
+  }
   static get ROT_Z() {
-    return ROT_Z; }
+    return ROT_Z;
+  }
   static get ROT_W() {
-    return ROT_W; }
+    return ROT_W;
+  }
   static get PLANE_X() {
-    return PLANE_X; }
+    return PLANE_X;
+  }
   static get PLANE_Y() {
-    return PLANE_Y; }
+    return PLANE_Y;
+  }
   static get PLANE_Z() {
-    return PLANE_Z; }
+    return PLANE_Z;
+  }
   static get SCALE_X() {
-    return SCALE_X; }
+    return SCALE_X;
+  }
   static get SCALE_Y() {
-    return SCALE_Y; }
+    return SCALE_Y;
+  }
   static get SCALE_Z() {
-    return SCALE_Z; }
+    return SCALE_Z;
+  }
   static get SCALE_W() {
-    return SCALE_W; }
+    return SCALE_W;
+  }
 
   static get TRANS_XYZ() {
-    return TRANS_XYZ; }
+    return TRANS_XYZ;
+  }
   static get ROT_XYZ() {
-    return ROT_XYZ; }
+    return ROT_XYZ;
+  }
   static get PLANE_XYZ() {
-    return PLANE_XYZ; }
+    return PLANE_XYZ;
+  }
   static get SCALE_XYZW() {
-    return SCALE_XYZW; }
+    return SCALE_XYZW;
+  }
 
   constructor(main) {
     this._main = main;
@@ -237,9 +255,7 @@ class Gizmo {
     this._createPlane(this._planeZ, COLOR_Z, s, 0.0, 0.0, 0.0, s, 0.0);
   }
 
-  _createCircle(rot, rad, color, radius, mthick) {
-    radius = radius || ROT_RADIUS;
-    mthick = mthick || 1.0;
+  _createCircle(rot, rad, color, radius = ROT_RADIUS, mthick = 1.0) {
     vec3.copy(rot._color, color);
     rot._pickGeo = Primitives.createTorus(this._gl, radius, THICKNESS_PICK * mthick, rad, 6, 64);
     rot._pickGeo._gizmo = rot;
@@ -298,9 +314,8 @@ class Gizmo {
     mat4.fromQuat(this._rotZ._baseMatrix, _TMP_QUAT);
   }
 
-  _computeCenterGizmo(center) {
+  _computeCenterGizmo(center = [0.0, 0.0, 0.0]) {
     var mesh = this._main.getMesh();
-    center = center || [0.0, 0.0, 0.0];
     if (mesh) {
       vec3.copy(center, mesh.getCenter());
       vec3.transformMat4(center, center, mesh.getEditMatrix());

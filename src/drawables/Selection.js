@@ -88,9 +88,7 @@ class Selection {
     this.getDotBuffer().release();
   }
 
-  _getCircleVertices(r, nb, full) {
-    var nbVertices = nb || 50;
-    var radius = r || 1.0;
+  _getCircleVertices(radius = 1.0, nbVertices = 50, full = false) {
     var arc = Math.PI * 2;
 
     var start = full ? 1 : 0;

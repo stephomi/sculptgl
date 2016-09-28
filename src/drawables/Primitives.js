@@ -4,18 +4,11 @@ import Remesh from '../editing/Remesh';
 
 var Primitives = {};
 
-var createPlaneArray = function (lx, ly, lz, wx, wy, wz, hx, hy, hz) {
-  lx = lx !== undefined ? lx : -0.5;
-  ly = ly !== undefined ? ly : 0.0;
-  lz = lz !== undefined ? lz : -0.5;
-
-  wx = wx !== undefined ? wx : 1.0;
-  wy = wy !== undefined ? wy : 0.0;
-  wz = wz !== undefined ? wz : 0.0;
-
-  hx = hx !== undefined ? hx : 0.0;
-  hy = hy !== undefined ? hy : 0.0;
-  hz = hz !== undefined ? hz : 1.0;
+var createPlaneArray = function (
+  lx = -0.5, ly = 0.0, lz = -0.5,
+  wx = 1.0, wy = 0.0, wz = 0.0,
+  hx = 0.0, hy = 0.0, hz = 1.0
+) {
 
   var faces = new Float32Array(4);
   faces[0] = 0;
@@ -46,9 +39,7 @@ var createPlaneArray = function (lx, ly, lz, wx, wy, wz, hx, hy, hz) {
   };
 };
 
-var createCubeArray = function (side) {
-  side = side || 1.0;
-
+var createCubeArray = function (side = 1.0) {
   var v = new Float32Array(24);
   v[1] = v[2] = v[4] = v[6] = v[7] = v[9] = v[10] = v[11] = v[14] = v[18] = v[21] = v[23] = -side * 0.5;
   v[0] = v[3] = v[5] = v[8] = v[12] = v[13] = v[15] = v[16] = v[17] = v[19] = v[20] = v[22] = side * 0.5;
@@ -85,14 +76,10 @@ var createCubeArray = function (side) {
   };
 };
 
-var createCylinderArray = function (radiusTop, radiusBottom, height, radSegments, heightSegments, topCap, lowCap) {
-  radiusTop = radiusTop !== undefined ? radiusTop : 0.5;
-  radiusBottom = radiusBottom !== undefined ? radiusBottom : 0.5;
-  height = height || 2.0;
-  radSegments = radSegments || 64;
-  heightSegments = heightSegments || 64;
-  topCap = topCap !== undefined ? topCap : true;
-  lowCap = lowCap !== undefined ? lowCap : true;
+var createCylinderArray = function (
+  radiusTop = 0.5, radiusBottom = 0.5, height = 2.0,
+  radSegments = 64, heightSegments = 64, topCap = true, lowCap = true
+) {
 
   var isSingularTop = topCap && radiusTop === 0.0;
   var isSingularBottom = lowCap && radiusBottom === 0.0;
@@ -178,12 +165,7 @@ var createCylinderArray = function (radiusTop, radiusBottom, height, radSegments
   };
 };
 
-var createTorusArray = function (radiusOut, radiusWidth, arc, nbRadial, nbTubular) {
-  radiusOut = radiusOut || 0.5;
-  radiusWidth = radiusWidth || 0.1;
-  nbRadial = nbRadial || 32;
-  nbTubular = nbTubular || 128;
-  arc = arc || Math.PI * 2;
+var createTorusArray = function (radiusOut = 0.5, radiusWidth = 0.1, arc = Math.PI * 2, nbRadial = 32, nbTubular = 128) {
   var isFull = Math.PI * 2 - arc < 1e-2;
 
   var nbVertices = nbRadial * nbTubular;
@@ -254,21 +236,13 @@ var createTorusArray = function (radiusOut, radiusWidth, arc, nbRadial, nbTubula
   };
 };
 
-var createGridArray = function (cx, cy, cz, wx, wy, wz, hx, hy, hz, res1, res2) {
-  cx = cx !== undefined ? cx : -0.5;
-  cy = cy !== undefined ? cy : 0.0;
-  cz = cz !== undefined ? cz : -0.5;
+var createGridArray = function (
+  cx = -0.5, cy = 0.0, cz = -0.5,
+  wx = 1.0, wy = 0.0, wz = 0.0,
+  hx = 0.0, hy = 0.0, hz = 1.0,
+  res1 = 20, res2 = res1
+) {
 
-  wx = wx !== undefined ? wx : 1.0;
-  wy = wy !== undefined ? wy : 0.0;
-  wz = wz !== undefined ? wz : 0.0;
-
-  hx = hx !== undefined ? hx : 0.0;
-  hy = hy !== undefined ? hy : 0.0;
-  hz = hz !== undefined ? hz : 1.0;
-
-  res1 = res1 !== undefined ? res1 : 20;
-  res2 = res2 !== undefined ? res2 : res1;
   res1 += 2;
   res2 += 2;
 
@@ -290,6 +264,7 @@ var createGridArray = function (cx, cy, cz, wx, wy, wz, hx, hy, hz, res1, res2) 
     vAr[j + 4] = uy - sy * (res1 - i - 1);
     vAr[j + 5] = uz - sz * (res1 - i - 1);
   }
+
   sx = hx / (res2 - 1);
   sy = hy / (res2 - 1);
   sz = hz / (res2 - 1);
@@ -347,14 +322,7 @@ Primitives.createPlane = function (gl) {
   return createMesh(gl, createPlaneArray.apply(this, slice.call(arguments, 1)));
 };
 
-Primitives.createArrow = function (gl, thick, height, rConeT, rConeH, radSegments, heightSegments) {
-  thick = thick || 0.5;
-  height = height || 2.0;
-  radSegments = radSegments || 4;
-  heightSegments = heightSegments || 1;
-  rConeT = rConeT || 5.0;
-  rConeH = rConeH || 0.2;
-
+Primitives.createArrow = function (gl, thick = 0.5, height = 2.0, rConeT = 5.0, rConeH = 0.2, radSegments = 4, heightSegments = 1) {
   var base = createMesh(null, createCylinderArray(thick, thick, height, radSegments, heightSegments));
   var cone = createMesh(null, createCylinderArray(0.0, thick * rConeT, height * rConeH, radSegments, heightSegments));
   cone.getMatrix()[13] = height * 0.5;
@@ -367,9 +335,9 @@ Primitives.createArrow = function (gl, thick, height, rConeT, rConeH, radSegment
   return createMesh(gl, arrow);
 };
 
-Primitives.createLine2D = function (gl, lx, ly, ux, uy) {
+Primitives.createLine2D = function (gl, lx = 0.0, ly = 0.0, ux = 0.0, uy = 0.0) {
   var mesh = createMesh(gl, {
-    vertices: new Float32Array([lx || 0.0, ly || 0.0, 0.0, ux || 0.0, uy || 0.0, 0.0])
+    vertices: new Float32Array([lx, ly, 0.0, ux, uy, 0.0])
   });
   if (gl) {
     mesh.setMode(gl.LINES);

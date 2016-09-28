@@ -10,9 +10,11 @@ WebGLCaps.checkRTTSupport = function (typeFloat, typeTexture) {
   var gl = WebGLCaps._gl;
   if (gl === undefined)
     return false;
+
   var key = typeFloat + ',' + typeTexture;
   if (WebGLCaps._checkRTT[key] !== undefined)
     return WebGLCaps._checkRTT[key];
+
   // from http://codeflow.org/entries/2013/feb/22/how-to-write-portable-webgl/#how-can-i-detect-if-i-can-render-to-floating-point-textures
 
   // setup the texture
