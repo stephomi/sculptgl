@@ -1,4 +1,4 @@
-let Utils = {};
+var Utils = {};
 
 Utils.SCALE = 100.0; // scale factor
 Utils.TAG_FLAG = 1; // flag value for comparison (always >= tags values)
