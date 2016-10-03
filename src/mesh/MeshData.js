@@ -2,6 +2,7 @@ var MeshData = function () {
   return {
     _nbVertices: 0,
     _nbFaces: 0,
+    _nbTexCoords: 0,
 
     /////////////////////
     // unique vertex data
