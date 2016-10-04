@@ -77,29 +77,26 @@ class Picking {
     return alpha._texture[(xn | 0) + aw * (yn | 0)] / 255.0;
   }
 
-  updateAlpha() {
-    (function () {
-      var nor = [0.0, 0.0, 0.0];
-      var dir = [0.0, 0.0, 0.0];
-      return function (keepOrigin) {
-        var radius = Math.sqrt(this._rLocal2);
-        this._alphaSide = radius * Math.SQRT1_2;
+  updateAlpha(keepOrigin) {
+    var dir = _TMP_V1;
+    var nor = _TMP_V2;
 
-        vec3.sub(dir, this._interPoint, this._alphaOrigin);
-        if (vec3.len(dir) === 0) return;
-        vec3.normalize(dir, dir);
+    var radius = Math.sqrt(this._rLocal2);
+    this._alphaSide = radius * Math.SQRT1_2;
 
-        var normal = this._pickedNormal;
-        vec3.scaleAndAdd(dir, dir, normal, -vec3.dot(dir, normal));
-        vec3.normalize(dir, dir);
+    vec3.sub(dir, this._interPoint, this._alphaOrigin);
+    if (vec3.len(dir) === 0) return;
+    vec3.normalize(dir, dir);
 
-        if (!keepOrigin)
-          vec3.copy(this._alphaOrigin, this._interPoint);
+    var normal = this._pickedNormal;
+    vec3.scaleAndAdd(dir, dir, normal, -vec3.dot(dir, normal));
+    vec3.normalize(dir, dir);
 
-        vec3.scaleAndAdd(nor, this._alphaOrigin, normal, radius);
-        mat4.lookAt(this._alphaLookAt, this._alphaOrigin, nor, dir);
-      };
-    })();
+    if (!keepOrigin)
+      vec3.copy(this._alphaOrigin, this._interPoint);
+
+    vec3.scaleAndAdd(nor, this._alphaOrigin, normal, radius);
+    mat4.lookAt(this._alphaLookAt, this._alphaOrigin, nor, dir);
   }
 
   initAlpha() {
