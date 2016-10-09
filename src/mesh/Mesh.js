@@ -2037,19 +2037,31 @@ class Mesh {
     // post transform optimization (index buffer re-index), it implements tipsy
     // http://gfx.cs.princeton.edu/pubs/Sander_2007_%3ETR/tipsy.pdf
 
+    var i = 0;
     var cacheSize = 32;
     var hasUV = this.hasUV();
     var fAr = this.getFaces();
     var fArUV = hasUV ? this.getFacesTexCoord() : fAr;
 
     var nbFaces = this.getNbFaces();
-    var nbVertices = hasUV ? this.getNbTexCoords() : this.getNbVertices();
+    var nbUniqueVertices = this.getNbVertices();
+    var nbVertices = hasUV ? this.getNbTexCoords() : nbUniqueVertices;
+
+    var dupUV = this.getVerticesDuplicateStartCount();
+    var mapToUnique = new Uint32Array(nbVertices - nbUniqueVertices);
+    if (hasUV) {
+      for (i = 0; i < nbVertices; ++i) {
+        var nbDup = dupUV[i * 2 + 1];
+        for (var j = dupUV[i * 2]; j < nbDup; ++j) {
+          mapToUnique[j - nbUniqueVertices] = i;
+        }
+      }
+    }
 
     var fringsStartCount = this.getVerticesRingFaceStartCount();
     var frings = this.getVerticesRingFace();
 
     var livesTriangles = new Int32Array(nbVertices);
-    var i = 0;
     for (i = 0; i < nbVertices; ++i) {
       livesTriangles[i] = fringsStartCount[i * 2 + 1];
     }
@@ -2071,8 +2083,9 @@ class Mesh {
 
       var ringCandidates = [];
 
-      var start = fringsStartCount[fanningVertex * 2];
-      var end = start + fringsStartCount[fanningVertex * 2 + 1];
+      var idRing = fanningVertex >= nbUniqueVertices ? mapToUnique[fanningVertex] : fanningVertex;
+      var start = fringsStartCount[idRing * 2];
+      var end = start + fringsStartCount[idRing * 2 + 1];
 
       for (i = start; i < end; ++i) {
         var idFace = frings[i];
