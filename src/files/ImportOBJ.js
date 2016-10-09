@@ -106,7 +106,12 @@ Import.importOBJ = function (data, gl) {
           uv2 = (uv2 < 0 ? uv2 + nbTexCoords : uv2 - 1) - offsetTexCoords;
           uv3 = (uv3 < 0 ? uv3 + nbTexCoords : uv3 - 1) - offsetTexCoords;
           if (isQuad) uv4 = (uv4 < 0 ? uv4 + nbTexCoords : uv4 - 1) - offsetTexCoords;
+
           uvfAr.push(uv1, uv2, uv3, isQuad ? uv4 : Utils.TRI_INDEX);
+
+        } else if (uvfAr.length > 0) {
+
+          uvfAr.push(iv1, iv2, iv3, isQuad ? iv4 : Utils.TRI_INDEX);
         }
       }
 
