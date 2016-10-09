@@ -6,5 +6,6 @@ cache/*
 node_modules
 *~
 .idea/*
+*.sublime-workspace
 *.log
 *.map

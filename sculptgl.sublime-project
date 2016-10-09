@@ -1,0 +1,10 @@
+{
+  "folders":[{
+      "name": "Sources",
+      "path": ".",
+    }, {
+      "name": "Resources",
+      "path": "app/resources",
+    }
+  ]
+}
