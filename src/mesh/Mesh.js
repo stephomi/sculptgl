@@ -2043,7 +2043,7 @@ class Mesh {
     var fArUV = hasUV ? this.getFacesTexCoord() : fAr;
 
     var nbFaces = this.getNbFaces();
-    var nbVertices = this.getNbVertices();
+    var nbVertices = hasUV ? this.getNbTexCoords() : this.getNbVertices();
 
     var fringsStartCount = this.getVerticesRingFaceStartCount();
     var frings = this.getVerticesRingFace();
