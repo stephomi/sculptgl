@@ -8,9 +8,11 @@ var vec3 = glm.vec3;
 var mat4 = glm.mat4;
 
 var _TMP_NEAR = [0.0, 0.0, 0.0];
+var _TMP_NEAR_1 = [0.0, 0.0, 0.0];
 var _TMP_FAR = [0.0, 0.0, 0.0];
 var _TMP_INV = mat4.create();
 var _TMP_INTER = [0.0, 0.0, 0.0];
+var _TMP_INTER_1 = [0.0, 0.0, 0.0];
 var _TMP_V1 = [0.0, 0.0, 0.0];
 var _TMP_V2 = [0.0, 0.0, 0.0];
 var _TMP_V3 = [0.0, 0.0, 0.0];
@@ -164,23 +166,23 @@ class Picking {
     for (var i = 0, nbMeshes = meshes.length; i < nbMeshes; ++i) {
       var mesh = meshes[i];
       mat4.invert(_TMP_INV, mesh.getMatrix());
-      vec3.transformMat4(_TMP_NEAR, vNear, _TMP_INV);
+      vec3.transformMat4(_TMP_NEAR_1, vNear, _TMP_INV);
       vec3.transformMat4(_TMP_FAR, vFar, _TMP_INV);
-      if (!this.intersectionRayMesh(mesh, _TMP_NEAR, _TMP_FAR))
+      if (!this.intersectionRayMesh(mesh, _TMP_NEAR_1, _TMP_FAR))
         continue;
 
       var interTest = this.getIntersectionPoint();
-      var testDistance = vec3.dist(_TMP_NEAR, interTest) * mesh.getScale();
+      var testDistance = vec3.dist(_TMP_NEAR_1, interTest) * mesh.getScale();
       if (testDistance < nearDistance) {
         nearDistance = testDistance;
         nearMesh = mesh;
-        vec3.copy(_TMP_INTER, interTest);
+        vec3.copy(_TMP_INTER_1, interTest);
         nearFace = this.getPickedFace();
       }
     }
 
     this._mesh = nearMesh;
-    vec3.copy(this._interPoint, _TMP_INTER);
+    vec3.copy(this._interPoint, _TMP_INTER_1);
     this._pickedFace = nearFace;
     if (nearFace !== -1)
       this.updateLocalAndWorldRadius2();
