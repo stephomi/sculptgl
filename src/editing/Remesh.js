@@ -306,7 +306,7 @@ Remesh.remesh = function (meshes, baseMesh) {
 
   console.time('5. createMesh');
   var nmesh = createMesh(baseMesh, res.faces, res.vertices, res.colors, res.materials);
-  console.time('5. createMesh');
+  console.timeEnd('5. createMesh');
 
   console.timeEnd('remesh total');
   console.log('\n');
