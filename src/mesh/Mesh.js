@@ -2051,8 +2051,9 @@ class Mesh {
     var mapToUnique = new Uint32Array(nbVertices - nbUniqueVertices);
     if (hasUV) {
       for (i = 0; i < nbVertices; ++i) {
-        var nbDup = dupUV[i * 2 + 1];
-        for (var j = dupUV[i * 2]; j < nbDup; ++j) {
+        var dupStart = dupUV[i * 2];
+        var dupEnd = dupStart + dupUV[i * 2 + 1];
+        for (var j = dupStart; j < dupEnd; ++j) {
           mapToUnique[j - nbUniqueVertices] = i;
         }
       }
@@ -2062,8 +2063,12 @@ class Mesh {
     var frings = this.getVerticesRingFace();
 
     var livesTriangles = new Int32Array(nbVertices);
-    for (i = 0; i < nbVertices; ++i) {
+    for (i = 0; i < nbUniqueVertices; ++i) {
       livesTriangles[i] = fringsStartCount[i * 2 + 1];
+    }
+
+    for (i = nbUniqueVertices; i < nbVertices; ++i) {
+      livesTriangles[i] = fringsStartCount[mapToUnique[i - nbUniqueVertices] * 2 + 1];
     }
 
     var vTimeStamp = new Uint32Array(nbVertices);
@@ -2083,7 +2088,11 @@ class Mesh {
 
       var ringCandidates = [];
 
-      var idRing = fanningVertex >= nbUniqueVertices ? mapToUnique[fanningVertex] : fanningVertex;
+      if (fanningVertex >= nbVertices) {
+        console.log(fanningVertex, nbVertices, nbUniqueVertices);
+      }
+
+      var idRing = fanningVertex >= nbUniqueVertices ? mapToUnique[fanningVertex - nbUniqueVertices] : fanningVertex;
       var start = fringsStartCount[idRing * 2];
       var end = start + fringsStartCount[idRing * 2 + 1];
 
@@ -2157,9 +2166,11 @@ class Mesh {
         }
       }
 
+      if (fanningVertex !== -1) continue;
+
       while (cursor < nbVertices) {
         if (livesTriangles[cursor++] > 0) {
-          fanningVertex = cursor;
+          fanningVertex = cursor - 1;
           break;
         }
       }
