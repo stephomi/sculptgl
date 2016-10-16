@@ -86,11 +86,13 @@ var readScalarValues = function (voxels, grid, dims, n, cols, mats) {
       }
     }
   }
-  if (invSum > 0 && mask !== 0 && mask !== 0xff) {
-    invSum = 1 / invSum;
+
+  if (mask !== 0 && mask !== 0xff) {
+    if (invSum > 0.0) invSum = 1.0 / invSum;
     cols.push(c1 * invSum, c2 * invSum, c3 * invSum);
     mats.push(m1 * invSum, m2 * invSum, m3 * invSum);
   }
+
   return mask;
 };
 
