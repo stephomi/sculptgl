@@ -337,8 +337,10 @@ class Picking {
     else if (this._isInsideSphere(fAr[idf + 3], inter, rLocal2)) pickedVertices[0] = fAr[idf + 3];
     else acc = 0;
 
-    if (acc === 1)
+    if (acc === 1) {
       vertSculptFlags[pickedVertices[0]] = sculptFlag;
+      vertTagFlags[pickedVertices[0]] = tagFlag;
+    }
 
     for (var i = 0; i < acc; ++i) {
       var id = pickedVertices[i];
@@ -354,9 +356,9 @@ class Picking {
 
       for (var j = start; j < end; ++j) {
         var idv = vertRingVert[j];
-        if (vertTagFlags[idv] === sculptFlag)
+        if (vertTagFlags[idv] === tagFlag)
           continue;
-        vertTagFlags[idv] = sculptFlag;
+        vertTagFlags[idv] = tagFlag;
 
         var id3 = idv * 3;
         var dx = itx - vAr[id3];
@@ -365,7 +367,7 @@ class Picking {
         if ((dx * dx + dy * dy + dz * dz) > rLocal2)
           continue;
 
-        vertSculptFlags[idv] = tagFlag;
+        vertSculptFlags[idv] = sculptFlag;
         pickedVertices[acc++] = idv;
       }
     }

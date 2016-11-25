@@ -2088,10 +2088,6 @@ class Mesh {
 
       var ringCandidates = [];
 
-      if (fanningVertex >= nbVertices) {
-        console.log(fanningVertex, nbVertices, nbUniqueVertices);
-      }
-
       var idRing = fanningVertex >= nbUniqueVertices ? mapToUnique[fanningVertex - nbUniqueVertices] : fanningVertex;
       var start = fringsStartCount[idRing * 2];
       var end = start + fringsStartCount[idRing * 2 + 1];
