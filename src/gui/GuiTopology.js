@@ -1,5 +1,6 @@
 import TR from '../gui/GuiTR';
 import Remesh from '../editing/Remesh';
+import Mesh from '../mesh/Mesh';
 import MeshStatic from '../mesh/meshStatic/MeshStatic';
 import Multimesh from '../mesh/multiresolution/Multimesh';
 import MeshDynamic from '../mesh/dynamic/MeshDynamic';
@@ -61,8 +62,8 @@ class GuiMultiresolution {
     var newMesh = !mesh.isDynamic ? new MeshDynamic(mesh) : this.convertToStaticMesh(mesh);
     this.updateDynamicVisibility(!mesh.isDynamic);
 
-    main.replaceMesh(mesh, newMesh);
     main.getStateManager().pushStateAddRemove(newMesh, mesh);
+    main.replaceMesh(mesh, newMesh);
   }
 
   remesh() {
@@ -103,7 +104,11 @@ class GuiMultiresolution {
     newMesh.setColors(mesh.getColors().subarray(0, mesh.getNbVertices() * 3));
     newMesh.setMaterials(mesh.getMaterials().subarray(0, mesh.getNbVertices() * 3));
     newMesh.setFaces(mesh.getFaces().subarray(0, mesh.getNbFaces() * 4));
+
+    Mesh.OPTIMIZE = false;
     newMesh.init();
+    Mesh.OPTIMIZE = true;
+
     newMesh.setRenderData(mesh.getRenderData());
     newMesh.initRender();
     return newMesh;

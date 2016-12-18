@@ -28,10 +28,7 @@ class MeshDynamic extends Mesh {
     this._facesStateFlags = null; // state flags (<= Utils.STATE_FLAG) (Int32Array)
     this._wireframe = null; // Uint32Array
 
-    this.init(mesh);
-
-    if (mesh.isUsingTexCoords())
-      this.setShaderType(Enums.Shader.MATCAP);
+    this.initFromMesh(mesh);
 
     this.initRender();
     this.isDynamic = true;
@@ -77,29 +74,47 @@ class MeshDynamic extends Mesh {
     return this._facesStateFlags;
   }
 
-  init(mesh) {
+  allocateArrays() {
+    super.allocateArrays();
     this._meshData._vertRingVert = []; // vertex ring
     this._meshData._vertRingFace = []; // face ring
+    this._facesStateFlags = new Int32Array(this.getNbFaces());
+  }
 
+  initFromMesh(mesh) {
     var nbVertices = mesh.getNbVertices();
 
     // make sure to strip UVs
     this.setVertices(new Float32Array(mesh.getVertices().subarray(0, nbVertices * 3)));
     this.setColors(new Float32Array(mesh.getColors().subarray(0, nbVertices * 3)));
     this.setMaterials(new Float32Array(mesh.getMaterials().subarray(0, nbVertices * 3)));
-
-    this.setFaces(new Uint32Array(mesh.getNbTriangles() * 4));
-    this.setNbFaces(mesh.getNbTriangles());
     this.setNbVertices(nbVertices);
 
-    this.allocateArrays();
+    this.setFacesFromMesh(mesh);
 
-    this.initTriangles(mesh);
-    this.initVerticesTopology(mesh);
+    this.init();
 
-    this.updateFacesAabbAndNormal();
-    this.updateVerticesNormal();
-    this.updateOctree();
+    if (mesh.isUsingTexCoords())
+      this.setShaderType(Enums.Shader.MATCAP);
+  }
+
+  setFacesFromMesh(mesh) {
+    this.setFaces(new Uint32Array(mesh.getNbTriangles() * 4));
+    this.setNbFaces(mesh.getNbTriangles());
+
+    var iArMesh = mesh.getTriangles();
+    var nbTriangles = this.getNbTriangles();
+    var fAr = this.getFaces();
+    this._meshData._trianglesABC = new Uint32Array(iArMesh.subarray(0, nbTriangles * 3));
+
+    for (var i = 0; i < nbTriangles; ++i) {
+      var id3 = i * 3;
+      var id4 = i * 4;
+      fAr[id4] = iArMesh[id3];
+      fAr[id4 + 1] = iArMesh[id3 + 1];
+      fAr[id4 + 2] = iArMesh[id3 + 2];
+      fAr[id4 + 3] = Utils.TRI_INDEX;
+    }
   }
 
   updateTopology(iFaces, iVerts) {
@@ -242,24 +257,7 @@ class MeshDynamic extends Mesh {
     }
   }
 
-  initTriangles(mesh) {
-    var iArMesh = mesh.getTriangles();
-    var nbTriangles = this.getNbTriangles();
-    var fAr = this.getFaces();
-    this._meshData._trianglesABC = new Uint32Array(iArMesh.subarray(0, nbTriangles * 3));
-
-    this._facesStateFlags = new Int32Array(nbTriangles);
-    for (var i = 0; i < nbTriangles; ++i) {
-      var id3 = i * 3;
-      var id4 = i * 4;
-      fAr[id4] = iArMesh[id3];
-      fAr[id4 + 1] = iArMesh[id3 + 1];
-      fAr[id4 + 2] = iArMesh[id3 + 2];
-      fAr[id4 + 3] = Utils.TRI_INDEX;
-    }
-  }
-
-  initVerticesTopology(mesh) {
+  initTopology() {
     var vrings = this.getVerticesRingVert();
     var frings = this.getVerticesRingFace();
     var i = 0;
@@ -279,11 +277,11 @@ class MeshDynamic extends Mesh {
       frings[iAr[j + 2]].push(i);
     }
 
+    var vOnEdge = this.getVerticesOnEdge();
     for (i = 0; i < nbVertices; ++i) {
       this.computeRingVertices(i);
+      vOnEdge[i] = frings[i].length !== vrings[i].length ? 1 : 0;
     }
-
-    this.getVerticesOnEdge().set(mesh.getVerticesOnEdge().subarray(0, nbVertices));
   }
 
   /** Compute the vertices around a vertex */

@@ -7,6 +7,10 @@ class Attribute {
     this._type = type; // type of the components
   }
 
+  unbind() {
+    this._gl.disableVertexAttribArray(this._location);
+  }
+
   bindToBuffer(buffer) {
     var gl = this._gl;
     buffer.bind();

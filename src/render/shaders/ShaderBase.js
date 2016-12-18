@@ -180,6 +180,8 @@ ShaderBase.drawBuffer = function (mesh) {
   }
   gl.bindBuffer(gl.ARRAY_BUFFER, null);
   gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, null);
+
+  this.unbindAttributes();
 };
 
 ShaderBase.setTextureParameters = function (gl, tex) {
@@ -242,6 +244,15 @@ ShaderBase.bindAttributes = function (mesh) {
   if (active.normal) attrs.aNormal.bindToBuffer(mesh.getNormalBuffer());
   if (active.color) attrs.aColor.bindToBuffer(mesh.getColorBuffer());
   if (active.material) attrs.aMaterial.bindToBuffer(mesh.getMaterialBuffer());
+};
+
+ShaderBase.unbindAttributes = function () {
+  var attrs = this.attributes;
+  var active = this.activeAttributes;
+  if (active.vertex) attrs.aVertex.unbind();
+  if (active.normal) attrs.aNormal.unbind();
+  if (active.color) attrs.aColor.unbind();
+  if (active.material) attrs.aMaterial.unbind();
 };
 
 ShaderBase.getCopy = function () {

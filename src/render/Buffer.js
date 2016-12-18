@@ -9,15 +9,18 @@ class Buffer {
   }
 
   bind() {
+    if (!this._buffer) this._buffer = this._gl.createBuffer();
     this._gl.bindBuffer(this._type, this._buffer);
   }
 
   release() {
     this._gl.deleteBuffer(this._buffer);
+    this._buffer = null;
+    this._size = 0;
   }
 
   update(data, nbElts) {
-    this._gl.bindBuffer(this._type, this._buffer);
+    this.bind();
 
     if (nbElts !== undefined && nbElts !== data.length)
       data = data.subarray(0, nbElts);
