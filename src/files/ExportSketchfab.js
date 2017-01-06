@@ -36,7 +36,15 @@ Export.exportSketchfab = function (main, key, statusWidget) {
     window.prompt(TR('sketchfabUploadProcessing'), 'https://sketchfab.com/models/' + uid);
     var check = function () {
       var xhrPoll = new XMLHttpRequest();
-      xhrPoll.open('GET', 'https://api.sketchfab.com/v2/models/' + uid + '/status?token=' + key, true);
+      var url = 'https://api.sketchfab.com/v2/models/' + uid + '/status';
+
+      if (typeof key === 'object' && key.hasOwnProperty('token_type') && key.token_type === 'Bearer') {
+        xhrPoll.open('GET', url, true);
+        xhrPoll.setRequestHeader('Authorization', 'Bearer ' + key.access_token);
+      } else {
+        xhrPoll.open('GET', url + '?token=' + key, true);
+      }
+
       xhrPoll.onload = function () {
         var resPoll = JSON.parse(xhrPoll.responseText);
         if (resPoll.processing === 'FAILED')
@@ -65,10 +73,16 @@ Export.exportSketchfab = function (main, key, statusWidget) {
 
 Export.exportFileSketchfab = function (main, key, xhr, blob) {
   var fd = new FormData();
-  fd.append('token', key);
   fd.append('modelFile', blob, 'sculptglModel.zip');
   fd.append('name', 'My model');
   fd.append('tags', 'sculptgl');
+
+  if (typeof key === 'object' && key.hasOwnProperty('token_type') && key.token_type === 'Bearer') {
+      xhr.setRequestHeader('Authorization', 'Bearer ' + key.access_token);
+  } else {
+      fd.append('token', key);
+  }
+
   xhr.send(fd);
 };
 

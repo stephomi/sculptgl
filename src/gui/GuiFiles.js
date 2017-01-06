@@ -1,5 +1,6 @@
 import TR from '../gui/GuiTR';
 import saveAs from '../lib/FileSaver';
+import SketchfabOAuth2 from '../lib/sketchfab-oauth2-1.0.0.js';
 import Export from '../files/Export';
 
 class GuiFiles {
@@ -71,6 +72,9 @@ class GuiFiles {
     if (!mesh)
       return;
 
+    if (!window.sketchfabOAuth2Config)
+        return;
+
     var ctrlNotif = this._ctrlGui.getWidgetNotification();
     if (this._sketchfabXhr && ctrlNotif.sketchfab === true) {
       if (!window.confirm(TR('sketchfabAbort')))
@@ -79,17 +83,17 @@ class GuiFiles {
       this._sketchfabXhr.abort();
     }
 
-    var api = window.prompt(TR('sketchfabUploadMessage'), 'guest');
-    if (!api)
-      return;
-
-    var key = api === 'guest' ? 'babc9a5cd4f343f9be0c7bd9cf93600c' : api;
-    this._sketchfabXhr = Export.exportSketchfab(this._main, key, ctrlNotif);
+    var client = new SketchfabOAuth2(window.sketchfabOAuth2Config);
+    client.connect().then( function onSuccess( grant ) {
+        this._sketchfabXhr = Export.exportSketchfab(this._main, grant, ctrlNotif);
+    }.bind(this) ).catch( function onError( error ) {
+        console.error( error );
+    } );
   }
 
   ////////////////
   // KEY EVENTS
-  //////////////// 
+  ////////////////
   onKeyDown(event) {
     if (event.handled === true)
       return;
@@ -107,7 +111,7 @@ class GuiFiles {
       this.addFile();
       event.handled = true;
 
-    } else if (event.ctrlKey && key === 69) { // E 
+    } else if (event.ctrlKey && key === 69) { // E
       this.saveFileAsOBJ(event.altKey);
       event.handled = true;
     }
