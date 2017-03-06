@@ -1,10 +1,10 @@
-import Utils from '../misc/Utils';
-import StAddRemove from '../states/StateAddRemove';
-import StColorAndMaterial from '../states/StateColorAndMaterial';
-import StGeometry from '../states/StateGeometry';
-import StDynamic from '../states/StateDynamic';
-import StMultiresolution from '../states/StateMultiresolution';
-import StCustom from '../states/StateCustom';
+import Utils from 'misc/Utils';
+import StAddRemove from 'states/StateAddRemove';
+import StColorAndMaterial from 'states/StateColorAndMaterial';
+import StGeometry from 'states/StateGeometry';
+import StDynamic from 'states/StateDynamic';
+import StMultiresolution from 'states/StateMultiresolution';
+import StCustom from 'states/StateCustom';
 
 class StateManager {
 

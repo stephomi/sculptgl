@@ -1,8 +1,8 @@
-import ExportOBJ from '../files/ExportOBJ';
-import ExportSGL from '../files/ExportSGL';
-import ExportPLY from '../files/ExportPLY';
-import ExportSTL from '../files/ExportSTL';
-import ExportSketchfab from '../files/ExportSketchfab';
+import ExportOBJ from 'files/ExportOBJ';
+import ExportSGL from 'files/ExportSGL';
+import ExportPLY from 'files/ExportPLY';
+import ExportSTL from 'files/ExportSTL';
+import ExportSketchfab from 'files/ExportSketchfab';
 
 var Export = {};
 Export.exportOBJ = ExportOBJ.exportOBJ;

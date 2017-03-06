@@ -1,7 +1,9 @@
-import TR from '../gui/GuiTR';
-import saveAs from '../lib/FileSaver';
-import SketchfabOAuth2 from '../lib/sketchfab-oauth2-1.0.0.js';
-import Export from '../files/Export';
+import TR from 'gui/GuiTR';
+import { saveAs } from 'file-saver';
+import { zip } from 'zip';
+import Export from 'files/Export';
+// import { SketchfabOAuth2 } from 'sketchfab-oauth2-1.0.0'; // webpack warning
+var SketchfabOAuth2 = require('sketchfab-oauth2-1.0.0.js').SketchfabOAuth2;
 
 class GuiFiles {
 
@@ -56,8 +58,20 @@ class GuiFiles {
   saveFileAsPLY() {
     var mesh = this._main.getMesh();
     if (!mesh) return;
-    var blob = Export.exportBinaryPLY(mesh);
-    saveAs(blob, 'yourMesh.ply');
+
+    zip.useWebWorkers = true;
+    zip.workerScriptsPath = 'worker/';
+    zip.createWriter(new zip.BlobWriter('application/zip'), function (zipWriter) {
+      var data = Export.exportBinaryPLY(mesh);
+      zipWriter.add('yourMesh.ply', new zip.BlobReader(data), function () {
+        zipWriter.close(function (blob) {
+          saveAs(blob, 'yourMesh.zip');
+        });
+      });
+    }, onerror);
+
+    // var blob = Export.exportBinaryPLY(mesh);
+    // saveAs(blob, 'yourMesh.ply');
   }
 
   saveFileAsSTL() {
@@ -73,7 +87,7 @@ class GuiFiles {
       return;
 
     if (!window.sketchfabOAuth2Config)
-        return;
+      return;
 
     var ctrlNotif = this._ctrlGui.getWidgetNotification();
     if (this._sketchfabXhr && ctrlNotif.sketchfab === true) {
@@ -84,11 +98,11 @@ class GuiFiles {
     }
 
     var client = new SketchfabOAuth2(window.sketchfabOAuth2Config);
-    client.connect().then( function onSuccess( grant ) {
-        this._sketchfabXhr = Export.exportSketchfab(this._main, grant, ctrlNotif);
-    }.bind(this) ).catch( function onError( error ) {
-        console.error( error );
-    } );
+    client.connect().then(function onSuccess(grant) {
+      this._sketchfabXhr = Export.exportSketchfab(this._main, grant, ctrlNotif);
+    }.bind(this)).catch(function onError(error) {
+      console.error(error);
+    });
   }
 
   ////////////////

@@ -1,25 +1,22 @@
-import glm from './lib/gl-matrix';
-import getOptionsURL from './misc/getOptionsURL';
-import Enums from './misc/Enums';
-import Utils from './misc/Utils';
-import SculptManager from './editing/SculptManager';
-import Subdivision from './editing/Subdivision';
-import Import from './files/Import';
-import Gui from './gui/Gui';
-import Camera from './math3d/Camera';
-import Picking from './math3d/Picking';
-import Background from './drawables/Background';
-import Mesh from './mesh/Mesh';
-import Multimesh from './mesh/multiresolution/Multimesh';
-import Primitives from './drawables/Primitives';
-import StateManager from './states/StateManager';
-import RenderData from './mesh/RenderData';
-import Rtt from './drawables/Rtt';
-import ShaderLib from './render/ShaderLib';
-import WebGLCaps from './render/WebGLCaps';
-
-var vec3 = glm.vec3;
-var mat4 = glm.mat4;
+import { vec3, mat4 } from 'gl-matrix';
+import getOptionsURL from 'misc/getOptionsURL';
+import Enums from 'misc/Enums';
+import Utils from 'misc/Utils';
+import SculptManager from 'editing/SculptManager';
+import Subdivision from 'editing/Subdivision';
+import Import from 'files/Import';
+import Gui from 'gui/Gui';
+import Camera from 'math3d/Camera';
+import Picking from 'math3d/Picking';
+import Background from 'drawables/Background';
+import Mesh from 'mesh/Mesh';
+import Multimesh from 'mesh/multiresolution/Multimesh';
+import Primitives from 'drawables/Primitives';
+import StateManager from 'states/StateManager';
+import RenderData from 'mesh/RenderData';
+import Rtt from 'drawables/Rtt';
+import ShaderLib from 'render/ShaderLib';
+import WebGLCaps from 'render/WebGLCaps';
 
 class Scene {
 

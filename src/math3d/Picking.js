@@ -1,11 +1,8 @@
-import glm from '../lib/gl-matrix';
-import Geometry from '../math3d/Geometry';
-import Tablet from '../misc/Tablet';
-import Utils from '../misc/Utils';
-import TR from '../gui/GuiTR';
-
-var vec3 = glm.vec3;
-var mat4 = glm.mat4;
+import { vec3, mat4 } from 'gl-matrix';
+import Geometry from 'math3d/Geometry';
+import Tablet from 'misc/Tablet';
+import Utils from 'misc/Utils';
+import TR from 'gui/GuiTR';
 
 var _TMP_NEAR = [0.0, 0.0, 0.0];
 var _TMP_NEAR_1 = [0.0, 0.0, 0.0];

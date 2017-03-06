@@ -1,6 +1,4 @@
-import glm from '../lib/gl-matrix';
-
-var vec3 = glm.vec3;
+import { vec3 } from 'gl-matrix';
 
 var Geometry = {};
 

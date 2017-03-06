@@ -1,4 +1,4 @@
-import Enums from '../misc/Enums';
+import Enums from 'misc/Enums';
 
 var keyAction = Enums.KeyAction;
 

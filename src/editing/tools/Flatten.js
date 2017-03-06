@@ -1,5 +1,5 @@
-import Tablet from '../../misc/Tablet';
-import SculptBase from '../../editing/tools/SculptBase';
+import Tablet from 'misc/Tablet';
+import SculptBase from 'editing/tools/SculptBase';
 
 class Flatten extends SculptBase {
 

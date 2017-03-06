@@ -1,9 +1,7 @@
-import glm from '../../lib/gl-matrix';
-import Utils from '../../misc/Utils';
-import Geometry from '../../math3d/Geometry';
-import Smooth from '../../editing/tools/Smooth';
-
-var vec3 = glm.vec3;
+import { vec3 } from 'gl-matrix';
+import Utils from 'misc/Utils';
+import Geometry from 'math3d/Geometry';
+import Smooth from 'editing/tools/Smooth';
 
 var SubData = {
   _mesh: null,

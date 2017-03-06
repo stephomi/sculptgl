@@ -1,11 +1,11 @@
-import getOptionsURL from '../misc/getOptionsURL';
-import english from '../gui/tr/english';
-import chinese from '../gui/tr/chinese';
-import japanese from '../gui/tr/japanese';
-import korean from '../gui/tr/korean';
-import russian from '../gui/tr/russian';
-import turkish from '../gui/tr/turkish';
-import swedish from '../gui/tr/swedish';
+import getOptionsURL from 'misc/getOptionsURL';
+import english from 'gui/tr/english';
+import chinese from 'gui/tr/chinese';
+import japanese from 'gui/tr/japanese';
+import korean from 'gui/tr/korean';
+import russian from 'gui/tr/russian';
+import turkish from 'gui/tr/turkish';
+import swedish from 'gui/tr/swedish';
 
 var GuiTR = function (key) {
   var str = GuiTR.languages[GuiTR.select][key] || GuiTR.languages.english[key];

@@ -1,12 +1,10 @@
-import glm from '../lib/gl-matrix';
-import HoleFilling from '../editing/HoleFilling';
-import SurfaceNets from '../editing/SurfaceNets';
-import Geometry from '../math3d/Geometry';
-import MeshStatic from '../mesh/meshStatic/MeshStatic';
-import Utils from '../misc/Utils';
-import Enums from '../misc/Enums';
-
-var vec3 = glm.vec3;
+import { vec3 } from 'gl-matrix';
+import HoleFilling from 'editing/HoleFilling';
+import SurfaceNets from 'editing/SurfaceNets';
+import Geometry from 'math3d/Geometry';
+import MeshStatic from 'mesh/meshStatic/MeshStatic';
+import Utils from 'misc/Utils';
+import Enums from 'misc/Enums';
 
 var Remesh = {};
 Remesh.RESOLUTION = 150;
@@ -318,10 +316,11 @@ Remesh.mergeArrays = function (meshes, arr) {
   var nbFaces = 0;
   var nbQuads = 0;
   var nbTriangles = 0;
+  var i, j;
 
   var nbMeshes = meshes.length;
   var k = 0;
-  for (var i = 0; i < nbMeshes; ++i) {
+  for (i = 0; i < nbMeshes; ++i) {
     nbVertices += meshes[i].getNbVertices();
     nbFaces += meshes[i].getNbFaces();
     nbQuads += meshes[i].getNbQuads();
@@ -337,7 +336,7 @@ Remesh.mergeArrays = function (meshes, arr) {
   var offsetVerts = 0;
   var offsetFaces = 0;
   var offsetIndex = 0;
-  for (var i = 0; i < nbMeshes; ++i) {
+  for (i = 0; i < nbMeshes; ++i) {
     var mesh = meshes[i];
     var mVerts = mesh.getVertices();
     var mCols = mesh.getColors();
@@ -346,7 +345,7 @@ Remesh.mergeArrays = function (meshes, arr) {
     var mNbVertices = mesh.getNbVertices();
     var mNbFaces = mesh.getNbFaces();
     var matrix = mesh.getMatrix();
-    for (var j = 0; j < mNbVertices; ++j) {
+    for (j = 0; j < mNbVertices; ++j) {
       k = j * 3;
       ver[0] = mVerts[k];
       ver[1] = mVerts[k + 1];
@@ -368,7 +367,7 @@ Remesh.mergeArrays = function (meshes, arr) {
     }
 
     offsetVerts += mNbVertices * 3;
-    for (var j = 0; j < mNbFaces; ++j) {
+    for (j = 0; j < mNbFaces; ++j) {
       k = j * 4;
       fAr[offsetFaces + k] = mFaces[k] + offsetIndex;
       fAr[offsetFaces + k + 1] = mFaces[k + 1] + offsetIndex;

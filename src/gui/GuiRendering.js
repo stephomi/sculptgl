@@ -1,8 +1,8 @@
-import TR from '../gui/GuiTR';
-import RenderData from '../mesh/RenderData';
-import Shader from '../render/ShaderLib';
-import getOptionsURL from '../misc/getOptionsURL';
-import Enums from '../misc/Enums';
+import TR from 'gui/GuiTR';
+import RenderData from 'mesh/RenderData';
+import Shader from 'render/ShaderLib';
+import getOptionsURL from 'misc/getOptionsURL';
+import Enums from 'misc/Enums';
 
 var ShaderMERGE = Shader[Enums.Shader.MERGE];
 var ShaderUV = Shader[Enums.Shader.UV];

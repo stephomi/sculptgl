@@ -1,11 +1,6 @@
-import glm from '../lib/gl-matrix';
-import Primitives from '../drawables/Primitives';
-import Enums from '../misc/Enums';
-
-var vec2 = glm.vec2;
-var vec3 = glm.vec3;
-var mat4 = glm.mat4;
-var quat = glm.quat;
+import { vec2, vec3, mat4, quat } from 'gl-matrix';
+import Primitives from 'drawables/Primitives';
+import Enums from 'misc/Enums';
 
 // configs colors
 var COLOR_X = vec3.fromValues(0.7, 0.2, 0.2);

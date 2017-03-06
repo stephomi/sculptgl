@@ -7,20 +7,24 @@
   "license": "MIT",
   "main": "main.js",
   "devDependencies": {
-    "babel-plugin-external-helpers": "^6.8.0",
-    "babel-preset-es2015": "^6.14.0",
-    "electron": "^1.3.5",
-    "electron-packager": "^8.0.0",
-    "rollup": "^0.35.7",
-    "rollup-plugin-babel": "^2.6.1",
-    "rollup-plugin-uglify": "^1.0.1",
-    "rollup-watch": "^2.5.0"
+    "babel-core": "^6.23.1",
+    "babel-loader": "^6.4.0",
+    "babel-plugin-transform-es2015-block-scoping": "^6.23.0",
+    "babel-plugin-transform-es2015-classes": "^6.23.0",
+    "babel-plugin-transform-es2015-parameters": "^6.23.0",
+    "babel-plugin-transform-es2015-shorthand-properties": "^6.22.0",
+    "file-saver": "^1.3.3",
+    "gl-matrix": "^2.3.2",
+    "hammerjs": "^2.0.8",
+    "raw-loader": "^0.5.1",
+    "webpack": "^2.2.1",
+    "yagui": "^1.6.0"
   },
   "scripts": {
-    "dev": "cp tools/index.dev.html app/index.html && cp tools/authSuccess.html app/authSuccess.html && rollup -cwm",
-    "release": "rm -f app/sculptgl.js.map && cp tools/index.release.html app/index.html && cp tools/authSuccess.html app/authSuccess.html && rollup -c --environment release",
-    "buildElectron": "npm run release && rm -rf standalone/app/ && cp -R app/ standalone/ && cp package.json standalone",
-    "standalone": "npm run buildElectron && cd standalone && node buildStandalone.js"
+    "dev": "cp tools/index.dev.html app/index.html && cp tools/authSuccess.html app/authSuccess.html && webpack -w",
+    "release": "rm -f app/sculptgl.js.map && cp tools/index.release.html app/index.html && cp tools/authSuccess.html app/authSuccess.html && webpack -p --env.release",
+    "buildElectron": "yarn release && rm -rf standalone/app/ && cp -R app/ standalone/ && cp package.json standalone",
+    "standalone": "yarn buildElectron && cd standalone && node buildStandalone.js"
   },
   "repository": {
     "type": "git",

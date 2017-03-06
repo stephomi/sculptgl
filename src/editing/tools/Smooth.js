@@ -1,6 +1,6 @@
-import Utils from '../../misc/Utils';
-import Tablet from '../../misc/Tablet';
-import SculptBase from '../../editing/tools/SculptBase';
+import Utils from 'misc/Utils';
+import Tablet from 'misc/Tablet';
+import SculptBase from 'editing/tools/SculptBase';
 
 class Smooth extends SculptBase {
 

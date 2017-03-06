@@ -1,4 +1,4 @@
-import Utils from '../misc/Utils';
+import Utils from 'misc/Utils';
 
 var Subdivision = {};
 Subdivision.LINEAR = false;

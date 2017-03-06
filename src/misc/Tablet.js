@@ -1,4 +1,4 @@
-import getOptionsURL from '../misc/getOptionsURL';
+import getOptionsURL from 'misc/getOptionsURL';
 
 // TODO
 // It was based NPAPI, a deprecated API !

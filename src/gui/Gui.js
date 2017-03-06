@@ -1,18 +1,18 @@
-import yagui from '../lib/yagui';
-import TR from '../gui/GuiTR';
-import GuiBackground from '../gui/GuiBackground';
-import GuiCamera from '../gui/GuiCamera';
-import GuiConfig from '../gui/GuiConfig';
-import GuiFiles from '../gui/GuiFiles';
-import GuiMesh from '../gui/GuiMesh';
-import GuiTopology from '../gui/GuiTopology';
-import GuiRendering from '../gui/GuiRendering';
-import GuiScene from '../gui/GuiScene';
-import GuiSculpting from '../gui/GuiSculpting';
-import GuiStates from '../gui/GuiStates';
-import GuiTablet from '../gui/GuiTablet';
-import ShaderContour from '../render/shaders/ShaderContour';
-import getOptionsURL from '../misc/getOptionsURL';
+import yagui from 'yagui';
+import TR from 'gui/GuiTR';
+import GuiBackground from 'gui/GuiBackground';
+import GuiCamera from 'gui/GuiCamera';
+import GuiConfig from 'gui/GuiConfig';
+import GuiFiles from 'gui/GuiFiles';
+import GuiMesh from 'gui/GuiMesh';
+import GuiTopology from 'gui/GuiTopology';
+import GuiRendering from 'gui/GuiRendering';
+import GuiScene from 'gui/GuiScene';
+import GuiSculpting from 'gui/GuiSculpting';
+import GuiStates from 'gui/GuiStates';
+import GuiTablet from 'gui/GuiTablet';
+import ShaderContour from 'render/shaders/ShaderContour';
+import getOptionsURL from 'misc/getOptionsURL';
 
 class Gui {
 

@@ -1,10 +1,8 @@
-import glm from '../../lib/gl-matrix';
-import getOptionsURL from '../../misc/getOptionsURL';
-import ShaderBase from '../../render/shaders/ShaderBase';
-import pbrGLSL from '../../render/shaders/glsl/pbr.glsl';
-import TR from '../../gui/GuiTR';
-
-var mat3 = glm.mat3;
+import { mat3 } from 'gl-matrix';
+import getOptionsURL from 'misc/getOptionsURL';
+import ShaderBase from 'render/shaders/ShaderBase';
+import pbrGLSL from 'render/shaders/glsl/pbr.glsl';
+import TR from 'gui/GuiTR';
 
 var ShaderPBR = ShaderBase.getCopy();
 ShaderPBR.vertexName = ShaderPBR.fragmentName = 'ShadingPBR';

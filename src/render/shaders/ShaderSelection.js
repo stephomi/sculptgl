@@ -1,4 +1,4 @@
-import ShaderBase from '../../render/shaders/ShaderBase';
+import ShaderBase from 'render/shaders/ShaderBase';
 
 var ShaderSelection = ShaderBase.getCopy();
 ShaderSelection.vertexName = ShaderSelection.fragmentName = 'ShowSelection';

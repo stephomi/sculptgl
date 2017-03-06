@@ -8,13 +8,18 @@ Additional information can be found on the [website](http://stephaneginier.com/)
 Tools
 =====
 
-Install [nodejs](http://nodejs.org/).
+Nodejs needs to be installed [nodejs](http://nodejs.org/).
 
-Then use rollup :
+Then for the browser build :
 
-    npm install -g rollup # if not already done
-    npm install
-    npm run dev # and visit app/index.html
+    yarn # npm install
+    yarn dev # npm run dev
+    // visit app/index.html
+
+For standalone :
+    yarn add electron
+    yarn add electron-packager
+    yarn standlone
 
 Credits
 =======

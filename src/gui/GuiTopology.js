@@ -1,10 +1,10 @@
-import TR from '../gui/GuiTR';
-import Remesh from '../editing/Remesh';
-import Mesh from '../mesh/Mesh';
-import MeshStatic from '../mesh/meshStatic/MeshStatic';
-import Multimesh from '../mesh/multiresolution/Multimesh';
-import MeshDynamic from '../mesh/dynamic/MeshDynamic';
-import StateMultiresolution from '../states/StateMultiresolution';
+import TR from 'gui/GuiTR';
+import Remesh from 'editing/Remesh';
+import Mesh from 'mesh/Mesh';
+import MeshStatic from 'mesh/meshStatic/MeshStatic';
+import Multimesh from 'mesh/multiresolution/Multimesh';
+import MeshDynamic from 'mesh/dynamic/MeshDynamic';
+import StateMultiresolution from 'states/StateMultiresolution';
 
 class GuiMultiresolution {
 

@@ -1,6 +1,6 @@
-import TR from '../gui/GuiTR';
-import zip from '../lib/zip';
-import ExportPLY from '../files/ExportPLY';
+import TR from 'gui/GuiTR';
+import { zip } from 'zip';
+import ExportPLY from 'files/ExportPLY';
 
 var Export = {};
 
@@ -78,9 +78,9 @@ Export.exportFileSketchfab = function (main, key, xhr, blob) {
   fd.append('tags', 'sculptgl');
 
   if (typeof key === 'object' && key.hasOwnProperty('token_type') && key.token_type === 'Bearer') {
-      xhr.setRequestHeader('Authorization', 'Bearer ' + key.access_token);
+    xhr.setRequestHeader('Authorization', 'Bearer ' + key.access_token);
   } else {
-      fd.append('token', key);
+    fd.append('token', key);
   }
 
   xhr.send(fd);

@@ -1,5 +1,5 @@
-import ShaderBase from '../../render/shaders/ShaderBase';
-import Attribute from '../../render/Attribute';
+import ShaderBase from 'render/shaders/ShaderBase';
+import Attribute from 'render/Attribute';
 
 var ShaderBackground = ShaderBase.getCopy();
 ShaderBackground.vertexName = ShaderBackground.fragmentName = 'Background';

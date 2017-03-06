@@ -1,5 +1,5 @@
-import TR from '../gui/GuiTR';
-import Tablet from '../misc/Tablet';
+import TR from 'gui/GuiTR';
+import Tablet from 'misc/Tablet';
 
 class GuiTablet {
 

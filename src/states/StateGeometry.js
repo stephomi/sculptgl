@@ -1,7 +1,5 @@
-import glm from '../lib/gl-matrix';
-import Utils from '../misc/Utils';
-
-var vec3 = glm.vec3;
+import { vec3 } from 'gl-matrix';
+import Utils from 'misc/Utils';
 
 class StateGeometry {
 

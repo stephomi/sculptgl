@@ -1,6 +1,6 @@
-import Utils from '../misc/Utils';
-import MeshStatic from '../mesh/meshStatic/MeshStatic';
-import Remesh from '../editing/Remesh';
+import Utils from 'misc/Utils';
+import MeshStatic from 'mesh/meshStatic/MeshStatic';
+import Remesh from 'editing/Remesh';
 
 var Primitives = {};
 

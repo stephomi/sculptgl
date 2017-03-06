@@ -1,11 +1,7 @@
-import glm from '../lib/gl-matrix';
-import Buffer from '../render/Buffer';
-import ShaderLib from '../render/ShaderLib';
-import Enums from '../misc/Enums';
-
-var mat3 = glm.mat3;
-var mat4 = glm.mat4;
-var vec3 = glm.vec3;
+import { mat3, mat4, vec3 } from 'gl-matrix';
+import Buffer from 'render/Buffer';
+import ShaderLib from 'render/ShaderLib';
+import Enums from 'misc/Enums';
 
 var _TMP_MATPV = mat4.create();
 var _TMP_MAT = mat4.create();

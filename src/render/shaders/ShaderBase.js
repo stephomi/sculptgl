@@ -1,11 +1,9 @@
-import glm from '../../lib/gl-matrix';
-import getOptionsURL from '../../misc/getOptionsURL';
-import Utils from '../../misc/Utils';
-import Attribute from '../../render/Attribute';
-import colorSpaceGLSL from '../../render/shaders/glsl/colorSpace.glsl';
-import curvatureGLSL from '../../render/shaders/glsl/curvature.glsl';
-
-var vec3 = glm.vec3;
+import { vec3 } from 'gl-matrix';
+import getOptionsURL from 'misc/getOptionsURL';
+import Utils from 'misc/Utils';
+import Attribute from 'render/Attribute';
+import colorSpaceGLSL from 'render/shaders/glsl/colorSpace.glsl';
+import curvatureGLSL from 'render/shaders/glsl/curvature.glsl';
 
 var ShaderBase = {};
 ShaderBase.vertexName = 'VertexName';

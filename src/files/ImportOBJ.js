@@ -1,5 +1,5 @@
-import Utils from '../misc/Utils';
-import MeshStatic from '../mesh/meshStatic/MeshStatic';
+import Utils from 'misc/Utils';
+import MeshStatic from 'mesh/meshStatic/MeshStatic';
 
 var Import = {};
 

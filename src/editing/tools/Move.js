@@ -1,9 +1,6 @@
-import glm from '../../lib/gl-matrix';
-import Geometry from '../../math3d/Geometry';
-import SculptBase from '../../editing/tools/SculptBase';
-
-var vec3 = glm.vec3;
-var mat4 = glm.mat4;
+import { vec3, mat4 } from 'gl-matrix';
+import Geometry from 'math3d/Geometry';
+import SculptBase from 'editing/tools/SculptBase';
 
 class Move extends SculptBase {
 

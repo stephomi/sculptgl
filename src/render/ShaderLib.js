@@ -1,17 +1,17 @@
-import Enums from '../misc/Enums';
+import Enums from 'misc/Enums';
 
-import ShaderPBR from '../render/shaders/ShaderPBR';
-import ShaderMatcap from '../render/shaders/ShaderMatcap';
-import ShaderNormal from '../render/shaders/ShaderNormal';
-import ShaderUV from '../render/shaders/ShaderUV';
-import ShaderWireframe from '../render/shaders/ShaderWireframe';
-import ShaderFlat from '../render/shaders/ShaderFlat';
-import ShaderSelection from '../render/shaders/ShaderSelection';
+import ShaderPBR from 'render/shaders/ShaderPBR';
+import ShaderMatcap from 'render/shaders/ShaderMatcap';
+import ShaderNormal from 'render/shaders/ShaderNormal';
+import ShaderUV from 'render/shaders/ShaderUV';
+import ShaderWireframe from 'render/shaders/ShaderWireframe';
+import ShaderFlat from 'render/shaders/ShaderFlat';
+import ShaderSelection from 'render/shaders/ShaderSelection';
 
-import ShaderBackground from '../render/shaders/ShaderBackground';
-import ShaderMerge from '../render/shaders/ShaderMerge';
-import ShaderFxaa from '../render/shaders/ShaderFxaa';
-import ShaderContour from '../render/shaders/ShaderContour';
+import ShaderBackground from 'render/shaders/ShaderBackground';
+import ShaderMerge from 'render/shaders/ShaderMerge';
+import ShaderFxaa from 'render/shaders/ShaderFxaa';
+import ShaderContour from 'render/shaders/ShaderContour';
 
 var ShaderLib = [];
 

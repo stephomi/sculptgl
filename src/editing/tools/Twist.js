@@ -1,10 +1,6 @@
-import glm from '../../lib/gl-matrix';
-import Geometry from '../../math3d/Geometry';
-import SculptBase from '../../editing/tools/SculptBase';
-
-var vec2 = glm.vec2;
-var vec3 = glm.vec3;
-var quat = glm.quat;
+import { vec2, vec3, quat } from 'gl-matrix';
+import Geometry from 'math3d/Geometry';
+import SculptBase from 'editing/tools/SculptBase';
 
 class Twist extends SculptBase {
 

@@ -1,8 +1,8 @@
-import TR from '../gui/GuiTR';
-import Enums from '../misc/Enums';
-import Tools from '../editing/tools/Tools';
-import getOptionsURL from '../misc/getOptionsURL';
-import GuiSculptingTools from '../gui/GuiSculptingTools';
+import TR from 'gui/GuiTR';
+import Enums from 'misc/Enums';
+import Tools from 'editing/tools/Tools';
+import getOptionsURL from 'misc/getOptionsURL';
+import GuiSculptingTools from 'gui/GuiSculptingTools';
 
 var GuiTools = GuiSculptingTools.tools;
 

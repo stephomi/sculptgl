@@ -1,15 +1,12 @@
-import glm from '../../lib/gl-matrix';
-import Gizmo from '../../editing/Gizmo';
-import SculptBase from '../../editing/tools/SculptBase';
+import { vec3, mat4 } from 'gl-matrix';
+import Gizmo from 'editing/Gizmo';
+import SculptBase from 'editing/tools/SculptBase';
 
-var vec3 = glm.vec3;
-var mat4 = glm.mat4;
-
-class Transform extends SculptBase{
+class Transform extends SculptBase {
 
   constructor(main) {
     super(main);
-    
+
     this._gizmo = new Gizmo(main);
   }
 

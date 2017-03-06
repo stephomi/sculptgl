@@ -1,12 +1,10 @@
-import './misc/Polyfill';
-import glm from './lib/gl-matrix';
-import hammer from './lib/Hammer';
-import Enums from './misc/Enums';
-import Utils from './misc/Utils';
-import Scene from './Scene';
-import Multimesh from './mesh/multiresolution/Multimesh';
-
-var vec3 = glm.vec3;
+import 'misc/Polyfill';
+import { vec3 } from 'gl-matrix';
+import { Manager as HammerManager, Pan, Pinch, Tap } from 'hammerjs';
+import Enums from 'misc/Enums';
+import Utils from 'misc/Utils';
+import Scene from 'Scene';
+import Multimesh from 'mesh/multiresolution/Multimesh';
 
 var MOUSE_LEFT = 1;
 var MOUSE_MIDDLE = 2;
@@ -34,7 +32,7 @@ class SculptGL extends Scene {
     // masking
     this._maskX = 0;
     this._maskY = 0;
-    this._hammer = new hammer.Manager(this._canvas);
+    this._hammer = new HammerManager(this._canvas);
 
     this._eventProxy = {};
 
@@ -79,7 +77,7 @@ class SculptGL extends Scene {
   _initHammerRecognizers() {
     var hm = this._hammer;
     // double tap
-    hm.add(new hammer.Tap({
+    hm.add(new Tap({
       event: 'doubletap',
       pointers: 1,
       taps: 2,
@@ -90,7 +88,7 @@ class SculptGL extends Scene {
     }));
 
     // double tap 2 fingers
-    hm.add(new hammer.Tap({
+    hm.add(new Tap({
       event: 'doubletap2fingers',
       pointers: 2,
       taps: 2,
@@ -101,14 +99,14 @@ class SculptGL extends Scene {
     }));
 
     // pan
-    hm.add(new hammer.Pan({
+    hm.add(new Pan({
       event: 'pan',
       pointers: 0,
       threshold: 0
     }));
 
     // pinch
-    hm.add(new hammer.Pinch({
+    hm.add(new Pinch({
       event: 'pinch',
       pointers: 2,
       threshold: 0.1 // Set a minimal thresold on pinch event, to be detected after pan

@@ -1,6 +1,6 @@
-import TR from '../gui/GuiTR';
-import Enums from '../misc/Enums';
-import StateManager from '../states/StateManager';
+import TR from 'gui/GuiTR';
+import Enums from 'misc/Enums';
+import StateManager from 'states/StateManager';
 
 class GuiTablet {
 

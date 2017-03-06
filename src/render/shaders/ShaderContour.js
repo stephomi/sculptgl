@@ -1,7 +1,7 @@
-import getOptionsURL from '../../misc/getOptionsURL';
-import ShaderBase from '../../render/shaders/ShaderBase';
-import Attribute from '../../render/Attribute';
-import outlineGLSL from '../../render/shaders/glsl/outline.glsl';
+import getOptionsURL from 'misc/getOptionsURL';
+import ShaderBase from 'render/shaders/ShaderBase';
+import Attribute from 'render/Attribute';
+import outlineGLSL from 'render/shaders/glsl/outline.glsl';
 
 var ShaderContour = ShaderBase.getCopy();
 ShaderContour.vertexName = ShaderContour.fragmentName = 'SobelContour';
