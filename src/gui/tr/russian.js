@@ -139,10 +139,10 @@ var TR = {
   stateRedo: 'Вперед',
   stateMaxStack: 'Количество шагов',
 
-  // wacom
-  wacomTitle: 'Планшет Wacom',
-  wacomRadius: 'Нажим-размер',
-  wacomIntensity: 'Нажим-жесткость',
+  // pressure
+  pressureTitle: 'Планшет pressure',
+  pressureRadius: 'Нажим-размер',
+  pressureIntensity: 'Нажим-жесткость',
 
   // rendering
   renderingTitle: 'Визуализация',

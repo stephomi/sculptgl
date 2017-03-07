@@ -119,7 +119,6 @@ var getOptionsURL = function () {
   // misc
   options.language = params.language; // english/chinese/korean/japanese/russian/turkish/swedish
   options.scalecenter = queryBool(params.scalecenter, true);
-  options.wacom = queryBool(params.wacom, false); // try using deprecated npapi plugin
 
   // display
   options.grid = queryBool(params.grid, true);

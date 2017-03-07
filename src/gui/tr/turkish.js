@@ -139,10 +139,10 @@ var TR = {
   stateRedo: 'İleri Al',
   stateMaxStack: 'Maksimum Yığın',
 
-  // wacom
-  wacomTitle: 'Wacom tablet',
-  wacomRadius: 'Basınç çapı',
-  wacomIntensity: 'Basınç hassasiyeti',
+  // pressure
+  pressureTitle: 'Tablet pressure',
+  pressureRadius: 'Basınç çapı',
+  pressureIntensity: 'Basınç hassasiyeti',
 
   // rendering
   renderingTitle: 'Sahneleme',

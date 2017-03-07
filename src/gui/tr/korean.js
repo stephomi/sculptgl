@@ -139,10 +139,10 @@ var TR = {
   stateRedo: '다시하기',
   stateMaxStack: '최대 스택',
 
-  // wacom
-  wacomTitle: '와콤 테블릿',
-  wacomRadius: '압력 반지름',
-  wacomIntensity: '압력 강도',
+  // pressure
+  pressureTitle: '와콤 테블릿',
+  pressureRadius: '압력 반지름',
+  pressureIntensity: '압력 강도',
 
   // rendering
   renderingTitle: '렌더링',

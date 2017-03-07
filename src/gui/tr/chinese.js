@@ -139,10 +139,10 @@ var TR = {
   stateRedo: '取消復原',
   stateMaxStack: '最大堆疊',
 
-  // wacom
-  wacomTitle: 'Wacom 繪圖板',
-  wacomRadius: '感壓半徑',
-  wacomIntensity: '感壓強度',
+  // pressure
+  pressureTitle: 'pressure 繪圖板',
+  pressureRadius: '感壓半徑',
+  pressureIntensity: '感壓強度',
 
   // rendering
   renderingTitle: '繪算',

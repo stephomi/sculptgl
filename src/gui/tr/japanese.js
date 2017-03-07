@@ -139,10 +139,10 @@ var TR = {
   stateRedo: 'リドゥ',
   stateMaxStack: null,
 
-  // wacom
-  wacomTitle: 'ワコムタブレット',
-  wacomRadius: '圧力半径？',
-  wacomIntensity: '圧力の強さ？',
+  // pressure
+  pressureTitle: 'ワコムタブレット',
+  pressureRadius: '圧力半径？',
+  pressureIntensity: '圧力の強さ？',
 
   // rendering
   renderingTitle: null,

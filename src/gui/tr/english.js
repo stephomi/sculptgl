@@ -139,10 +139,10 @@ var TR = {
   stateRedo: 'Redo',
   stateMaxStack: 'Max Stack',
 
-  // wacom
-  wacomTitle: 'Wacom tablet',
-  wacomRadius: 'Pressure radius',
-  wacomIntensity: 'Pressure intensity',
+  // pressure
+  pressureTitle: 'Tablet pressure',
+  pressureRadius: 'Pressure radius',
+  pressureIntensity: 'Pressure intensity',
 
   // rendering
   renderingTitle: 'Rendering',

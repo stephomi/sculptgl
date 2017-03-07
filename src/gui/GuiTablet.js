@@ -10,9 +10,9 @@ class GuiTablet {
 
   init(guiParent) {
     // Pen tablet ui stuffs
-    var menu = this._menu = guiParent.addMenu(TR('wacomTitle'));
-    menu.addCheckbox(TR('wacomRadius'), Tablet, 'useOnRadius');
-    menu.addCheckbox(TR('wacomIntensity'), Tablet, 'useOnIntensity');
+    var menu = this._menu = guiParent.addMenu(TR('pressureTitle'));
+    menu.addCheckbox(TR('pressureRadius'), Tablet, 'useOnRadius');
+    menu.addCheckbox(TR('pressureIntensity'), Tablet, 'useOnIntensity');
   }
 }
 

@@ -139,10 +139,10 @@ var TR = {
   stateRedo: 'Gör om',
   stateMaxStack: 'Ågra antal steg',
 
-  // wacom
-  wacomTitle: 'Wacomplatta',
-  wacomRadius: 'Tryckradie',
-  wacomIntensity: 'Tryckintensitet',
+  // pressure
+  pressureTitle: 'pressureplatta',
+  pressureRadius: 'Tryckradie',
+  pressureIntensity: 'Tryckintensitet',
 
   // rendering
   renderingTitle: 'Rendering',

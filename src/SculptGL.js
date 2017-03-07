@@ -1,6 +1,7 @@
 import 'misc/Polyfill';
 import { vec3 } from 'gl-matrix';
 import { Manager as HammerManager, Pan, Pinch, Tap } from 'hammerjs';
+import Tablet from 'misc/Tablet';
 import Enums from 'misc/Enums';
 import Utils from 'misc/Utils';
 import Scene from 'Scene';
@@ -24,6 +25,7 @@ class SculptGL extends Scene {
     this._lastMouseX = 0;
     this._lastMouseY = 0;
     this._lastScale = 0;
+
     // NOTHING, MASK_EDIT, SCULPT_EDIT, CAMERA_ZOOM, CAMERA_ROTATE, CAMERA_PAN, CAMERA_PAN_ZOOM_ALT
     this._action = Enums.Action.NOTHING;
     this._lastNbPointers = 0;
@@ -44,6 +46,12 @@ class SculptGL extends Scene {
     var canvas = this._canvas;
 
     var cbMouseWheel = this.onMouseWheel.bind(this);
+    var cbOnPointer = this.onPointer.bind(this);
+
+    // pointer
+    canvas.addEventListener('pointerdown', cbOnPointer, false);
+    canvas.addEventListener('pointermove', cbOnPointer, false);
+
     // mouse
     canvas.addEventListener('mousedown', this.onMouseDown.bind(this), false);
     canvas.addEventListener('mouseup', this.onMouseUp.bind(this), false);
@@ -66,6 +74,10 @@ class SculptGL extends Scene {
     window.addEventListener('dragover', cbStopAndPrevent, false);
     window.addEventListener('drop', cbLoadFiles, false);
     document.getElementById('fileopen').addEventListener('change', cbLoadFiles, false);
+  }
+
+  onPointer(event) {
+    Tablet.pressure = event.pressure;
   }
 
   initHammer() {
