@@ -11,8 +11,12 @@ class GuiTablet {
   init(guiParent) {
     // Pen tablet ui stuffs
     var menu = this._menu = guiParent.addMenu(TR('pressureTitle'));
-    menu.addCheckbox(TR('pressureRadius'), Tablet, 'useOnRadius');
-    menu.addCheckbox(TR('pressureIntensity'), Tablet, 'useOnIntensity');
+
+    menu.addTitle(TR('pressureRadius'));
+    menu.addSlider('', Tablet, 'radiusFactor', 0, 1, 0.01);
+
+    menu.addTitle(TR('pressureIntensity'));
+    menu.addSlider('', Tablet, 'intensityFactor', 0, 1, 0.01);
   }
 }
 
