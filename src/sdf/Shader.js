@@ -22,9 +22,7 @@ define(function (require, exports, module) {
   ShaderSDF.vertex = [
     'precision mediump float;',
     'attribute vec2 aVertex;',
-    'varying vec2 vUV;',
     'void main() {',
-    '  vUV = aVertex * 0.5 + 0.5;',
     '  gl_Position = vec4(aVertex, 0.5, 1.0);',
     '}'
   ].join('\n');
@@ -34,7 +32,6 @@ define(function (require, exports, module) {
     'uniform vec3 uOrigin;',
     'uniform mat3 uView;',
     'uniform vec2 uInvSize;',
-    'varying vec2 vUV;',
     '%ID_UNIFORM',
     sdfGLSL
   ].join('\n');

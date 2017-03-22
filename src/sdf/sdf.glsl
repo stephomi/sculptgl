@@ -401,7 +401,7 @@ vec3 raymarch(const in vec3 origin, const in mat3 view, const in vec2 uv, const 
 }
 
 void main() {
-  gl_FragColor = vec4(raymarch(uOrigin, uView, vUV, uInvSize), 1.0);
+  gl_FragColor = vec4(raymarch(uOrigin, uView, gl_FragCoord.xy * uInvSize, uInvSize), 1.0);
 }
 
 #endif
