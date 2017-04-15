@@ -72,6 +72,8 @@ class GuiMultiresolution {
     if (!mesh)
       return;
 
+    var wasDynamic = mesh.isDynamic;
+
     var meshes = main.getMeshes();
     var selMeshes = main.getSelectedMeshes().slice();
     for (var i = 0, l = selMeshes.length; i < l; ++i) {
@@ -81,7 +83,9 @@ class GuiMultiresolution {
       if (sel === mesh)
         mesh = selMeshes[i];
     }
+
     var newMesh = Remesh.remesh(selMeshes, mesh);
+    if (wasDynamic) newMesh = new MeshDynamic(newMesh);
     main.getStateManager().pushStateAddRemove(newMesh, main.getSelectedMeshes().slice());
     main.getMeshes().push(newMesh);
     main.setMesh(newMesh);
