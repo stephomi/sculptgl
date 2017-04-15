@@ -195,9 +195,14 @@ var voxelize = function (mesh, voxels, min, step) {
 
 // grid structure
 var createVoxelData = function (min, max, step) {
-  var rx = 1 + Math.ceil((max[0] - min[0]) / step);
-  var ry = 1 + Math.ceil((max[1] - min[1]) / step);
-  var rz = 1 + Math.ceil((max[2] - min[2]) / step);
+  var idx = (max[0] - min[0]) / step;
+  var idy = (max[1] - min[1]) / step;
+  var idz = (max[2] - min[2]) / step;
+
+  var rx = 1 + Math.round(idx);
+  var ry = 1 + Math.round(idy);
+  var rz = 1 + Math.round(idz);
+
   var datalen = rx * ry * rz;
   var buffer = Utils.getMemory((4 * (1 + 3 + 3) + 3) * datalen);
   var distField = new Float32Array(buffer, 0, datalen);
@@ -217,6 +222,7 @@ var createVoxelData = function (min, max, step) {
 
   var voxels = {};
   voxels.dims = [rx, ry, rz];
+  voxels.dimsFloat = [idx, idy, idz];
   voxels.crossedEdges = crossedEdges;
   voxels.distanceField = distField;
   voxels.colorField = colors;
@@ -295,9 +301,11 @@ Remesh.remesh = function (meshes, baseMesh) {
   console.timeEnd('3. flood');
 
   console.time('4. surfaceNet');
-  max[0] += stepMax;
-  max[1] += stepMax;
-  max[2] += stepMax;
+  stepMin = step * 2.5 + step / Remesh.RESOLUTION;
+  stepMax = step * 2.5 + step / Remesh.RESOLUTION;
+  min = [box[0] - stepMin, box[1] - stepMin, box[2] - stepMin];
+  max = [box[3] + stepMax, box[4] + stepMax, box[5] + stepMax];
+
   SurfaceNets.BLOCK = Remesh.BLOCK;
   var res = SurfaceNets.computeSurface(voxels, min, max);
   console.timeEnd('4. surfaceNet');

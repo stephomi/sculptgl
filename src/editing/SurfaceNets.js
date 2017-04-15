@@ -169,7 +169,7 @@ SurfaceNets.computeSurface = function (voxels, min, max) {
   var scale = [0.0, 0.0, 0.0];
   var shift = [0.0, 0.0, 0.0];
   for (var i = 0; i < 3; ++i) {
-    scale[i] = (max[i] - min[i]) / dims[i];
+    scale[i] = (max[i] - min[i]) / (voxels.dimsFloat[i] + 1.0);
     shift[i] = min[i];
   }
 
