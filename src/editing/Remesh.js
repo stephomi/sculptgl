@@ -286,8 +286,8 @@ Remesh.remesh = function (meshes, baseMesh) {
 
   console.time('2. voxelization');
   var step = Math.max((box[3] - box[0]), (box[4] - box[1]), (box[5] - box[2])) / Remesh.RESOLUTION;
-  var stepMin = step * 2.5;
-  var stepMax = step * 1.5;
+  var stepMin = step * 3;
+  var stepMax = step * 2;
 
   var min = [box[0] - stepMin, box[1] - stepMin, box[2] - stepMin];
   var max = [box[3] + stepMax, box[4] + stepMax, box[5] + stepMax];
@@ -301,8 +301,8 @@ Remesh.remesh = function (meshes, baseMesh) {
   console.timeEnd('3. flood');
 
   console.time('4. surfaceNet');
-  stepMin = step * 2.5 + step / Remesh.RESOLUTION;
-  stepMax = step * 2.5 + step / Remesh.RESOLUTION;
+  stepMin = step * 3 + step / Remesh.RESOLUTION;
+  stepMax = step * 3 + step / Remesh.RESOLUTION;
   min = [box[0] - stepMin, box[1] - stepMin, box[2] - stepMin];
   max = [box[3] + stepMax, box[4] + stepMax, box[5] + stepMax];
 
