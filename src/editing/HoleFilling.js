@@ -203,10 +203,12 @@ var HoleFilling = {};
 HoleFilling.createClosedMesh = function (mesh) {
   var closed = closeHoles(mesh);
   if (closed === mesh) {
-    var vertices = new Float32Array(mesh.getVertices());
-    var faces = new Uint32Array(mesh.getFaces());
-    var colors = new Float32Array(mesh.getColors());
-    var materials = new Float32Array(mesh.getMaterials());
+    var lenv = mesh.getNbVertices() * 3;
+    var lenf = mesh.getNbFaces() * 4;
+    var faces = new Uint32Array(mesh.getFaces().subarray(0, lenf));
+    var vertices = new Float32Array(mesh.getVertices().subarray(0, lenv));
+    var colors = new Float32Array(mesh.getColors().subarray(0, lenv));
+    var materials = new Float32Array(mesh.getMaterials().subarray(0, lenv));
     closed = createMesh(mesh, vertices, faces, colors, materials);
   }
   return closed;

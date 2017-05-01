@@ -1,4 +1,4 @@
-import { vec3 } from 'gl-matrix';
+import { vec3, mat4 } from 'gl-matrix';
 import HoleFilling from 'editing/HoleFilling';
 import SurfaceNets from 'editing/SurfaceNets';
 import Geometry from 'math3d/Geometry';
@@ -10,7 +10,8 @@ var Remesh = {};
 Remesh.RESOLUTION = 150;
 Remesh.BLOCK = false;
 
-var floodFill = function (voxels, step) {
+var floodFill = function (voxels) {
+  var step = voxels.step;
   var res = voxels.dims;
   var rx = res[0];
   var ry = res[1];
@@ -34,8 +35,8 @@ var floodFill = function (voxels, step) {
   while (curStack > 0) {
     var cell = stack[--curStack];
     var cellDist = distField[cell];
-    if (cellDist < step) // border hit
-    {
+    if (cellDist < step) {
+      // border hit
       for (i = 0; i < nbDir; ++i) {
         var off = dirs[i];
         idNext = cell + off;
@@ -47,7 +48,8 @@ var floodFill = function (voxels, step) {
           stack[curStack++] = idNext;
         }
       }
-    } else { // exterior
+    } else {
+      // exterior
       for (i = 0; i < nbDir; ++i) {
         idNext = cell + dirs[i];
         if (idNext >= datalen || idNext < 0) continue; // range check
@@ -57,21 +59,27 @@ var floodFill = function (voxels, step) {
       }
     }
   }
+
   for (var id = 0; id < datalen; ++id) {
+    if (distField[id] === 0) console.log('hit');
     if (tagCell[id] === 0)
       distField[id] = -distField[id];
   }
 };
 
-var voxelize = function (mesh, voxels, min, step) {
+var voxelize = function (mesh, voxels) {
+  var min = voxels.min;
+  var step = voxels.step;
+  var dims = voxels.dims;
   var invStep = 1.0 / step;
 
   var vminx = min[0];
   var vminy = min[1];
   var vminz = min[2];
 
-  var rx = voxels.dims[0];
-  var ry = voxels.dims[1];
+  var rx = dims[0];
+  var ry = dims[1];
+  var rxy = rx * ry;
   var distField = voxels.distanceField;
   var crossedEdges = voxels.crossedEdges;
   var colors = voxels.colorField;
@@ -90,7 +98,6 @@ var voxelize = function (mesh, voxels, min, step) {
   var triEdge2 = [0.0, 0.0, 0.0];
   var point = [0.0, 0.0, 0.0];
   var closest = [0.0, 0.0, 0.0, 0];
-  var rxy = rx * ry;
   var dirUnit = [
     [1.0, 0.0, 0.0],
     [0.0, 1.0, 0.0],
@@ -174,16 +181,23 @@ var voxelize = function (mesh, voxels, min, step) {
             materials[n3 + 1] = m1y;
             materials[n3 + 2] = m1z;
           }
+
           if (newDist > step)
             continue;
 
           for (var it = 0; it < 3; ++it) {
             var val = closest[it] - point[it];
-            if (val < 0.0 || val > step) continue;
+            if (val < 0.0 || val > step)
+              continue;
+
             var idEdge = n * 3 + it;
-            if (crossedEdges[idEdge] === 1) continue;
+            if (crossedEdges[idEdge] === 1)
+              continue;
+
             var dist = Geometry.intersectionRayTriangleEdges(point, dirUnit[it], triEdge1, triEdge2, v1);
-            if (dist < 0.0 || dist > step) continue;
+            if (dist < 0.0 || dist > step)
+              continue;
+
             crossedEdges[idEdge] = 1;
           }
 
@@ -194,14 +208,16 @@ var voxelize = function (mesh, voxels, min, step) {
 };
 
 // grid structure
-var createVoxelData = function (min, max, step) {
-  var idx = (max[0] - min[0]) / step;
-  var idy = (max[1] - min[1]) / step;
-  var idz = (max[2] - min[2]) / step;
+var createVoxelData = function (box) {
+  var step = Math.max((box[3] - box[0]), (box[4] - box[1]), (box[5] - box[2])) / Remesh.RESOLUTION;
+  var stepMin = step * 1.51;
+  var stepMax = step * 1.51;
+  var min = [box[0] - stepMin, box[1] - stepMin, box[2] - stepMin];
+  var max = [box[3] + stepMax, box[4] + stepMax, box[5] + stepMax];
 
-  var rx = 1 + Math.round(idx);
-  var ry = 1 + Math.round(idy);
-  var rz = 1 + Math.round(idz);
+  var rx = Math.ceil((max[0] - min[0]) / step);
+  var ry = Math.ceil((max[1] - min[1]) / step);
+  var rz = Math.ceil((max[2] - min[2]) / step);
 
   var datalen = rx * ry * rz;
   var buffer = Utils.getMemory((4 * (1 + 3 + 3) + 3) * datalen);
@@ -222,7 +238,9 @@ var createVoxelData = function (min, max, step) {
 
   var voxels = {};
   voxels.dims = [rx, ry, rz];
-  voxels.dimsFloat = [idx, idy, idz];
+  voxels.step = step;
+  voxels.min = min;
+  voxels.max = max;
   voxels.crossedEdges = crossedEdges;
   voxels.distanceField = distField;
   voxels.colorField = colors;
@@ -275,44 +293,58 @@ var prepareMeshes = function (meshes) {
   return box;
 };
 
+var alignMeshBound = function (mesh, box) {
+  var oldMin = [box[0], box[1], box[2]];
+  var oldMax = [box[3], box[4], box[5]];
+  var oldRadius = vec3.dist(oldMin, oldMax);
+  var oldCenter = vec3.add([], oldMin, oldMax);
+  vec3.scale(oldCenter, oldCenter, 0.5);
+
+  var newBox = mesh.getLocalBound();
+  var newMin = [newBox[0], newBox[1], newBox[2]];
+  var newMax = [newBox[3], newBox[4], newBox[5]];
+  var newRadius = vec3.dist(newMin, newMax);
+  var newCenter = vec3.add([], newMin, newMax);
+  vec3.scale(newCenter, newCenter, 0.5);
+
+  var scale = oldRadius / newRadius;
+  var tr = vec3.scale([], oldCenter, 1.0 / scale);
+  vec3.sub(tr, tr, newCenter);
+
+  var mat = mesh.getMatrix();
+  mat4.identity(mat);
+  mat4.scale(mat, mat, [scale, scale, scale]);
+  mat4.translate(mat, mat, tr);
+};
+
 Remesh.remesh = function (meshes, baseMesh) {
   console.time('remesh total');
 
   console.time('1. initMeshes');
-
   meshes = meshes.slice();
   var box = prepareMeshes(meshes);
   console.timeEnd('1. initMeshes');
 
   console.time('2. voxelization');
-  var step = Math.max((box[3] - box[0]), (box[4] - box[1]), (box[5] - box[2])) / Remesh.RESOLUTION;
-  var stepMin = step * 3;
-  var stepMax = step * 2;
-
-  var min = [box[0] - stepMin, box[1] - stepMin, box[2] - stepMin];
-  var max = [box[3] + stepMax, box[4] + stepMax, box[5] + stepMax];
-  var voxels = createVoxelData(min, max, step);
+  var voxels = createVoxelData(box);
   for (var i = 0, l = meshes.length; i < l; ++i)
-    voxelize(meshes[i], voxels, min, step);
+    voxelize(meshes[i], voxels);
   console.timeEnd('2. voxelization');
 
   console.time('3. flood');
-  floodFill(voxels, step);
+  floodFill(voxels);
   console.timeEnd('3. flood');
 
   console.time('4. surfaceNet');
-  stepMin = step * 3 + step / Remesh.RESOLUTION;
-  stepMax = step * 3 + step / Remesh.RESOLUTION;
-  min = [box[0] - stepMin, box[1] - stepMin, box[2] - stepMin];
-  max = [box[3] + stepMax, box[4] + stepMax, box[5] + stepMax];
-
   SurfaceNets.BLOCK = Remesh.BLOCK;
-  var res = SurfaceNets.computeSurface(voxels, min, max);
+  var res = SurfaceNets.computeSurface(voxels);
   console.timeEnd('4. surfaceNet');
 
   console.time('5. createMesh');
   var nmesh = createMesh(baseMesh, res.faces, res.vertices, res.colors, res.materials);
   console.timeEnd('5. createMesh');
+
+  alignMeshBound(nmesh, box);
 
   console.timeEnd('remesh total');
   console.log('\n');

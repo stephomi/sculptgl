@@ -97,7 +97,7 @@ var readScalarValues = function (voxels, grid, dims, n, cols, mats) {
 };
 
 var vTemp = [0.0, 0.0, 0.0];
-var interpolateVertices = function (edgeMask, cubeEdges, grid, x, scale, shift, vertices) {
+var interpolateVertices = function (edgeMask, cubeEdges, grid, x, vertices) {
   vTemp[0] = vTemp[1] = vTemp[2] = 0.0;
   var edgeCount = 0;
   //For every edge of the cube...
@@ -129,7 +129,7 @@ var interpolateVertices = function (edgeMask, cubeEdges, grid, x, scale, shift, 
   //Now we just average the edge intersections and add them to coordinate
   var s = 1.0 / edgeCount;
   for (var l = 0; l < 3; ++l)
-    vTemp[l] = scale[l] * (x[l] + s * vTemp[l]) + shift[l];
+    vTemp[l] = x[l] + s * vTemp[l];
   vertices.push(vTemp[0], vTemp[1], vTemp[2]);
 };
 
@@ -160,18 +160,8 @@ var createFace = function (edgeMask, mask, buffer, R, m, x, faces) {
   }
 };
 
-SurfaceNets.computeSurface = function (voxels, min, max) {
+SurfaceNets.computeSurface = function (voxels) {
   var dims = voxels.dims;
-
-  if (!min) min = [0.0, 0.0, 0.0];
-  if (!max) max = dims;
-
-  var scale = [0.0, 0.0, 0.0];
-  var shift = [0.0, 0.0, 0.0];
-  for (var i = 0; i < 3; ++i) {
-    scale[i] = (max[i] - min[i]) / (voxels.dimsFloat[i] + 1.0);
-    shift[i] = min[i];
-  }
 
   var vertices = [];
   var cols = [];
@@ -202,7 +192,7 @@ SurfaceNets.computeSurface = function (voxels, min, max) {
         //Sum up edge intersections
         var edgeMask = edgeTable[mask];
         buffer[m] = vertices.length / 3;
-        interpolateVertices(edgeMask, cubeEdges, grid, x, scale, shift, vertices);
+        interpolateVertices(edgeMask, cubeEdges, grid, x, vertices);
         createFace(edgeMask, mask, buffer, R, m, x, faces);
       }
     }
