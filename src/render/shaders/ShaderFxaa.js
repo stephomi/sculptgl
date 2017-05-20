@@ -14,7 +14,6 @@ ShaderFxaa.attributes = {};
 ShaderFxaa.uniformNames = ['uTexture0', 'uInvSize'];
 
 ShaderFxaa.vertex = [
-  'precision mediump float;',
   'attribute vec2 aVertex;',
   'uniform vec2 uInvSize;',
   'varying vec2 vUVNW;',
@@ -33,7 +32,6 @@ ShaderFxaa.vertex = [
 ].join('\n');
 
 ShaderFxaa.fragment = [
-  'precision mediump float;',
   'uniform sampler2D uTexture0;',
   'uniform vec2 uInvSize;',
   'varying vec2 vUVNW;',

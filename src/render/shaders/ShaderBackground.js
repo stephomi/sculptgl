@@ -20,7 +20,6 @@ ShaderBackground.vertex = [
 ].join('\n');
 
 ShaderBackground.fragment = [
-  'precision mediump float;',
   'uniform sampler2D uTexture0;',
   'varying vec2 vTexCoord;',
   ShaderBase.strings.colorSpaceGLSL,

@@ -13,7 +13,6 @@ ShaderUV.uniformNames = ['uTexture0', 'uAlbedo'];
 Array.prototype.push.apply(ShaderUV.uniformNames, ShaderBase.uniformNames.commonUniforms);
 
 ShaderUV.vertex = [
-  'precision mediump float;',
   'attribute vec3 aVertex;',
   'attribute vec3 aNormal;',
   'attribute vec3 aColor;',
@@ -40,7 +39,6 @@ ShaderUV.vertex = [
 ].join('\n');
 
 ShaderUV.fragment = [
-  'precision mediump float;',
   'uniform sampler2D uTexture0;',
   'varying vec3 vVertex;',
   'varying vec3 vNormal;',

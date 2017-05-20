@@ -15,7 +15,6 @@ ShaderNormal.uniformNames = [];
 Array.prototype.push.apply(ShaderNormal.uniformNames, ShaderBase.uniformNames.commonUniforms);
 
 ShaderNormal.vertex = [
-  'precision mediump float;',
   'attribute vec3 aVertex;',
   'attribute vec3 aNormal;',
   'attribute vec3 aMaterial;',
@@ -35,7 +34,6 @@ ShaderNormal.vertex = [
 ].join('\n');
 
 ShaderNormal.fragment = [
-  'precision mediump float;',
   'varying vec3 vVertex;',
   'varying vec3 vNormal;',
   'uniform float uAlpha;',

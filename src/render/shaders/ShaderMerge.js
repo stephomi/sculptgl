@@ -13,7 +13,6 @@ ShaderMerge.attributes = {};
 ShaderMerge.uniformNames = ['uTexture0', 'uTexture1', 'uFilmic'];
 
 ShaderMerge.vertex = [
-  'precision mediump float;',
   'attribute vec2 aVertex;',
   'varying vec2 vTexCoord;',
   'void main() {',
@@ -23,7 +22,6 @@ ShaderMerge.vertex = [
 ].join('\n');
 
 ShaderMerge.fragment = [
-  'precision mediump float;',
   'uniform sampler2D uTexture0;',
   'uniform sampler2D uTexture1;',
   'uniform int uFilmic;',

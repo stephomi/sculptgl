@@ -43,7 +43,6 @@ ShaderPBR.uniformNames = ['uIblTransform', 'uTexture0', 'uAlbedo', 'uRoughness',
 Array.prototype.push.apply(ShaderPBR.uniformNames, ShaderBase.uniformNames.commonUniforms);
 
 ShaderPBR.vertex = [
-  'precision mediump float;',
   'attribute vec3 aVertex;',
   'attribute vec3 aNormal;',
   'attribute vec3 aColor;',
@@ -73,7 +72,6 @@ ShaderPBR.vertex = [
 ].join('\n');
 
 ShaderPBR.fragment = [
-  'precision mediump float;',
   'varying vec3 vVertex;',
   'varying vec3 vNormal;',
   'varying vec3 vAlbedo;',

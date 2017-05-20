@@ -62,22 +62,35 @@ ShaderBase.strings.fragColorFunction = [
   '}'
 ].join('\n');
 
-var moveExtension = function (str) {
+var processShader = function (str) {
   // move extension enable/require to the top of file
+  var extensions = '';
   var matches = str.match(/^\s*(#extension).*/gm);
-  if (!matches) return str;
-  var extMap = {};
-  var exts = '';
+  if (matches) {
+    var extMap = {};
 
-  for (var i = 0, nb = matches.length; i < nb; ++i) {
-    var ext = matches[i].substr(matches[i].indexOf('#extension'));
-    str = str.replace(matches[i], '');
-    if (extMap[ext])
-      continue;
-    extMap[ext] = true;
-    exts += ext + '\n';
+    for (var i = 0, nb = matches.length; i < nb; ++i) {
+      var ext = matches[i].substr(matches[i].indexOf('#extension'));
+      str = str.replace(matches[i], '');
+      if (extMap[ext])
+        continue;
+      extMap[ext] = true;
+      extensions += ext + '\n';
+    }
   }
-  str = exts + str;
+
+  var version = '';
+  if (str.indexOf('#version') === -1) {
+    version += '#version 100\n';
+  }
+
+  var precision = '';
+  var regPrecision = /precision\s+(high|low|medium)p\s+float/;
+  if (!regPrecision.test(str)) {
+    precision += '#ifdef GL_FRAGMENT_PRECISION_HIGH\n  precision highp float;\n#else\n  precision mediump float;\n#endif\n';
+  }
+
+  str = version + extensions + precision + str;
   return str;
 };
 
@@ -89,11 +102,11 @@ ShaderBase.getOrCreate = function (gl) {
   var fname = '\n#define SHADER_NAME ' + this.fragmentName + '\n';
 
   var vShader = gl.createShader(gl.VERTEX_SHADER);
-  gl.shaderSource(vShader, moveExtension(this.vertex + vname));
+  gl.shaderSource(vShader, processShader(this.vertex + vname));
   gl.compileShader(vShader);
 
   var fShader = gl.createShader(gl.FRAGMENT_SHADER);
-  gl.shaderSource(fShader, moveExtension(this.fragment + fname));
+  gl.shaderSource(fShader, processShader(this.fragment + fname));
   gl.compileShader(fShader);
 
   var program = this.program = gl.createProgram();

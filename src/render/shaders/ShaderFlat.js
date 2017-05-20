@@ -14,7 +14,6 @@ ShaderFlat.uniformNames = ['uColor'];
 Array.prototype.push.apply(ShaderFlat.uniformNames, ShaderBase.uniformNames.commonUniforms);
 
 ShaderFlat.vertex = [
-  'precision mediump float;',
   'attribute vec3 aVertex;',
   'attribute vec3 aMaterial;',
   ShaderBase.strings.vertUniforms,
@@ -26,7 +25,6 @@ ShaderFlat.vertex = [
 ].join('\n');
 
 ShaderFlat.fragment = [
-  'precision mediump float;',
   'uniform vec3 uColor;',
   'void main() {',
   '  gl_FragColor = vec4(uColor, 1.0);',

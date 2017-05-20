@@ -52,7 +52,6 @@ ShaderMatcap.uniformNames = ['uTexture0', 'uAlbedo'];
 Array.prototype.push.apply(ShaderMatcap.uniformNames, ShaderBase.uniformNames.commonUniforms);
 
 ShaderMatcap.vertex = [
-  'precision mediump float;',
   'attribute vec3 aVertex;',
   'attribute vec3 aNormal;',
   'attribute vec3 aColor;',
@@ -83,7 +82,6 @@ ShaderMatcap.vertex = [
 ].join('\n');
 
 ShaderMatcap.fragment = [
-  'precision mediump float;',
   'uniform sampler2D uTexture0;',
   'varying vec3 vVertex;',
   'varying vec3 vVertexPres;',
