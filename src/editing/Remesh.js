@@ -320,10 +320,10 @@ var alignMeshBound = function (mesh, box) {
 Remesh.remesh = function (meshes, baseMesh) {
   console.time('remesh total');
 
-  console.time('1. initMeshes');
+  console.time('1. prepareMeshes');
   meshes = meshes.slice();
   var box = prepareMeshes(meshes);
-  console.timeEnd('1. initMeshes');
+  console.timeEnd('1. prepareMeshes');
 
   console.time('2. voxelization');
   var voxels = createVoxelData(box);

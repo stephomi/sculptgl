@@ -6,10 +6,18 @@ import Reversion from 'editing/Reversion';
 
 class Multimesh extends Mesh {
 
-  static get NONE() { return 0; }
-  static get SCULPT() { return 1; }
-  static get CAMERA() { return 2; }
-  static get PICKING() { return 3; }
+  static get NONE() {
+    return 0;
+  }
+  static get SCULPT() {
+    return 1;
+  }
+  static get CAMERA() {
+    return 2;
+  }
+  static get PICKING() {
+    return 3;
+  }
 
   constructor(mesh) {
     super();
@@ -39,6 +47,10 @@ class Multimesh extends Mesh {
     if ((this._meshes.length - 1) !== this._sel)
       return this.getCurrentMesh();
 
+    var nbFaces = this.getCurrentMesh().getNbFaces();
+    var strTimer = 'addLevel : ' + nbFaces + ' -> ' + nbFaces * 4;
+    console.time(strTimer);
+
     var baseMesh = this.getCurrentMesh();
     var newMesh = new MeshResolution(baseMesh);
     baseMesh.setVerticesMapping(undefined);
@@ -48,6 +60,9 @@ class Multimesh extends Mesh {
 
     this.pushMesh(newMesh);
     this.initRender();
+
+    console.timeEnd(strTimer);
+
     return newMesh;
   }
 
