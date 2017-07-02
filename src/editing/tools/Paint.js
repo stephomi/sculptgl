@@ -123,6 +123,8 @@ class Paint extends SculptBase {
       var dy = vy - cy;
       var dz = vz - cz;
       var dist = Math.sqrt(dx * dx + dy * dy + dz * dz) / radius;
+      if (dist > 1) dist = 1.0;
+
       var fallOff = Math.pow(1 - dist, softness);
       fallOff *= intensity * mAr[ind + 2] * picking.getAlpha(vx, vy, vz);
       var fallOffCompl = 1.0 - fallOff;

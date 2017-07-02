@@ -286,12 +286,17 @@ var findSplit = (function () {
     if (checkInsideSphere && !tis(SubData._center, SubData._radius2, v1, v2, v3) && !pit(SubData._center, v1, v2, v3))
       return 0;
 
+    var mAr = mesh.getMaterials();
+    var m1 = mAr[ind1 + 2];
+    var m2 = mAr[ind2 + 2];
+    var m3 = mAr[ind3 + 2];
+
     var length1 = vec3.sqrDist(v1, v2);
     var length2 = vec3.sqrDist(v2, v3);
     var length3 = vec3.sqrDist(v1, v3);
-    if (length1 > length2 && length1 > length3) return length1 > SubData._edgeMax2 ? 1 : 0;
-    else if (length2 > length3) return length2 > SubData._edgeMax2 ? 2 : 0;
-    else return length3 > SubData._edgeMax2 ? 3 : 0;
+    if (length1 > length2 && length1 > length3) return (m1 + m2) * 0.5 * length1 > SubData._edgeMax2 ? 1 : 0;
+    else if (length2 > length3) return (m2 + m3) * 0.5 * length2 > SubData._edgeMax2 ? 2 : 0;
+    else return (m1 + m3) * 0.5 * length3 > SubData._edgeMax2 ? 3 : 0;
   };
 })();
 

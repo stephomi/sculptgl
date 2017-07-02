@@ -410,6 +410,7 @@ Decimation.decimation = function (mesh, iTris, center, radius2, detail2, states)
   var radius = Math.sqrt(radius2);
   var ftf = mesh.getFacesTagFlags();
   var vAr = mesh.getVertices();
+  var mAr = mesh.getMaterials();
   var fAr = mesh.getFaces();
 
   var cenx = center[0];
@@ -432,20 +433,21 @@ Decimation.decimation = function (mesh, iTris, center, radius2, detail2, states)
     var iv2 = fAr[id + 1];
     var iv3 = fAr[id + 2];
 
-    id = iv1 * 3;
-    var v1x = vAr[id];
-    var v1y = vAr[id + 1];
-    var v1z = vAr[id + 2];
+    var ind1 = iv1 * 3;
+    var ind2 = iv2 * 3;
+    var ind3 = iv3 * 3;
 
-    id = iv2 * 3;
-    var v2x = vAr[id];
-    var v2y = vAr[id + 1];
-    var v2z = vAr[id + 2];
+    var v1x = vAr[ind1];
+    var v1y = vAr[ind1 + 1];
+    var v1z = vAr[ind1 + 2];
 
-    id = iv3 * 3;
-    var v3x = vAr[id];
-    var v3y = vAr[id + 1];
-    var v3z = vAr[id + 2];
+    var v2x = vAr[ind2];
+    var v2y = vAr[ind2 + 1];
+    var v2z = vAr[ind2 + 2];
+
+    var v3x = vAr[ind3];
+    var v3y = vAr[ind3 + 1];
+    var v3z = vAr[ind3 + 2];
 
     var dx = (v1x + v2x + v3x) / 3.0 - cenx;
     var dy = (v1y + v2y + v3y) / 3.0 - ceny;
@@ -476,14 +478,18 @@ Decimation.decimation = function (mesh, iTris, center, radius2, detail2, states)
     dz = v1z - v3z;
     var len3 = dx * dx + dy * dy + dz * dz;
 
+    var m1 = mAr[ind1 + 2];
+    var m2 = mAr[ind2 + 2];
+    var m3 = mAr[ind3 + 2];
+
     if (len1 < len2 && len1 < len3) {
-      if (len1 < detail2 * fallOff)
+      if (len1 < detail2 * fallOff * (m1 + m2) * 0.5)
         decimateTriangles(iTri, findOppositeTriangle(iTri, iv1, iv2), dynArr);
     } else if (len2 < len3) {
-      if (len2 < detail2 * fallOff)
+      if (len2 < detail2 * fallOff * (m2 + m3) * 0.5)
         decimateTriangles(iTri, findOppositeTriangle(iTri, iv2, iv3), dynArr);
     } else {
-      if (len3 < detail2 * fallOff)
+      if (len3 < detail2 * fallOff * (m1 + m3) * 0.5)
         decimateTriangles(iTri, findOppositeTriangle(iTri, iv1, iv3), dynArr);
     }
   }

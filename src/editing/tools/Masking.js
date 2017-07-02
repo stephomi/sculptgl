@@ -38,6 +38,11 @@ class Masking extends SculptBase {
     Paint.prototype.stroke.call(this, picking);
   }
 
+  dynamicTopology(picking) {
+    // no dynamic topo with masking
+    return picking.getPickedVertices();
+  }
+
   /** Paint color vertices */
   paint(iVerts, center, radiusSquared, intensity, hardness, picking) {
     var mesh = this.getMesh();
@@ -58,7 +63,9 @@ class Masking extends SculptBase {
       var dy = vy - cy;
       var dz = vz - cz;
       var dist = Math.sqrt(dx * dx + dy * dy + dz * dz) / radius;
-      var fallOff = Math.pow(1 - dist, softness);
+      if (dist > 1) dist = 1.0;
+
+      var fallOff = Math.pow(1.0 - dist, softness);
       fallOff *= maskIntensity * picking.getAlpha(vx, vy, vz);
       mAr[ind + 2] = Math.min(Math.max(mAr[ind + 2] + fallOff, 0.0), 1.0);
     }
