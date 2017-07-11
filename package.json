@@ -18,7 +18,7 @@
     "hammerjs": "^2.0.8",
     "raw-loader": "^0.5.1",
     "webpack": "^2.2.1",
-    "yagui": "^1.6.0"
+    "yagui": "^1.8.0"
   },
   "scripts": {
     "dev": "cp tools/index.dev.html app/index.html && cp tools/authSuccess.html app/authSuccess.html && webpack -w",
