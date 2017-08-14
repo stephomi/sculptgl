@@ -187,8 +187,11 @@ class OddVertexComputer {
 
 /** Even vertices smoothing */
 var applyEvenSmooth = function (baseMesh, even, colorOut, materialOut) {
-  colorOut.set(baseMesh.getColors());
-  materialOut.set(baseMesh.getMaterials());
+  var nbVerts = baseMesh.getNbVertices();
+
+  colorOut.set(baseMesh.getColors().subarray(0, nbVerts * 3));
+  materialOut.set(baseMesh.getMaterials().subarray(0, nbVerts * 3));
+
   var vArOld = baseMesh.getVertices();
   var fArOld = baseMesh.getFaces();
   var eArOld = baseMesh.getEdges();
@@ -199,7 +202,6 @@ var applyEvenSmooth = function (baseMesh, even, colorOut, materialOut) {
   var vrfStartCount = baseMesh.getVerticesRingFaceStartCount();
   var vertRingFace = baseMesh.getVerticesRingFace();
   var onlyTri = baseMesh.hasOnlyTriangles();
-  var nbVerts = baseMesh.getNbVertices();
 
   for (var i = 0; i < nbVerts; ++i) {
     var j = i * 3;
