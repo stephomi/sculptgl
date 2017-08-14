@@ -553,7 +553,7 @@ class Scene {
     for (var i = 0; i < nbNewMeshes; ++i) {
       var mesh = newMeshes[i] = new Multimesh(newMeshes[i]);
 
-      if (!this._vertexSRGB)
+      if (!this._vertexSRGB && mesh.getColors())
         Utils.convertArrayVec3toSRGB(mesh.getColors());
 
       mesh.init();
