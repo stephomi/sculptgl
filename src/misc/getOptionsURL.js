@@ -67,6 +67,9 @@ var readShortcuts = function (str) {
   // rendering
   shortcuts['W'.charCodeAt(0)] = keyAction.WIREFRAME;
 
+  // other
+  shortcuts['R'.charCodeAt(0)] = keyAction.REMESH;
+
   if (!str)
     return shortcuts;
 

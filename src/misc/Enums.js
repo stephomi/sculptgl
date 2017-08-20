@@ -84,7 +84,8 @@ Enums.KeyAction = Utils.extend({
   STRIFE_RIGHT: acc++,
   STRIFE_UP: acc++,
   STRIFE_DOWN: acc++,
-  WIREFRAME: acc++
+  WIREFRAME: acc++,
+  REMESH: acc++
 }, Enums.Tools);
 
 export default Enums;

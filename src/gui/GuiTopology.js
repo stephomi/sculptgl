@@ -5,6 +5,8 @@ import MeshStatic from 'mesh/meshStatic/MeshStatic';
 import Multimesh from 'mesh/multiresolution/Multimesh';
 import MeshDynamic from 'mesh/dynamic/MeshDynamic';
 import StateMultiresolution from 'states/StateMultiresolution';
+import getOptionsURL from 'misc/getOptionsURL';
+import Enums from 'misc/Enums';
 
 class GuiMultiresolution {
 
@@ -45,6 +47,18 @@ class GuiMultiresolution {
     this._ctrlDynDec = menu.addSlider(TR('dynamicDecimation'), MeshDynamic, 'DECIMATION_FACTOR', 0, 100, 1);
     this._ctrlDynLin = menu.addCheckbox(TR('dynamicLinear'), MeshDynamic, 'LINEAR');
     this.updateDynamicVisibility(false);
+  }
+
+  onKeyUp(event) {
+    if (event.handled === true)
+      return;
+
+    var shk = getOptionsURL.getShortKey(event.which);
+    event.stopPropagation();
+
+    if (shk === Enums.KeyAction.REMESH) {
+      this.remesh();
+    }
   }
 
   updateDynamicVisibility(bool) {

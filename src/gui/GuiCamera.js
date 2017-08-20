@@ -140,6 +140,8 @@ class GuiCamera {
     case Enums.KeyAction.CAMERA_LEFT:
       this.resetLeft();
       break;
+    default:
+      event.handled = false;
     }
 
     if (this._cameraTimer !== -1 && camera._moveX === 0 && camera._moveZ === 0) {
