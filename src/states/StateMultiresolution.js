@@ -11,7 +11,6 @@ class StateMultiresolution {
     this._multimesh = multimesh; // the multires mesh
     this._mesh = multimesh.getCurrentMesh(); // the sub multimesh
     this._type = type; // the type of action
-    this._sel = multimesh._sel; // the selected mesh
 
     switch (type) {
     case StateMultiresolution.DELETE_LOWER:
@@ -51,18 +50,21 @@ class StateMultiresolution {
       this._mesh.setVerticesMapping(this._vMappingState);
       break;
     case StateMultiresolution.SUBDIVISION:
-      this._mesh.setVertices(new Float32Array(this._vArState));
-      this._mesh.setColors(new Float32Array(this._cArState));
-      this._mesh.setMaterials(new Float32Array(this._mArState));
-      mul.popMesh();
-      break;
     case StateMultiresolution.REVERSION:
+      var nbVerts = this._mesh.getNbVertices();
       this._mesh.setVertices(new Float32Array(this._vArState));
       this._mesh.setColors(new Float32Array(this._cArState));
       this._mesh.setMaterials(new Float32Array(this._mArState));
-      mul.shiftMesh();
+      this._mesh.setNbVertices(nbVerts);
+      if (this._type === StateMultiresolution.SUBDIVISION) {
+        mul.popMesh();
+      } else {
+        mul.shiftMesh();
+      }
       break;
     }
+
+    mul.setSelection(mul.findIndexFromMesh(this._mesh));
     this._main.setMesh(mul);
   }
 
@@ -85,6 +87,8 @@ class StateMultiresolution {
       mul.unshiftMesh(this._mesh);
       break;
     }
+
+    mul.setSelection(mul.findIndexFromMesh(this._mesh));
     this._main.setMesh(mul);
   }
 
