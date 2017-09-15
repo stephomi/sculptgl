@@ -76,7 +76,7 @@ Export.addMesh = function (mesh, data, offsets, saveColor) {
     for (i = 0; i < nbChunck; ++i) {
       str = '#MRGB ';
       j = i * 64;
-      var nbCol = j + (i === nbChunck - 1 ? nbVertices % 64 : 64);
+      var nbCol = i === nbChunck - 1 ? nbVertices : j + 64;
       for (; j < nbCol; ++j) {
         str += 'ff';
         var cId = j * 3;
@@ -97,7 +97,7 @@ Export.addMesh = function (mesh, data, offsets, saveColor) {
     for (i = 0; i < nbChunck; ++i) {
       str = '#MAT ';
       j = i * 46;
-      var nbMat = j + (i === nbChunck - 1 ? nbVertices % 46 : 46);
+      var nbMat = i === nbChunck - 1 ? nbVertices : j + 46;
       for (; j < nbMat; ++j) {
         var mId = j * 3;
         var ro = Math.round(mAr[mId] * 255).toString(16);
