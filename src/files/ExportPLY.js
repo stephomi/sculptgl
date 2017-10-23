@@ -3,16 +3,22 @@ import Remesh from 'editing/Remesh';
 
 var Export = {};
 
+var getResult = function (meshes) {
+  return Remesh.mergeArrays(meshes, { vertices: null, colors: null, faces: null });
+};
+
 /** Export Ascii PLY file */
-Export.exportAsciiPLY = function (mesh) {
-  var vAr = mesh.getVertices();
-  var cAr = mesh.getColors();
-  var fAr = mesh.getFaces();
-  var data = 'ply\nformat ascii 1.0\ncomment created by SculptGL\n';
-  var nbVertices = mesh.getNbVertices();
-  var nbFaces = mesh.getNbFaces();
+Export.exportAsciiPLY = function (meshes) {
+  var res = getResult(meshes);
+  var nbVertices = res.nbVertices;
+  var nbFaces = res.nbFaces;
+  var vAr = res.vertices;
+  var cAr = res.colors;
+  var fAr = res.faces;
+
   var i = 0;
   var j = 0;
+  var data = 'ply\nformat ascii 1.0\ncomment created by SculptGL\n';
   data += 'element vertex ' + nbVertices + '\n';
   data += 'property float x\nproperty float y\nproperty float z\n';
   data += 'property uchar red\nproperty uchar green\nproperty uchar blue\n';
@@ -39,49 +45,28 @@ Export.exportAsciiPLY = function (mesh) {
 };
 
 /** Export binary PLY file */
-Export.exportBinaryPLY = function (meshOrMeshes, isSketchfab) {
-  var meshes = meshOrMeshes.length ? meshOrMeshes : [meshOrMeshes];
-  var nbMeshes = meshes.length;
+Export.exportBinaryPLY = function (meshes, isSketchfab) {
+  var res = getResult(meshes);
+  var nbVertices = res.nbVertices;
+  var nbFaces = res.nbFaces;
+  var nbQuads = res.nbQuads;
+  var nbTriangles = res.nbTriangles;
+  var vAr = res.vertices;
+  var cAr = res.colors;
+  var fAr = res.faces;
+
   var i = 0;
   var j = 0;
   var k = 0;
 
-  var nbVertices = 0;
-  var nbFaces = 0;
-  var nbQuads = 0;
-  var nbTriangles = 0;
-  for (i = 0; i < nbMeshes; ++i) {
-    nbVertices += meshes[i].getNbVertices();
-    nbFaces += meshes[i].getNbFaces();
-    nbQuads += meshes[i].getNbQuads();
-    nbTriangles += meshes[i].getNbTriangles();
-  }
-
-  var vAr, cAr, fAr;
+  // swap xy
   if (isSketchfab) {
-    var arr = {
-      vertices: null,
-      colors: null,
-      faces: null
-    };
-
-    Remesh.mergeArrays(meshes, arr);
-
-    vAr = arr.vertices;
-    cAr = arr.colors;
-    fAr = arr.faces;
-
-    // swap xy
     for (i = 0; i < nbVertices; ++i) {
       k = i * 3;
       var yVal = vAr[k + 1];
       vAr[k + 1] = -vAr[k + 2];
       vAr[k + 2] = yVal;
     }
-  } else {
-    vAr = meshes[0].getVertices();
-    cAr = meshes[0].getColors();
-    fAr = meshes[0].getFaces();
   }
 
   var endian = Utils.littleEndian ? 'little' : 'big';

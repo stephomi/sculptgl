@@ -1,19 +1,51 @@
-import Utils from 'misc/Utils';
+import { vec3 } from 'gl-matrix';
+import Remesh from 'editing/Remesh';
 
 var Export = {};
 
+var getResult = function (meshes) {
+  var res = Remesh.mergeArrays(meshes, { vertices: null, colors: null, triangles: null });
+
+  var vAr = res.vertices;
+  var iAr = res.triangles;
+
+  var v1 = vec3.create();
+  var v2 = vec3.create();
+  var v3 = vec3.create();
+  var nAr = res.faceNormals = new Float32Array(res.nbTriangles * 3);
+  for (var i = 0; i < res.nbTriangles; ++i) {
+    var i1 = iAr[i * 3];
+    var i2 = iAr[i * 3 + 1];
+    var i3 = iAr[i * 3 + 2];
+    vec3.set(v1, vAr[i1], vAr[i1 + 1], vAr[i1 + 2]);
+    vec3.set(v2, vAr[i2], vAr[i2 + 1], vAr[i2 + 2]);
+    vec3.set(v3, vAr[i3], vAr[i3 + 1], vAr[i3 + 2]);
+
+    vec3.sub(v2, v2, v1); // v2 = v2 - v1
+    vec3.sub(v3, v3, v2); // v3 = v3 - v1
+    vec3.cross(v1, v2, v3); // v1 = v2 ^ v3
+    vec3.normalize(v1, v1);
+
+    nAr[i * 3] = v1[0];
+    nAr[i * 3 + 1] = v1[1];
+    nAr[i * 3 + 2] = v1[2];
+  }
+
+  return res;
+};
+
 /** Export Ascii STL file */
-Export.exportAsciiSTL = function (mesh) {
-  var vAr = mesh.getVertices();
-  var iAr = mesh.getTriangles();
-  var origFN = mesh.getFaceNormals();
-  var faceNormals = new Float32Array(Utils.getMemory(origFN.length * 4), 0, origFN.length);
-  Utils.normalizeArrayVec3(origFN, faceNormals);
+Export.exportAsciiSTL = function (meshes) {
+  var res = getResult(meshes);
+  var nbTriangles = res.nbTriangles;
+  var vAr = res.vertices;
+  var iAr = res.triangles;
+  var fnAr = res.faceNormals;
+
   var data = 'solid mesh\n';
-  var nbTriangles = mesh.getNbTriangles();
   for (var i = 0; i < nbTriangles; ++i) {
     var j = i * 3;
-    data += ' facet normal ' + faceNormals[j] + ' ' + faceNormals[j + 1] + ' ' + faceNormals[j + 2] + '\n';
+    data += ' facet normal ' + fnAr[j] + ' ' + fnAr[j + 1] + ' ' + fnAr[j + 2] + '\n';
     data += '  outer loop\n';
     var iv1 = iAr[j] * 3;
     var iv2 = iAr[j + 1] * 3;
@@ -29,23 +61,20 @@ Export.exportAsciiSTL = function (mesh) {
 };
 
 /** Export binary STL file */
-Export.exportBinarySTL = function (mesh) {
-  var vAr = mesh.getVertices();
-  var cAr = mesh.getColors();
-  var iAr = mesh.getTriangles();
-
-  var origFN = mesh.getFaceNormals();
-  var faceNormals = new Float32Array(Utils.getMemory(origFN.length * 4), 0, origFN.length);
-  Utils.normalizeArrayVec3(origFN, faceNormals);
-
-  var nbTriangles = mesh.getNbTriangles();
+Export.exportBinarySTL = function (meshes) {
+  var res = getResult(meshes);
+  var nbTriangles = res.nbTriangles;
+  var vAr = res.vertices;
+  var cAr = res.colors;
+  var iAr = res.triangles;
+  var fnAr = res.faceNormals;
 
   var data = new Uint8Array(84 + nbTriangles * 50);
   var nbTriBuff = new Uint8Array(new Uint32Array([nbTriangles]).buffer);
   data.set(nbTriBuff, 80);
 
   var verBuffer = new Uint8Array(vAr.buffer);
-  var norBuffer = new Uint8Array(faceNormals.buffer);
+  var norBuffer = new Uint8Array(fnAr.buffer);
   var offset = 84;
   var inc = 0;
 

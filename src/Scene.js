@@ -545,28 +545,32 @@ class Scene {
     else if (fileType === 'sgl') newMeshes = Import.importSGL(fileData, this._gl, this);
     else if (fileType === 'stl') newMeshes = Import.importSTL(fileData, this._gl);
     else if (fileType === 'ply') newMeshes = Import.importPLY(fileData, this._gl);
+
     var nbNewMeshes = newMeshes.length;
-    if (nbNewMeshes === 0)
+    if (nbNewMeshes === 0) {
       return;
+    }
 
     var meshes = this._meshes;
     for (var i = 0; i < nbNewMeshes; ++i) {
       var mesh = newMeshes[i] = new Multimesh(newMeshes[i]);
 
-      if (!this._vertexSRGB && mesh.getColors())
+      if (!this._vertexSRGB && mesh.getColors()) {
         Utils.convertArrayVec3toSRGB(mesh.getColors());
+      }
 
       mesh.init();
       mesh.initRender();
       meshes.push(mesh);
     }
 
-    if (this._autoMatrix)
+    if (this._autoMatrix) {
       this.normalizeAndCenterMeshes(newMeshes);
+    }
 
     this._stateManager.pushStateAdd(newMeshes);
     this.setMesh(meshes[meshes.length - 1]);
-    this._camera.resetView();
+    this.resetCameraMeshes(newMeshes);
     return newMeshes;
   }
 

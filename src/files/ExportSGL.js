@@ -53,10 +53,7 @@ Export.VERSION = 3;
 //
 /** Export SGL (sculptgl) file */
 
-Export.exportSGLAsArrayBuffer = function (meshes, main) {
-  return Export.exportSGL(meshes, main, true);
-};
-Export.exportSGL = function (meshes, main, returnArrayBuffer) {
+Export.exportSGL = function (meshes, main) {
   var nbMeshes = meshes.length;
 
   var bytePerMesh = 3 + 16 + 1 + 6 + 5;
@@ -156,9 +153,6 @@ Export.exportSGL = function (meshes, main, returnArrayBuffer) {
       off += nbFaces * 4;
     }
   }
-
-  if (returnArrayBuffer)
-    return buffer;
 
   var data = new DataView(buffer, 0, off * 4);
   return new Blob([data]);

@@ -199,8 +199,10 @@ class SculptGL extends Scene {
   }
 
   onDoubleTap(e) {
-    if (this._focusGui)
+    if (this._focusGui) {
       return;
+    }
+
     var evProxy = this._eventProxy;
     evProxy.pageX = e.center.x;
     evProxy.pageY = e.center.y;
@@ -210,22 +212,23 @@ class SculptGL extends Scene {
     var res = picking.intersectionMouseMeshes();
     var cam = this._camera;
     var pivot = [0.0, 0.0, 0.0];
-    if (!res)
-      return this.resetCameraScene();
+    if (!res) {
+      return this.resetCameraMeshes();
+    }
 
     vec3.transformMat4(pivot, picking.getIntersectionPoint(), picking.getMesh().getMatrix());
     var zoom = cam._trans[2];
-    if (!cam.isOrthographic())
+    if (!cam.isOrthographic()) {
       zoom = Math.min(zoom, vec3.dist(pivot, cam.computePosition()));
+    }
 
     cam.setAndFocusOnPivot(pivot, zoom);
     this.render();
   }
 
   onDoubleTap2Fingers() {
-    if (this._focusGui)
-      return;
-    this.resetCameraScene();
+    if (this._focusGui) return;
+    this.resetCameraMeshes();
   }
 
   onPinchStart(e) {
@@ -239,10 +242,12 @@ class SculptGL extends Scene {
     this.onDeviceWheel(dir);
   }
 
-  resetCameraScene() {
-    if (this._meshes.length > 0) {
+  resetCameraMeshes(meshes) {
+    if (!meshes) meshes = this._meshes;
+
+    if (meshes.length > 0) {
       var pivot = [0.0, 0.0, 0.0];
-      var box = this.computeBoundingBoxMeshes(this._meshes);
+      var box = this.computeBoundingBoxMeshes(meshes);
       var zoom = 0.4 * vec3.dist([box[0], box[1], box[2]], [box[3], box[4], box[5]]);
       zoom *= this._camera.computeFrustumFit();
       vec3.set(pivot, (box[0] + box[3]) * 0.5, (box[1] + box[4]) * 0.5, (box[2] + box[5]) * 0.5);

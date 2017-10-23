@@ -12,6 +12,7 @@ class GuiFiles {
     this._ctrlGui = ctrlGui;
     this._menu = null; // ui menu
     this._parent = guiParent;
+    this._exportAll = true;
     this.init(guiParent);
   }
 
@@ -26,59 +27,60 @@ class GuiFiles {
 
     // export
     menu.addTitle(TR('fileExportSceneTitle'));
+    menu.addCheckbox(TR('fileExportAll'), this, '_exportAll');
     menu.addButton(TR('fileExportSGL'), this, 'saveFileAsSGL');
-    menu.addButton(TR('fileExportOBJ'), this, 'saveFileAsOBJ' /*, 'CTRL+(Alt)+E'*/ );
-    menu.addButton(TR('sketchfabTitle'), this, 'exportSketchfab');
-    menu.addTitle(TR('fileExportMeshTitle'));
+    menu.addButton(TR('fileExportOBJ'), this, 'saveFileAsOBJ' /*, 'CTRL+E'*/ );
     menu.addButton(TR('fileExportPLY'), this, 'saveFileAsPLY');
     menu.addButton(TR('fileExportSTL'), this, 'saveFileAsSTL');
+    menu.addButton(TR('sketchfabTitle'), this, 'exportSketchfab');
   }
 
   addFile() {
     document.getElementById('fileopen').click();
   }
 
-  saveFileAsSGL() {
-    if (this._main.getMeshes().length === 0) return;
-    var blob = Export.exportSGL(this._main.getMeshes(), this._main);
-    saveAs(blob, 'yourMesh.sgl');
+  _getExportMeshes() {
+    if (this._exportAll) return this._main.getMeshes();
+    var selected = this._main.getSelectedMeshes();
+    return selected.length ? selected : undefined;
   }
 
-  saveFileAsOBJ(selection) {
-    var meshes = this._main.getMeshes();
-    if (meshes.length === 0) return;
-    if (selection) {
-      meshes = this._main.getSelectedMeshes();
-      if (!meshes[0]) return;
-    }
-    var blob = Export.exportOBJ(meshes);
-    saveAs(blob, 'yourMesh.obj');
+  saveFileAsSGL() {
+    var meshes = this._getExportMeshes();
+    if (!meshes) return;
+    this._save(Export.exportSGL(meshes, this._main), 'yourMesh.sgl');
+  }
+
+  saveFileAsOBJ() {
+    var meshes = this._getExportMeshes();
+    if (!meshes) return;
+    this._save(Export.exportOBJ(meshes), 'yourMesh.obj');
   }
 
   saveFileAsPLY() {
-    var mesh = this._main.getMesh();
-    if (!mesh) return;
+    var meshes = this._getExportMeshes();
+    if (!meshes) return;
+    this._save(Export.exportBinaryPLY(meshes), 'yourMesh.ply');
+  }
+
+  saveFileAsSTL() {
+    var meshes = this._getExportMeshes();
+    if (!meshes) return;
+    this._save(Export.exportBinarySTL(meshes), 'yourMesh.stl');
+  }
+
+  _save(data, fileName, useZip) {
+    if (!useZip) return saveAs(data, fileName);
 
     zip.useWebWorkers = true;
     zip.workerScriptsPath = 'worker/';
     zip.createWriter(new zip.BlobWriter('application/zip'), function (zipWriter) {
-      var data = Export.exportBinaryPLY(mesh);
-      zipWriter.add('yourMesh.ply', new zip.BlobReader(data), function () {
+      zipWriter.add(fileName, new zip.BlobReader(data), function () {
         zipWriter.close(function (blob) {
           saveAs(blob, 'yourMesh.zip');
         });
       });
     }, onerror);
-
-    // var blob = Export.exportBinaryPLY(mesh);
-    // saveAs(blob, 'yourMesh.ply');
-  }
-
-  saveFileAsSTL() {
-    var mesh = this._main.getMesh();
-    if (!mesh) return;
-    var blob = Export.exportBinarySTL(mesh);
-    saveAs(blob, 'yourMesh.stl');
   }
 
   exportSketchfab() {
@@ -126,7 +128,7 @@ class GuiFiles {
       event.handled = true;
 
     } else if (event.ctrlKey && key === 69) { // E
-      this.saveFileAsOBJ(event.altKey);
+      this.saveFileAsOBJ();
       event.handled = true;
     }
   }

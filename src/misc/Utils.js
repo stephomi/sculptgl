@@ -1,3 +1,5 @@
+import { vec3 } from 'gl-matrix';
+
 var Utils = {};
 
 Utils.SCALE = 100.0; // scale factor
@@ -235,6 +237,24 @@ Utils.convertArrayVec3toSRGB = function (array, arrayOut = array) {
 Utils.convertArrayVec3toLinear = function (array, arrayOut = array) {
   for (var i = 0, l = array.length; i < l; ++i) {
     arrayOut[i] = Utils.sRGBToLinear1(array[i]);
+  }
+  return arrayOut;
+};
+
+Utils.computeWorldVertices = function (mesh, arrayOut) {
+  var nbVertices = mesh.getNbVertices();
+  var array = mesh.getVertices().subarray(0, nbVertices * 3);
+  if (!arrayOut) arrayOut = new Float32Array(nbVertices * 3);
+
+  var matrix = mesh.getMatrix();
+  var tmp = vec3.create();
+  for (var i = 0; i < nbVertices; ++i) {
+    var id = i * 3;
+    vec3.set(tmp, array[id], array[id + 1], array[id + 2]);
+    vec3.transformMat4(tmp, tmp, matrix);
+    arrayOut[id] = tmp[0];
+    arrayOut[id + 1] = tmp[1];
+    arrayOut[id + 2] = tmp[2];
   }
   return arrayOut;
 };

@@ -121,7 +121,7 @@ var getOptionsURL = function () {
 
   // misc
   options.language = params.language; // english/chinese/korean/japanese/russian/turkish/swedish
-  options.scalecenter = queryBool(params.scalecenter, true);
+  options.scalecenter = queryBool(params.scalecenter, false);
 
   // display
   options.grid = queryBool(params.grid, true);

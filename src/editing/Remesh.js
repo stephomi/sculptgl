@@ -367,14 +367,21 @@ Remesh.mergeArrays = function (meshes, arr) {
     nbTriangles += meshes[i].getNbTriangles();
   }
 
+  arr.nbVertices = nbVertices;
+  arr.nbFaces = nbFaces;
+  arr.nbQuads = nbQuads;
+  arr.nbTriangles = nbTriangles;
+
   var vAr = arr.vertices = arr.vertices !== undefined ? new Float32Array(nbVertices * 3) : null;
   var cAr = arr.colors = arr.colors !== undefined ? new Float32Array(nbVertices * 3) : null;
   var mAr = arr.materials = arr.materials !== undefined ? new Float32Array(nbVertices * 3) : null;
   var fAr = arr.faces = arr.faces !== undefined ? new Uint32Array(nbFaces * 4) : null;
+  var iAr = arr.triangles = arr.triangles !== undefined ? new Uint32Array(nbTriangles * 3) : null;
 
   var ver = [0.0, 0.0, 0.0];
   var offsetVerts = 0;
   var offsetFaces = 0;
+  var offsetTris = 0;
   var offsetIndex = 0;
   for (i = 0; i < nbMeshes; ++i) {
     var mesh = meshes[i];
@@ -382,9 +389,13 @@ Remesh.mergeArrays = function (meshes, arr) {
     var mCols = mesh.getColors();
     var mMats = mesh.getMaterials();
     var mFaces = mesh.getFaces();
+    var mTris = mesh.getTriangles();
+
     var mNbVertices = mesh.getNbVertices();
     var mNbFaces = mesh.getNbFaces();
+    var mNbTriangles = mesh.getNbTriangles();
     var matrix = mesh.getMatrix();
+
     for (j = 0; j < mNbVertices; ++j) {
       k = j * 3;
       ver[0] = mVerts[k];
@@ -407,26 +418,35 @@ Remesh.mergeArrays = function (meshes, arr) {
     }
 
     offsetVerts += mNbVertices * 3;
-    for (j = 0; j < mNbFaces; ++j) {
-      k = j * 4;
-      fAr[offsetFaces + k] = mFaces[k] + offsetIndex;
-      fAr[offsetFaces + k + 1] = mFaces[k + 1] + offsetIndex;
-      fAr[offsetFaces + k + 2] = mFaces[k + 2] + offsetIndex;
-      fAr[offsetFaces + k + 3] = mFaces[k + 3] === Utils.TRI_INDEX ? Utils.TRI_INDEX : mFaces[k + 3] + offsetIndex;
+    if (fAr) {
+      for (j = 0; j < mNbFaces; ++j) {
+        k = j * 4;
+        fAr[offsetFaces + k] = mFaces[k] + offsetIndex;
+        fAr[offsetFaces + k + 1] = mFaces[k + 1] + offsetIndex;
+        fAr[offsetFaces + k + 2] = mFaces[k + 2] + offsetIndex;
+        fAr[offsetFaces + k + 3] = mFaces[k + 3] === Utils.TRI_INDEX ? Utils.TRI_INDEX : mFaces[k + 3] + offsetIndex;
+      }
+    }
+
+    if (iAr) {
+      for (j = 0; j < mNbTriangles; ++j) {
+        k = j * 3;
+        iAr[offsetTris + k] = mTris[k] + offsetIndex;
+        iAr[offsetTris + k + 1] = mTris[k + 1] + offsetIndex;
+        iAr[offsetTris + k + 2] = mTris[k + 2] + offsetIndex;
+      }
     }
 
     offsetIndex += mNbVertices;
     offsetFaces += mNbFaces * 4;
+    offsetTris += mNbTriangles * 4;
   }
+
+  return arr;
 };
 
 Remesh.mergeMeshes = function (meshes, baseMesh) {
-  var arr = {
-    vertices: null,
-    colors: null,
-    materials: null,
-    faces: null
-  };
+  var arr = { vertices: null, colors: null, materials: null, faces: null };
   Remesh.mergeArrays(meshes, arr);
   return createMesh(baseMesh, arr.faces, arr.vertices, arr.colors, arr.materials);
 };

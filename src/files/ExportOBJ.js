@@ -4,12 +4,12 @@ import Utils from 'misc/Utils';
 var Export = {};
 
 /** Export OBJ file */
-Export.exportOBJ = function (meshes, saveColor) {
+Export.exportOBJ = function (meshes) {
   var data = 's 0\n';
   var offsets = [1, 1];
   for (var i = 0, l = meshes.length; i < l; ++i) {
     data += 'o mesh_' + i + '\n';
-    data = Export.addMesh(meshes[i], data, offsets, saveColor);
+    data = Export.addMesh(meshes[i], data, offsets);
   }
   return new Blob([data]);
 };
@@ -21,7 +21,10 @@ var appendString = function (buffer, str, it) {
   return it;
 };
 
-Export.addMesh = function (mesh, data, offsets, saveColor) {
+Export.addMesh = function (mesh, data, offsets) {
+  var zColor = true; // zbrush color
+  var vColor = false; // appended color
+
   var vAr = mesh.getVertices();
   var cAr = mesh.getColors();
   var mAr = mesh.getMaterials();
@@ -43,7 +46,7 @@ Export.addMesh = function (mesh, data, offsets, saveColor) {
   var estimaton = 0;
   // 25 chars limits per float
   var cpf = 20;
-  if (saveColor) estimaton = nbVertices * (8 + cpf * 6);
+  if (vColor) estimaton = nbVertices * (8 + cpf * 6);
   else estimaton = nbVertices * (5 + cpf * 3 + 8 + 6);
   estimaton += nbTexCoords * (5 + cpf * 2) + nbFaces * (6 + 15 * 4);
 
@@ -62,7 +65,7 @@ Export.addMesh = function (mesh, data, offsets, saveColor) {
     vec3.transformMat4(ver, ver, matrix);
 
     str = 'v ' + ver[0] + ' ' + ver[1] + ' ' + ver[2];
-    str += (saveColor ? ' ' + cAr[j] + ' ' + cAr[j + 1] + ' ' + cAr[j + 2] + '\n' : '\n');
+    str += (vColor ? ' ' + cAr[j] + ' ' + cAr[j + 1] + ' ' + cAr[j + 2] + '\n' : '\n');
 
     it = appendString(bufView, str, it);
   }
@@ -70,7 +73,7 @@ Export.addMesh = function (mesh, data, offsets, saveColor) {
   ////////////////
   // COLORS-zbrush
   ////////////////
-  if (!saveColor) {
+  if (zColor) {
     // zbrush-like vertex color
     var nbChunck = Math.ceil(nbVertices / 64);
     for (i = 0; i < nbChunck; ++i) {
