@@ -16,7 +16,7 @@ var DELAY_MOVE_TO = 200;
 
 var _TMP_VEC2 = [0.0, 0.0];
 var _TMP_VEC3 = [0.0, 0.0, 0.0];
-var _TMP_EYE = [0.0, 0.0, 0.0];
+var _TMP_VEC3_2 = [0.0, 0.0, 0.0];
 var _UP = [0.0, 1.0, 0.0];
 var _TMP_QUAT = [0.0, 0.0, 0.0, 1.0];
 var _TMP_MAT = mat4.create();
@@ -243,9 +243,9 @@ class Camera {
     var ty = this._trans[1];
 
     var off = this._offset;
-    vec3.set(_TMP_EYE, tx - off[0], ty - off[1], this.getTransZ() - off[2]);
+    vec3.set(_TMP_VEC3_2, tx - off[0], ty - off[1], this.getTransZ() - off[2]);
     vec3.set(center, tx - off[0], ty - off[1], -off[2]);
-    mat4.lookAt(view, _TMP_EYE, center, _UP);
+    mat4.lookAt(view, _TMP_VEC3_2, center, _UP);
 
     mat4.mul(view, view, mat4.fromQuat(_TMP_MAT, this._quatRot));
     mat4.translate(view, view, vec3.negate(_TMP_VEC3, this._center));
@@ -255,11 +255,14 @@ class Camera {
     if (!bb) bb = this._lastBBox;
     if (!bb) return;
     this._lastBBox = bb;
-    vec3.set(_TMP_EYE, this._trans[0], this._trans[1], this.getTransZ());
-    var diag = vec3.dist(bb, vec3.set(_TMP_VEC3, bb[3], bb[4], bb[5]));
-    var dist = vec3.dist(_TMP_EYE, vec3.set(_TMP_VEC3, (bb[0] + bb[3]) * 0.5, (bb[1] + bb[4]) * 0.5, (bb[2] + bb[5]) * 0.5));
-    this._near = Math.max(0.01, dist - diag);
-    this._far = diag + dist;
+
+    var eye = this.computePosition(_TMP_VEC3_2);
+    var boxCenter = vec3.set(_TMP_VEC3, (bb[0] + bb[3]) * 0.5, (bb[1] + bb[4]) * 0.5, (bb[2] + bb[5]) * 0.5);
+    var distToBoxCenter = vec3.dist(eye, boxCenter);
+
+    var boxRadius = 0.5 * vec3.dist(bb, vec3.set(_TMP_VEC3, bb[3], bb[4], bb[5]));
+    this._near = Math.max(0.01, distToBoxCenter - boxRadius);
+    this._far = boxRadius + distToBoxCenter;
     this.updateProjection();
   }
 
@@ -331,12 +334,15 @@ class Camera {
     mat4.ortho(this._proj, -w, w, -h, h, -this._near, this._far);
   }
 
-  computePosition() {
+  computePosition(out) {
+    out = out || [0, 0, 0];
+
     var view = this._view;
-    var pos = [-view[12], -view[13], -view[14]];
-    var rot = mat3.create();
-    mat3.fromMat4(rot, view);
-    return vec3.transformMat3(pos, pos, mat3.transpose(rot, rot));
+    vec3.set(out, -view[12], -view[13], -view[14]);
+
+    mat3.fromMat4(_TMP_MAT, view);
+    mat3.transpose(_TMP_MAT, _TMP_MAT);
+    return vec3.transformMat3(out, out, _TMP_MAT);
   }
 
   resetView() {

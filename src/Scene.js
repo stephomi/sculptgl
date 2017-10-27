@@ -343,16 +343,18 @@ class Scene {
   updateMatricesAndSort() {
     var meshes = this._meshes;
     var cam = this._camera;
-    if (meshes.length > 0)
+    if (meshes.length > 0) {
       cam.optimizeNearFar(this.computeBoundingBoxScene());
-    for (var i = 0, nb = meshes.length; i < nb; ++i)
+    }
+
+    for (var i = 0, nb = meshes.length; i < nb; ++i) {
       meshes[i].updateMatrices(cam);
+    }
+
     meshes.sort(Mesh.sortFunction);
 
-    if (this._meshPreview)
-      this._meshPreview.updateMatrices(cam);
-    if (this._grid)
-      this._grid.updateMatrices(cam);
+    if (this._meshPreview) this._meshPreview.updateMatrices(cam);
+    if (this._grid) this._grid.updateMatrices(cam);
   }
 
   initWebGL() {
