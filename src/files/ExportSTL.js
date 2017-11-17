@@ -14,9 +14,10 @@ var getResult = function (meshes) {
   var v3 = vec3.create();
   var nAr = res.faceNormals = new Float32Array(res.nbTriangles * 3);
   for (var i = 0; i < res.nbTriangles; ++i) {
-    var i1 = iAr[i * 3];
-    var i2 = iAr[i * 3 + 1];
-    var i3 = iAr[i * 3 + 2];
+    var id = i * 3;
+    var i1 = iAr[id] * 3;
+    var i2 = iAr[id + 1] * 3;
+    var i3 = iAr[id + 2] * 3;
     vec3.set(v1, vAr[i1], vAr[i1 + 1], vAr[i1 + 2]);
     vec3.set(v2, vAr[i2], vAr[i2 + 1], vAr[i2 + 2]);
     vec3.set(v3, vAr[i3], vAr[i3 + 1], vAr[i3 + 2]);
@@ -26,9 +27,9 @@ var getResult = function (meshes) {
     vec3.cross(v1, v2, v3); // v1 = v2 ^ v3
     vec3.normalize(v1, v1);
 
-    nAr[i * 3] = v1[0];
-    nAr[i * 3 + 1] = v1[1];
-    nAr[i * 3 + 2] = v1[2];
+    nAr[id] = v1[0];
+    nAr[id + 1] = v1[1];
+    nAr[id + 2] = v1[2];
   }
 
   return res;
@@ -44,12 +45,12 @@ Export.exportAsciiSTL = function (meshes) {
 
   var data = 'solid mesh\n';
   for (var i = 0; i < nbTriangles; ++i) {
-    var j = i * 3;
-    data += ' facet normal ' + fnAr[j] + ' ' + fnAr[j + 1] + ' ' + fnAr[j + 2] + '\n';
+    var id = i * 3;
+    data += ' facet normal ' + fnAr[id] + ' ' + fnAr[id + 1] + ' ' + fnAr[id + 2] + '\n';
     data += '  outer loop\n';
-    var iv1 = iAr[j] * 3;
-    var iv2 = iAr[j + 1] * 3;
-    var iv3 = iAr[j + 2] * 3;
+    var iv1 = iAr[id] * 3;
+    var iv2 = iAr[id + 1] * 3;
+    var iv3 = iAr[id + 2] * 3;
     data += '   vertex ' + vAr[iv1] + ' ' + vAr[iv1 + 1] + ' ' + vAr[iv1 + 2] + '\n';
     data += '   vertex ' + vAr[iv2] + ' ' + vAr[iv2 + 1] + ' ' + vAr[iv2 + 2] + '\n';
     data += '   vertex ' + vAr[iv3] + ' ' + vAr[iv3 + 1] + ' ' + vAr[iv3 + 2] + '\n';

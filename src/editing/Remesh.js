@@ -439,7 +439,7 @@ Remesh.mergeArrays = function (meshes, arr) {
 
     offsetIndex += mNbVertices;
     offsetFaces += mNbFaces * 4;
-    offsetTris += mNbTriangles * 4;
+    offsetTris += mNbTriangles * 3;
   }
 
   return arr;
