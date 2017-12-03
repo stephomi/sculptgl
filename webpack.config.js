@@ -1,4 +1,5 @@
 var path = require('path');
+var UglifyJsPlugin = require('uglifyjs-webpack-plugin');
 
 module.exports = function (env) {
   var config = {
@@ -30,18 +31,15 @@ module.exports = function (env) {
   }
 
   if (isRelease) {
+    config.plugins = [new UglifyJsPlugin()];
+
     config.module.rules.push({
       test: /\.js$/,
       exclude: [/node_modules/],
       use: [{
         loader: 'babel-loader',
         options: {
-          plugins: [
-            ['transform-es2015-classes', { loose: true }],
-            'transform-es2015-block-scoping',
-            'transform-es2015-parameters',
-            'transform-es2015-shorthand-properties'
-          ]
+          presets: ['@babel/preset-env']
         }
       }],
     });
