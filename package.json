@@ -10,7 +10,6 @@
     "@babel/core": "^7.0.0-beta.34",
     "@babel/preset-env": "^7.0.0-beta.34",
     "babel-loader": "8.0.0-beta.0",
-    "electron": "^1.7.9",
     "file-saver": "^1.3.3",
     "gl-matrix": "^2.3.2",
     "hammerjs": "^2.0.8",
@@ -19,13 +18,9 @@
     "webpack": "^3.9.1",
     "yagui": "^2.0.0"
   },
-  "devDependencies": {
-    "electron-packager": "^10.1.0"
-  },
   "scripts": {
     "dev": "cp tools/index.dev.html app/index.html && cp tools/authSuccess.html app/authSuccess.html && webpack -w",
     "release": "rm -f app/sculptgl.js.map && cp tools/index.release.html app/index.html && cp tools/authSuccess.html app/authSuccess.html && webpack --env.release",
-    "buildElectron": "yarn release && rm -rf standalone/app/ && cp -R app/ standalone/ && cp package.json standalone",
     "standalone": "yarn buildElectron && cd standalone && node buildStandalone.js"
   },
   "repository": {
