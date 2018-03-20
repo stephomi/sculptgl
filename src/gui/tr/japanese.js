@@ -1,13 +1,13 @@
 var TR = {
   // background
-  backgroundTitle: "バックグラウンド",
+  backgroundTitle: "Background",
   backgroundReset: "リセット",
   backgroundImport: "インポート  (jpg, png...)",
   backgroundFill: null,
 
   // camera
-  cameraTitle: "カメラ",
-  cameraReset: "View",
+  cameraTitle: "Camera",
+  cameraReset: "ビュー",
   cameraCenter: null,
   cameraFront: null,
   cameraLeft: null,
@@ -23,7 +23,7 @@ var TR = {
   cameraPivot: "ピボット選択",
 
   // file
-  fileTitle: "ファイル (インポート/エクスポート)",
+  fileTitle: "File",
   fileImportTitle: null,
   fileAdd: "Add (obj, sgl, ply, stl)",
   fileAutoMatrix: null,
@@ -136,9 +136,9 @@ var TR = {
   sculptExtractAction: null,
 
   // states
-  stateTitle: "履歴",
-  stateUndo: "アンドゥ",
-  stateRedo: "リドゥ",
+  stateTitle: "History",
+  stateUndo: "Undo",
+  stateRedo: "Redo",
   stateMaxStack: null,
 
   // pressure

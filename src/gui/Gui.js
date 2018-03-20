@@ -56,7 +56,7 @@ class Gui {
     ctrls[idc++] = this._ctrlCamera = new GuiCamera(this._topbar, this);
     // TODO find a way to get pressure event
     // ctrls[idc++] = this._ctrlTablet = new GuiTablet(this._topbar, this);
-    ctrls[idc++] = this._ctrlConfig = new GuiConfig(this._topbar, this);
+    // ctrls[idc++] = this._ctrlConfig = new GuiConfig(this._topbar, this);
     ctrls[idc++] = this._ctrlMesh = new GuiMesh(this._topbar, this);
 
     // Initialize the sidebar
@@ -66,15 +66,15 @@ class Gui {
     ctrls[idc++] = this._ctrlSculpting = new GuiSculpting(this._sidebar, this);
 
     // gui extra
-    var extra = this._topbar.addExtra();
+    // var extra = this._topbar.addExtra();
     // Extra : Настройка интерфейса
-    extra.addTitle(TR('contour'));
-    extra.addColor(TR('contourColor'), ShaderContour.color, this.onContourColor.bind(this));
+    // extra.addTitle(TR('contour'));
+    // extra.addColor(TR('contourColor'), ShaderContour.color, this.onContourColor.bind(this));
 
-    extra.addTitle(TR('resolution'));
-    extra.addSlider('', this._main._pixelRatio, this.onPixelRatio.bind(this), 0.5, 2.0, 0.02);
+    // extra.addTitle(TR('resolution'));
+    // extra.addSlider('', this._main._pixelRatio, this.onPixelRatio.bind(this), 0.5, 2.0, 0.02);
 
-    this.addAboutButton();
+    // this.addAboutButton();
 
     this.updateMesh();
     this.setVisibility(true);
