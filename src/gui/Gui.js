@@ -55,7 +55,7 @@ class Gui {
     ctrls[idc++] = this._ctrlBackground = new GuiBackground(this._topbar, this);
     ctrls[idc++] = this._ctrlCamera = new GuiCamera(this._topbar, this);
     // TODO find a way to get pressure event
-    ctrls[idc++] = this._ctrlTablet = new GuiTablet(this._topbar, this);
+    // ctrls[idc++] = this._ctrlTablet = new GuiTablet(this._topbar, this);
     ctrls[idc++] = this._ctrlConfig = new GuiConfig(this._topbar, this);
     ctrls[idc++] = this._ctrlMesh = new GuiMesh(this._topbar, this);
 

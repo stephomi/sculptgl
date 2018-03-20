@@ -1,31 +1,31 @@
 var TR = {
   // background
-  backgroundTitle: 'バックグラウンド',
-  backgroundReset: 'リセット',
-  backgroundImport: 'インポート  (jpg, png...)',
+  backgroundTitle: "バックグラウンド",
+  backgroundReset: "リセット",
+  backgroundImport: "インポート  (jpg, png...)",
   backgroundFill: null,
 
   // camera
-  cameraTitle: 'カメラ',
-  cameraReset: 'View',
+  cameraTitle: "カメラ",
+  cameraReset: "View",
   cameraCenter: null,
   cameraFront: null,
   cameraLeft: null,
   cameraTop: null,
-  cameraMode: 'モード',
+  cameraMode: "モード",
   cameraOrbit: null,
-  cameraSpherical: '球体 (Trackball)',
-  cameraPlane: '平面 (Trackball)',
-  cameraProjection: 'タイプ',
-  cameraPerspective: '透視投影',
-  cameraOrthographic: '平行投影',
-  cameraFov: '視野',
-  cameraPivot: 'ピボット選択',
+  cameraSpherical: "球体 (Trackball)",
+  cameraPlane: "平面 (Trackball)",
+  cameraProjection: "タイプ",
+  cameraPerspective: "透視投影",
+  cameraOrthographic: "平行投影",
+  cameraFov: "視野",
+  cameraPivot: "ピボット選択",
 
   // file
-  fileTitle: 'ファイル (インポート/エクスポート)',
+  fileTitle: "ファイル (インポート/エクスポート)",
   fileImportTitle: null,
-  fileAdd: 'Add (obj, sgl, ply, stl)',
+  fileAdd: "Add (obj, sgl, ply, stl)",
   fileAutoMatrix: null,
   fileVertexSRGB: null,
   fileExportSceneTitle: null,
@@ -34,6 +34,8 @@ var TR = {
   fileExportOBJ: null,
   fileExportPLY: null,
   fileExportSTL: null,
+  saveAsDraft: "下書き保存",
+  saveAsProject: "保存&公開",
 
   // scene
   sceneTitle: null,
@@ -46,7 +48,7 @@ var TR = {
   sceneMerge: null,
 
   // mesh
-  meshTitle: 'メッシュ',
+  meshTitle: "メッシュ",
   meshNbVertices: null,
   meshNbFaces: null,
 
@@ -65,11 +67,11 @@ var TR = {
   multiresSelectLowest: null,
   multiresSelectHighest: null,
   multiresWarnBigMesh: null,
-  // 
-  // 
+  //
+  //
   //
   multiresNotReversible: null,
-  // 
+  //
 
   // remesh
   remeshTitle: null,
@@ -86,37 +88,37 @@ var TR = {
 
   // sculpt
   sculptTitle: null,
-  sculptBrush: 'ブラシ',
-  sculptInflate: '膨張',
-  sculptTwist: '回転',
-  sculptSmooth: 'スムーズ化 (-Shift)',
-  sculptFlatten: 'フラット化',
-  sculptPinch: 'つまむ',
-  sculptCrease: 'しわ',
-  sculptDrag: 'ドラッグ',
-  sculptPaint: 'ペイント',
+  sculptBrush: "ブラシ",
+  sculptInflate: "膨張",
+  sculptTwist: "回転",
+  sculptSmooth: "スムーズ化 (-Shift)",
+  sculptFlatten: "フラット化",
+  sculptPinch: "つまむ",
+  sculptCrease: "しわ",
+  sculptDrag: "ドラッグ",
+  sculptPaint: "ペイント",
   sculptMasking: null,
   sculptMove: null,
   sculptLocalScale: null,
   sculptTransform: null,
 
   sculptCommon: null,
-  sculptTool: 'ツール',
-  sculptSymmetry: '対称加工',
-  sculptContinuous: '連続加工',
-  sculptRadius: '半径 (-X)',
-  sculptIntensity: '明るさ (-C)',
+  sculptTool: "ツール",
+  sculptSymmetry: "対称加工",
+  sculptContinuous: "連続加工",
+  sculptRadius: "半径 (-X)",
+  sculptIntensity: "明るさ (-C)",
   sculptHardness: null,
   sculptCulling: null,
   sculptAlphaTitle: null,
   sculptLockPositon: null,
   sculptAlphaTex: null,
   sculptImportAlpha: null,
-  sculptNegative: 'ネガティブ (N or -Alt)',
+  sculptNegative: "ネガティブ (N or -Alt)",
   sculptColor: null,
   sculptRoughness: null,
   sculptMetallic: null,
-  sculptClay: 'クレイ',
+  sculptClay: "クレイ",
   sculptAccumulate: null,
   sculptColorGlobal: null,
   sculptPickColor: null,
@@ -134,15 +136,15 @@ var TR = {
   sculptExtractAction: null,
 
   // states
-  stateTitle: '履歴',
-  stateUndo: 'アンドゥ',
-  stateRedo: 'リドゥ',
+  stateTitle: "履歴",
+  stateUndo: "アンドゥ",
+  stateRedo: "リドゥ",
   stateMaxStack: null,
 
   // pressure
-  pressureTitle: 'ワコムタブレット',
-  pressureRadius: '圧力半径？',
-  pressureIntensity: '圧力の強さ？',
+  pressureTitle: "ワコムタブレット",
+  pressureRadius: "圧力半径？",
+  pressureIntensity: "圧力の強さ？",
 
   // rendering
   renderingTitle: null,
@@ -151,16 +153,16 @@ var TR = {
   renderingMatcap: null,
   renderingCurvature: null,
   renderingPBR: null,
-  renderingTransparency: '透過',
-  renderingNormal: 'ノーマル',
+  renderingTransparency: "透過",
+  renderingNormal: "ノーマル",
   renderingUV: null,
-  renderingShader: 'シェーダー',
+  renderingShader: "シェーダー",
   renderingMaterial: null,
   renderingImportUV: null,
   renderingImportMatcap: null,
   renderingExtra: null,
-  renderingFlat: 'フラットシェーディング',
-  renderingWireframe: 'ワイヤーフレーム (W)',
+  renderingFlat: "フラットシェーディング",
+  renderingWireframe: "ワイヤーフレーム (W)",
   renderingExposure: null,
   renderingEnvironment: null,
   renderingIsolate: null,
@@ -177,19 +179,19 @@ var TR = {
 
   // matcaps
   matcapPearl: null,
-  matcapClay: 'クレイ',
-  matcapSkin: 'スキン',
+  matcapClay: "クレイ",
+  matcapSkin: "スキン",
   matcapGreen: null,
   matcapWhite: null,
 
   // sketchfab
-  sketchfabTitle: 'Sketchfabへ移動',
-  sketchfabUpload: 'アップロード',
+  sketchfabTitle: "Sketchfabへ移動",
+  sketchfabUpload: "アップロード",
   sketchfabUploadMessage: null,
-  // 
+  //
 
   sketchfabUploadError: null,
-  // 
+  //
 
   sketchfabUploadSuccess: null,
   sketchfabAbort: null,

@@ -27,12 +27,13 @@ class GuiFiles {
 
     // export
     menu.addTitle(TR('fileExportSceneTitle'));
-    menu.addCheckbox(TR('fileExportAll'), this, '_exportAll');
-    menu.addButton(TR('fileExportSGL'), this, 'saveFileAsSGL');
-    menu.addButton(TR('fileExportOBJ'), this, 'saveFileAsOBJ' /*, 'CTRL+E'*/ );
-    menu.addButton(TR('fileExportPLY'), this, 'saveFileAsPLY');
-    menu.addButton(TR('fileExportSTL'), this, 'saveFileAsSTL');
-    menu.addButton(TR('sketchfabTitle'), this, 'exportSketchfab');
+    // menu.addCheckbox(TR('fileExportAll'), this, '_exportAll');
+    // menu.addButton(TR('fileExportSGL'), this, 'saveFileAsSGL');
+    // menu.addButton(TR('fileExportOBJ'), this, 'saveFileAsOBJ' /*, 'CTRL+E'*/ );
+    // menu.addButton(TR('fileExportPLY'), this, 'saveFileAsPLY');
+    // menu.addButton(TR('fileExportSTL'), this, 'saveFileAsSTL');
+    menu.addButton(TR('saveAsDraft'), this, 'saveAsDraft');
+    menu.addButton(TR('saveAsProject'), this, 'saveAsProject');
   }
 
   addFile() {
@@ -67,6 +68,14 @@ class GuiFiles {
     var meshes = this._getExportMeshes();
     if (!meshes) return;
     this._save(Export.exportBinarySTL(meshes), 'yourMesh.stl');
+  }
+
+  saveAsProject(){
+    
+  }
+
+  saveAsDraft(){
+    
   }
 
   _save(data, fileName, useZip) {
