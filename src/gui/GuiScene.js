@@ -41,12 +41,18 @@ class GuiScene {
     this._ctrlMerge = menu.addButton(TR('sceneMerge'), this, 'merge');
     this._ctrlMerge.setVisibility(false);
 
+    menu.addButton(TR('sceneDuplicate'), this, 'duplicateSelection');
+
     // extra
     menu.addTitle(TR('renderingExtra'));
     menu.addCheckbox(TR('darkenUnselected'), ShaderBase.darkenUnselected, this.onDarkenUnselected.bind(this));
     menu.addCheckbox(TR('contourShow'), this._main._showContour, this.onShowContour.bind(this));
     menu.addCheckbox(TR('renderingGrid'), this._main._showGrid, this.onShowGrid.bind(this));
     menu.addCheckbox(TR('renderingSymmetryLine'), ShaderBase.showSymmetryLine, this.onShowSymmetryLine.bind(this));
+  }
+
+  duplicateSelection() {
+    this._main.duplicateSelection();
   }
 
   validatePreview() {
@@ -210,6 +216,9 @@ class GuiScene {
 
     if (event.which === 73) { // I
       this.toggleShowHide();
+      event.handled = true;
+    } else if (event.which === 68 && event.ctrlKey) { // D
+      this._main.duplicateSelection();
       event.handled = true;
     }
   }

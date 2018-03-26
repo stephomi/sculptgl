@@ -44,6 +44,7 @@ var TR = {
   sceneAddTorus: 'Добавить тор',
   sceneSelection: 'Выбрать',
   sceneMerge: 'Объединить',
+  sceneDuplicate: null,
 
   // mesh
   meshTitle: 'Сетка',

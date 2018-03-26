@@ -44,6 +44,7 @@ var TR = {
   sceneAddTorus: 'Lägg till torus',
   sceneSelection: 'Urval',
   sceneMerge: 'Sammanfoga urval',
+  sceneDuplicate: null,
 
   // mesh
   meshTitle: 'Mesh',

@@ -44,6 +44,7 @@ var TR = {
   sceneAddTorus: 'Add torus',
   sceneSelection: 'Selection',
   sceneMerge: 'Merge selection',
+  sceneDuplicate: 'Copy selection',
 
   // mesh
   meshTitle: 'Mesh',

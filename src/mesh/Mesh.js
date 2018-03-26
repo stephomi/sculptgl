@@ -2,12 +2,12 @@ import { vec3, mat3, mat4 } from 'gl-matrix';
 import Enums from 'misc/Enums';
 import Utils from 'misc/Utils';
 import OctreeCell from 'math3d/OctreeCell';
-import RenderData from 'mesh/RenderData';
 import Shader from 'render/ShaderLib';
+import RenderData from 'mesh/RenderData';
 
 /*
 Basic usage:
-var mesh = new Mesh(gl); // provide gl only if we need to render the mesh
+var mesh = new MeshStatic(gl); // provide gl only if we need to render the mesh
 mesh.setVertices(vertices); // vec3 xyz
 mesh.setFaces(faces); // ivec4 abcd (d=Utils.TRI_INDEX if tri)
 
@@ -1965,6 +1965,30 @@ class Mesh {
     this.setTexture0(mesh.getTexture0());
     this.setCurvature(mesh.getCurvature());
     this.setOpacity(mesh.getOpacity());
+  }
+
+  copyTransformData(mesh) {
+    vec3.copy(this.getCenter(), mesh.getCenter());
+    mat4.copy(this.getMatrix(), mesh.getMatrix());
+    mat4.copy(this.getEditMatrix(), mesh.getEditMatrix());
+    vec3.copy(this.getSymmetryNormal(), mesh.getSymmetryNormal());
+  }
+
+  copyData(mesh) {
+    this.setVertices(mesh.getVertices().slice());
+    this.setFaces(mesh.getFaces().slice());
+
+    this.setColors(mesh.getColors().slice());
+    this.setMaterials(mesh.getMaterials().slice());
+    if (mesh.hasUV()) {
+      this.initTexCoordsDataFromOBJData(mesh.getTexCoords(), mesh.getFacesTexCoord());
+    }
+
+    this.init();
+    this.initRender();
+
+    this.copyTransformData(mesh);
+    this.copyRenderConfig(mesh);
   }
 
   optimize() {

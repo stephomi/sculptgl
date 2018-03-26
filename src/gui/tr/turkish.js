@@ -44,6 +44,7 @@ var TR = {
   sceneAddTorus: 'Halka ekle',
   sceneSelection: 'Seçim',
   sceneMerge: 'Seçimi birleştir',
+  sceneDuplicate: null,
 
   // mesh
   meshTitle: 'Nesne',

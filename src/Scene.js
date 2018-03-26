@@ -16,6 +16,7 @@ import StateManager from 'states/StateManager';
 import RenderData from 'mesh/RenderData';
 import Rtt from 'drawables/Rtt';
 import ShaderLib from 'render/ShaderLib';
+import MeshStatic from 'mesh/meshStatic/MeshStatic';
 import WebGLCaps from 'render/WebGLCaps';
 
 class Scene {
@@ -620,6 +621,19 @@ class Scene {
     var index = this.getIndexMesh(mesh);
     if (index >= 0) this._meshes[index] = newMesh;
     if (this._mesh === mesh) this.setMesh(newMesh);
+  }
+
+  duplicateSelection() {
+    var meshes = this._selectMeshes.slice();
+    for (var i = 0; i < meshes.length; ++i) {
+      var mesh = meshes[i];
+      var copy = new MeshStatic(mesh.getGL());
+      copy.copyData(mesh);
+
+      this.addNewMesh(copy);
+    }
+
+    this.setMesh(mesh);
   }
 
   onLoadAlphaImage(img, name, tool) {

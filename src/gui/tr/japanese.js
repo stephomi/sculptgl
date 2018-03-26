@@ -44,6 +44,7 @@ var TR = {
   sceneAddTorus: null,
   sceneSelection: null,
   sceneMerge: null,
+  sceneDuplicate: null,
 
   // mesh
   meshTitle: 'メッシュ',

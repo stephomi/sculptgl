@@ -44,6 +44,7 @@ var TR = {
   sceneAddTorus: '도넛 추가하기',
   sceneSelection: '선택',
   sceneMerge: '장면 병합하기',
+  sceneDuplicate: null,
 
   // mesh
   meshTitle: '메시',
