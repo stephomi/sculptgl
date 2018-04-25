@@ -19,9 +19,9 @@ yarn dev # npm run dev
 
 For standalone :
 ```
-yarn add electron # npm install electron
-yarn add electron-packager # npm install electron-packager
-yarn standalone # npm run standalone
+yarn add electron
+yarn add electron-packager
+yarn standalone
 ```
 
 Credits
