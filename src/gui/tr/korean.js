@@ -38,6 +38,7 @@ var TR = {
   // scene
   sceneTitle: '장면',
   sceneReset: '모두 없애기',
+  sceneConfirmReset: '모두 제거 확인',
   sceneAddSphere: '구 추가하기',
   sceneAddCube: '정육면체 추가하기',
   sceneAddCylinder: '기둥 추가하기',
@@ -45,6 +46,7 @@ var TR = {
   sceneSelection: '선택',
   sceneMerge: '장면 병합하기',
   sceneDuplicate: null,
+  sceneDelete: '선택 항목 삭제',
 
   // mesh
   meshTitle: '메시',

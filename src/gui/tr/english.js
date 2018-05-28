@@ -38,6 +38,7 @@ var TR = {
   // scene
   sceneTitle: 'Scene',
   sceneReset: 'Clear scene',
+  sceneResetConfirm: 'Confirm clear scene',
   sceneAddSphere: 'Add sphere',
   sceneAddCube: 'Add cube',
   sceneAddCylinder: 'Add cylinder',
@@ -45,6 +46,7 @@ var TR = {
   sceneSelection: 'Selection',
   sceneMerge: 'Merge selection',
   sceneDuplicate: 'Copy selection',
+  sceneDelete: 'Delete selection',
 
   // mesh
   meshTitle: 'Mesh',

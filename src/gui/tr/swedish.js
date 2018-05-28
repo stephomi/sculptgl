@@ -38,6 +38,7 @@ var TR = {
   // scene
   sceneTitle: 'Scen',
   sceneReset: 'Rensa scen',
+  sceneConfirmReset: 'Bekräfta klar scen',
   sceneAddSphere: 'Lägg till sfär',
   sceneAddCube: 'Lägg till kub',
   sceneAddCylinder: 'Lägg till cylinder',
@@ -45,6 +46,7 @@ var TR = {
   sceneSelection: 'Urval',
   sceneMerge: 'Sammanfoga urval',
   sceneDuplicate: null,
+  sceneDelete: 'Radera valet',
 
   // mesh
   meshTitle: 'Mesh',

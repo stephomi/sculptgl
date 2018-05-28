@@ -38,6 +38,7 @@ var TR = {
   // scene
   sceneTitle: 'Сцена',
   sceneReset: 'Очистить сцену',
+  sceneConfirmReset: 'Подтвердить четкую сцену',
   sceneAddSphere: 'Добавить сферу',
   sceneAddCube: 'Добавить куб',
   sceneAddCylinder: 'Добавить цилиндр',
@@ -45,6 +46,7 @@ var TR = {
   sceneSelection: 'Выбрать',
   sceneMerge: 'Объединить',
   sceneDuplicate: null,
+  sceneDelete: 'Удалить выделение',
 
   // mesh
   meshTitle: 'Сетка',
