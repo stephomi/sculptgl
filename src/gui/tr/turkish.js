@@ -38,7 +38,7 @@ var TR = {
   // scene
   sceneTitle: 'Sahne',
   sceneReset: 'Sahneyi temizle',
-  sceneConfirmReset: 'Net sahneyi doğrulayın',
+  sceneResetConfirm: 'Net sahneyi doğrulayın',
   sceneAddSphere: 'Küre ekle',
   sceneAddCube: 'Küp ekle',
   sceneAddCylinder: 'Silindir ekle',

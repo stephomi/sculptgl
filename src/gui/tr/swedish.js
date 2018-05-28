@@ -38,7 +38,7 @@ var TR = {
   // scene
   sceneTitle: 'Scen',
   sceneReset: 'Rensa scen',
-  sceneConfirmReset: 'Bekräfta klar scen',
+  sceneResetConfirm: 'Bekräfta klar scen',
   sceneAddSphere: 'Lägg till sfär',
   sceneAddCube: 'Lägg till kub',
   sceneAddCylinder: 'Lägg till cylinder',

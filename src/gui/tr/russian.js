@@ -38,7 +38,7 @@ var TR = {
   // scene
   sceneTitle: 'Сцена',
   sceneReset: 'Очистить сцену',
-  sceneConfirmReset: 'Подтвердить четкую сцену',
+  sceneResetConfirm: 'Подтвердить четкую сцену',
   sceneAddSphere: 'Добавить сферу',
   sceneAddCube: 'Добавить куб',
   sceneAddCylinder: 'Добавить цилиндр',
