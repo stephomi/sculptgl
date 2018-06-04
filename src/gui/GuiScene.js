@@ -16,7 +16,7 @@ class GuiScene {
     var menu = this._menu = guiParent.addMenu(TR('sceneTitle'));
 
     // scene
-    menu.addButton(TR('sceneReset'), this._main, 'clearScene' /*, 'CTRL+ALT+N'*/ );
+    menu.addButton(TR('sceneReset'), this, 'clearScene' /*, 'CTRL+ALT+N'*/ );
     menu.addButton(TR('sceneAddSphere'), this._main, 'addSphere');
     menu.addButton(TR('sceneAddCube'), this._main, 'addCube');
     menu.addButton(TR('sceneAddCylinder'), this._main, 'addCylinder');
@@ -40,8 +40,9 @@ class GuiScene {
     this._ctrlIsolate.setVisibility(false);
     this._ctrlMerge = menu.addButton(TR('sceneMerge'), this, 'merge');
     this._ctrlMerge.setVisibility(false);
-
+    
     menu.addButton(TR('sceneDuplicate'), this, 'duplicateSelection');
+    menu.addButton(TR('sceneDelete'), this, 'deleteSelection');
 
     // extra
     menu.addTitle(TR('renderingExtra'));
@@ -51,8 +52,18 @@ class GuiScene {
     menu.addCheckbox(TR('renderingSymmetryLine'), ShaderBase.showSymmetryLine, this.onShowSymmetryLine.bind(this));
   }
 
+  clearScene(){
+    if (window.confirm(TR('sceneResetConfirm'))){
+      this._main.clearScene();
+    }
+  }
+
   duplicateSelection() {
     this._main.duplicateSelection();
+  }
+
+  deleteSelection(){
+    this._main.deleteCurrentSelection();
   }
 
   validatePreview() {

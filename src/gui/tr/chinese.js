@@ -38,12 +38,14 @@ var TR = {
   // scene
   sceneTitle: '場景',
   sceneReset: '清除場景',
+  sceneResetConfirm: '確認清除場景',
   sceneAddSphere: '加入球體',
   sceneAddCube: '加入立方體',
   sceneAddCylinder: '加入圓柱',
   sceneAddTorus: '加入圓環',
   sceneSelection: '選取項目',
   sceneMerge: '合併選取項目',
+  sceneDuplicate: '刪除選擇',
   sceneDuplicate: null,
 
   // mesh

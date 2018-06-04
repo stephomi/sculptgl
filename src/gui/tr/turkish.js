@@ -38,6 +38,7 @@ var TR = {
   // scene
   sceneTitle: 'Sahne',
   sceneReset: 'Sahneyi temizle',
+  sceneResetConfirm: 'Net sahneyi doğrulayın',
   sceneAddSphere: 'Küre ekle',
   sceneAddCube: 'Küp ekle',
   sceneAddCylinder: 'Silindir ekle',
@@ -45,6 +46,7 @@ var TR = {
   sceneSelection: 'Seçim',
   sceneMerge: 'Seçimi birleştir',
   sceneDuplicate: null,
+  sceneDelete: 'Seçimi sil',
 
   // mesh
   meshTitle: 'Nesne',
