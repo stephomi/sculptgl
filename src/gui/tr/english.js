@@ -75,7 +75,7 @@ var TR = {
     'The mesh is not a product of a (loop-catmull) subdivision surface on a manifold mesh.',
 
   // remesh
-  remeshTitle: 'Voxel Remeshing (quads)',
+  remeshTitle: 'Voxel remeshing (quads)',
   remeshRemesh: 'Remesh',
   remeshResolution: 'Resolution',
   remeshBlock: 'Block',
