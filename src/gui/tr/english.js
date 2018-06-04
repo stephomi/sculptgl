@@ -208,7 +208,9 @@ var TR = {
   envGlazedPatio: 'Glazed Patio',
   envNicolausChurch: 'St Nicolaus church',
   envTerrace: 'Terrace',
-  envBryantPark: 'BryantPark'
+  envBryantPark: 'BryantPark',
+
+  remeshRemeshManifold: 'Remesh manifold (mcubes)'
 };
 
 export default TR;

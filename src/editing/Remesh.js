@@ -1,6 +1,7 @@
 import { vec3, mat4 } from 'gl-matrix';
 import HoleFilling from 'editing/HoleFilling';
 import SurfaceNets from 'editing/SurfaceNets';
+import MarchingCubes from 'editing/MarchingCubes';
 import Geometry from 'math3d/Geometry';
 import MeshStatic from 'mesh/meshStatic/MeshStatic';
 import Utils from 'misc/Utils';
@@ -317,7 +318,7 @@ var alignMeshBound = function (mesh, box) {
   mat4.translate(mat, mat, tr);
 };
 
-Remesh.remesh = function (meshes, baseMesh) {
+Remesh.remesh = function (meshes, baseMesh, manifold) {
   console.time('remesh total');
 
   console.time('1. prepareMeshes');
@@ -335,10 +336,18 @@ Remesh.remesh = function (meshes, baseMesh) {
   floodFill(voxels);
   console.timeEnd('3. flood');
 
-  console.time('4. surfaceNet');
-  SurfaceNets.BLOCK = Remesh.BLOCK;
-  var res = SurfaceNets.computeSurface(voxels);
-  console.timeEnd('4. surfaceNet');
+  var res;
+  if (manifold) {
+    console.time('4. marchingCubes');
+    MarchingCubes.BLOCK = Remesh.BLOCK;
+    res = MarchingCubes.computeSurface(voxels);
+    console.timeEnd('4. marchingCubes');
+  } else {
+    console.time('4. surfaceNets');
+    SurfaceNets.BLOCK = Remesh.BLOCK;
+    res = SurfaceNets.computeSurface(voxels);
+    console.timeEnd('4. surfaceNets');
+  }
 
   console.time('5. createMesh');
   var nmesh = createMesh(baseMesh, res.faces, res.vertices, res.colors, res.materials);

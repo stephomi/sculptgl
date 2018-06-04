@@ -39,6 +39,7 @@ class GuiMultiresolution {
     menu.addSlider(TR('remeshResolution'), Remesh, 'RESOLUTION', 8, 400, 1);
     menu.addCheckbox(TR('remeshBlock'), Remesh, 'BLOCK');
     menu.addButton(TR('remeshRemesh'), this, 'remesh');
+    menu.addButton(TR('remeshRemeshManifold'), this, 'remeshManifold');
 
     // dynamic
     menu.addTitle(TR('dynamicTitle'));
@@ -80,7 +81,7 @@ class GuiMultiresolution {
     main.replaceMesh(mesh, newMesh);
   }
 
-  remesh() {
+  remesh(manifold) {
     var main = this._main;
     var mesh = main.getMesh();
     if (!mesh)
@@ -98,11 +99,15 @@ class GuiMultiresolution {
         mesh = selMeshes[i];
     }
 
-    var newMesh = Remesh.remesh(selMeshes, mesh);
+    var newMesh = Remesh.remesh(selMeshes, mesh, manifold);
     if (wasDynamic) newMesh = new MeshDynamic(newMesh);
     main.getStateManager().pushStateAddRemove(newMesh, main.getSelectedMeshes().slice());
     main.getMeshes().push(newMesh);
     main.setMesh(newMesh);
+  }
+
+  remeshManifold() {
+    this.remesh(true);
   }
 
   /** Check if the mesh is a multiresolution one */
