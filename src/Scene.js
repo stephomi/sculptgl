@@ -527,7 +527,7 @@ class Scene {
 
   subdivideClamp(mesh, linear) {
     Subdivision.LINEAR = !!linear;
-    while (mesh.getNbFaces() < 5000)
+    while (mesh.getNbFaces() < 50000)
       mesh.addLevel();
     // keep at max 4 multires
     mesh._meshes.splice(0, Math.min(mesh._meshes.length - 4, 4));
