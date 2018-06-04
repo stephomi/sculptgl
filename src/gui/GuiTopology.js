@@ -34,12 +34,19 @@ class GuiMultiresolution {
     this._ctrlDelHigher = dual[1];
     this._ctrlDelLower.domButton.style.background = this._ctrlDelHigher.domButton.style.background = 'rgba(230,53,59,0.35)';
 
-    // remeshing
+    var cbResolution = this.remeshResolution.bind(this);
+
+    // surface nets remeshing
     menu.addTitle(TR('remeshTitle'));
-    menu.addSlider(TR('remeshResolution'), Remesh, 'RESOLUTION', 8, 400, 1);
+    this._ctrlRes1 = menu.addSlider(TR('remeshResolution'), Remesh.RESOLUTION, cbResolution, 8, 400, 1);
     menu.addCheckbox(TR('remeshBlock'), Remesh, 'BLOCK');
     menu.addButton(TR('remeshRemesh'), this, 'remesh');
-    menu.addButton(TR('remeshRemeshManifold'), this, 'remeshManifold');
+
+    // marching cube remeshing
+    menu.addTitle(TR('remeshTitleMC'));
+    this._ctrlRes2 = menu.addSlider(TR('remeshResolution'), Remesh.RESOLUTION, cbResolution, 8, 400, 1);
+    menu.addCheckbox(TR('remeshSmoothingMC'), Remesh, 'SMOOTHING');
+    menu.addButton(TR('remeshRemeshMC'), this, 'remeshMC');
 
     // dynamic
     menu.addTitle(TR('dynamicTitle'));
@@ -81,6 +88,12 @@ class GuiMultiresolution {
     main.replaceMesh(mesh, newMesh);
   }
 
+  remeshResolution(val) {
+    Remesh.RESOLUTION = val;
+    this._ctrlRes1.setValue(val, true);
+    this._ctrlRes2.setValue(val, true);
+  }
+
   remesh(manifold) {
     var main = this._main;
     var mesh = main.getMesh();
@@ -106,7 +119,7 @@ class GuiMultiresolution {
     main.setMesh(newMesh);
   }
 
-  remeshManifold() {
+  remeshMC() {
     this.remesh(true);
   }
 

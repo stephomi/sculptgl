@@ -75,7 +75,7 @@ var TR = {
     'The mesh is not a product of a (loop-catmull) subdivision surface on a manifold mesh.',
 
   // remesh
-  remeshTitle: 'Voxel Remeshing',
+  remeshTitle: 'Voxel Remeshing (quads)',
   remeshRemesh: 'Remesh',
   remeshResolution: 'Resolution',
   remeshBlock: 'Block',
@@ -210,7 +210,9 @@ var TR = {
   envTerrace: 'Terrace',
   envBryantPark: 'BryantPark',
 
-  remeshRemeshManifold: 'Remesh manifold (mcubes)'
+  remeshTitleMC: 'Voxel remeshing (manifold tris)',
+  remeshRemeshMC: 'Remesh',
+  remeshSmoothingMC: 'Relax topology'
 };
 
 export default TR;

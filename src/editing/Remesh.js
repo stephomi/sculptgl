@@ -6,10 +6,12 @@ import Geometry from 'math3d/Geometry';
 import MeshStatic from 'mesh/meshStatic/MeshStatic';
 import Utils from 'misc/Utils';
 import Enums from 'misc/Enums';
+import Smooth from 'editing/tools/Smooth';
 
 var Remesh = {};
 Remesh.RESOLUTION = 150;
 Remesh.BLOCK = false;
+Remesh.SMOOTHING = true;
 
 var floodFill = function (voxels) {
   var step = voxels.step;
@@ -318,6 +320,18 @@ var alignMeshBound = function (mesh, box) {
   mat4.translate(mat, mat, tr);
 };
 
+var tangentialSmoothing = function (mesh) {
+  var nbVertices = mesh.getNbVertices();
+  var indices = new Uint32Array(nbVertices);
+  for (var i = 0; i < nbVertices; ++i) indices[i] = i;
+
+  var smo = new Smooth();
+  smo.setToolMesh(mesh);
+  smo.smoothTangent(indices, 1.0);
+  mesh.updateGeometry();
+  mesh.updateGeometryBuffers();
+};
+
 Remesh.remesh = function (meshes, baseMesh, manifold) {
   console.time('remesh total');
 
@@ -354,6 +368,12 @@ Remesh.remesh = function (meshes, baseMesh, manifold) {
   console.timeEnd('5. createMesh');
 
   alignMeshBound(nmesh, box);
+
+  if (manifold && Remesh.SMOOTHING) {
+    console.time('6. tangential smoothing');
+    tangentialSmoothing(nmesh);
+    console.timeEnd('6. tangential smoothing');
+  }
 
   console.timeEnd('remesh total');
   console.log('\n');
