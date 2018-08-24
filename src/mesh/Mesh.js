@@ -427,7 +427,7 @@ class Mesh {
     var len = nbVertices * 3;
     if (!this._meshData._colorsRGB || this._meshData._colorsRGB.length !== len) {
       var cAr = this._meshData._colorsRGB = new Float32Array(len);
-      for (i = 0; i < len; ++i)
+      for (i = 0; i < nbVertices; ++i)
         cAr[i] = 1.0;
     }
     if (!this._meshData._materialsPBR || this._meshData._materialsPBR.length !== len) {
