@@ -427,12 +427,12 @@ class Mesh {
     var len = nbVertices * 3;
     if (!this._meshData._colorsRGB || this._meshData._colorsRGB.length !== len) {
       var cAr = this._meshData._colorsRGB = new Float32Array(len);
-      for (i = 0; i < nbVertices; ++i)
+      for (i = 0; i < len; ++i)
         cAr[i] = 1.0;
     }
     if (!this._meshData._materialsPBR || this._meshData._materialsPBR.length !== len) {
       var mAr = this._meshData._materialsPBR = new Float32Array(len);
-      for (i = 0; i < len; ++i) {
+      for (i = 0; i < nbVertices; ++i) {
         var j = i * 3;
         mAr[j] = 0.18;
         mAr[j + 1] = 0.08;
