@@ -24,6 +24,8 @@ class Scene {
   constructor() {
     this._gl = null; // webgl context
 
+    this._cameraSpeed = 0.25;
+
     // cache canvas stuffs
     this._pixelRatio = 1.0;
     this._viewport = document.getElementById('viewport');
