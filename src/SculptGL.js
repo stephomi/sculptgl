@@ -172,7 +172,7 @@ class SculptGL extends Scene {
     var evProxy = this._eventProxy;
     evProxy.pageX = e.center.x;
     evProxy.pageY = e.center.y;
-    this.onPanUpdateNbPointers(e.pointers.length);
+    this.onPanUpdateNbPointers(Math.min(3, e.pointers.length));
   }
 
   onPanMove(e) {
@@ -188,6 +188,19 @@ class SculptGL extends Scene {
       this.onPanUpdateNbPointers(nbPointers);
     }
     this.onDeviceMove(evProxy);
+
+    if (this._isIOS()) {
+      window.clearTimeout(this._timerResetPointer);
+      this._timerResetPointer = window.setTimeout(function () {
+        this._lastNbPointers = 0;
+      }.bind(this), 60);
+    }
+  }
+
+  _isIOS() {
+    if (this._isIOS !== undefined) return this._isIOS;
+    this._isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
+    return this._isIOS;
   }
 
   onPanUpdateNbPointers(nbPointers) {
@@ -204,7 +217,7 @@ class SculptGL extends Scene {
     this.onDeviceUp();
     // we need to detect when all fingers are released
     window.setTimeout(function () {
-        if(!e.pointers.length) this._lastNbPointers = 0;
+      if (!e.pointers.length) this._lastNbPointers = 0;
     }.bind(this), 60);
   }
 
@@ -442,8 +455,7 @@ class SculptGL extends Scene {
     this._lastMouseY = mouseY;
   }
 
-  getSpeedFactor()
-  {
+  getSpeedFactor() {
     return this._cameraSpeed / (this._canvasHeight * this.getPixelRatio());
   }
 
