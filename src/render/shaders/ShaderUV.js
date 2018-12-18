@@ -4,7 +4,7 @@ import Attribute from 'render/Attribute';
 var ShaderUV = ShaderBase.getCopy();
 ShaderUV.vertexName = ShaderUV.fragmentName = 'ShowUV';
 
-ShaderUV.texPath = 'resources/uv.jpg';
+ShaderUV.texPath = 'resources/uv.png';
 
 ShaderUV.uniforms = {};
 ShaderUV.attributes = {};
