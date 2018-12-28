@@ -10,6 +10,8 @@
     "@babel/core": "^7.0.0-beta.34",
     "@babel/preset-env": "^7.0.0-beta.34",
     "babel-loader": "8.0.0-beta.0",
+    "electron": "^4.0.0",
+    "electron-packager": "^13.0.1",
     "file-saver": "^1.3.3",
     "gl-matrix": "2.6.1",
     "hammerjs": "^2.0.8",
