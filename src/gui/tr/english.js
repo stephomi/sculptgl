@@ -35,6 +35,12 @@ var TR = {
   fileExportPLY: 'Save .ply',
   fileExportSTL: 'Save .stl',
 
+  fileExportTextureTitle: 'Export textures',
+  fileExportTextureSize: 'Size',
+  fileExportColor: 'Save diffuse',
+  fileExportRoughness: 'Save roughness',
+  fileExportMetalness: 'Save metalness',
+
   // scene
   sceneTitle: 'Scene',
   sceneReset: 'Clear scene',

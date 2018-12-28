@@ -2,6 +2,12 @@ import TR from 'gui/GuiTR';
 import { saveAs } from 'file-saver';
 import { zip } from 'zip';
 import Export from 'files/Export';
+
+import Rtt from 'drawables/Rtt';
+import ShaderPaintUV from 'render/shaders/ShaderPaintUV';
+import ShaderBlur from 'render/shaders/ShaderBlur';
+import Enums from 'misc/Enums';
+
 // import { SketchfabOAuth2 } from 'sketchfab-oauth2-1.0.0'; // webpack warning
 var SketchfabOAuth2 = require('sketchfab-oauth2-1.0.0.js').SketchfabOAuth2;
 
@@ -33,16 +39,136 @@ class GuiFiles {
     menu.addButton(TR('fileExportPLY'), this, 'saveFileAsPLY');
     menu.addButton(TR('fileExportSTL'), this, 'saveFileAsSTL');
     menu.addButton(TR('sketchfabTitle'), this, 'exportSketchfab');
+
+    // export texture
+    menu.addTitle(TR('fileExportTextureTitle'));
+    this._guiTexSize = menu.addSlider(TR('fileExportTextureSize'), 10, this.onTextureSize.bind(this), 8, 12, 1);
+    this._guiTexSize.setValue(10);
+    menu.addButton(TR('fileExportColor'), this, 'saveColor');
+    menu.addButton(TR('fileExportRoughness'), this, 'saveRoughness');
+    menu.addButton(TR('fileExportMetalness'), this, 'saveMetalness');
   }
 
   addFile() {
     document.getElementById('fileopen').click();
   }
 
+  onTextureSize(value) {
+    this._texSize = 1 << value;
+    this._guiTexSize.domInputText.value = this._texSize;
+  }
+
   _getExportMeshes() {
     if (this._exportAll) return this._main.getMeshes();
     var selected = this._main.getSelectedMeshes();
     return selected.length ? selected : undefined;
+  }
+
+  _extractTexture(gl, width, height) {
+    var canvas = document.createElement('canvas');
+    canvas.width = width;
+    canvas.height = height;
+
+    var pixels = new Uint8Array(4 * width * height);
+
+    var status = gl.checkFramebufferStatus(gl.FRAMEBUFFER);
+    if (status !== gl.FRAMEBUFFER_COMPLETE) {
+      console.error('FRAMEBUFFER not complete');
+      return canvas;
+    }
+
+    gl.flush();
+    gl.finish();
+    gl.readPixels(0, 0, width, height, gl.RGBA, gl.UNSIGNED_BYTE, pixels);
+
+    // copy pixels to canvas pixels (inverted image)
+    var ctx = canvas.getContext('2d');
+    var imageData = ctx.getImageData(0, 0, width, height);
+    imageData.data.set(pixels);
+    ctx.putImageData(imageData, 0, 0);
+
+    return canvas;
+  }
+
+  _getRttPaint(gl) {
+    if (!this._rttPaint) {
+      this._rttPaint = new Rtt(gl, Enums.Shader.PAINTUV, null);
+      this._rttPaint.setWrapRepeat(true);
+      this._rttPaint.setFilterNearest(true);
+      ShaderBlur.INPUT_TEXTURE = this._getRttPaint();
+    }
+    return this._rttPaint;
+  }
+
+  _getRttBlur(gl) {
+    if (!this._rttBlur) {
+      this._rttBlur = new Rtt(gl, Enums.Shader.BLUR, null);
+    }
+    return this._rttBlur;
+  }
+
+  _saveTexture(filename) {
+    var mesh = this._main.getMesh();
+    if (!mesh) {
+      return;
+    }
+
+    if (!mesh.getTexCoords()) {
+      window.alert('The selected mesh has no UV!');
+      return;
+    }
+
+    var gl = mesh.getGL();
+
+    var width = this._texSize;
+    var height = this._texSize;
+
+    var tmpShaderType = mesh.getShaderType();
+    mesh.setShaderType(Enums.Shader.PAINTUV);
+
+    var rttPaint = this._getRttPaint(gl);
+    rttPaint.onResize(width, height);
+    gl.bindFramebuffer(gl.FRAMEBUFFER, rttPaint.getFramebuffer());
+    gl.clear(gl.COLOR_BUFFER_BIT);
+
+    gl.viewport(0, 0, width, height);
+    mesh.render();
+
+    mesh.setShaderType(tmpShaderType);
+
+    this._blurImage(gl, width, height);
+
+    var canvas = this._extractTexture(gl, width, height);
+    canvas.toBlob(function (blob) {
+      saveAs(blob, filename + '.png');
+    }.bind(this));
+
+    // reset viewport size
+    this._main.onCanvasResize();
+  }
+
+  _blurImage(gl, width, height) {
+    var rttBlur = this._getRttBlur(gl);
+    rttBlur.onResize(width, height);
+    gl.bindFramebuffer(gl.FRAMEBUFFER, rttBlur.getFramebuffer());
+    gl.clear(gl.COLOR_BUFFER_BIT);
+
+    rttBlur.render(this._main);
+  }
+
+  saveColor() {
+    ShaderPaintUV.CHANNEL_VALUE = 0;
+    this._saveTexture('diffuse');
+  }
+
+  saveRoughness() {
+    ShaderPaintUV.CHANNEL_VALUE = 1;
+    this._saveTexture('roughness');
+  }
+
+  saveMetalness() {
+    ShaderPaintUV.CHANNEL_VALUE = 2;
+    this._saveTexture('metalness');
   }
 
   saveFileAsSGL() {

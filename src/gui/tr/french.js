@@ -35,6 +35,12 @@ var TR = {
   fileExportPLY: 'Sauver .ply',
   fileExportSTL: 'Sauver .stl',
 
+  fileExportTextureTitle: null,
+  fileExportTextureSize: null,
+  fileExportColor: null,
+  fileExportRoughness: null,
+  fileExportMetalness: null,
+
   // scene
   sceneTitle: 'Scène',
   sceneReset: 'Réinitialiser scène',

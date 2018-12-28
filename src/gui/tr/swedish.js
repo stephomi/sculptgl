@@ -35,6 +35,12 @@ var TR = {
   fileExportPLY: 'Spara .ply',
   fileExportSTL: 'Spara .stl',
 
+  fileExportTextureTitle: null,
+  fileExportTextureSize: null,
+  fileExportColor: null,
+  fileExportRoughness: null,
+  fileExportMetalness: null,
+
   // scene
   sceneTitle: 'Scen',
   sceneReset: 'Rensa scen',

@@ -13,6 +13,9 @@ import ShaderMerge from 'render/shaders/ShaderMerge';
 import ShaderFxaa from 'render/shaders/ShaderFxaa';
 import ShaderContour from 'render/shaders/ShaderContour';
 
+import ShaderPaintUV from 'render/shaders/ShaderPaintUV';
+import ShaderBlur from 'render/shaders/ShaderBlur';
+
 var ShaderLib = [];
 
 // 3D shaders
@@ -29,5 +32,9 @@ ShaderLib[Enums.Shader.BACKGROUND] = ShaderBackground;
 ShaderLib[Enums.Shader.MERGE] = ShaderMerge;
 ShaderLib[Enums.Shader.FXAA] = ShaderFxaa;
 ShaderLib[Enums.Shader.CONTOUR] = ShaderContour;
+
+// misc
+ShaderLib[Enums.Shader.PAINTUV] = ShaderPaintUV;
+ShaderLib[Enums.Shader.BLUR] = ShaderBlur;
 
 export default ShaderLib;

@@ -35,6 +35,12 @@ var TR = {
   fileExportPLY: '儲存 .ply',
   fileExportSTL: '儲存 .stl',
 
+  fileExportTextureTitle: null,
+  fileExportTextureSize: null,
+  fileExportColor: null,
+  fileExportRoughness: null,
+  fileExportMetalness: null,
+
   // scene
   sceneTitle: '場景',
   sceneReset: '清除場景',

@@ -35,6 +35,12 @@ var TR = {
   fileExportPLY: null,
   fileExportSTL: null,
 
+  fileExportTextureTitle: null,
+  fileExportTextureSize: null,
+  fileExportColor: null,
+  fileExportRoughness: null,
+  fileExportMetalness: null,
+
   // scene
   sceneTitle: null,
   sceneReset: null,

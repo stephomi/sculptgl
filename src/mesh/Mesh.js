@@ -1838,7 +1838,8 @@ class Mesh {
   }
 
   isUsingTexCoords() {
-    return this._renderData._shaderType === Enums.Shader.UV;
+    var shaderType = this._renderData._shaderType;
+    return shaderType === Enums.Shader.UV || shaderType === Enums.Shader.PAINTUV;
   }
 
   isTransparent() {
