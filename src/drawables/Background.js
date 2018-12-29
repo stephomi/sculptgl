@@ -17,6 +17,9 @@ class Background {
     this._texWidth = 1;
     this._texHeight = 1;
 
+    this._type = 0; // 0: fixed grey, 1 env spec, 2 env ambient
+    this._blur = 0.0;
+
     this.init();
   }
 
@@ -57,6 +60,10 @@ class Background {
     return this._gl;
   }
 
+  getBlur() {
+    return this._blur;
+  }
+
   getVertexBuffer() {
     return this._vertexBuffer;
   }
@@ -71,9 +78,17 @@ class Background {
     this.getTexCoordBuffer().release();
   }
 
+  getType() {
+    return this._type;
+  }
+
+  setType(val) {
+    this._type = val;
+  }
+
   onResize(width, height) {
     var ratio = (width / height) / (this._texWidth / this._texHeight);
-    var comp = this._fill ? 1.0 / ratio : ratio;
+    var comp = this._fill || this._type !== 0 ? 1.0 / ratio : ratio;
     var x = comp < 1.0 ? 1.0 : 1.0 / ratio;
     var y = comp < 1.0 ? ratio : 1.0;
     this.getVertexBuffer().update(new Float32Array([-x, -y, x, -y, -x, y, x, y]));

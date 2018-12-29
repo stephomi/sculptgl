@@ -1,5 +1,9 @@
+import { mat3 } from 'gl-matrix';
 import ShaderBase from 'render/shaders/ShaderBase';
+import ShaderPBR from 'render/shaders/ShaderPBR';
 import Attribute from 'render/Attribute';
+import pbrGLSL from 'render/shaders/glsl/pbr.glsl';
+import mainBackgroundGLSL from 'render/shaders/glsl/mainBackground.glsl';
 
 var ShaderBackground = ShaderBase.getCopy();
 ShaderBackground.vertexName = ShaderBackground.fragmentName = 'Background';
@@ -7,7 +11,7 @@ ShaderBackground.vertexName = ShaderBackground.fragmentName = 'Background';
 ShaderBackground.uniforms = {};
 ShaderBackground.attributes = {};
 
-ShaderBackground.uniformNames = ['uTexture0'];
+ShaderBackground.uniformNames = ['uTexture0', 'uBackgroundType', 'uIblTransform', 'uSPH', 'uBlur'];
 
 ShaderBackground.vertex = [
   'attribute vec2 aVertex;',
@@ -20,12 +24,10 @@ ShaderBackground.vertex = [
 ].join('\n');
 
 ShaderBackground.fragment = [
-  'uniform sampler2D uTexture0;',
   'varying vec2 vTexCoord;',
   ShaderBase.strings.colorSpaceGLSL,
-  'void main() {',
-  '  gl_FragColor = encodeRGBM(sRGBToLinear(texture2D(uTexture0, vTexCoord)).rgb);',
-  '}'
+  pbrGLSL,
+  mainBackgroundGLSL
 ].join('\n');
 
 ShaderBackground.draw = function (bg) {
@@ -46,11 +48,29 @@ ShaderBackground.bindAttributes = function (bg) {
   attrs.aVertex.bindToBuffer(bg.getVertexBuffer());
   attrs.aTexCoord.bindToBuffer(bg.getTexCoordBuffer());
 };
+
+var uIBLTmp = mat3.create();
 ShaderBackground.updateUniforms = function (bg) {
+  var uniforms = this.uniforms;
+  var main = bg._main;
+  var env = ShaderPBR.environments[ShaderPBR.idEnv];
+
   var gl = bg.getGL();
+  gl.uniform1i(uniforms.uBackgroundType, bg.getType());
+
+  var tex;
+  if (bg.getType() === 0) tex = bg.getTexture();
+  else tex = ShaderPBR.getOrCreateEnvironment(gl, main, env) || bg.getTexture();
   gl.activeTexture(gl.TEXTURE0);
-  gl.bindTexture(gl.TEXTURE_2D, bg.getTexture());
-  gl.uniform1i(this.uniforms.uTexture0, 0);
+  gl.bindTexture(gl.TEXTURE_2D, tex);
+  gl.uniform1i(uniforms.uTexture0, 0);
+
+  mat3.fromMat4(uIBLTmp, main.getCamera().getView());
+  gl.uniformMatrix3fv(uniforms.uIblTransform, false, mat3.transpose(uIBLTmp, uIBLTmp));
+
+  gl.uniform3fv(uniforms.uSPH, ShaderPBR.getOrCreateSPH(env));
+
+  gl.uniform1f(uniforms.uBlur, bg.getBlur());
 };
 
 export default ShaderBackground;

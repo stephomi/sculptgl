@@ -78,7 +78,6 @@ ShaderPBR.fragment = [
   'varying float vRoughness;',
   'varying float vMetallic;',
   'uniform float uAlpha;',
-  'uniform vec3 uSPH[9];',
   ShaderBase.strings.fragColorUniforms,
   ShaderBase.strings.fragColorFunction,
   pbrGLSL,

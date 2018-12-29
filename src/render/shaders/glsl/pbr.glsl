@@ -6,6 +6,7 @@
 uniform sampler2D uTexture0;
 uniform float uExposure;
 uniform mat3 uIblTransform;
+uniform vec3 uSPH[9];
 
 vec2 environmentSize = vec2(1024, 512);
 vec2 environmentLodRange = vec2(10, 5);
