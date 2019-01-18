@@ -223,11 +223,10 @@ var createVoxelData = function (box) {
   var rz = Math.ceil((max[2] - min[2]) / step);
 
   var datalen = rx * ry * rz;
-  var buffer = Utils.getMemory((4 * (1 + 3 + 3) + 3) * datalen);
-  var distField = new Float32Array(buffer, 0, datalen);
-  var colors = new Float32Array(buffer, 4 * datalen, datalen * 3);
-  var materials = new Float32Array(buffer, 16 * datalen, datalen * 3);
-  var crossedEdges = new Uint8Array(buffer, 28 * datalen, datalen * 3);
+  var distField = new Float32Array(datalen);
+  var colors = new Float32Array(datalen * 3);
+  var materials = new Float32Array(datalen * 3);
+  var crossedEdges = new Uint8Array(datalen * 3);
 
   // Initialize data
   for (var idf = 0; idf < datalen; ++idf)
@@ -237,7 +236,7 @@ var createVoxelData = function (box) {
     crossedEdges[ide] = 0;
 
   for (var idc = 0, datalenc = datalen * 3; idc < datalenc; ++idc)
-    colors[idc] = materials[idc] = -1;
+    colors[idc] = materials[idc] = 1;
 
   var voxels = {};
   voxels.dims = [rx, ry, rz];
@@ -341,14 +340,37 @@ Remesh.remesh = function (meshes, baseMesh, manifold) {
   console.timeEnd('1. prepareMeshes');
 
   console.time('2. voxelization');
-  var voxels = createVoxelData(box);
-  for (var i = 0, l = meshes.length; i < l; ++i)
-    voxelize(meshes[i], voxels);
-  console.timeEnd('2. voxelization');
+  if (meshes.length !== 2) {
+    console.error('debug: two mesh only');
+    return baseMesh;
+  }
 
-  console.time('3. flood');
-  floodFill(voxels);
-  console.timeEnd('3. flood');
+  var voxes = [];
+  var i;
+  var l = meshes.length;
+  for (i = 0; i < l; ++i) {
+    var voxi = createVoxelData(box);
+    voxelize(meshes[i], voxi);
+    floodFill(voxi);
+    voxes.push(voxi);
+  }
+
+  var voxels = createVoxelData(box);
+  var dfield = voxels.distanceField;
+  var f0 = voxes[0].distanceField;
+  var f1 = voxes[1].distanceField;
+  for (i = 0; i < dfield.length; ++i) {
+    // inter
+    dfield[i] = Math.max(f0[i], f1[i]);
+
+    // union
+    // dfield[i] = Math.min(f0[i], f1[i]);
+
+    // sub
+    // dfield[i] = Math.min(f0[i], -f1[i]);
+  }
+
+  console.timeEnd('2. voxelization');
 
   var res;
   if (manifold) {
