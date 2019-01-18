@@ -8,6 +8,8 @@ import Utils from 'misc/Utils';
 import Enums from 'misc/Enums';
 import Smooth from 'editing/tools/Smooth';
 
+import CSG from 'editing/csg';
+
 var Remesh = {};
 Remesh.RESOLUTION = 150;
 Remesh.BLOCK = false;
@@ -332,52 +334,200 @@ var tangentialSmoothing = function (mesh) {
   mesh.updateGeometryBuffers();
 };
 
+var createMeshCSG = function (mesh) {
+  var tris = mesh.getTriangles();
+  var verts = mesh.getVertices();
+  var nbTriangles = mesh.getNbTriangles();
+  // var normals = mesh.getNormals();
+
+  var normal = new CSG.Vector(1, 0, 1);
+
+  var polygons = [];
+  for (var i = 0; i < nbTriangles; ++i) {
+    var v0 = tris[i * 3] * 3;
+    var v1 = tris[i * 3 + 1] * 3;
+    var v2 = tris[i * 3 + 2] * 3;
+
+    // vertices.push(new CSG.Vertex(new CSG.Vector(verts[v0], verts[v0 + 1], verts[v0 + 2]), new CSG.Vector(verts[v0], verts[v0 + 1], normals[v0 + 2])));
+    // vertices.push(new CSG.Vertex(new CSG.Vector(verts[v1], verts[v1 + 1], verts[v1 + 2]), new CSG.Vector(normals[v1], normals[v1 + 1], normals[v1 + 2])));
+    // vertices.push(new CSG.Vertex(new CSG.Vector(verts[v2], verts[v2 + 1], verts[v2 + 2]), new CSG.Vector(normals[v2], normals[v2 + 1], normals[v2 + 2])));
+
+    var vertices = [];
+    vertices.push(new CSG.Vertex(new CSG.Vector(verts[v0], verts[v0 + 1], verts[v0 + 2]), normal));
+    vertices.push(new CSG.Vertex(new CSG.Vector(verts[v1], verts[v1 + 1], verts[v1 + 2]), normal));
+    vertices.push(new CSG.Vertex(new CSG.Vector(verts[v2], verts[v2 + 1], verts[v2 + 2]), normal));
+
+    polygons.push(new CSG.Polygon(vertices));
+  }
+  return CSG.fromPolygons(polygons);
+};
+
 Remesh.remesh = function (meshes, baseMesh, manifold) {
+  if (meshes.length !== 2) {
+    console.error('error: should be 2 meshes');
+    return baseMesh;
+  }
+
   console.time('remesh total');
 
   console.time('1. prepareMeshes');
   meshes = meshes.slice();
-  var box = prepareMeshes(meshes);
+  prepareMeshes(meshes);
   console.timeEnd('1. prepareMeshes');
 
-  console.time('2. voxelization');
-  var voxels = createVoxelData(box);
-  for (var i = 0, l = meshes.length; i < l; ++i)
-    voxelize(meshes[i], voxels);
-  console.timeEnd('2. voxelization');
+  console.time('2. createMeshCSG');
+  var m1 = createMeshCSG(meshes[0]);
+  var m2 = createMeshCSG(meshes[1]);
+  console.timeEnd('2. createMeshCSG');
 
-  console.time('3. flood');
-  floodFill(voxels);
-  console.timeEnd('3. flood');
+  console.time('3. CSG boolean');
+  var polygons = m1.intersect(m2).toPolygons();
+  console.timeEnd('3. CSG boolean');
 
-  var res;
-  if (manifold) {
-    console.time('4. marchingCubes');
-    MarchingCubes.BLOCK = Remesh.BLOCK;
-    res = MarchingCubes.computeSurface(voxels);
-    console.timeEnd('4. marchingCubes');
-  } else {
-    console.time('4. surfaceNets');
-    SurfaceNets.BLOCK = Remesh.BLOCK;
-    res = SurfaceNets.computeSurface(voxels);
-    console.timeEnd('4. surfaceNets');
+  console.time('4. create mesh sgl');
+  var vertices = [];
+  var faces = [];
+  var i, j;
+  for (i = 0; i < polygons.length; ++i) {
+    var polyverts = polygons[i].vertices;
+    var nbVerts = polyverts.length;
+
+    // from importOBJ
+    var nbPrim = Math.ceil(nbVerts / 2) - 1;
+    // quandrangulate polygons (+ 1 tri)
+    for (j = 0; j < nbPrim; ++j) {
+      var id1 = j + 1;
+      var id2 = j + 2;
+      var id3 = nbVerts - id1;
+      var id4 = nbVerts - j;
+      if (id3 === id2) {
+        id3 = id4;
+        id4 = Utils.TRI_INDEX;
+      }
+      var isQuad = id4 !== Utils.TRI_INDEX;
+
+      var nbv = vertices.length / 3;
+      faces.push(nbv, nbv + 1, nbv + 2, isQuad ? nbv + 3 : Utils.TRI_INDEX);
+
+      var pos = polyverts[id1 - 1].pos;
+      vertices.push(pos.x, pos.y, pos.z);
+
+      pos = polyverts[id2 - 1].pos;
+      vertices.push(pos.x, pos.y, pos.z);
+
+      pos = polyverts[id3 - 1].pos;
+      vertices.push(pos.x, pos.y, pos.z);
+
+      if (isQuad) {
+        pos = polyverts[id4 - 1].pos;
+        vertices.push(pos.x, pos.y, pos.z);
+      }
+    }
   }
+  console.timeEnd('4. create mesh sgl');
 
-  console.time('5. createMesh');
-  var nmesh = createMesh(baseMesh, res.faces, res.vertices, res.colors, res.materials);
-  console.timeEnd('5. createMesh');
+  vertices = new Float32Array(vertices);
+  faces = new Uint32Array(faces);
 
-  alignMeshBound(nmesh, box);
+  // console.time('5. merge duplicate verts');
+  // // merge vertices
+  // var vmin = [Infinity, Infinity, Infinity];
+  // var vmax = [-Infinity, -Infinity, -Infinity];
+  // for (i = 0; i < vertices.length / 3; ++i) {
+  //   for (j = 0; j < 3; ++j) {
+  //     vmin[j] = Math.min(vmin[j], vertices[i * 3 + j]);
+  //     vmax[j] = Math.max(vmax[j], vertices[i * 3 + j]);
+  //   }
+  // }
+  // var nberr = 2000.0;
+  // var step = [vmax[0] - vmin[0], vmax[1] - vmin[1], vmax[2] - vmin[2]];
+  // step[0] = nberr / step[0];
+  // step[1] = nberr / step[1];
+  // step[2] = nberr / step[2];
 
-  if (manifold && Remesh.SMOOTHING) {
-    console.time('6. tangential smoothing');
-    tangentialSmoothing(nmesh);
-    console.timeEnd('6. tangential smoothing');
-  }
+  // var mapVertices = new Map();
+  // var newV = [];
+  // for (i = 0; i < faces.length; ++i) {
+  //   var id = faces[i];
+  //   if (id === Utils.TRI_INDEX) continue;
+
+  //   var vx = vertices[id * 3];
+  //   var vy = vertices[id * 3 + 1];
+  //   var vz = vertices[id * 3 + 2];
+
+  //   var vqx = Math.round((vx - vmin[0]) * step[0]);
+  //   var vqy = Math.round((vy - vmin[1]) * step[1]);
+  //   var vqz = Math.round((vz - vmin[2]) * step[2]);
+  //   var hash = vqx + '+' + vqy + '+' + vqz;
+
+  //   var idv = mapVertices.get(hash);
+  //   if (idv !== undefined) {
+  //     faces[i] = idv;
+  //   } else {
+  //     faces[i] = newV.length / 3;
+  //     mapVertices.set(hash, faces[i]);
+  //     newV.push(vx, vy, vz);
+  //   }
+  // }
+  // vertices = new Float32Array(newV);
+  // faces = new Uint32Array(faces);
+  // console.timeEnd('5. merge duplicate verts');
+
+  console.time('6. createMesh');
+  var nmesh = createMesh(baseMesh, faces, vertices);
+  console.timeEnd('6. createMesh');
 
   console.timeEnd('remesh total');
-  console.log('\n');
+
+  // alignMeshBound(nmesh, box);
+  // tangentialSmoothing(nmesh);
   return nmesh;
+
+  // console.time('remesh total');
+
+  // console.time('1. prepareMeshes');
+  // meshes = meshes.slice();
+  // var box = prepareMeshes(meshes);
+  // console.timeEnd('1. prepareMeshes');
+
+  // console.time('2. voxelization');
+  // var voxels = createVoxelData(box);
+  // for (var i = 0, l = meshes.length; i < l; ++i)
+  //   voxelize(meshes[i], voxels);
+  // console.timeEnd('2. voxelization');
+
+  // console.time('3. flood');
+  // floodFill(voxels);
+  // console.timeEnd('3. flood');
+
+  // var res;
+  // if (manifold) {
+  //   console.time('4. marchingCubes');
+  //   MarchingCubes.BLOCK = Remesh.BLOCK;
+  //   res = MarchingCubes.computeSurface(voxels);
+  //   console.timeEnd('4. marchingCubes');
+  // } else {
+  //   console.time('4. surfaceNets');
+  //   SurfaceNets.BLOCK = Remesh.BLOCK;
+  //   res = SurfaceNets.computeSurface(voxels);
+  //   console.timeEnd('4. surfaceNets');
+  // }
+
+  // console.time('5. createMesh');
+  // var nmesh = createMesh(baseMesh, res.faces, res.vertices, res.colors, res.materials);
+  // console.timeEnd('5. createMesh');
+
+  // alignMeshBound(nmesh, box);
+
+  // if (manifold && Remesh.SMOOTHING) {
+  //   console.time('6. tangential smoothing');
+  //   tangentialSmoothing(nmesh);
+  //   console.timeEnd('6. tangential smoothing');
+  // }
+
+  // console.timeEnd('remesh total');
+  // console.log('\n');
+  // return nmesh;
 };
 
 Remesh.mergeArrays = function (meshes, arr) {
