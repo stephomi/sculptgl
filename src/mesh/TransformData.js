@@ -7,6 +7,7 @@ var TransformData = function () {
     _editMatrix: mat4.create(), // edit matrix
 
     _symmetryNormal: [1.0, 0.0, 0.0], // symmetry normal
+    _symmetryOffset: 0.0, // offset
 
     // the model-view and model-view-projection and normal matrices 
     // are computed at the beginning of each frame (after camera update)

@@ -316,7 +316,18 @@ class Mesh {
   }
 
   getSymmetryOrigin() {
-    return this._transformData._center;
+    var orig = vec3.create();
+    var tdata = this._transformData;
+    var offset = tdata._symmetryOffset * this.computeLocalRadius();
+    return vec3.scaleAndAdd(orig, tdata._center, tdata._symmetryNormal, offset);
+  }
+
+  getSymmetryOffset() {
+    return this._transformData._symmetryOffset;
+  }
+
+  setSymmetryOffset(offset) {
+    this._transformData._symmetryOffset = offset;
   }
 
   getSymmetryNormal() {
@@ -1450,10 +1461,13 @@ class Mesh {
     this._transformData._lastComputedDepth = m[2] * cen[0] + m[6] * cen[1] + m[10] * cen[2] + m[14];
   }
 
-  normalizeSize() {
+  computeLocalRadius() {
     var box = this.getLocalBound();
-    var diag = vec3.dist([box[0], box[1], box[2]], [box[3], box[4], box[5]]);
-    var scale = Utils.SCALE / diag;
+    return 0.5 * vec3.dist([box[0], box[1], box[2]], [box[3], box[4], box[5]]);
+  }
+
+  normalizeSize() {
+    var scale = Utils.SCALE / (2.0 * this.computeLocalRadius());
     mat4.scale(this._transformData._matrix, this._transformData._matrix, [scale, scale, scale]);
   }
 
