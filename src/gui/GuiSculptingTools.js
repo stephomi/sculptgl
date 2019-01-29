@@ -145,9 +145,9 @@ GuiTools[Enums.Tools.PAINT] = {
     var mesh = main.getMesh();
     if (!mesh) return;
 
-    mesh.setAlbedo(tool._color);
-    mesh.setRoughness(tool._material[0]);
-    mesh.setMetallic(tool._material[1]);
+    if (tool._writeAlbedo) mesh.setAlbedo(tool._color);
+    if (tool._writeRoughness) mesh.setRoughness(tool._material[0]);
+    if (tool._writeMetalness) mesh.setMetallic(tool._material[1]);
     main.render();
   },
   resetMaterialOverride: function (main, tool) {
@@ -194,13 +194,18 @@ GuiTools[Enums.Tools.PAINT] = {
     var ctrlRoughness = fold.addSlider(TR('sculptRoughness'), tool._material[0] * 100, cbMatChanged, 0, 100, 1);
     var ctrlMetallic = fold.addSlider(TR('sculptMetallic'), tool._material[1] * 100, cbMatChanged, 0, 100, 1);
     materials.push(ctrlColor, ctrlRoughness, ctrlMetallic);
+    this._ctrls.push(ctrlColor, ctrlRoughness, ctrlMetallic);
+    tool.setPickCallback(this.onPickedMaterial.bind(this, materials, tool, main));
+
+    // mask
+    this._ctrls.push(fold.addTitle('Write channel'));
+    this._ctrls.push(fold.addCheckbox(TR('sculptColor'), tool, '_writeAlbedo'));
+    this._ctrls.push(fold.addCheckbox(TR('sculptRoughness'), tool, '_writeRoughness'));
+    this._ctrls.push(fold.addCheckbox(TR('sculptMetallic'), tool, '_writeMetalness'));
 
     window.addEventListener('keyup', this.resetMaterialOverride.bind(this, main, tool));
     window.addEventListener('mouseup', this.resetMaterialOverride.bind(this, main, tool));
 
-    tool.setPickCallback(this.onPickedMaterial.bind(this, materials, tool, main));
-
-    this._ctrls.push(ctrlColor, ctrlRoughness, ctrlMetallic);
     addCtrlAlpha(this._ctrls, fold, tool, this);
   }
 };

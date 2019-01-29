@@ -17,6 +17,10 @@ class Paint extends SculptBase {
     this._pickCallback = null; // callback function after picking a color
     this._idAlpha = 0;
     this._lockPosition = false;
+
+    this._writeAlbedo = true;
+    this._writeRoughness = true;
+    this._writeMetalness = true;
   }
 
   end() {
@@ -128,11 +132,20 @@ class Paint extends SculptBase {
       var fallOff = Math.pow(1 - dist, softness);
       fallOff *= intensity * mAr[ind + 2] * picking.getAlpha(vx, vy, vz);
       var fallOffCompl = 1.0 - fallOff;
-      cAr[ind] = cAr[ind] * fallOffCompl + cr * fallOff;
-      cAr[ind + 1] = cAr[ind + 1] * fallOffCompl + cg * fallOff;
-      cAr[ind + 2] = cAr[ind + 2] * fallOffCompl + cb * fallOff;
-      mAr[ind] = mAr[ind] * fallOffCompl + roughness * fallOff;
-      mAr[ind + 1] = mAr[ind + 1] * fallOffCompl + metallic * fallOff;
+
+      if (this._writeAlbedo) {
+        cAr[ind] = cAr[ind] * fallOffCompl + cr * fallOff;
+        cAr[ind + 1] = cAr[ind + 1] * fallOffCompl + cg * fallOff;
+        cAr[ind + 2] = cAr[ind + 2] * fallOffCompl + cb * fallOff;
+      }
+
+      if (this._writeRoughness) {
+        mAr[ind] = mAr[ind] * fallOffCompl + roughness * fallOff;
+      }
+
+      if (this._writeMetalness) {
+        mAr[ind + 1] = mAr[ind + 1] * fallOffCompl + metallic * fallOff;
+      }
     }
   }
 
@@ -157,11 +170,20 @@ class Paint extends SculptBase {
       var ind = iVerts[i] * 3;
       var fallOff = mAr[ind + 2];
       var fallOffCompl = 1.0 - fallOff;
-      cAr[ind] = cAr[ind] * fallOffCompl + cr * fallOff;
-      cAr[ind + 1] = cAr[ind + 1] * fallOffCompl + cg * fallOff;
-      cAr[ind + 2] = cAr[ind + 2] * fallOffCompl + cb * fallOff;
-      mAr[ind] = mAr[ind] * fallOffCompl + roughness * fallOff;
-      mAr[ind + 1] = mAr[ind + 1] * fallOffCompl + metallic * fallOff;
+
+      if (this._writeAlbedo) {
+        cAr[ind] = cAr[ind] * fallOffCompl + cr * fallOff;
+        cAr[ind + 1] = cAr[ind + 1] * fallOffCompl + cg * fallOff;
+        cAr[ind + 2] = cAr[ind + 2] * fallOffCompl + cb * fallOff;
+      }
+
+      if (this._writeRoughness) {
+        mAr[ind] = mAr[ind] * fallOffCompl + roughness * fallOff;
+      }
+
+      if (this._writeMetalness) {
+        mAr[ind + 1] = mAr[ind + 1] * fallOffCompl + metallic * fallOff;
+      }
     }
 
     mesh.updateDuplicateColorsAndMaterials();
