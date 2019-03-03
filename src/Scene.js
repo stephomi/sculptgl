@@ -457,6 +457,7 @@ class Scene {
   computeBoundingBoxMeshes(meshes) {
     var bound = [Infinity, Infinity, Infinity, -Infinity, -Infinity, -Infinity];
     for (var i = 0, l = meshes.length; i < l; ++i) {
+      if (!meshes[i].isVisible()) continue;
       var bi = meshes[i].computeWorldBound();
       if (bi[0] < bound[0]) bound[0] = bi[0];
       if (bi[1] < bound[1]) bound[1] = bi[1];
@@ -627,8 +628,9 @@ class Scene {
 
   duplicateSelection() {
     var meshes = this._selectMeshes.slice();
+    var mesh = null;
     for (var i = 0; i < meshes.length; ++i) {
-      var mesh = meshes[i];
+      mesh = meshes[i];
       var copy = new MeshStatic(mesh.getGL());
       copy.copyData(mesh);
 

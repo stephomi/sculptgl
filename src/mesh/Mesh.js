@@ -27,6 +27,7 @@ class Mesh {
     this._meshData = null;
     this._transformData = null;
     this._renderData = null;
+    this._isVisible = true;
   }
 
   static sortFunction(meshA, meshB) {
@@ -40,6 +41,14 @@ class Mesh {
 
   setID(id) {
     this._id = id;
+  }
+
+  isVisible() {
+    return this._isVisible;
+  }
+
+  setVisible(bool) {
+    this._isVisible = bool;
   }
 
   setVertices(vAr) {
@@ -1889,14 +1898,17 @@ class Mesh {
   // RENDER
   /////////
   render(main) {
+    if (!this.isVisible()) return;
     Shader[this.getShaderType()].getOrCreate(this.getGL()).draw(this, main);
   }
 
   renderWireframe(main) {
+    if (!this.isVisible()) return;
     Shader[Enums.Shader.WIREFRAME].getOrCreate(this.getGL()).draw(this, main);
   }
 
   renderFlatColor(main) {
+    if (!this.isVisible()) return;
     Shader[Enums.Shader.FLAT].getOrCreate(this.getGL()).draw(this, main);
   }
 
