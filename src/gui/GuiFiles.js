@@ -8,8 +8,7 @@ import ShaderPaintUV from 'render/shaders/ShaderPaintUV';
 import ShaderBlur from 'render/shaders/ShaderBlur';
 import Enums from 'misc/Enums';
 
-// import { SketchfabOAuth2 } from 'sketchfab-oauth2-1.0.0'; // webpack warning
-var SketchfabOAuth2 = require('sketchfab-oauth2-1.0.0.js').SketchfabOAuth2;
+import SketchfabOAuth2 from 'sketchfab-oauth2-1.2.0';
 
 class GuiFiles {
 

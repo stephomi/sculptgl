@@ -15,10 +15,14 @@
 
   <script>
   'use strict';
+
   window.sketchfabOAuth2Config = {
+    hostname: 'sketchfab.com',
     client_id: 'OWoAmrd1QCS9wB54Ly17rMl2i5AHGvDNfmN4pEUH',
-    redirect_uri: 'https://localhost:8000/authSuccess.html'
+    // doesn't work in localhost? (https?)
+    redirect_uri: window.location.href + 'authSuccess.html'
   };
+
   window.addEventListener('load', function () {
     var app = new window.SculptGL();
     app.start();
