@@ -454,6 +454,13 @@ class Scene {
     this.render();
   }
 
+  computeRadiusFromBoundingBox(box) {
+    var dx = box[3] - box[0];
+    var dy = box[4] - box[1];
+    var dz = box[5] - box[2];
+    return 0.5 * Math.sqrt(dx * dx + dy * dy + dz * dz);
+  }
+
   computeBoundingBoxMeshes(meshes) {
     var bound = [Infinity, Infinity, Infinity, -Infinity, -Infinity, -Infinity];
     for (var i = 0, l = meshes.length; i < l; ++i) {

@@ -2,25 +2,21 @@ import TR from 'gui/GuiTR';
 import { zip } from 'zip';
 import ExportPLY from 'files/ExportPLY';
 
+import SketchfabOAuth2 from 'sketchfab-oauth2-1.2.0';
+
 var Export = {};
 
-Export.exportSketchfab = function (main, key, statusWidget) {
-  var xhr = new XMLHttpRequest();
-  var domStatus = statusWidget.domContainer;
-  statusWidget.setVisibility(true);
-  statusWidget.sketchfab = true;
-  domStatus.innerHTML = 'Uploading...';
+var doExportSketchfab = function (xhr, main, key, statusWidget) {
   xhr.open('POST', 'https://api.sketchfab.com/v2/models', true);
 
   xhr.onprogress = function (event) {
-    var val = '~';
-    if (event.lengthComputable && event.total)
-      val = Math.round(event.loaded * 100.0 / event.total);
-    domStatus.innerHTML = 'Uploading : ' + val + '%';
+    if (event.lengthComputable && event.total) {
+      var val = Math.round(event.loaded * 100.0 / event.total);
+      statusWidget.setVisibility('Sketchfab upload: ' + val + '%');
+    }
   };
   var hideStatus = function () {
-    statusWidget.setVisibility(false);
-    statusWidget.sketchfab = false;
+    statusWidget.setMessage('');
   };
   xhr.onerror = hideStatus;
   xhr.onabort = hideStatus;
@@ -59,19 +55,38 @@ Export.exportSketchfab = function (main, key, statusWidget) {
     check();
   };
 
+  statusWidget.setMessage('Creating zip...');
   zip.useWebWorkers = true;
   zip.workerScriptsPath = 'worker/';
   zip.createWriter(new zip.BlobWriter('application/zip'), function (zipWriter) {
-    var data = ExportPLY.exportBinaryPLY(main.getMeshes(), true);
+    var data = ExportPLY.exportBinaryPLY(main.getMeshes(), { swapXY: true });
     zipWriter.add('yourMesh.ply', new zip.BlobReader(data), function () {
-      zipWriter.close(Export.exportFileSketchfab.bind(this, main, key, xhr));
+      zipWriter.close(Export.exportFileSketchfab.bind(this, key, xhr, statusWidget));
     });
   }, onerror);
 
   return xhr;
 };
 
-Export.exportFileSketchfab = function (main, key, xhr, blob) {
+Export.exportSketchfab = function (main, statusWidget) {
+  if (!window.sketchfabOAuth2Config)
+    return;
+
+  var xhr = new XMLHttpRequest();
+
+  var client = new SketchfabOAuth2(window.sketchfabOAuth2Config);
+  client.connect().then(function onSuccess(key) {
+    doExportSketchfab(xhr, main, key, statusWidget);
+  }).catch(function onError(error) {
+    console.error(error);
+  });
+
+  return xhr;
+};
+
+Export.exportFileSketchfab = function (key, xhr, statusWidget, blob) {
+  if (xhr.isAborted) return;
+
   var fd = new FormData();
   fd.append('modelFile', blob, 'sculptglModel.zip');
   fd.append('name', 'My model');
@@ -83,6 +98,7 @@ Export.exportFileSketchfab = function (main, key, xhr, blob) {
     fd.append('token', key);
   }
 
+  statusWidget.setMessage('Sketchfab upload...');
   xhr.send(fd);
 };
 

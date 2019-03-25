@@ -8,8 +8,6 @@ import ShaderPaintUV from 'render/shaders/ShaderPaintUV';
 import ShaderBlur from 'render/shaders/ShaderBlur';
 import Enums from 'misc/Enums';
 
-import SketchfabOAuth2 from 'sketchfab-oauth2-1.2.0';
-
 class GuiFiles {
 
   constructor(guiParent, ctrlGui) {
@@ -37,7 +35,7 @@ class GuiFiles {
     menu.addButton(TR('fileExportOBJ'), this, 'saveFileAsOBJ' /*, 'CTRL+E'*/ );
     menu.addButton(TR('fileExportPLY'), this, 'saveFileAsPLY');
     menu.addButton(TR('fileExportSTL'), this, 'saveFileAsSTL');
-    menu.addButton(TR('sketchfabTitle'), this, 'exportSketchfab');
+    menu.addButton(TR('sketchfabTitle'), this._ctrlGui, 'exportSketchfab');
 
     // export texture
     menu.addTitle(TR('fileExportTextureTitle'));
@@ -206,30 +204,6 @@ class GuiFiles {
         });
       });
     }, onerror);
-  }
-
-  exportSketchfab() {
-    var mesh = this._main.getMesh();
-    if (!mesh)
-      return;
-
-    if (!window.sketchfabOAuth2Config)
-      return;
-
-    var ctrlNotif = this._ctrlGui.getWidgetNotification();
-    if (this._sketchfabXhr && ctrlNotif.sketchfab === true) {
-      if (!window.confirm(TR('sketchfabAbort')))
-        return;
-      ctrlNotif.sketchfab = false;
-      this._sketchfabXhr.abort();
-    }
-
-    var client = new SketchfabOAuth2(window.sketchfabOAuth2Config);
-    client.connect().then(function onSuccess(grant) {
-      this._sketchfabXhr = Export.exportSketchfab(this._main, grant, ctrlNotif);
-    }.bind(this)).catch(function onError(error) {
-      console.error(error);
-    });
   }
 
   ////////////////

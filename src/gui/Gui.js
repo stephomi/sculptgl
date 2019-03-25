@@ -13,6 +13,8 @@ import GuiStates from 'gui/GuiStates';
 import GuiTablet from 'gui/GuiTablet';
 import ShaderContour from 'render/shaders/ShaderContour';
 
+import Export from 'files/Export';
+
 class Gui {
 
   constructor(main) {
@@ -36,6 +38,10 @@ class Gui {
     this._ctrlNotification = null;
 
     this._ctrls = []; // list of controllers
+
+    // upload
+    this._notifications = {};
+    this._xhrs = {};
   }
 
   initGui() {
@@ -50,6 +56,7 @@ class Gui {
     // Initialize the topbar
     this._topbar = this._guiMain.addTopbar();
     ctrls[idc++] = this._ctrlFiles = new GuiFiles(this._topbar, this);
+    this.initPrint(this._topbar);
     ctrls[idc++] = this._ctrlScene = new GuiScene(this._topbar, this);
     ctrls[idc++] = this._ctrlStates = new GuiStates(this._topbar, this);
     ctrls[idc++] = this._ctrlBackground = new GuiBackground(this._topbar, this);
@@ -80,6 +87,68 @@ class Gui {
     this.setVisibility(true);
   }
 
+  getNotification(notifName) {
+    var notif = this._notifications[notifName];
+    if (!notif) {
+      notif = this._topbar.addMenu();
+      notif.isVisible = function () {
+        return !this.domContainer.hidden;
+      };
+      notif.setMessage = function (msg) {
+        this.domContainer.innerHTML = msg;
+        this.setVisibility(!!msg);
+      };
+
+      notif.domContainer.style.color = 'red';
+      notif.setMessage('');
+
+      this._notifications[notifName] = notif;
+      return notif;
+    }
+
+    if (this._xhrs[notifName] && notif.isVisible()) {
+      if (window.confirm('Abort ' + notifName + ' previous upload?')) {
+        this._xhrs[notifName].abort();
+        this._xhrs[notifName].isAborted = true;
+        notif.setMessage(null);
+      }
+      return;
+    }
+
+    return notif;
+  }
+
+  initPrint(guiParent) {
+    var menu = guiParent.addMenu('Print it!');
+    // menu.addButton('with Sculpteo', this, 'exportSculpteo');
+    menu.addButton('Go to Materialise!', this, 'exportMaterialise');
+  }
+
+  exportSculpteo() {
+    this._export('sculpteo');
+  }
+
+  exportMaterialise() {
+    if (window.confirm('A new webpage will be opened. Start upload?')) {
+      this._export('materialise');
+    }
+  }
+
+  exportSketchfab() {
+    this._export('sketchfab');
+  }
+
+  _export(notifName) {
+    var mesh = this._main.getMesh();
+    if (!mesh) return;
+
+    var notif = this.getNotification(notifName);
+    if (!notif) return;
+
+    var fName = 'export' + notifName.charAt(0).toUpperCase() + notifName.slice(1);
+    this._xhrs[notifName] = Export[fName](this._main, notif);
+  }
+
   onPixelRatio(val) {
     this._main._pixelRatio = val;
     this._main.onCanvasResize();
@@ -99,14 +168,6 @@ class Gui {
     ctrlAbout.domContainer.addEventListener('mousedown', function () {
       window.open('http://stephaneginier.com', '_blank');
     });
-  }
-
-  getWidgetNotification() {
-    if (!this._ctrlNotification) {
-      this._ctrlNotification = this._topbar.addMenu();
-      this._ctrlNotification.setVisibility(false);
-    }
-    return this._ctrlNotification;
   }
 
   updateMesh() {

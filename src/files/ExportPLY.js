@@ -45,7 +45,7 @@ Export.exportAsciiPLY = function (meshes) {
 };
 
 /** Export binary PLY file */
-Export.exportBinaryPLY = function (meshes, isSketchfab) {
+Export.exportBinaryPLY = function (meshes, opt) {
   var res = getResult(meshes);
   var nbVertices = res.nbVertices;
   var nbFaces = res.nbFaces;
@@ -59,8 +59,7 @@ Export.exportBinaryPLY = function (meshes, isSketchfab) {
   var j = 0;
   var k = 0;
 
-  // swap xy
-  if (isSketchfab) {
+  if (opt && opt.swapXY) {
     for (i = 0; i < nbVertices; ++i) {
       k = i * 3;
       var yVal = vAr[k + 1];

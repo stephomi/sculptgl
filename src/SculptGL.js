@@ -271,7 +271,7 @@ class SculptGL extends Scene {
     if (meshes.length > 0) {
       var pivot = [0.0, 0.0, 0.0];
       var box = this.computeBoundingBoxMeshes(meshes);
-      var zoom = 0.4 * vec3.dist([box[0], box[1], box[2]], [box[3], box[4], box[5]]);
+      var zoom = 0.8 * this.computeRadiusFromBoundingBox(box);
       zoom *= this._camera.computeFrustumFit();
       vec3.set(pivot, (box[0] + box[3]) * 0.5, (box[1] + box[4]) * 0.5, (box[2] + box[5]) * 0.5);
       this._camera.setAndFocusOnPivot(pivot, zoom);

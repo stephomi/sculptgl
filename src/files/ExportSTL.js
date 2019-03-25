@@ -62,26 +62,48 @@ Export.exportAsciiSTL = function (meshes) {
 };
 
 /** Export binary STL file */
-Export.exportBinarySTL = function (meshes) {
+Export.exportBinarySTL = function (meshes, opt) {
   var res = getResult(meshes);
   var nbTriangles = res.nbTriangles;
   var vAr = res.vertices;
   var cAr = res.colors;
   var iAr = res.triangles;
   var fnAr = res.faceNormals;
+  var i, k;
+
+  if (opt && opt.swapXY) {
+    var nbVertices = res.nbVertices;
+    for (i = 0; i < nbVertices; ++i) {
+      k = i * 3;
+      var yVal = vAr[k + 1];
+      vAr[k + 1] = -vAr[k + 2];
+      vAr[k + 2] = yVal;
+    }
+  }
 
   var data = new Uint8Array(84 + nbTriangles * 50);
-  var nbTriBuff = new Uint8Array(new Uint32Array([nbTriangles]).buffer);
-  data.set(nbTriBuff, 80);
+
+  var colorMagic = opt && opt.colorMagic;
+  if (colorMagic) {
+    // COLOR=255,255,255,255
+    var hdr = [67, 79, 76, 79, 82, 61, 255, 255, 255, 255];
+    for (i = 0; i < hdr.length; ++i) {
+      data[i] = hdr[i];
+    }
+  }
+
+  (new DataView(data.buffer)).setUint32(80, nbTriangles, true);
 
   var verBuffer = new Uint8Array(vAr.buffer);
   var norBuffer = new Uint8Array(fnAr.buffer);
   var offset = 84;
   var inc = 0;
 
+  var colorActivate = colorMagic ? 0 : (1 << 15);
+
   var mulc = 31 / 3;
-  for (var i = 0; i < nbTriangles; ++i) {
-    var k = i * 12;
+  for (i = 0; i < nbTriangles; ++i) {
+    k = i * 12;
     for (inc = 0; inc < 12; ++inc) {
       data[offset++] = norBuffer[k++];
     }
@@ -102,10 +124,18 @@ Export.exportBinarySTL = function (meshes) {
     for (inc = 0; inc < 12; ++inc) {
       data[offset++] = verBuffer[id3++];
     }
-    var r = Math.round((cAr[iv1] + cAr[iv2] + cAr[iv3]) * mulc) << 10;
+
+    var r = Math.round((cAr[iv1] + cAr[iv2] + cAr[iv3]) * mulc);
     var g = Math.round((cAr[iv1 + 1] + cAr[iv2 + 1] + cAr[iv3 + 1]) * mulc) << 5;
     var b = Math.round((cAr[iv1 + 2] + cAr[iv2 + 2] + cAr[iv3 + 2]) * mulc);
-    var col = r + g + b + 32768;
+
+    if (colorMagic) {
+      b = b << 10;
+    } else {
+      r = r << 10;
+    }
+
+    var col = r + g + b + colorActivate;
     data[offset++] = col & 255;
     data[offset++] = col >> 8;
   }

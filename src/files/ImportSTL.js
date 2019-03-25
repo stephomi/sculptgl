@@ -86,6 +86,10 @@ Import.importAsciiSTL = function (data) {
 /** Import binary STL file */
 Import.importBinarySTL = function (buffer, nbTriangles) {
   var data = new Uint8Array(buffer);
+
+  var dataHeader = data.subarray(0, 80);
+  var colorMagic = String.fromCharCode.apply(null, dataHeader).indexOf('COLOR=') !== -1;
+
   var i = 0;
   var vb = new Uint8Array(nbTriangles * 36);
   var vbc = new Uint8Array(nbTriangles * 2);
@@ -100,16 +104,37 @@ Import.importBinarySTL = function (buffer, nbTriangles) {
     vbc[jc++] = data[offset++];
     offset += 12;
   }
+
   var uc = new Uint16Array(vbc.buffer);
   vbc = new Float32Array(nbTriangles * 9);
   var inv = 1.0 / 31;
   for (i = 0; i < nbTriangles; ++i) {
     j = i * 9;
     var u = uc[i];
-    var validColor = u & 32768;
-    vbc[j] = vbc[j + 3] = vbc[j + 6] = validColor ? ((u >> 10) & 31) * inv : 1.0;
-    vbc[j + 1] = vbc[j + 4] = vbc[j + 7] = validColor ? ((u >> 5) & 31) * inv : 1.0;
-    vbc[j + 2] = vbc[j + 5] = vbc[j + 8] = validColor ? (u & 31) * inv : 1.0;
+
+    var r = 1.0;
+    var g = 1.0;
+    var b = 1.0;
+
+    var bit15 = u & 32768;
+    // https://en.wikipedia.org/wiki/STL_(file_format)#Color_in_binary_STL
+    if (colorMagic) {
+      // Materialise Magics
+      if (!bit15) {
+        r = ((u & 31) & 31) * inv;
+        g = ((u >> 5) & 31) * inv;
+        b = ((u >> 10) & 31) * inv;
+      }
+    } else if (bit15) {
+      // VisCAM and SolidView 
+      r = ((u >> 10) & 31) * inv;
+      g = ((u >> 5) & 31) * inv;
+      b = ((u & 31) & 31) * inv;
+    }
+
+    vbc[j] = vbc[j + 3] = vbc[j + 6] = r;
+    vbc[j + 1] = vbc[j + 4] = vbc[j + 7] = g;
+    vbc[j + 2] = vbc[j + 5] = vbc[j + 8] = b;
   }
   return [new Float32Array(vb.buffer), vbc];
 };

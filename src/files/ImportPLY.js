@@ -314,7 +314,8 @@ var readAsciiIndex = function (element, infos, fAr) {
 var readBinaryIndex = function (element, infos, fAr, dummy) {
   var count = element.count;
   var props = element.objProperties;
-  var propIndex = props.vertex_index || props.vertex_indices || element.properties[0];
+  var pidx = props && (props.vertex_index || props.vertex_indices);
+  var propIndex = pidx || element.properties[0];
 
   var dview = new DataView(infos.buffer, infos.offsetOctet);
   var readCount = getBinaryRead(dview, propIndex);
