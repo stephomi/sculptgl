@@ -10,8 +10,9 @@
 
   <title> SculptGL - A WebGL sculpting app </title>
 
-  <link href='https://fonts.googleapis.com/css?family=Open+Sans:400,600' rel='stylesheet' type='text/css'>
-  <link rel='stylesheet' href='css/yagui.css' type='text/css' />
+  <link rel='stylesheet' type='text/css' href='https://fonts.googleapis.com/css?family=Open+Sans:400,600'>
+  <link rel='stylesheet' type='text/css' href='css/yagui.css'/>
+  <link rel='stylesheet' type='text/css' href='//cdnjs.cloudflare.com/ajax/libs/cookieconsent2/3.1.0/cookieconsent.min.css'/>
 
   <script type='text/javascript'>
   (function(i, s, o, g, r, a, m) {
@@ -29,18 +30,20 @@
   ga('send', 'pageview');
   </script>
 
-  <script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
+  <script async src='//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js'></script>
   <!-- ad 1 -->
-  <ins class="adsbygoogle"
-    style="display:block;position:absolute;z-index:1;top:40px;width:120px;height:600px"
-    data-ad-client="ca-pub-8279106136067661"
-    data-ad-slot="6064702281"></ins>
+  <ins class='adsbygoogle'
+    style='display:block;position:absolute;z-index:1;top:40px;width:120px;height:600px'
+    data-ad-client='ca-pub-8279106136067661'
+    data-ad-slot='6064702281'></ins>
+
+  <script src='//cdnjs.cloudflare.com/ajax/libs/cookieconsent2/3.1.0/cookieconsent.min.js'></script>
 
   <script>
   'use strict';
 
   var opts = window.location.search.substr(1).split('&');
-  var isMobile = (typeof window.orientation !== "undefined") || (navigator.userAgent.indexOf('IEMobile') !== -1);
+  var isMobile = (typeof window.orientation !== 'undefined') || (navigator.userAgent.indexOf('IEMobile') !== -1);
   var showAd = opts.indexOf('ads=0') === -1 && !isMobile;
   if (showAd) {
       (window.adsbygoogle = window.adsbygoogle || []).push({});
@@ -56,14 +59,27 @@
     var app = new window.SculptGL();
     app.start();
 
-    // if (showAd && window.adsbygoogle.loaded) {
-    //   var ctrlAd = app.getGui()._topbar.addMenu();
-    //   ctrlAd.domContainer.innerHTML = 'no ads?';
-    //   ctrlAd.domContainer.addEventListener('mousedown', function () {
-    //     window.alert('\nIf you find the ad too annoying, you can contact me: there\'s a simple trick to remove them.');
-    //     // window.alert('Reload the page with ads=0: https://stephaneginier.com/sculptgl?ads=0');
-    //   });
-    // }
+    if (showAd && window.adsbygoogle.loaded) {
+      window.cookieconsent.initialise({
+        'palette': {
+          'popup': { 'background': '#262b33' },
+          'button': { 'background': '#4d5766' }
+        },
+        'theme': 'classic',
+        'position': 'bottom-left',
+        'content': {
+          'message': 'SculptGL uses cookies.',
+          'href': 'https://support.google.com/adsense/answer/7549925'
+        }
+      });
+
+      // var ctrlAd = app.getGui()._topbar.addMenu();
+      // ctrlAd.domContainer.innerHTML = 'no ads?';
+      // ctrlAd.domContainer.addEventListener('mousedown', function () {
+      //   window.alert('\nIf you find the ad too annoying, you can contact me: there\'s a simple trick to remove them.');
+      //   // window.alert('Reload the page with ads=0: https://stephaneginier.com/sculptgl?ads=0');
+      // });
+    }
   });
   </script>
 </head>
