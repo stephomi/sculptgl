@@ -1,4 +1,4 @@
-import { vec3, mat4 } from 'gl-matrix';
+import { vec3 } from 'gl-matrix';
 import HoleFilling from 'editing/HoleFilling';
 import SurfaceNets from 'editing/SurfaceNets';
 import MarchingCubes from 'editing/MarchingCubes';
@@ -295,30 +295,6 @@ var prepareMeshes = function (meshes) {
   return box;
 };
 
-var alignMeshBound = function (mesh, box) {
-  var oldMin = [box[0], box[1], box[2]];
-  var oldMax = [box[3], box[4], box[5]];
-  var oldRadius = vec3.dist(oldMin, oldMax);
-  var oldCenter = vec3.add([], oldMin, oldMax);
-  vec3.scale(oldCenter, oldCenter, 0.5);
-
-  var newBox = mesh.getLocalBound();
-  var newMin = [newBox[0], newBox[1], newBox[2]];
-  var newMax = [newBox[3], newBox[4], newBox[5]];
-  var newRadius = vec3.dist(newMin, newMax);
-  var newCenter = vec3.add([], newMin, newMax);
-  vec3.scale(newCenter, newCenter, 0.5);
-
-  var scale = oldRadius / newRadius;
-  var tr = vec3.scale([], oldCenter, 1.0 / scale);
-  vec3.sub(tr, tr, newCenter);
-
-  var mat = mesh.getMatrix();
-  mat4.identity(mat);
-  mat4.scale(mat, mat, [scale, scale, scale]);
-  mat4.translate(mat, mat, tr);
-};
-
 var tangentialSmoothing = function (mesh) {
   var nbVertices = mesh.getNbVertices();
   var indices = new Uint32Array(nbVertices);
@@ -329,6 +305,19 @@ var tangentialSmoothing = function (mesh) {
   smo.smoothTangent(indices, 1.0);
   mesh.updateGeometry();
   mesh.updateGeometryBuffers();
+};
+
+var fixPositionGrid = function (voxels, vertices) {
+  var rx = voxels.dims[0];
+  var ry = voxels.dims[1];
+  var rz = voxels.dims[2];
+  var min = voxels.min;
+  var max = voxels.max;
+  for (var i = 0; i < vertices.length; i += 3) {
+    vertices[i] = min[0] + (max[0] - min[0]) * vertices[i] / rx;
+    vertices[i + 1] = min[1] + (max[1] - min[1]) * vertices[i + 1] / ry;
+    vertices[i + 2] = min[2] + (max[2] - min[2]) * vertices[i + 2] / rz;
+  }
 };
 
 Remesh.remesh = function (meshes, baseMesh, manifold) {
@@ -385,11 +374,12 @@ Remesh.remesh = function (meshes, baseMesh, manifold) {
     console.timeEnd('4. surfaceNets');
   }
 
+  // reproject on grid
+  fixPositionGrid(voxels, res.vertices);
+
   console.time('5. createMesh');
   var nmesh = createMesh(baseMesh, res.faces, res.vertices, res.colors, res.materials);
   console.timeEnd('5. createMesh');
-
-  alignMeshBound(nmesh, box);
 
   if (manifold && Remesh.SMOOTHING) {
     console.time('6. tangential smoothing');
