@@ -361,39 +361,43 @@ SculptGL.prototype = {
         var pressure = Tablet.pressure();
         var pressureRadius = this.usePenRadius_ ? pressure : 1.0;
         var pressureIntensity = this.usePenIntensity_ ? pressure : 1.0;
-        if (button === 1 && !event.altKey) {
-            if (this.mesh_) {
-                this.sumDisplacement_ = 0;
-                this.states_.start();
-                if (this.sculpt_.tool_ === Sculpt.tool.CUT) {
-                    this.sculpt_.setLineOrigin(mouseX, this.camera_.height_ - mouseY);
-                } else if (this.sculpt_.tool_ === Sculpt.tool.ROTATE) {
-                    this.sculpt_.startRotate(this.picking_, mouseX, mouseY, this.pickingSym_, this.ptPlane_, this.nPlane_, this.symmetry_);
-                } else if (this.sculpt_.tool_ === Sculpt.tool.SCALE) {
-                    this.sculpt_.startScale(this.picking_, mouseX, mouseY, this.pickingSym_, this.ptPlane_, this.nPlane_, this.symmetry_);
-                } else if (this.continuous_ && this.sculpt_.tool_ !== Sculpt.tool.DRAG) {
-                    this.pressureRadius_ = pressureRadius;
-                    this.pressureIntensity_ = pressureIntensity;
-                    this.mouseX_ = mouseX;
-                    this.mouseY_ = mouseY;
-                    var self = this;
-                    this.sculptTimer_ = setInterval(function() {
-                        self.sculpt_.sculptStroke(self.mouseX_, self.mouseY_, self.pressureRadius_, self.pressureIntensity_, self);
-                        self.gui_.updateMeshInfo();
-                        self.render();
-                    }, 20);
-                } else {
-                    this.sculpt_.sculptStroke(mouseX, mouseY, pressureRadius, pressureIntensity, this);
-                }
+
+        var interactCut = false;
+
+        if (button === 1 && !event.altKey && this.mesh_) {
+            this.sumDisplacement_ = 0;
+            this.states_.start();
+            if (this.sculpt_.tool_ === Sculpt.tool.CUT) {
+                interactCut = true;
+                this.sculpt_.setLineOrigin(mouseX, this.camera_.height_ - mouseY);
+            } else if (this.sculpt_.tool_ === Sculpt.tool.ROTATE) {
+                this.sculpt_.startRotate(this.picking_, mouseX, mouseY, this.pickingSym_, this.ptPlane_, this.nPlane_, this.symmetry_);
+            } else if (this.sculpt_.tool_ === Sculpt.tool.SCALE) {
+                this.sculpt_.startScale(this.picking_, mouseX, mouseY, this.pickingSym_, this.ptPlane_, this.nPlane_, this.symmetry_);
+            } else if (this.continuous_ && this.sculpt_.tool_ !== Sculpt.tool.DRAG) {
+                this.pressureRadius_ = pressureRadius;
+                this.pressureIntensity_ = pressureIntensity;
+                this.mouseX_ = mouseX;
+                this.mouseY_ = mouseY;
+                var self = this;
+                this.sculptTimer_ = setInterval(function() {
+                    self.sculpt_.sculptStroke(self.mouseX_, self.mouseY_, self.pressureRadius_, self.pressureIntensity_, self);
+                    self.gui_.updateMeshInfo();
+                    self.render();
+                }, 20);
+            } else {
+                this.sculpt_.sculptStroke(mouseX, mouseY, pressureRadius, pressureIntensity, this);
             }
         }
 
-        if (button === 3 || (button === 1 && this.picking_.mesh_ === null) || (event.altKey && button !== 0)) {
-            this.mouseButton_ = 3;
-            if (this.camera_.usePivot_) {
-                this.picking_.intersectionMouseMesh(this.mesh_, mouseX, mouseY, pressureRadius);
+        if (!interactCut) {
+            if (button === 3 || (button === 1 && this.picking_.mesh_ === null) || (event.altKey && button !== 0)) {
+                this.mouseButton_ = 3;
+                if (this.camera_.usePivot_) {
+                    this.picking_.intersectionMouseMesh(this.mesh_, mouseX, mouseY, pressureRadius);
+                }
+                this.camera_.start(mouseX, mouseY, this.picking_);
             }
-            this.camera_.start(mouseX, mouseY, this.picking_);
         }
     },
 
