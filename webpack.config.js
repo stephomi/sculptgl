@@ -1,5 +1,4 @@
 var path = require('path');
-var UglifyJsPlugin = require('uglifyjs-webpack-plugin');
 
 module.exports = function (env) {
   var config = {
@@ -7,7 +6,8 @@ module.exports = function (env) {
     output: {
       library: 'sculptgl',
       libraryTarget: 'umd',
-      filename: './app/sculptgl.js'
+      path: path.resolve(__dirname, 'app'),
+      filename: 'sculptgl.js'
     },
     resolve: {
       modules: [
@@ -26,16 +26,11 @@ module.exports = function (env) {
 
   var isRelease = env && env.release;
 
-  if (!isRelease) {
-    config.devtool = 'eval';
-  }
+  config.mode = isRelease ? 'production' : 'development';
 
   if (isRelease) {
-    config.plugins = [new UglifyJsPlugin()];
-
     config.module.rules.push({
       test: /\.js$/,
-      exclude: [/node_modules/],
       use: [{
         loader: 'babel-loader',
         options: {
