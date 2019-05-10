@@ -11,7 +11,7 @@ ShaderBackground.vertexName = ShaderBackground.fragmentName = 'Background';
 ShaderBackground.uniforms = {};
 ShaderBackground.attributes = {};
 
-ShaderBackground.uniformNames = ['uTexture0', 'uBackgroundType', 'uIblTransform', 'uSPH', 'uBlur'];
+ShaderBackground.uniformNames = ['uTexture0', 'uBackgroundType', 'uIblTransform', 'uSPH', 'uBlur', 'uEnvSize'];
 
 ShaderBackground.vertex = [
   'attribute vec2 aVertex;',
@@ -68,7 +68,8 @@ ShaderBackground.updateUniforms = function (bg) {
   mat3.fromMat4(uIBLTmp, main.getCamera().getView());
   gl.uniformMatrix3fv(uniforms.uIblTransform, false, mat3.transpose(uIBLTmp, uIBLTmp));
 
-  gl.uniform3fv(uniforms.uSPH, ShaderPBR.getOrCreateSPH(env));
+  gl.uniform3fv(uniforms.uSPH, env.sph);
+  if (env.size) gl.uniform2fv(uniforms.uEnvSize, env.size);
 
   gl.uniform1f(uniforms.uBlur, bg.getBlur());
 };

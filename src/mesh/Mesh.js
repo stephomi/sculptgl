@@ -20,6 +20,9 @@ mesh.init(); // compute octree/topo/UV, etc...
 mesh.initRender(); // only if gl has been provided
 */
 
+var DEF_ROUGHNESS = 0.18; // 0.18;
+var DEF_METALNESS = 0.08; // 0.08;
+
 class Mesh {
 
   constructor() {
@@ -454,8 +457,8 @@ class Mesh {
       var mAr = this._meshData._materialsPBR = new Float32Array(len);
       for (i = 0; i < nbVertices; ++i) {
         var j = i * 3;
-        mAr[j] = 0.18;
-        mAr[j + 1] = 0.08;
+        mAr[j] = DEF_ROUGHNESS;
+        mAr[j + 1] = DEF_METALNESS;
         mAr[j + 2] = 1.0;
       }
     }

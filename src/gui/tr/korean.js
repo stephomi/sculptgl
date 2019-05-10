@@ -208,13 +208,7 @@ var TR = {
 
   alphaNone: null,
   alphaSquare: null,
-  alphaSkin: null,
-
-  envFootPrint: null,
-  envGlazedPatio: null,
-  envNicolausChurch: null,
-  envTerrace: null,
-  envBryantPark: null
+  alphaSkin: null
 };
 
 export default TR;

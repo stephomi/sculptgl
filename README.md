@@ -29,8 +29,4 @@ Credits
 
 #### Environments
 
-The raw environments can be found here (check the licenses !) :
-
-http://www.hdrlabs.com/sibl/archive.html
-
-http://hdrmaps.com/freebies
+The raw environments are from https://hdrihaven.com/hdris

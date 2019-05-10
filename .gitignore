@@ -10,3 +10,6 @@ node_modules
 *.sublime-workspace
 *.log
 *.map
+*.hdr
+tools/*.png
+tools/dist

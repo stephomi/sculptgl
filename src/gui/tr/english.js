@@ -210,12 +210,6 @@ var TR = {
   alphaSquare: 'Square',
   alphaSkin: 'Skin',
 
-  envFootPrint: 'Foot Print',
-  envGlazedPatio: 'Glazed Patio',
-  envNicolausChurch: 'St Nicolaus church',
-  envTerrace: 'Terrace',
-  envBryantPark: 'BryantPark',
-
   remeshTitleMC: 'Voxel remeshing (manifold tris)',
   remeshRemeshMC: 'Remesh',
   remeshSmoothingMC: 'Relax topology'

@@ -208,13 +208,7 @@ var TR = {
 
   alphaNone: 'Vide',
   alphaSquare: 'Carré',
-  alphaSkin: 'Peau',
-
-  envFootPrint: 'Empreinte',
-  envGlazedPatio: 'Patio glacé',
-  envNicolausChurch: 'Eglise Saint-Nicolas',
-  envTerrace: 'Terrasse',
-  envBryantPark: 'Bryant Park'
+  alphaSkin: 'Peau'
 };
 
 export default TR;

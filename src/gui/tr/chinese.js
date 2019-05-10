@@ -208,13 +208,7 @@ var TR = {
 
   alphaNone: '無',
   alphaSquare: '方塊',
-  alphaSkin: '皮膚',
-
-  envFootPrint: '足跡',
-  envGlazedPatio: '庭院',
-  envNicolausChurch: '聖尼古拉斯教堂',
-  envTerrace: '陽台',
-  envBryantPark: '布萊恩特公園'
+  alphaSkin: '皮膚'
 };
 
 export default TR;

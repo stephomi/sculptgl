@@ -208,13 +208,7 @@ var TR = {
 
   alphaNone: 'Нет',
   alphaSquare: 'Квадрат',
-  alphaSkin: 'Кожа',
-
-  envFootPrint: 'Китайский театр Граумана',
-  envGlazedPatio: 'Застекленный дворик',
-  envNicolausChurch: 'Церковь Святого Николая',
-  envTerrace: 'Терраса',
-  envBryantPark: 'Бра́йант-парк'
+  alphaSkin: 'Кожа'
 };
 
 export default TR;
