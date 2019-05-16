@@ -94,17 +94,16 @@ class GuiRendering {
 
   onEnvironmentChanged(val) {
     ShaderPBR.idEnv = val;
-    this.onUpdateExposre();
+    this.onUpdateCtrlExposure();
     this._main.render();
   }
 
   onUpdateCtrlExposure() {
-    var val = ShaderPBR.environments[ShaderPBR.idEnv].exposure;
-    this._ctrlExposure.setValue(val * val / 5);
+    this._ctrlExposure.setValue(ShaderPBR.environments[ShaderPBR.idEnv].exposure);
   }
 
   onExposureChanged(val) {
-    ShaderPBR.exposure = Math.sqrt(5 * val);
+    ShaderPBR.exposure = val;
     this._main.render();
   }
 
