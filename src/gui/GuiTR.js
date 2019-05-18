@@ -7,7 +7,7 @@ import russian from 'gui/tr/russian';
 import turkish from 'gui/tr/turkish';
 import swedish from 'gui/tr/swedish';
 import french from 'gui/tr/french';
-import german from 'gui/tr/french';
+import german from 'gui/tr/german';
 
 var GuiTR = function (key) {
   var str = GuiTR.languages[GuiTR.select][key] || GuiTR.languages.english[key];

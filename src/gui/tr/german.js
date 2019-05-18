@@ -60,7 +60,7 @@ var TR = {
   meshNbFaces: 'Faces : ',
 
   // topology
-  topologyTitle: 'Topology',
+  topologyTitle: 'Topologie',
 
   //multires
   multiresTitle: 'Mehrfachauflösung',
