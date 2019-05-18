@@ -120,7 +120,7 @@ var getOptionsURL = function () {
   var params = readUrlParameters();
 
   // misc
-  options.language = params.language; // english/chinese/korean/japanese/russian/turkish/swedish
+  options.language = params.language; // english/chinese/korean/japanese/russian/turkish/swedish/french/german
   options.scalecenter = queryBool(params.scalecenter, false);
 
   // display
