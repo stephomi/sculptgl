@@ -7,6 +7,7 @@ import russian from 'gui/tr/russian';
 import turkish from 'gui/tr/turkish';
 import swedish from 'gui/tr/swedish';
 import french from 'gui/tr/french';
+import german from 'gui/tr/german';
 
 var GuiTR = function (key) {
   var str = GuiTR.languages[GuiTR.select][key] || GuiTR.languages.english[key];
@@ -26,7 +27,8 @@ GuiTR.languages = {
   'русский': russian,
   'turkish': turkish,
   'svenska': swedish,
-  'français': french
+  'français': french,
+  'deutsch': german
 };
 
 GuiTR.select = 'english';
@@ -37,6 +39,8 @@ else if (language === 'zh') GuiTR.select = '中文';
 else if (language === 'ko') GuiTR.select = '한국어';
 else if (language === 'tr') GuiTR.select = 'turkish';
 else if (language === 'sv') GuiTR.select = 'svenska';
+else if (language === 'fr') GuiTR.select = 'français';
+else if (language === 'de') GuiTR.select = 'deutsch';
 
 switch (getOptionsURL().language) {
 case 'english':
@@ -62,6 +66,9 @@ case 'swedish':
   break;
 case 'french':
   GuiTR.select = 'français';
+  break;
+case 'german':
+  GuiTR.select = 'deutsch';
   break;
 }
 
