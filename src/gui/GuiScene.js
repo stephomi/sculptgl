@@ -48,7 +48,7 @@ class GuiScene {
     menu.addCheckbox(TR('contourShow'), this._main._showContour, this.onShowContour.bind(this));
     menu.addCheckbox(TR('renderingGrid'), this._main._showGrid, this.onShowGrid.bind(this));
     menu.addCheckbox(TR('renderingSymmetryLine'), ShaderBase.showSymmetryLine, this.onShowSymmetryLine.bind(this));
-    this._ctrlOffSym = menu.addSlider('Offset symmetry', 0.0, this.onOffsetSymmetry.bind(this), -1.0, 1.0, 0.001);
+    this._ctrlOffSym = menu.addSlider('SymOffset', 0.0, this.onOffsetSymmetry.bind(this), -1.0, 1.0, 0.001);
   }
 
   clearScene() {
