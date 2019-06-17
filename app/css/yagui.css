@@ -412,9 +412,9 @@ body {
 .gui-topbar {
   position: absolute;
   background: #20211d;
-  height: 40px;
   width: 100%;
-  padding: 0 10px;
+  padding-right: 10px;
+  padding-left: 10px;
   z-index: 1;
   float: left;
 }
@@ -427,9 +427,8 @@ body {
 
 .gui-topbar ul > li {
   float: left;
-  height: 40px;
   line-height: 40px;
-  padding-left: 30px;
+  padding: 0 15px;
   position: relative;
   cursor: pointer;
 }

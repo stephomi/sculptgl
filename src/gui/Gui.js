@@ -85,6 +85,8 @@ class Gui {
 
     this.updateMesh();
     this.setVisibility(true);
+
+    if (window.postprocessGui) window.postprocessGui();
   }
 
   getNotification(notifName) {

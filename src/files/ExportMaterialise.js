@@ -7,7 +7,7 @@ Export.exportMaterialise = function (main, statusWidget) {
   var xhr = new XMLHttpRequest();
   // xhr.open('POST', 'https://i.materialise.com/upload', true);
   // xhr.open('POST', 'uploadMaterialise.php', true);
-  xhr.open('POST', 'https://i.materialise.com/web-api/tool//model', true);
+  xhr.open('POST', 'https://i.materialise.com/web-api/tool/20cc0fd6-3cef-4111-a201-0b87026d892c/model', true);
 
   xhr.onprogress = function (event) {
     if (event.lengthComputable && event.total) {
