@@ -16,6 +16,8 @@ function createWindow() {
     height: mainWindowState.height
   });
 
+  mainWindow.removeMenu();
+
   mainWindowState.manage(mainWindow);
 
   mainWindow.loadURL(`file://${__dirname}/app/index.html`);
