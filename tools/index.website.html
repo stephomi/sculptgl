@@ -68,6 +68,9 @@
             topBar.domTopbar.style.paddingLeft = '160px';
         }
         window.postprocessGui();
+      } else {
+        var elt = document.getElementById('adzone');
+        if (elt) elt.hidden = true; // issue with firefox otherwise
       }
     });
 </script>
