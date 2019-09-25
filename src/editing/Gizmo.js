@@ -525,17 +525,7 @@ class Gizmo {
       else if (nbAxis === 2) mat4.rotateZ(mrot, mrot, -angle);
 
       this._scaleRotateEditMatrix(mrot, i);
-      // mat4.mul(mrot, this._editTrans, mrot);
-      // mat4.mul(mrot, mrot, this._editTransInv);
-
-      // mat4.mul(mrot, this._editLocalInv, mrot);
-      // mat4.mul(mrot, mrot, this._editLocal);
     }
-
-    // mat4.mul(edit, this._editTrans, edit);
-    // mat4.mul(edit, edit, this._editTransInv);
-
-    // this._scaleRotateEditMatrix(mrot);
 
     main.render();
   }
