@@ -16,7 +16,7 @@ var ARROW_LENGTH = 2.5;
 var ARROW_CONE_THICK = 6.0;
 var ARROW_CONE_LENGTH = 0.25;
 // thickness of tori and arrows
-var THICKNESS = 0.020;
+var THICKNESS = 0.02;
 var THICKNESS_PICK = THICKNESS * 5.0;
 // radius of tori
 var ROT_RADIUS = 1.5;
@@ -71,7 +71,6 @@ var PLANE_XYZ = PLANE_X | PLANE_Y | PLANE_Z;
 var SCALE_XYZW = SCALE_X | SCALE_Y | SCALE_Z | SCALE_W;
 
 class Gizmo {
-
   static get TRANS_X() {
     return TRANS_X;
   }
@@ -133,7 +132,8 @@ class Gizmo {
     this._gl = main._gl;
 
     // activated gizmos
-    this._activatedType = Gizmo.TRANS_XYZ | Gizmo.ROT_XYZ | Gizmo.PLANE_XYZ | Gizmo.SCALE_XYZW | Gizmo.ROT_W;
+    this._activatedType =
+      Gizmo.TRANS_XYZ | Gizmo.ROT_XYZ | Gizmo.PLANE_XYZ | Gizmo.SCALE_XYZW | Gizmo.ROT_W;
 
     // trans arrow 1 dim
     this._transX = createGizmo(Gizmo.TRANS_X, 0);
@@ -175,13 +175,13 @@ class Gizmo {
     this._editOffset = [0.0, 0.0, 0.0];
 
     // cached matrices when starting the editing operations
-    this._editLocal = mat4.create();
+    this._editLocal = [];
     this._editTrans = mat4.create();
-    this._editScaleRot = mat4.create();
+    this._editScaleRot = [];
     // same for inv
-    this._editLocalInv = mat4.create();
+    this._editLocalInv = [];
     this._editTransInv = mat4.create();
-    this._editScaleRotInv = mat4.create();
+    this._editScaleRotInv = [];
 
     this._initTranslate();
     this._initRotate();
@@ -223,9 +223,20 @@ class Gizmo {
     mat4.translate(mat, mat, [0.0, ARROW_LENGTH * 0.5, 0.0]);
     vec3.copy(tra._color, color);
 
-    tra._pickGeo = Primitives.createArrow(this._gl, THICKNESS_PICK, ARROW_LENGTH, ARROW_CONE_THICK * 0.4);
+    tra._pickGeo = Primitives.createArrow(
+      this._gl,
+      THICKNESS_PICK,
+      ARROW_LENGTH,
+      ARROW_CONE_THICK * 0.4
+    );
     tra._pickGeo._gizmo = tra;
-    tra._drawGeo = Primitives.createArrow(this._gl, THICKNESS, ARROW_LENGTH, ARROW_CONE_THICK, ARROW_CONE_LENGTH);
+    tra._drawGeo = Primitives.createArrow(
+      this._gl,
+      THICKNESS,
+      ARROW_LENGTH,
+      ARROW_CONE_THICK,
+      ARROW_CONE_LENGTH
+    );
     tra._drawGeo.setShaderType(Enums.Shader.FLAT);
   }
 
@@ -252,7 +263,14 @@ class Gizmo {
 
   _createCircle(rot, rad, color, radius = ROT_RADIUS, mthick = 1.0) {
     vec3.copy(rot._color, color);
-    rot._pickGeo = Primitives.createTorus(this._gl, radius, THICKNESS_PICK * mthick, rad, 6, 64);
+    rot._pickGeo = Primitives.createTorus(
+      this._gl,
+      radius,
+      THICKNESS_PICK * mthick,
+      rad,
+      6,
+      64
+    );
     rot._pickGeo._gizmo = rot;
     rot._drawGeo = Primitives.createTorus(this._gl, radius, THICKNESS * mthick, rad, 6, 64);
     rot._drawGeo.setShaderType(Enums.Shader.FLAT);
@@ -310,12 +328,17 @@ class Gizmo {
   }
 
   _computeCenterGizmo(center = [0.0, 0.0, 0.0]) {
-    var mesh = this._main.getMesh();
-    if (mesh) {
-      vec3.copy(center, mesh.getCenter());
-      vec3.transformMat4(center, center, mesh.getEditMatrix());
-      vec3.transformMat4(center, center, mesh.getMatrix());
+    var meshes = this._main.getSelectedMeshes();
+
+    var acc = [0.0, 0.0, 0.0];
+    var icenter = [0.0, 0.0, 0.0];
+    for (var i = 0; i < meshes.length; ++i) {
+      var mesh = meshes[i];
+      vec3.transformMat4(icenter, mesh.getCenter(), mesh.getEditMatrix());
+      vec3.transformMat4(icenter, icenter, mesh.getMatrix());
+      vec3.add(acc, acc, icenter);
     }
+    vec3.scale(center, acc, 1.0 / meshes.length);
     return center;
   }
 
@@ -325,7 +348,7 @@ class Gizmo {
     var eye = camera.computePosition();
 
     this._lastDistToEye = this._isEditing ? this._lastDistToEye : vec3.dist(eye, trMesh);
-    var scaleFactor = this._lastDistToEye * GIZMO_SIZE / camera.getConstantScreen();
+    var scaleFactor = (this._lastDistToEye * GIZMO_SIZE) / camera.getConstantScreen();
 
     var traScale = mat4.create();
     mat4.translate(traScale, traScale, trMesh);
@@ -366,29 +389,38 @@ class Gizmo {
     var main = this._main;
     var width = main.getCanvasWidth();
     var height = main.getCanvasHeight();
-    vAr[0] = ((x1 / width) * 2.0) - 1.0;
-    vAr[1] = (((height - y1) / height)) * 2.0 - 1.0;
-    vAr[3] = ((x2 / width) * 2.0) - 1.0;
-    vAr[4] = (((height - y2) / height)) * 2.0 - 1.0;
+    vAr[0] = (x1 / width) * 2.0 - 1.0;
+    vAr[1] = ((height - y1) / height) * 2.0 - 1.0;
+    vAr[3] = (x2 / width) * 2.0 - 1.0;
+    vAr[4] = ((height - y2) / height) * 2.0 - 1.0;
     this._lineHelper.updateVertexBuffer();
   }
 
   _saveEditMatrices() {
-    // mesh local matrix
-    mat4.copy(this._editLocal, this._main.getMesh().getMatrix());
+    var meshes = this._main.getSelectedMeshes();
 
     // translation part
     var center = this._computeCenterGizmo();
     mat4.translate(this._editTrans, mat4.identity(this._editTrans), center);
-
-    // rotation + scale part
-    mat4.copy(this._editScaleRot, this._editLocal);
-    this._editScaleRot[12] = this._editScaleRot[13] = this._editScaleRot[14] = 0.0;
-
-    // precomputes the invert
-    mat4.invert(this._editLocalInv, this._editLocal);
     mat4.invert(this._editTransInv, this._editTrans);
-    mat4.invert(this._editScaleRotInv, this._editScaleRot);
+
+    for (var i = 0; i < meshes.length; ++i) {
+      this._editLocal[i] = mat4.create();
+      this._editScaleRot[i] = mat4.create();
+      this._editLocalInv[i] = mat4.create();
+      this._editScaleRotInv[i] = mat4.create();
+
+      // mesh local matrix
+      mat4.copy(this._editLocal[i], meshes[i].getMatrix());
+
+      // rotation + scale part
+      mat4.copy(this._editScaleRot[i], this._editLocal[i]);
+      this._editScaleRot[i][12] = this._editScaleRot[i][13] = this._editScaleRot[i][14] = 0.0;
+
+      // precomputes the invert
+      mat4.invert(this._editLocalInv[i], this._editLocal[i]);
+      mat4.invert(this._editScaleRotInv[i], this._editScaleRot[i]);
+    }
   }
 
   _startRotateEdit() {
@@ -425,7 +457,8 @@ class Gizmo {
 
     // 3d direction
     var nbAxis = this._selected._nbAxis;
-    if (nbAxis !== -1) // if -1, we don't care about dir vector
+    if (nbAxis !== -1)
+      // if -1, we don't care about dir vector
       vec3.set(dir, 0.0, 0.0, 0.0)[nbAxis] = 1.0;
     vec3.add(dir, origin, dir);
 
@@ -463,7 +496,6 @@ class Gizmo {
 
   _updateRotateEdit() {
     var main = this._main;
-    var mesh = main.getMesh();
 
     var origin = this._editLineOrigin;
     var dir = this._editLineDirection;
@@ -473,19 +505,37 @@ class Gizmo {
     var dist = vec2.dot(vec, dir);
 
     // helper line
-    this._updateLineHelper(origin[0], origin[1], origin[0] + dir[0] * dist, origin[1] + dir[1] * dist);
+    this._updateLineHelper(
+      origin[0],
+      origin[1],
+      origin[0] + dir[0] * dist,
+      origin[1] + dir[1] * dist
+    );
 
-    var angle = 7 * dist / Math.min(main.getCanvasWidth(), main.getCanvasHeight());
-    angle %= (Math.PI * 2);
+    var angle = (7 * dist) / Math.min(main.getCanvasWidth(), main.getCanvasHeight());
+    angle %= Math.PI * 2;
     var nbAxis = this._selected._nbAxis;
 
-    var mrot = mesh.getEditMatrix();
-    mat4.identity(mrot);
-    if (nbAxis === 0) mat4.rotateX(mrot, mrot, -angle);
-    else if (nbAxis === 1) mat4.rotateY(mrot, mrot, -angle);
-    else if (nbAxis === 2) mat4.rotateZ(mrot, mrot, -angle);
+    var meshes = this._main.getSelectedMeshes();
+    for (var i = 0; i < meshes.length; ++i) {
+      var mrot = meshes[i].getEditMatrix();
+      mat4.identity(mrot);
+      if (nbAxis === 0) mat4.rotateX(mrot, mrot, -angle);
+      else if (nbAxis === 1) mat4.rotateY(mrot, mrot, -angle);
+      else if (nbAxis === 2) mat4.rotateZ(mrot, mrot, -angle);
 
-    this._scaleRotateEditMatrix(mrot);
+      this._scaleRotateEditMatrix(mrot, i);
+      // mat4.mul(mrot, this._editTrans, mrot);
+      // mat4.mul(mrot, mrot, this._editTransInv);
+
+      // mat4.mul(mrot, this._editLocalInv, mrot);
+      // mat4.mul(mrot, mrot, this._editLocal);
+    }
+
+    // mat4.mul(edit, this._editTrans, edit);
+    // mat4.mul(edit, edit, this._editTransInv);
+
+    // this._scaleRotateEditMatrix(mrot);
 
     main.render();
   }
@@ -493,7 +543,6 @@ class Gizmo {
   _updateTranslateEdit() {
     var main = this._main;
     var camera = main.getCamera();
-    var mesh = main.getMesh();
 
     var origin = this._editLineOrigin;
     var dir = this._editLineDirection;
@@ -525,10 +574,7 @@ class Gizmo {
     var b1 = -vec3.dot(near, inter);
     inter[this._selected._nbAxis] = (a01 * b0 - b1) / det;
 
-    vec3.transformMat4(inter, inter, this._editScaleRotInv);
-    var edim = mesh.getEditMatrix();
-    mat4.identity(edim);
-    mat4.translate(edim, edim, inter);
+    this._updateMatrixTranslate(inter);
 
     main.render();
   }
@@ -536,13 +582,17 @@ class Gizmo {
   _updatePlaneEdit() {
     var main = this._main;
     var camera = main.getCamera();
-    var mesh = main.getMesh();
 
     var vec = [main._mouseX, main._mouseY, 0.0];
     vec2.sub(vec, vec, this._editOffset);
 
     // helper line
-    this._updateLineHelper(this._editLineOrigin[0], this._editLineOrigin[1], main._mouseX, main._mouseY);
+    this._updateLineHelper(
+      this._editLineOrigin[0],
+      this._editLineOrigin[1],
+      main._mouseX,
+      main._mouseY
+    );
 
     var near = camera.unproject(vec[0], vec[1], 0.0);
     var far = camera.unproject(vec[0], vec[1], 0.1);
@@ -557,8 +607,7 @@ class Gizmo {
     var dist1 = vec3.dot(near, inter);
     var dist2 = vec3.dot(far, inter);
     // ray copplanar to triangle
-    if (dist1 === dist2)
-      return false;
+    if (dist1 === dist2) return false;
 
     // intersection between ray and triangle
     var val = -dist1 / (dist2 - dist1);
@@ -566,12 +615,22 @@ class Gizmo {
     inter[1] = near[1] + (far[1] - near[1]) * val;
     inter[2] = near[2] + (far[2] - near[2]) * val;
 
-    vec3.transformMat4(inter, inter, this._editScaleRotInv);
-    var edim = mesh.getEditMatrix();
-    mat4.identity(edim);
-    mat4.translate(edim, edim, inter);
+    this._updateMatrixTranslate(inter);
 
     main.render();
+  }
+
+  _updateMatrixTranslate(inter) {
+    var tmp = [0, 0, 0];
+
+    var meshes = this._main.getSelectedMeshes();
+    for (var i = 0; i < meshes.length; ++i) {
+      vec3.transformMat4(tmp, inter, this._editScaleRotInv[i]);
+
+      var edim = meshes[i].getEditMatrix();
+      mat4.identity(edim);
+      mat4.translate(edim, edim, tmp);
+    }
   }
 
   _updateScaleEdit() {
@@ -602,21 +661,24 @@ class Gizmo {
       inter[nbAxis] += scaleMult;
     }
 
-    var edim = mesh.getEditMatrix();
-    mat4.identity(edim);
-    mat4.scale(edim, edim, inter);
+    var meshes = this._main.getSelectedMeshes();
+    for (var i = 0; i < meshes.length; ++i) {
+      var edim = meshes[i].getEditMatrix();
+      mat4.identity(edim);
+      mat4.scale(edim, edim, inter);
 
-    this._scaleRotateEditMatrix(edim);
+      this._scaleRotateEditMatrix(edim, i);
+    }
 
     main.render();
   }
 
-  _scaleRotateEditMatrix(edit) {
+  _scaleRotateEditMatrix(edit, i) {
     mat4.mul(edit, this._editTrans, edit);
     mat4.mul(edit, edit, this._editTransInv);
 
-    mat4.mul(edit, this._editLocalInv, edit);
-    mat4.mul(edit, edit, this._editLocal);
+    mat4.mul(edit, this._editLocalInv[i], edit);
+    mat4.mul(edit, edit, this._editLocal[i]);
   }
 
   addGizmoToScene(scene) {
@@ -686,8 +748,7 @@ class Gizmo {
     var pickables = this._pickables;
     picking.intersectionMouseMeshes(pickables, mx, my);
 
-    if (this._selected)
-      this._selected._isSelected = false;
+    if (this._selected) this._selected._isSelected = false;
     var geo = picking.getMesh();
     if (!geo) {
       this._selected = null;
@@ -702,8 +763,7 @@ class Gizmo {
 
   onMouseDown() {
     var sel = this._selected;
-    if (!sel)
-      return false;
+    if (!sel) return false;
 
     this._isEditing = true;
     var type = sel._type;

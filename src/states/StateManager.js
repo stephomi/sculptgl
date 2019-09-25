@@ -119,7 +119,7 @@ class StateManager {
     state.redo();
     this._curUndoIndex++;
     this._redos.pop();
-    if (state.squash === true)
+    if (this._redos.length && this._redos[this._redos.length - 1].squash === true)
       this.redo();
   }
 

@@ -34,7 +34,6 @@ class Transform extends SculptBase {
     var picking = main.getPicking();
 
     if (mesh && this._gizmo.onMouseDown()) {
-      this.pushState();
       picking._mesh = mesh;
       return true;
     }
@@ -53,19 +52,24 @@ class Transform extends SculptBase {
   end() {
     this._gizmo.onMouseUp();
 
-    var mesh = this.getMesh();
-    if (!mesh)
+    if (!this.getMesh() || this.isIdentity(this.getMesh().getEditMatrix()))
       return;
 
-    if (this.isIdentity(mesh.getEditMatrix()))
-      return;
+    var meshes = this._main.getSelectedMeshes();
+    for (var i = 0; i < meshes.length; ++i) {
+      this._forceToolMesh = meshes[i];
 
-    var iVerts = this.getUnmaskedVertices();
-    this._main.getStateManager().pushVertices(iVerts);
+      this.pushState();
+      if (i > 0) this._main.getStateManager().getCurrentState().squash = true;
 
-    this.applyEditMatrix(iVerts);
-    if (iVerts.length === 0) return;
-    this.updateMeshBuffers();
+      var iVerts = this.getUnmaskedVertices();
+      this._main.getStateManager().pushVertices(iVerts);
+      this.applyEditMatrix(iVerts);
+
+      if (iVerts.length === 0) continue;
+      this.updateMeshBuffers();
+    }
+    this._forceToolMesh = null;
   }
 
   applyEditMatrix(iVerts) {
