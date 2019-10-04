@@ -1,3 +1,8 @@
+Status
+======
+
+I don't maintain Sculptgl anymore (except small/minor fixes).
+
 SculptGL - WebGL sculpting
 ==========================
 
@@ -13,7 +18,7 @@ Nodejs needs to be installed [nodejs](http://nodejs.org/).
 Then for the browser build :
 ```
 yarn # npm install
-yarn dev # npm run dev
+yarn dev # npm run dev (npm run release for final build, npm run website should not be used)
 // visit app/index.html
 ```
 

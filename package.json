@@ -17,15 +17,16 @@
     "@babel/core": "^7.6.2",
     "@babel/preset-env": "^7.6.2",
     "babel-loader": "^8.0.6",
+    "copy-webpack-plugin": "^5.0.4",
     "electron": "^6.0.11",
     "electron-packager": "^14.0.6",
     "webpack": "^4.41.0",
     "webpack-cli": "^3.3.9"
   },
   "scripts": {
-    "dev": "cp tools/index.dev.html app/index.html && cp tools/authSuccess.html app/authSuccess.html && node_modules\\.bin\\webpack -w",
-    "release": "rm -f app/sculptgl.js.map && cp tools/index.release.html app/index.html && cp tools/authSuccess.html app/authSuccess.html && node_modules\\.bin\\webpack --env.release",
-    "website": "rm -f app/sculptgl.js.map && cp tools/index.website.html app/index.html && cp tools/authSuccess.html app/authSuccess.html && node_modules\\.bin\\webpack --env.release",
+    "dev": "node_modules/.bin/webpack -w",
+    "release": "node_modules/.bin/webpack --env.release",
+    "website": "node_modules/.bin/webpack --env.website",
     "buildElectron": "yarn release && rm -rf standalone/app/ && cp -R app/ standalone/ && cp package.json standalone",
     "standalone": "yarn buildElectron && cd standalone && node buildStandalone.js"
   },

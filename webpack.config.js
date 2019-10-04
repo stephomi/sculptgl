@@ -1,6 +1,9 @@
+var CopyWebpackPlugin = require('copy-webpack-plugin');
 var path = require('path');
 
 module.exports = function (env) {
+  env = env || {};
+
   var config = {
     entry: './main.js',
     output: {
@@ -21,14 +24,27 @@ module.exports = function (env) {
         test: /\.glsl$/,
         loader: 'raw-loader'
       }]
-    }
+    },
+    plugins: []
   };
 
-  var isRelease = env && env.release;
+  config.mode = (env.release || env.website) ? 'production' : 'development';
 
-  config.mode = isRelease ? 'production' : 'development';
+  var indexFile;
+  if (env.release) {
+    indexFile = 'tools/index.release.html';
+  } else if (env.website) {
+    indexFile = 'tools/index.website.html';
+  } else {
+    indexFile = 'tools/index.dev.html';
+  }
 
-  if (isRelease) {
+  config.plugins.push(new CopyWebpackPlugin([
+    { from: 'tools/authSuccess.html', to: 'authSuccess.html' },
+    { from: indexFile, to: 'index.html' }
+  ]));
+
+  if (env.release) {
     config.module.rules.push({
       test: /\.js$/,
       use: [{
@@ -36,7 +52,7 @@ module.exports = function (env) {
         options: {
           presets: ['@babel/preset-env']
         }
-      }],
+      }]
     });
   }
 
