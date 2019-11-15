@@ -16,6 +16,9 @@ class GuiFiles {
     this._menu = null; // ui menu
     this._parent = guiParent;
     this._exportAll = true;
+
+    this._objColorZbrush = true;
+    this._objColorAppended = false;
     this.init(guiParent);
   }
 
@@ -35,6 +38,8 @@ class GuiFiles {
     menu.addButton(TR('fileExportOBJ'), this, 'saveFileAsOBJ' /*, 'CTRL+E'*/ );
     menu.addButton(TR('fileExportPLY'), this, 'saveFileAsPLY');
     menu.addButton(TR('fileExportSTL'), this, 'saveFileAsSTL');
+    menu.addCheckbox('OBJ color zbrush', this, '_objColorZbrush');
+    menu.addCheckbox('OBJ color append', this, '_objColorAppended');
     menu.addButton(TR('sketchfabTitle'), this._ctrlGui, 'exportSketchfab');
 
     // export texture
@@ -177,7 +182,7 @@ class GuiFiles {
   saveFileAsOBJ() {
     var meshes = this._getExportMeshes();
     if (!meshes) return;
-    this._save(Export.exportOBJ(meshes), 'yourMesh.obj');
+    this._save(Export.exportOBJ(meshes, this._objColorZbrush, this._objColorAppended), 'yourMesh.obj');
   }
 
   saveFileAsPLY() {
