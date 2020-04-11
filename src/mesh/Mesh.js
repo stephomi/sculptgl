@@ -1159,6 +1159,18 @@ class Mesh {
 
   initTexCoordsDataFromOBJData(uvAr, uvfArOrig) {
     var fAr = this.getFaces();
+    var len = fAr.length;
+
+    if (len != uvfArOrig.length) return;
+    var nbUV = uvAr.length / 2;
+
+    // fix integrity (bug with sgl export??)
+    for (i = 0; i < len; ++i) {
+      if (uvfArOrig[i] >= nbUV) {
+        uvfArOrig[i] = fAr[i];
+      }
+    }
+
     var nbVertices = this.getNbVertices();
     var i = 0;
     var j = 0;
@@ -1172,7 +1184,6 @@ class Mesh {
     var dup = [];
     var acc = 0;
     var nbDuplicates = 0;
-    var len = fAr.length;
     for (i = 0; i < len; ++i) {
       iv = fAr[i];
       if (iv === Utils.TRI_INDEX)
