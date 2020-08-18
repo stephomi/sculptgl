@@ -1,0 +1,105 @@
+<!doctype html>
+<html lang='en'>
+
+<head>
+  <meta charset='utf-8' />
+  <meta name='description' content='SculptGL is a small sculpting application powered by JavaScript and webGL.'>
+  <meta name='author' content='stéphane GINIER'>
+  <meta name='mobile-web-app-capable' content='yes'>
+  <meta name='apple-mobile-web-app-capable' content='yes'>
+
+  <title> SculptGL - A WebGL sculpting app </title>
+
+  <link rel='stylesheet' type='text/css' href='https://fonts.googleapis.com/css?family=Open+Sans:400,600'>
+  <link rel='stylesheet' type='text/css' href='css/yagui.css' />
+  <link rel='stylesheet' type='text/css' href='//cdnjs.cloudflare.com/ajax/libs/cookieconsent2/3.1.0/cookieconsent.min.css' />
+
+  <script type='text/javascript'>
+  (function (i, s, o, g, r, a, m) {
+    i['GoogleAnalyticsObject'] = r;
+    i[r] = i[r] || function () {
+      (i[r].q = i[r].q || []).push(arguments)
+    }, i[r].l = 1 * new Date();
+    a = s.createElement(o),
+      m = s.getElementsByTagName(o)[0];
+    a.async = 1;
+    a.src = g;
+    m.parentNode.insertBefore(a, m)
+  })(window, document, 'script', '//www.google-analytics.com/analytics.js', 'ga');
+  ga('create', 'UA-42431392-1', 'auto');
+  ga('send', 'pageview');
+
+  </script>
+
+  <script src='//cdnjs.cloudflare.com/ajax/libs/cookieconsent2/3.1.0/cookieconsent.min.js'></script>
+
+  <script>
+    'use strict';
+
+    (window.adsbygoogle = window.adsbygoogle || []).push({});
+
+    window.sketchfabOAuth2Config = {
+      hostname: 'sketchfab.com',
+      client_id: 'OWoAmrd1QCS9wB54Ly17rMl2i5AHGvDNfmN4pEUH',
+      redirect_uri: 'https://stephaneginier.com/sculptgl/authSuccess.html'
+    };
+
+    window.addEventListener('load', function() {
+      var app = new window.SculptGL();
+      app.start();
+
+      var showAd = document.getElementById('adzone').clientWidth > 0;
+      if (showAd && window.adsbygoogle.loaded) {
+        window.cookieconsent.initialise({
+          palette: {
+            popup: { background: '#262b33' },
+            button: { background: '#4d5766' }
+          },
+          theme: 'classic',
+          position: 'bottom-left',
+          content: {
+            message: 'SculptGL uses cookies.',
+            href: 'https://support.google.com/adsense/answer/7549925'
+          }
+        });
+
+        window.postprocessGui = function() {
+            var topBar = app.getGui()._topbar;
+            topBar.domTopbar.style.paddingLeft = '160px';
+            topBar.domTopbar.style.paddingRight = '170px';
+        }
+        window.postprocessGui();
+      } else {
+        var elt = document.getElementById('adzone');
+        if (elt) elt.hidden = true; // issue with firefox otherwise
+      }
+    });
+</script>
+</head>
+
+<body oncontextmenu='return false;'>
+  <div id="adzone" style="position:absolute; z-index:10; padding-top:40px;">
+    <style type="text/css">
+    .adslot_1 { display: inline-block; width: 160px; height: 600px; }
+    @media (max-width:900px) { .adslot_1 { display: none; } }
+    </style>
+    <!-- ad 1 -->
+    <ins class="adsbygoogle adslot_1" data-ad-client="ca-pub-8279106136067661" data-ad-slot="6064702281"></ins>
+    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
+  </div>
+
+  <input type='file' id='fileopen' multiple style='display: none' />
+  <input type='file' id='backgroundopen' style='display: none' />
+  <input type='file' id='alphaopen' style='display: none' />
+  <input type='file' id='textureopen' style='display: none' />
+  <input type='file' id='matcapopen' style='display: none' />
+
+  <div id='viewport'>
+    <canvas id='canvas'></canvas>
+  </div>
+
+  <script src='sculptgl.js'></script>
+  <script src='//cdn.webglstats.com/stat.js' defer='defer' async='async'></script>
+</body>
+
+</html>
