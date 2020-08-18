@@ -18,7 +18,7 @@
     "@babel/preset-env": "^7.8.3",
     "babel-loader": "^8.0.6",
     "copy-webpack-plugin": "^5.1.1",
-    "electron": "^6.1.7",
+    "electron": "^7.2.4",
     "electron-packager": "^14.2.0",
     "webpack": "^4.41.5",
     "webpack-cli": "^3.3.10"
