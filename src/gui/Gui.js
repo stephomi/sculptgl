@@ -56,7 +56,7 @@ class Gui {
     // Initialize the topbar
     this._topbar = this._guiMain.addTopbar();
     ctrls[idc++] = this._ctrlFiles = new GuiFiles(this._topbar, this);
-    this.initPrint(this._topbar);
+    // this.initPrint(this._topbar);
     ctrls[idc++] = this._ctrlScene = new GuiScene(this._topbar, this);
     ctrls[idc++] = this._ctrlStates = new GuiStates(this._topbar, this);
     ctrls[idc++] = this._ctrlBackground = new GuiBackground(this._topbar, this);
