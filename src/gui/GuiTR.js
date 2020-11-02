@@ -8,6 +8,7 @@ import turkish from 'gui/tr/turkish';
 import swedish from 'gui/tr/swedish';
 import french from 'gui/tr/french';
 import german from 'gui/tr/german';
+import italian from 'gui/tr/italian';
 
 var GuiTR = function (key) {
   var str = GuiTR.languages[GuiTR.select][key] || GuiTR.languages.english[key];
@@ -28,7 +29,8 @@ GuiTR.languages = {
   'turkish': turkish,
   'svenska': swedish,
   'français': french,
-  'deutsch': german
+  'deutsch': german,
+  'italiano': italian
 };
 
 GuiTR.select = 'english';
@@ -69,6 +71,9 @@ case 'french':
   break;
 case 'german':
   GuiTR.select = 'deutsch';
+  break;
+case 'italian':
+  GuiTR.select = 'italiano';
   break;
 }
 
