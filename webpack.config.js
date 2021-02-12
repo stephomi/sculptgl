@@ -39,10 +39,12 @@ module.exports = function (env) {
     indexFile = 'tools/index.dev.html';
   }
 
-  config.plugins.push(new CopyWebpackPlugin([
-    { from: 'tools/authSuccess.html', to: 'authSuccess.html' },
-    { from: indexFile, to: 'index.html' }
-  ]));
+  config.plugins.push(new CopyWebpackPlugin({
+    patterns: [
+      { from: 'tools/authSuccess.html', to: 'authSuccess.html' },
+      { from: indexFile, to: 'index.html' }
+    ],
+  }));
 
   if (env.release) {
     config.module.rules.push({
